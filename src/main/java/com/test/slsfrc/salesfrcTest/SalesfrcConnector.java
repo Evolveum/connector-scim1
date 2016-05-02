@@ -107,6 +107,14 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler arg2, OperationOptions options) {
 		//final Set<String> attributesToGet = getAttributesToGet(objectClass, options);
         Attribute key = getKeyFromFilter(objectClass, query);
+        
+        if(ObjectClass.ACCOUNT.equals(objectClass)){
+        
+        if (key == null){
+        	
+        	
+        }
+        }
 		
 	}
 	

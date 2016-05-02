@@ -102,14 +102,14 @@ public class Main {
         
         
         JsonDataProvider jsonData = new JsonDataProvider();
-       
+       /*
         //######################  USER CRUD METHODS ###################
         UserManager user = new UserManager(jsonData.setUserObject(), scimBaseUri, oauthHeader, prettyPrintHeader);
         
         // user.createUsers();
        // user.deleteUser();
         //user.updateUser();
-       // user.qeueryUsers();
+       // user.qeueryUsers("");
       
         //######################  GROUP CRUD METHODS ###################
          GroupManager group = new GroupManager(jsonData.setGroupObject(), scimBaseUri, oauthHeader, prettyPrintHeader);
@@ -126,18 +126,15 @@ public class Main {
          //entitlement.createEntitlement(); //501 Not Implemented
          //entitlement.deleteEntitlement(); // 501 Not Implemented
           //entitlement.updateEntitlement();
-         
+         */
+        
+        
+      //######################  More Gereric solution for CRUD METHODS ###################
+         SalesfrcEntityManager entity = new SalesfrcEntityManager(jsonData.setUserObject(), scimBaseUri, oauthHeader, prettyPrintHeader);
+         entity.qeueryEntity("00558000000VcXnAAK", "Users");
          	// release connection
         
         httpPost.releaseConnection();
     }
-
-
-    
-    
-    
-    
-    
-
     }
 

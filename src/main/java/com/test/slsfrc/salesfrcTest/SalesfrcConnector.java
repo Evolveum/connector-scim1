@@ -3,6 +3,8 @@ package com.test.slsfrc.salesfrcTest;
 import java.util.Collection;
 import java.util.Set;
 
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -22,6 +24,7 @@ import org.identityconnectors.framework.spi.operations.SchemaOp;
 import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
+import org.json.JSONObject;
 
 public class SalesfrcConnector implements Connector, CreateOp, DeleteOp, SchemaOp,
 SearchOp<Filter>, TestOp, UpdateOp {
@@ -46,6 +49,16 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
     public static final String ALIAS_ATTR = "alias";
     
+    
+    ////
+    public static Header oauthHeader;
+    
+    private static Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
+    
+    private static JSONObject j;
+    
+    /// ###########Entity mngr instance
+    SalesfrcEntityManager mngr = new SalesfrcEntityManager(j, "baseUri", oauthHeader, prettyPrintHeader);
     
     private SalesFrcConfiguration configuration; 
 	
@@ -111,8 +124,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
         if(ObjectClass.ACCOUNT.equals(objectClass)){
         
         if (key == null){
-        	
-        	
+        	mngr.qeueryEntity("", "Users");
         }
         }
 		

@@ -22,6 +22,16 @@ import org.identityconnectors.framework.spi.operations.UpdateOp;
 public class SalesfrcConnector implements Connector, CreateOp, DeleteOp, SchemaOp,
 SearchOp<Filter>, TestOp, UpdateOp {
 
+	public static final ObjectClass ORG_UNIT = new ObjectClass("OrgUnit");
+
+    public static final ObjectClass MEMBER = new ObjectClass("Member");
+    
+    public static final ObjectClass ALIAS = new ObjectClass("Alias");
+    
+    public static final ObjectClass LICENSE_ASSIGNMENT = new ObjectClass("LicenseAssignment");
+    
+    private SalesFrcConfiguration configuration; 
+	
 	@Override
 	public Schema schema() {
 		// TODO Auto-generated method stub
@@ -77,8 +87,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	}
 
 	@Override
-	public void executeQuery(ObjectClass arg0, Filter arg1, ResultsHandler arg2, OperationOptions arg3) {
-		// TODO Auto-generated method stub
+	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler arg2, OperationOptions options) {
+		//final Set<String> attributesToGet = getAttributesToGet(objectClass, options);
+      //  Attribute key = getKeyFromFilter(objectClass, query);
 		
 	}
 

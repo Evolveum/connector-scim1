@@ -12,6 +12,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,17 +22,26 @@ public class SalesfrcEntityManager {
 	private JSONObject jsonObject;
 	private String scimBaseUri;
 	private Header oauthHeader;
-	private Header prettyPrintHeader;
+	private Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
+	private SalesFrcConfiguration conf;
 		
-		public SalesfrcEntityManager(JSONObject jsonObject,String scimBaseUri, Header oath, Header prettyH){
-			
+		public SalesfrcEntityManager(JSONObject jsonObject, SalesFrcConfiguration conf){
 			this.jsonObject = jsonObject;
-			this.scimBaseUri = scimBaseUri;
-			this.oauthHeader =oath;
-			this.prettyPrintHeader = prettyH;
-			
+			this.conf=(SalesFrcConfiguration)conf;
 		}
 		
+		
+		private String logIntoService(){
+			
+			String loginURL = conf.getLoginURL() +
+                    conf.getService()+
+                    "&client_id=" + conf.getClientID() +
+                    "&client_secret=" + conf.getClientSecret() +
+                    "&username=" + conf.getUserName()+
+                    "&password=" + conf.getPassword();
+			
+			return loginURL;
+		}
 		
 		
 		public void qeueryEntity(String id ,String resourceEndPoint){

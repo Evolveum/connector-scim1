@@ -130,8 +130,8 @@ public class Main {
         
         
       //######################  More Gereric solution for CRUD METHODS ###################
-         SalesfrcEntityManager entity = new SalesfrcEntityManager(jsonData.setUserObject(), scimBaseUri, oauthHeader, prettyPrintHeader);
-         entity.qeueryEntity("00558000000VcXnAAK", "Users");
+       //  SalesfrcEntityManager entity = new SalesfrcEntityManager(jsonData.setUserObject(), scimBaseUri, oauthHeader, prettyPrintHeader);
+       //  entity.qeueryEntity("00558000000VcXnAAK", "Users");
          	// release connection
         
         httpPost.releaseConnection();

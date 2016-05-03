@@ -18,6 +18,7 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
+import org.identityconnectors.framework.spi.ConnectorClass;
 import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.identityconnectors.framework.spi.operations.DeleteOp;
 import org.identityconnectors.framework.spi.operations.SchemaOp;
@@ -25,6 +26,9 @@ import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 import org.json.JSONObject;
+
+@ConnectorClass(displayNameKey = "Salesfrc.connector.display",
+configurationClass = SalesFrcConfiguration.class)
 
 public class SalesfrcConnector implements Connector, CreateOp, DeleteOp, SchemaOp,
 SearchOp<Filter>, TestOp, UpdateOp {
@@ -48,17 +52,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
     public static final String EMAIL_ATTR = "email";
 
     public static final String ALIAS_ATTR = "alias";
-    
-    
-    ////
-    public static Header oauthHeader;
-    
-    private static Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
-    
-    private static JSONObject j;
-    
-    /// ###########Entity mngr instance
-    SalesfrcEntityManager mngr = new SalesfrcEntityManager(j, "baseUri", oauthHeader, prettyPrintHeader);
+
     
     private SalesFrcConfiguration configuration; 
 	
@@ -89,12 +83,12 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public Configuration getConfiguration() {
 		// TODO Auto-generated method stub
-		return null;
+		return this.configuration;
 	}
 
 	@Override
-	public void init(Configuration arg0) {
-		// TODO Auto-generated method stub
+	public void init(Configuration configuration) {
+		this.configuration = (SalesFrcConfiguration)configuration;
 		
 	}
 
@@ -118,18 +112,19 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 	@Override
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler arg2, OperationOptions options) {
-		//final Set<String> attributesToGet = getAttributesToGet(objectClass, options);
-        Attribute key = getKeyFromFilter(objectClass, query);
-        
-        if(ObjectClass.ACCOUNT.equals(objectClass)){
-        
-        if (key == null){
-        	mngr.qeueryEntity("", "Users");
-        }
-        }
+	
+	
+		if (ObjectClass.ACCOUNT.equals(objectClass)){
+			
+		//if (nemameEntityID){
+			
+			// entitMngr.qeueryEntity
+			
+			//}	else 
+		}
 		
 	}
-	
+	/*
 	protected Attribute getKeyFromFilter(ObjectClass objectClass, Filter filter) {
         Attribute key = null;
         if (filter instanceof EqualsFilter) {
@@ -177,7 +172,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
             }
         }
         return key;
-    }
+    } */
 
 
 }

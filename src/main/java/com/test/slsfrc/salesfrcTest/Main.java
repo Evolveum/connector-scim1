@@ -33,8 +33,8 @@ public class Main {
     static final String CLIENTSECRET = "8826126769332672628";
     
     
-    private static String SCIM_ENDPOINT = "/services/scim" ;
-    private static String SCIM_VERSION = "/v1" ;
+    private static String SCIM_ENDPOINT = "/services/scim";
+    private static String SCIM_VERSION = "/v1";
     private static String scimBaseUri;
     private static Header oauthHeader;
     private static Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");

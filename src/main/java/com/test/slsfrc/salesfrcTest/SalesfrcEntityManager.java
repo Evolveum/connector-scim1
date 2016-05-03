@@ -32,6 +32,8 @@ public class SalesfrcEntityManager {
 			
 		}
 		
+		
+		
 		public void qeueryEntity(String id ,String resourceEndPoint){
 	    	System.out.println("-----------------Query1------------------------");
 	    	

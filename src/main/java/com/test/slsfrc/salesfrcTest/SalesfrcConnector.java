@@ -25,36 +25,16 @@ import org.identityconnectors.framework.spi.operations.SchemaOp;
 import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
-import org.json.JSONObject;
+
 
 @ConnectorClass(displayNameKey = "Salesfrc.connector.display",
 configurationClass = SalesFrcConfiguration.class)
 
 public class SalesfrcConnector implements Connector, CreateOp, DeleteOp, SchemaOp,
 SearchOp<Filter>, TestOp, UpdateOp {
-
-	public static final ObjectClass ORG_UNIT = new ObjectClass("OrgUnit");
-
-    public static final ObjectClass MEMBER = new ObjectClass("Member");
-    
-    public static final ObjectClass ALIAS = new ObjectClass("Alias");
-    
-    public static final ObjectClass LICENSE_ASSIGNMENT = new ObjectClass("LicenseAssignment");
-    
-    
-    
-    public static final String ALIASES_ATTR = "aliases";
-    
-    public static final String ORG_UNIT_PATH_ATTR = "orgUnitPath";
-    
-    public static final String GROUP_KEY_ATTR = "groupKey";
-    
-    public static final String EMAIL_ATTR = "email";
-
-    public static final String ALIAS_ATTR = "alias";
-
     
     private SalesFrcConfiguration configuration; 
+    private SalesfrcEntityManager entityManager;
 	
 	@Override
 	public Schema schema() {
@@ -89,7 +69,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public void init(Configuration configuration) {
 		this.configuration = (SalesFrcConfiguration)configuration;
-		
+		this.entityManager = new SalesfrcEntityManager((SalesFrcConfiguration)configuration);
 	}
 
 	@Override
@@ -115,12 +95,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	
 	
 		if (ObjectClass.ACCOUNT.equals(objectClass)){
-			
-		//if (nemameEntityID){
-			
-			// entitMngr.qeueryEntity
-			
-			//}	else 
+			if(query == null){
+		entityManager.qeueryEntity("", "Users");
+			}
 		}
 		
 	}

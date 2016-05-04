@@ -11,12 +11,12 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
 	private static String SCIM_ENDPOINT = "/services/scim";
     private static String SCIM_VERSION = "/v1";
     
-    private  String USERNAME;
-    private  String PASSWORD;
+    private  String USERNAME = "matus.macik@gmail.com";
+    private  String PASSWORD= "Iujm31hnPTlaN8tHPMgn3nn3lDS1fVZI";
     private  String LOGINURL= "https://login.salesforce.com";
     private  String SERVICEGRANT = "/services/oauth2/token?grant_type=password";
-    private  String CLIENTID;
-    private  String CLIENTSECRET;
+    private  String CLIENTID= "3MVG98_Psg5cppyZ.wx3xXhdg46KDzaNSwpQFRqKfsBdDnyHrNSTodpJ5il8ZAdSB4eIjlF3RagOYYXWz8vTB";
+    private  String CLIENTSECRET= "8826126769332672628";
 
 	@ConfigurationProperty(order = 1, displayMessageKey = "USERNAME.display",
             groupMessageKey = "basic.group", helpMessageKey = "USERNAME.help", required = true,

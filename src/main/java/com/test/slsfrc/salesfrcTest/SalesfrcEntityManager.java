@@ -5,6 +5,8 @@ import java.io.UnsupportedEncodingException;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
@@ -12,26 +14,34 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.LoggingSessionOutputBuffer;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
+import org.identityconnectors.common.logging.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 public class SalesfrcEntityManager {
 	
-	private JSONObject jsonObject;
 	private String scimBaseUri;
 	private Header oauthHeader;
 	private Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
 	private SalesFrcConfiguration conf;
-		
-		public SalesfrcEntityManager(JSONObject jsonObject, SalesFrcConfiguration conf){
-			this.jsonObject = jsonObject;
-			this.conf=(SalesFrcConfiguration)conf;
-		}
-		
-		
-		private String logIntoService(){
+	
+	
+	HttpPost loginInstance;
+	
+	private static final Log logging = Log.getLog(SalesfrcEntityManager.class);
+	
+	public SalesfrcEntityManager(SalesFrcConfiguration conf){
+		this.conf=(SalesFrcConfiguration)conf;
+	}
+
+				
+		private void logIntoService(){
+			
+			HttpClient httpclient = HttpClientBuilder.create().build();
 			
 			String loginURL = conf.getLoginURL() +
                     conf.getService()+
@@ -40,19 +50,68 @@ public class SalesfrcEntityManager {
                     "&username=" + conf.getUserName()+
                     "&password=" + conf.getPassword();
 			
-			return loginURL;
+				loginInstance = new HttpPost(loginURL);
+		        HttpResponse response = null;
+		        
+		        logging.info("The login URL value is: {0}", loginURL);
+		        
+		        try {
+		            // Execute the login POST request
+		            response = httpclient.execute(loginInstance);
+		        } catch (ClientProtocolException cpException) {
+		            cpException.printStackTrace();
+		        } catch (IOException ioException) {
+		            ioException.printStackTrace();
+		        }
+		 
+		        // verify response is HTTP OK
+		        final int statusCode = response.getStatusLine().getStatusCode();
+		        if (statusCode != HttpStatus.SC_OK) {
+		            System.out.println("Error authenticating to Force.com: "+statusCode);
+		            try {
+						System.out.println("*Error cause ->>> " + EntityUtils.toString(response.getEntity()));
+					} catch (ParseException | IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		            return;
+		        }
+		 
+		        String getResult = null;
+		        try {
+		            getResult = EntityUtils.toString(response.getEntity());
+		        } catch (IOException ioException) {
+		            ioException.printStackTrace();
+		        }
+		        JSONObject jsonObject = null;
+		        String loginAccessToken = null;
+		        String loginInstanceUrl = null;
+		        try {
+		            jsonObject = (JSONObject) new JSONTokener(getResult).nextValue();
+		            loginAccessToken = jsonObject.getString("access_token");
+		            loginInstanceUrl = jsonObject.getString("instance_url");
+		        } catch (JSONException jsonException) {
+		            jsonException.printStackTrace();
+		        }
+		        scimBaseUri= loginInstanceUrl +conf.getEndpoint()+conf.getVersion();
+		        oauthHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken) ;
+		        System.out.println(response.getStatusLine());
+		        System.out.println("####Successful login####");
+		        System.out.println("  instance URL: "+loginInstanceUrl);
+		        System.out.println("  access token/session ID: "+loginAccessToken);
 		}
 		
 		
-		public void qeueryEntity(String id ,String resourceEndPoint){
+		public void qeueryEntity(String q ,String resourceEndPoint){
+			logIntoService();
 	    	System.out.println("-----------------Query1------------------------");
 	    	
 	    	HttpClient httpClient = HttpClientBuilder.create().build();
 	    	
-	    	String uri = scimBaseUri +"/"+ resourceEndPoint+"/" + id ;
-	    	System.out.println("qeury url: " + uri);
+	    	String uri = scimBaseUri +"/"+ resourceEndPoint+"/" + q ;
+	    	logging.info("qeury url: {0}", uri);
 	    	HttpGet httpGet = new HttpGet(uri);
-	    	System.out.println("oauth2 header: " + oauthHeader);
+	    	logging.info("oauth2 header: {0}", oauthHeader);
 	    	httpGet.addHeader(oauthHeader);
 	    	httpGet.addHeader(prettyPrintHeader);
 	    	
@@ -86,9 +145,11 @@ public class SalesfrcEntityManager {
 				
 				e.printStackTrace();
 			}
+	    	loginInstance.releaseConnection();
+	    	logging.info("Connection released");
 	    }
 		
-	public void createEntity(String resourceEndPoint){
+	public void createEntity(String resourceEndPoint, JSONObject jsonObject){
 
 	    	HttpClient httpClient = HttpClientBuilder.create().build();
 	    	String uri = scimBaseUri +"/"+ resourceEndPoint;
@@ -148,11 +209,11 @@ public class SalesfrcEntityManager {
 			}
 	    }
 
-	public void updateEntity(String id ,String resourceEndPoint){
+	public void updateEntity(String q ,String resourceEndPoint, JSONObject jsonObject){
 		
 	HttpClient httpClient = HttpClientBuilder.create().build();
 
-	   	String uri = scimBaseUri +"/" +resourceEndPoint +"/" + id;
+	   	String uri = scimBaseUri +"/" +resourceEndPoint +"/" + q;
 	   	
 	   	HttpPatch httpPatch = new HttpPatch(uri);
 	   	
@@ -204,10 +265,10 @@ public class SalesfrcEntityManager {
 	   	
 	   }
 
-	public  void deleteEntity(String id ,String resourceEndPoint){
+	public  void deleteEntity(String q ,String resourceEndPoint){
 		HttpClient httpClient = HttpClientBuilder.create().build();
 
-		String uri = scimBaseUri +"/"+resourceEndPoint+"/" + id;
+		String uri = scimBaseUri +"/"+resourceEndPoint+"/" + q;
 		
 		HttpDelete httpDelete = new HttpDelete(uri);
 		httpDelete.addHeader(oauthHeader);

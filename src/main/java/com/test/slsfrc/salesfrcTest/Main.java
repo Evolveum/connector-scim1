@@ -17,6 +17,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ParseException;
 import org.apache.http.util.EntityUtils;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
+import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -40,9 +44,7 @@ public class Main {
     private static Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
  
     public static void main(String[] args) {
- 
-        HttpClient httpclient = HttpClientBuilder.create().build();
- 
+ /*
         // Assemble the login request URL
         String loginURL = LOGINURL +
                           GRANTSERVICE +
@@ -101,7 +103,7 @@ public class Main {
         System.out.println("  access token/session ID: "+loginAccessToken);
         
         
-        JsonDataProvider jsonData = new JsonDataProvider();
+        
        /*
         //######################  USER CRUD METHODS ###################
         UserManager user = new UserManager(jsonData.setUserObject(), scimBaseUri, oauthHeader, prettyPrintHeader);
@@ -134,7 +136,18 @@ public class Main {
        //  entity.qeueryEntity("00558000000VcXnAAK", "Users");
          	// release connection
         
-        httpPost.releaseConnection();
+       // httpPost.releaseConnection(); 
+    	
+    	
+    	
+    	ObjectClass userC = ObjectClass.ACCOUNT;
+    	
+    	SalesFrcConfiguration conf= new SalesFrcConfiguration();
+    	conf.validate();
+    	
+    	SalesfrcConnector conn = new SalesfrcConnector();
+    	conn.init(conf);
+    	conn.executeQuery(userC, null, null, null);
     }
     }
 

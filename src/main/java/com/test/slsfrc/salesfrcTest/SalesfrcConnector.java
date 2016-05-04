@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -35,6 +36,8 @@ SearchOp<Filter>, TestOp, UpdateOp {
     
     private SalesFrcConfiguration configuration; 
     private SalesfrcEntityManager entityManager;
+    
+    private static final Log logging = Log.getLog(SalesfrcConnector.class);
 	
 	@Override
 	public Schema schema() {
@@ -43,9 +46,14 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	}
 
 	@Override
-	public void delete(ObjectClass arg0, Uid arg1, OperationOptions arg2) {
-		// TODO Auto-generated method stub
-		
+	public void delete(ObjectClass object, Uid uid, OperationOptions arg2) {
+
+		if(ObjectClass.ACCOUNT.equals(object)){
+			entityManager.deleteEntity(uid, "Users");
+		}
+		else if(ObjectClass.GROUP.equals(object)){
+			entityManager.deleteEntity(uid, "Groups");
+		}
 	}
 
 	@Override
@@ -69,6 +77,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public void init(Configuration configuration) {
 		this.configuration = (SalesFrcConfiguration)configuration;
+		this.configuration.validate();
 		this.entityManager = new SalesfrcEntityManager((SalesFrcConfiguration)configuration);
 	}
 
@@ -92,12 +101,20 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 	@Override
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler arg2, OperationOptions options) {
-	
+		logging.info("Object class value {0}", objectClass.getDisplayNameKey());
 	
 		if (ObjectClass.ACCOUNT.equals(objectClass)){
 			if(query == null){
+				
 		entityManager.qeueryEntity("", "Users");
 			}
+		}else if(ObjectClass.GROUP.equals(objectClass)){
+			
+			entityManager.qeueryEntity("", "Groups");
+		}
+		else{
+			logging.error("The provided objectClass is not supported: {0}", objectClass.getDisplayNameKey());
+			throw new IllegalArgumentException("objectClass " + objectClass.getDisplayNameKey()+ " is not supported");
 		}
 		
 	}

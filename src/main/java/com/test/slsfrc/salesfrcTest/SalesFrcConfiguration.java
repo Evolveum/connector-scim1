@@ -2,6 +2,7 @@ package com.test.slsfrc.salesfrcTest;
 
 
 import org.identityconnectors.common.StringUtil;
+import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
 import org.identityconnectors.framework.spi.StatefulConfiguration;
@@ -18,6 +19,8 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
     private  String CLIENTID= "3MVG98_Psg5cppyZ.wx3xXhdg46KDzaNSwpQFRqKfsBdDnyHrNSTodpJ5il8ZAdSB4eIjlF3RagOYYXWz8vTB";
     private  String CLIENTSECRET= "8826126769332672628";
 
+    private static final Log logging = Log.getLog(SalesFrcConfiguration.class);
+    
 	@ConfigurationProperty(order = 1, displayMessageKey = "USERNAME.display",
             groupMessageKey = "basic.group", helpMessageKey = "USERNAME.help", required = true,
             confidential = false)
@@ -116,6 +119,7 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
 		if  (StringUtil.isBlank(USERNAME)){
 	            throw new IllegalArgumentException("Client id cannot be null or empty.");
 	        }
+		logging.info("Configuration valid");
 	}
 
 	@Override

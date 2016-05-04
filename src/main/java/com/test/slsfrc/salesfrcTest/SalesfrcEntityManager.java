@@ -18,6 +18,7 @@ import org.apache.http.impl.conn.LoggingSessionOutputBuffer;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -265,10 +266,10 @@ public class SalesfrcEntityManager {
 	   	
 	   }
 
-	public  void deleteEntity(String q ,String resourceEndPoint){
+	public  void deleteEntity(Uid uid ,String resourceEndPoint){
 		HttpClient httpClient = HttpClientBuilder.create().build();
 
-		String uri = scimBaseUri +"/"+resourceEndPoint+"/" + q;
+		String uri = scimBaseUri +"/"+resourceEndPoint+"/" + uid.getUidValue();
 		
 		HttpDelete httpDelete = new HttpDelete(uri);
 		httpDelete.addHeader(oauthHeader);

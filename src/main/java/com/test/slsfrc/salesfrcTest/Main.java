@@ -143,8 +143,6 @@ public class Main {
     	ObjectClass userC = ObjectClass.ACCOUNT;
     	
     	SalesFrcConfiguration conf= new SalesFrcConfiguration();
-    	conf.validate();
-    	
     	SalesfrcConnector conn = new SalesfrcConnector();
     	conn.init(conf);
     	conn.executeQuery(userC, null, null, null);

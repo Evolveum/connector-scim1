@@ -111,8 +111,11 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		entityManager.qeueryEntity("", "Users");
 			}else { 
 				if (isSupportedQueue(objectClass, query)){
-				Attribute filterAttr = ((EqualsFilter) query).getAttribute();
-				entityManager.qeueryEntity(AttributeUtil.getStringValue(filterAttr), "Users");
+				//Attribute filterAttr = ((EqualsFilter) query).getAttribute();
+					
+					StringBuilder build = query.accept(new FilterHandler(),null);
+					
+				entityManager.qeueryEntity(build.toString(), "Users");
 				}
 			}
 		}else if(ObjectClass.GROUP.equals(objectClass)){
@@ -144,7 +147,7 @@ if (filter instanceof EqualsFilter ){
 			
 		}
 		
-		return false;
+		return true;
 	}
 	
 	

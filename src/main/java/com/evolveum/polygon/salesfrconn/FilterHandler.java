@@ -1,5 +1,8 @@
 package com.evolveum.polygon.salesfrconn;
 
+import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.filter.AndFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
@@ -16,6 +19,8 @@ import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 
 public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
+	
+	private static final Log LOGGER = Log.getLog(FilterHandler.class);
 
 	@Override
 	public StringBuilder visitAndFilter(Void p, AndFilter filter) {
@@ -37,7 +42,13 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 
 	@Override
 	public StringBuilder visitEqualsFilter(Void p, EqualsFilter filter) {
-		// TODO Auto-generated method stub
+		
+		if(AttributeUtil.namesEqual(filter.getName(), "username")){
+			
+			return BuildString(filter.getAttribute(),"eq",filter.getName());
+			
+		}
+		
 		return null;
 	}
 
@@ -93,6 +104,20 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	public StringBuilder visitEndsWithFilter(Void p, EndsWithFilter filter) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public StringBuilder BuildString(Attribute atr, String operator, String name){
+		
+		StringBuilder resultString = new StringBuilder();
+		if(atr.equals(null)){
+			
+			LOGGER.error("The provided atribute must be different from NULL", atr );
+		}else {
+			
+			resultString.append("?=filter").append("(").append(name).append("%20").append(operator).append("%20").append("%22").append(AttributeUtil.getAsStringValue(atr)).append("%22").append(")");
+		}
+		
+		return resultString;
 	}
 
 }

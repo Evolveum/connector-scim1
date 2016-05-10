@@ -1,24 +1,7 @@
 package com.evolveum.polygon.salesfrconn;
  
-import java.awt.List;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.acl.Group;
 import java.util.ArrayList;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.ParseException;
-import org.apache.http.util.EntityUtils;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
@@ -29,11 +12,6 @@ import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
-import org.apache.http.client.ClientProtocolException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.json.JSONArray;
-import org.json.JSONException;
  
 public class Main {
 
@@ -47,16 +25,18 @@ public class Main {
     	ObjectClass userC = ObjectClass.ACCOUNT;
     	
     	
-    	Filter eq = FilterBuilder.equalTo(TEST_UID);
+    	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("userName","johnsnow@winterfell.com"));
     	
     	//System.out.println(eq.);
     	
     	Attribute attribute = ((EqualsFilter) eq).getAttribute();
     	
     	String s = AttributeUtil.getStringValue(attribute);
-    	
+    				
     	if(attribute instanceof Uid){
     		
+    		
+    		System.out.println("yeah = "+ eq.getName());
     		System.out.println("yeah = "+ s);
     		
     	}else {System.out.println("not Yeah");}

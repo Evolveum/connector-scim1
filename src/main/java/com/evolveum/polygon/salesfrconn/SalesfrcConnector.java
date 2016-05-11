@@ -108,12 +108,15 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		if (ObjectClass.ACCOUNT.equals(objectClass)){
 			if(query == null){
 				
-		entityManager.qeueryEntity("", "Users");
+		entityManager.qeueryEntity("", "Users/");
 			}else { 
 				if (isSupportedQueue(objectClass, query)){
 				//Attribute filterAttr = ((EqualsFilter) query).getAttribute();
 					
-					StringBuilder build = query.accept(new FilterHandler(),null);
+					StringBuilder build =  
+							query.accept(new FilterHandler(),null);
+					
+					build.insert(0, "?filter=");
 					
 				entityManager.qeueryEntity(build.toString(), "Users");
 				}

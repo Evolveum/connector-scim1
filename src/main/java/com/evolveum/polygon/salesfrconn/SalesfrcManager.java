@@ -105,8 +105,9 @@ public class SalesfrcManager {
 	    	// usefull: http://www.w3schools.com/tags/ref_urlencode.asp
 	    	
 	    	
+	    	
 	    	String uri = 
-	    			new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(q).toString();
+	    			new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append(q).toString();
 	    	LOGGER.info("qeury url: {0}", uri);
 	    	HttpGet httpGet = new HttpGet(uri);
 	    	LOGGER.info("oauth2 header: {0}", oauthHeader);

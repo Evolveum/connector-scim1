@@ -10,11 +10,14 @@ import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.filter.AndFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
+import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.common.objects.filter.NotFilter;
+import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
  
 public class Main {
@@ -29,15 +32,22 @@ public class Main {
     	ObjectClass userC = ObjectClass.ACCOUNT;
     	
     	
-    	StartsWithFilter eq = (StartsWithFilter)FilterBuilder.startsWith(AttributeBuilder.build("userName","john"));
+    	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("userName","johnsnow@winterfell.com"));
     	
     	ContainsFilter con = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","john"));
     	
+    	ContainsFilter ct = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","aeoinoaiedoiaedionasinad"));
+    	
+    	AndFilter andf = (AndFilter) FilterBuilder.and(con, ct);
+    	
+    	OrFilter orf = (OrFilter) FilterBuilder.or(con, ct);
+    	
     	NotFilter not= (NotFilter)FilterBuilder.not(eq);
+    
     	
     	//System.out.println(eq.);
     	
-    	Attribute attribute = ((StartsWithFilter) eq).getAttribute();
+    	Attribute attribute = ((EqualsFilter) eq).getAttribute();
     	
     	String s = AttributeUtil.getStringValue(attribute);
     				
@@ -52,7 +62,9 @@ public class Main {
     	SalesFrcConfiguration conf= new SalesFrcConfiguration();
     	SalesfrcConnector conn = new SalesfrcConnector();
     	conn.init(conf);
-    	conn.executeQuery(userC, con, handler, null);
+    	
+    	
+    	conn.executeQuery(userC, orf, handler, null);
     	
     	for(int i=0;i<result.size();i++){
     	    System.out.println(result.get(i));

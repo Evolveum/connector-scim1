@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.filter.AndFilter;
@@ -71,8 +72,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 			nameDictionary.put("active","active");
 			nameDictionary.put("password","password");
 			//nameDictionary.put("","");
-			
-			
 		}
 	
 	@Override
@@ -86,16 +85,16 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 			
 			if (isFirst){
 				finalQuery=f.accept(this,null);
+				finalQuery.append(SPACE);
+				finalQuery.append(AND);
 				isFirst=false;
 				
 			}else {
-				
 				finalQuery.append(SPACE);
 				finalQuery.append(f.accept(this,null).toString());
 			}
 			
 		}
-		
 		
 		return finalQuery;
 	}
@@ -103,13 +102,18 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	@Override
 	public StringBuilder visitContainsFilter(Void p, ContainsFilter filter) {
 		if (!filter.getName().isEmpty()){
-		if (AttributeUtil.namesEqual(filter.getName(), nameDictionary.get(filter.getName()))){
+		if (nameDictionary.get(filter.getName())!=null){
 			
 			return BuildString(filter.getAttribute(),CONTAINS , filter.getName());
-		}
-		}
+		}else{
+			LOGGER.error("Usuported attribute name",filter.getName());
+			throw new InvalidAttributeValueException("Usuported attribute name");
+			}
+			}else{
 
-		return null;
+			LOGGER.error("Filter atribute key name EMPTY");
+			throw new InvalidAttributeValueException("No atribute key name provided");
+			}
 	}
 
 	@Override
@@ -122,15 +126,21 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	public StringBuilder visitEqualsFilter(Void p, EqualsFilter filter) {
 		if (!filter.getName().isEmpty()){
 		
-		if(AttributeUtil.namesEqual(filter.getName(), nameDictionary.get(filter.getName()))){
+		if(nameDictionary.get(filter.getName())!=null){
 			
 			return BuildString(filter.getAttribute(),EQUALS,filter.getName());
 			
-		}
-		}
-		
-		return null;
+		}else{
+			LOGGER.error("Usuported attribute name",filter.getName());
+			throw new InvalidAttributeValueException("Usuported attribute name");
+			}
+			}else{
+
+			LOGGER.error("Filter atribute key name EMPTY");
+			throw new InvalidAttributeValueException("No atribute key name provided");
+			}
 	}
+	
 	
 
 	@Override
@@ -143,29 +153,41 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	public StringBuilder visitGreaterThanFilter(Void p, GreaterThanFilter filter) {
 		
 		if (!filter.getName().isEmpty()){
-	 if(AttributeUtil.namesEqual(filter.getName(), nameDictionary.get(filter.getName()))){
+	 if(nameDictionary.get(filter.getName())!=null){
 		 
 		 return BuildString(filter.getAttribute(), GREATERTHAN, filter.getName());
-	 }
+	 }else{
+		LOGGER.error("Usuported attribute name",filter.getName());
+		throw new InvalidAttributeValueException("Usuported attribute name");
 		}
-		return null;
+		}else{
+
+		LOGGER.error("Filter atribute key name EMPTY");
+		throw new InvalidAttributeValueException("No atribute key name provided");
+		}
 	}
 
 	@Override
 	public StringBuilder visitGreaterThanOrEqualFilter(Void p, GreaterThanOrEqualFilter filter) {
 		if (!filter.getName().isEmpty()){
-		 if(AttributeUtil.namesEqual(filter.getName(), nameDictionary.get(filter.getName()))){
+		 if(nameDictionary.get(filter.getName())!=null){
 			 
 			 return BuildString(filter.getAttribute(), GREATEROREQ, filter.getName());
-		 }
-		}
-		return null;
+		 }else{
+				LOGGER.error("Usuported attribute name",filter.getName());
+				throw new InvalidAttributeValueException("Usuported attribute name");
+				}
+				}else{
+
+				LOGGER.error("Filter atribute key name EMPTY");
+				throw new InvalidAttributeValueException("No atribute key name provided");
+				}
 	}
 
 	@Override
 	public StringBuilder visitLessThanFilter(Void p, LessThanFilter filter) {
 		if (!filter.getName().isEmpty()){
-		 if(AttributeUtil.namesEqual(filter.getName(), nameDictionary.get(filter.getName()))){
+		 if(nameDictionary.get(filter.getName())!=null){
 			 
 			 return BuildString(filter.getAttribute(), LESSTHAN, filter.getName());
 		 }
@@ -177,12 +199,18 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	public StringBuilder visitLessThanOrEqualFilter(Void p, LessThanOrEqualFilter filter) {
 		
 		if (!filter.getName().isEmpty()){
-		 if(AttributeUtil.namesEqual(filter.getName(), nameDictionary.get(filter.getName()))){
+		 if(nameDictionary.get(filter.getName())!=null){
 			 
 			 return BuildString(filter.getAttribute(), LESSOREQ, filter.getName());
-		 }
-		}
-		return null;
+		 }else{
+				LOGGER.error("Usuported attribute name",filter.getName());
+				throw new InvalidAttributeValueException("Usuported attribute name");
+				}
+				}else{
+
+				LOGGER.error("Filter atribute key name EMPTY");
+				throw new InvalidAttributeValueException("No atribute key name provided");
+				}
 	}
 
 	@Override
@@ -197,29 +225,61 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 
 	@Override
 	public StringBuilder visitOrFilter(Void p, OrFilter filter) {
-		// TODO Auto-generated method stub
-		return null;
+	StringBuilder finalQuery = new StringBuilder();
+		
+		boolean isFirst = true;
+		
+		for (Filter f: filter.getFilters()){
+			
+			if (isFirst){
+				finalQuery=f.accept(this,null);
+				finalQuery.append(SPACE);
+				finalQuery.append(OR);
+				isFirst=false;
+				
+			}else {
+				
+				finalQuery.append(SPACE);
+				finalQuery.append(f.accept(this,null).toString());
+			}
+			
+		}
+		
+		return finalQuery;
+	
 	}
 
 	@Override
 	public StringBuilder visitStartsWithFilter(Void p, StartsWithFilter filter) {
 		if (!filter.getName().isEmpty()){
-		if(AttributeUtil.namesEqual(filter.getName(),nameDictionary.get(filter.getName()) )){
+		if(nameDictionary.get(filter.getName())!=null){
 			return BuildString(filter.getAttribute(), STARTSWITH, filter.getName());
-		}
-		}
-		return null;
+		}else{
+			LOGGER.error("Usuported attribute name",filter.getName());
+			throw new InvalidAttributeValueException("Usuported attribute name");
+			}
+			}else{
+
+			LOGGER.error("Filter atribute key name EMPTY");
+			throw new InvalidAttributeValueException("No atribute key name provided");
+			}
 	}
 
 	@Override
 	public StringBuilder visitEndsWithFilter(Void p, EndsWithFilter filter) {
 		if (!filter.getName().isEmpty()){
-		if(AttributeUtil.namesEqual(filter.getName(), nameDictionary.get(filter.getName()))){
+		if(nameDictionary.get(filter.getName())!=null){
 			
 			return BuildString(filter.getAttribute(), ENDSWITH, filter.getName());
-		}
-		}
-		return null;
+		}else{
+			LOGGER.error("Usuported attribute name",filter.getName());
+			throw new InvalidAttributeValueException("Usuported attribute name");
+			}
+			}else{
+
+			LOGGER.error("Filter atribute key name EMPTY");
+			throw new InvalidAttributeValueException("No atribute key name provided");
+			}
 	}
 	
 	public StringBuilder BuildString(Attribute atr, String operator, String name){

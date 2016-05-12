@@ -124,6 +124,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	@Override
 	public StringBuilder visitContainsFilter(ObjectClass p, ContainsFilter filter) {
 		if (!filter.getName().isEmpty()){
+			
 		if (nameDictionaryUser.containsKey(filter.getName())){
 			return BuildString(filter.getAttribute(),CONTAINS , nameDictionaryUser.get(filter.getName()));
 		}else{

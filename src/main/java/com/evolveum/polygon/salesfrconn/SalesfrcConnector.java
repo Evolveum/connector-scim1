@@ -112,7 +112,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			}else { 
 				if (isSupportedQueue(objectClass, query)){
 				//Attribute filterAttr = ((EqualsFilter) query).getAttribute();
-					
+
 					StringBuilder build =  
 							query.accept(new FilterHandler(),objectClass);
 					
@@ -122,8 +122,21 @@ SearchOp<Filter>, TestOp, UpdateOp {
 				}
 			}
 		}else if(ObjectClass.GROUP.equals(objectClass)){
+			if(query == null){
+			ForceManager.qeueryEntity("", "Groups/");
 			
-			ForceManager.qeueryEntity("", "Groups");
+			}else { 
+				if (isSupportedQueue(objectClass, query)){
+				//Attribute filterAttr = ((EqualsFilter) query).getAttribute();
+
+					StringBuilder build =  
+							query.accept(new FilterHandler(),objectClass);
+					
+					build.insert(0, "?filter=");
+					
+				ForceManager.qeueryEntity(build.toString(), "Groups");
+				}
+			}
 		}
 		else{
 			LOGGER.error("The provided objectClass is not supported: {0}", objectClass.getDisplayNameKey());

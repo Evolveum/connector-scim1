@@ -30,9 +30,9 @@ public class Main {
     	
     	
     	ObjectClass userC = ObjectClass.ACCOUNT;
+    	ObjectClass groupC = ObjectClass.GROUP;
     	
-    	
-    	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("userName","johnsnow@winterfell.com"));
+    	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("displayName","TesttestGroup2"));
     	
     	ContainsFilter con = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","john"));
     	
@@ -65,9 +65,9 @@ public class Main {
     	SalesfrcConnector conn = new SalesfrcConnector();
     	conn.init(conf);
     	
-    	
-    	conn.executeQuery(userC, con, handler, null);
-    	
+    	/// METODA KTORU HLADAS!!!!! VVVVVV
+    	conn.executeQuery(groupC, eq, handler, null);
+    	/////
     	for(int i=0;i<result.size();i++){
     	    System.out.println(result.get(i));
     	} 

@@ -37,7 +37,7 @@ public class SalesfrcConnector implements Connector, CreateOp, DeleteOp, SchemaO
 SearchOp<Filter>, TestOp, UpdateOp {
     
     private SalesFrcConfiguration configuration; 
-    private SalesfrcManager entityManager;
+    private SalesfrcManager ForceManager;
     
     private static final Log LOGGER = Log.getLog(SalesfrcConnector.class);
 	
@@ -51,10 +51,10 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	public void delete(ObjectClass object, Uid uid, OperationOptions arg2) {
 
 		if(ObjectClass.ACCOUNT.equals(object)){
-			entityManager.deleteEntity(uid, "Users");
+			ForceManager.deleteEntity(uid, "Users");
 		}
 		else if(ObjectClass.GROUP.equals(object)){
-			entityManager.deleteEntity(uid, "Groups");
+			ForceManager.deleteEntity(uid, "Groups");
 		}
 	}
 
@@ -80,7 +80,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	public void init(Configuration configuration) {
 		this.configuration = (SalesFrcConfiguration)configuration;
 		this.configuration.validate();
-		this.entityManager = new SalesfrcManager((SalesFrcConfiguration)configuration);
+		this.ForceManager = new SalesfrcManager((SalesFrcConfiguration)configuration);
 	}
 
 	@Override
@@ -108,22 +108,22 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		if (ObjectClass.ACCOUNT.equals(objectClass)){
 			if(query == null){
 				
-		entityManager.qeueryEntity("", "Users/");
+		ForceManager.qeueryEntity("", "Users/");
 			}else { 
 				if (isSupportedQueue(objectClass, query)){
 				//Attribute filterAttr = ((EqualsFilter) query).getAttribute();
 					
 					StringBuilder build =  
-							query.accept(new FilterHandler(),null);
+							query.accept(new FilterHandler(),objectClass);
 					
 					build.insert(0, "?filter=");
 					
-				entityManager.qeueryEntity(build.toString(), "Users");
+				ForceManager.qeueryEntity(build.toString(), "Users");
 				}
 			}
 		}else if(ObjectClass.GROUP.equals(objectClass)){
 			
-			entityManager.qeueryEntity("", "Groups");
+			ForceManager.qeueryEntity("", "Groups");
 		}
 		else{
 			LOGGER.error("The provided objectClass is not supported: {0}", objectClass.getDisplayNameKey());
@@ -132,11 +132,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		
 	}
 	
-	
 	private void buildSchema(){
 		 SchemaBuilder schemaBuilder = new SchemaBuilder(SalesfrcConnector.class);
 	}
-	
 	
 	protected boolean isSupportedQueue(ObjectClass objectClass, Filter filter){
 		
@@ -146,14 +144,10 @@ if (filter instanceof EqualsFilter ){
 			
 			if (attribute instanceof Uid){
 			return true;	
-			}
-			
-		}
-		
+			}	
+		}	
 		return true;
 	}
-	
-	
 	/*
 	protected Attribute getKeyFromFilter(ObjectClass objectClass, Filter filter) {
         Attribute key = null;

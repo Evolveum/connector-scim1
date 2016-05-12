@@ -38,9 +38,11 @@ public class Main {
     	
     	ContainsFilter ct = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","aeoinoaiedoiaedionasinad"));
     	
-    	AndFilter andf = (AndFilter) FilterBuilder.and(con, ct);
+    
     	
-    	OrFilter orf = (OrFilter) FilterBuilder.or(con, ct);
+    	OrFilter orf = (OrFilter) FilterBuilder.or(eq, ct);
+    	
+    	AndFilter andf = (AndFilter) FilterBuilder.and(con, orf);
     	
     	NotFilter not= (NotFilter)FilterBuilder.not(eq);
     
@@ -64,7 +66,7 @@ public class Main {
     	conn.init(conf);
     	
     	
-    	conn.executeQuery(userC, orf, handler, null);
+    	conn.executeQuery(userC, con, handler, null);
     	
     	for(int i=0;i<result.size();i++){
     	    System.out.println(result.get(i));

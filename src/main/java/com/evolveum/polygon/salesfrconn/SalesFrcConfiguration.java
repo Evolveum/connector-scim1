@@ -124,10 +124,7 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
 
 	@Override
 	public void release() {
-		// TODO Auto-generated method stub
-		
+		// TODO Auto-generated method stub	
 	}
 	
-	
-
 }

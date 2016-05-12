@@ -7,6 +7,7 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
+import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.filter.AndFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
@@ -22,10 +23,8 @@ import org.identityconnectors.framework.common.objects.filter.NotFilter;
 import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 
-
-
 // Missing filterVisitor methods/filters from scim spec: not equal, present
-public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
+public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> {
 	
 	private static final Log LOGGER = Log.getLog(FilterHandler.class);
 	
@@ -57,25 +56,41 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	
 	private static final String NOT ="not";
 	
-	private static Map<String, String> nameDictionary = CollectionUtil.newCaseInsensitiveMap();
+	private static Map<String, String> nameDictionaryUser = CollectionUtil.newCaseInsensitiveMap();
+	
+	private static Map<String, String> nameDictionaryGroup = CollectionUtil.newCaseInsensitiveMap();
 		static {
-			nameDictionary.put("userName","userName");
-			nameDictionary.put("name","name");
-			nameDictionary.put("displayName","displayName");
-			nameDictionary.put("nickName","nickName");
-			nameDictionary.put("profileUrl","profileUrl");
-			nameDictionary.put("title","title");
-			nameDictionary.put("userType","userType");
-			nameDictionary.put("preferredLanguage","preferredLanguage");
-			nameDictionary.put("locale","locale");
-			nameDictionary.put("timezone","timezone");
-			nameDictionary.put("active","active");
-			nameDictionary.put("password","password");
+			nameDictionaryUser.put("userName","userName");
+			nameDictionaryUser.put("name","formatted");
+			nameDictionaryUser.put("displayName","displayName");
+			nameDictionaryUser.put("nickName","nickName");
+			nameDictionaryUser.put("profileUrl","profileUrl");
+			nameDictionaryUser.put("title","title");
+			nameDictionaryUser.put("userType","userType");
+			nameDictionaryUser.put("id","id");
+			nameDictionaryUser.put("externalId","externalId");
+			nameDictionaryUser.put("meta","meta");
+			//nameDictionary.put("preferredLanguage","preferredLanguage");
+			//nameDictionary.put("locale","locale");
+			//nameDictionary.put("timezone","timezone");
+			nameDictionaryUser.put("active","active");
+			//nameDictionary.put("password","password");
 			//nameDictionary.put("","");
+			
+			nameDictionaryUser.put("email","email");
+			
+			
+			///Group dictionary
+			
+			nameDictionaryGroup.put("id", "id");
+			nameDictionaryGroup.put("externalId", "externalId");
+			//nameDictionaryGroup.put("meta", "meta");
+			nameDictionaryGroup.put("displayName", "displayName");
+			//nameDictionaryGroup.put("members", "members");
 		}
 	
 	@Override
-	public StringBuilder visitAndFilter(Void p, AndFilter filter) {
+	public StringBuilder visitAndFilter(ObjectClass p, AndFilter filter) {
 		StringBuilder finalQuery = new StringBuilder();
 		
 		boolean isFirst = true;
@@ -90,9 +105,16 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 				isFirst=false;
 				
 			}else {
+				
 				finalQuery.append(SPACE);
-				finalQuery.append(f.accept(this,null).toString());
-			}
+				if (f instanceof OrFilter || f instanceof AndFilter){
+					finalQuery.append("(");
+					finalQuery.append(f.accept(this,null).toString());
+					finalQuery.append(")");
+				}else {
+					finalQuery.append(f.accept(this,null).toString());
+				}
+				}
 			
 		}
 		
@@ -100,11 +122,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	}
 
 	@Override
-	public StringBuilder visitContainsFilter(Void p, ContainsFilter filter) {
+	public StringBuilder visitContainsFilter(ObjectClass p, ContainsFilter filter) {
 		if (!filter.getName().isEmpty()){
-		if (nameDictionary.get(filter.getName())!=null){
-			
-			return BuildString(filter.getAttribute(),CONTAINS , filter.getName());
+		if (nameDictionaryUser.containsKey(filter.getName())){
+			return BuildString(filter.getAttribute(),CONTAINS , nameDictionaryUser.get(filter.getName()));
 		}else{
 			LOGGER.error("Usuported attribute name",filter.getName());
 			throw new InvalidAttributeValueException("Usuported attribute name");
@@ -117,18 +138,18 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	}
 
 	@Override
-	public StringBuilder visitContainsAllValuesFilter(Void p, ContainsAllValuesFilter filter) {
+	public StringBuilder visitContainsAllValuesFilter(ObjectClass p, ContainsAllValuesFilter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public StringBuilder visitEqualsFilter(Void p, EqualsFilter filter) {
+	public StringBuilder visitEqualsFilter(ObjectClass p, EqualsFilter filter) {
 		if (!filter.getName().isEmpty()){
 		
-		if(nameDictionary.get(filter.getName())!=null){
+			if (nameDictionaryUser.containsKey(filter.getName())){
 			
-			return BuildString(filter.getAttribute(),EQUALS,filter.getName());
+			return BuildString(filter.getAttribute(),EQUALS,nameDictionaryUser.get(filter.getName()));
 			
 		}else{
 			LOGGER.error("Usuported attribute name",filter.getName());
@@ -144,18 +165,18 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	
 
 	@Override
-	public StringBuilder visitExtendedFilter(Void p, Filter filter) {
+	public StringBuilder visitExtendedFilter(ObjectClass p, Filter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public StringBuilder visitGreaterThanFilter(Void p, GreaterThanFilter filter) {
+	public StringBuilder visitGreaterThanFilter(ObjectClass p, GreaterThanFilter filter) {
 		
 		if (!filter.getName().isEmpty()){
-	 if(nameDictionary.get(filter.getName())!=null){
+			if (nameDictionaryUser.containsKey(filter.getName())){
 		 
-		 return BuildString(filter.getAttribute(), GREATERTHAN, filter.getName());
+		 return BuildString(filter.getAttribute(), GREATERTHAN, nameDictionaryUser.get(filter.getName()));
 	 }else{
 		LOGGER.error("Usuported attribute name",filter.getName());
 		throw new InvalidAttributeValueException("Usuported attribute name");
@@ -168,11 +189,11 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	}
 
 	@Override
-	public StringBuilder visitGreaterThanOrEqualFilter(Void p, GreaterThanOrEqualFilter filter) {
+	public StringBuilder visitGreaterThanOrEqualFilter(ObjectClass p, GreaterThanOrEqualFilter filter) {
 		if (!filter.getName().isEmpty()){
-		 if(nameDictionary.get(filter.getName())!=null){
+			if (nameDictionaryUser.containsKey(filter.getName())){
 			 
-			 return BuildString(filter.getAttribute(), GREATEROREQ, filter.getName());
+			 return BuildString(filter.getAttribute(), GREATEROREQ, nameDictionaryUser.get(filter.getName()));
 		 }else{
 				LOGGER.error("Usuported attribute name",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name");
@@ -185,23 +206,23 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	}
 
 	@Override
-	public StringBuilder visitLessThanFilter(Void p, LessThanFilter filter) {
+	public StringBuilder visitLessThanFilter(ObjectClass p, LessThanFilter filter) {
 		if (!filter.getName().isEmpty()){
-		 if(nameDictionary.get(filter.getName())!=null){
+			if (nameDictionaryUser.containsKey(filter.getName())){
 			 
-			 return BuildString(filter.getAttribute(), LESSTHAN, filter.getName());
+			 return BuildString(filter.getAttribute(), LESSTHAN, nameDictionaryUser.get(filter.getName()));
 		 }
 		}
 		return null;
 	}
 
 	@Override
-	public StringBuilder visitLessThanOrEqualFilter(Void p, LessThanOrEqualFilter filter) {
+	public StringBuilder visitLessThanOrEqualFilter(ObjectClass p, LessThanOrEqualFilter filter) {
 		
 		if (!filter.getName().isEmpty()){
-		 if(nameDictionary.get(filter.getName())!=null){
+			if (nameDictionaryUser.containsKey(filter.getName())){
 			 
-			 return BuildString(filter.getAttribute(), LESSOREQ, filter.getName());
+			 return BuildString(filter.getAttribute(), LESSOREQ, nameDictionaryUser.get(filter.getName()));
 		 }else{
 				LOGGER.error("Usuported attribute name",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name");
@@ -214,7 +235,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	}
 
 	@Override
-	public StringBuilder visitNotFilter(Void p, NotFilter filter) {
+	public StringBuilder visitNotFilter(ObjectClass p, NotFilter filter) {
 		StringBuilder finalQuery = new StringBuilder();
 		
 		 finalQuery.append(NOT).append(SPACE).append(filter.getFilter().accept(this, null));
@@ -224,7 +245,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	}
 
 	@Override
-	public StringBuilder visitOrFilter(Void p, OrFilter filter) {
+	public StringBuilder visitOrFilter(ObjectClass p, OrFilter filter) {
 	StringBuilder finalQuery = new StringBuilder();
 		
 		boolean isFirst = true;
@@ -240,8 +261,16 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 			}else {
 				
 				finalQuery.append(SPACE);
-				finalQuery.append(f.accept(this,null).toString());
-			}
+				if (f instanceof OrFilter || f instanceof AndFilter){
+					finalQuery.append("(");
+					finalQuery.append(f.accept(this,null).toString());
+					finalQuery.append(")");
+				}else {
+					
+					finalQuery.append(f.accept(this,null).toString());
+				}
+				
+				}
 			
 		}
 		
@@ -250,10 +279,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	}
 
 	@Override
-	public StringBuilder visitStartsWithFilter(Void p, StartsWithFilter filter) {
+	public StringBuilder visitStartsWithFilter(ObjectClass p, StartsWithFilter filter) {
 		if (!filter.getName().isEmpty()){
-		if(nameDictionary.get(filter.getName())!=null){
-			return BuildString(filter.getAttribute(), STARTSWITH, filter.getName());
+			if (nameDictionaryUser.containsKey(filter.getName())){
+			return BuildString(filter.getAttribute(), STARTSWITH, nameDictionaryUser.get(filter.getName()));
 		}else{
 			LOGGER.error("Usuported attribute name",filter.getName());
 			throw new InvalidAttributeValueException("Usuported attribute name");
@@ -266,11 +295,11 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 	}
 
 	@Override
-	public StringBuilder visitEndsWithFilter(Void p, EndsWithFilter filter) {
+	public StringBuilder visitEndsWithFilter(ObjectClass p, EndsWithFilter filter) {
 		if (!filter.getName().isEmpty()){
-		if(nameDictionary.get(filter.getName())!=null){
+			if (nameDictionaryUser.containsKey(filter.getName())){
 			
-			return BuildString(filter.getAttribute(), ENDSWITH, filter.getName());
+			return BuildString(filter.getAttribute(), ENDSWITH, nameDictionaryUser.get(filter.getName()));
 		}else{
 			LOGGER.error("Usuported attribute name",filter.getName());
 			throw new InvalidAttributeValueException("Usuported attribute name");
@@ -292,7 +321,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, Void> {
 			LOGGER.error("Filter atribude value is EMPTY, please provide atribute value", atr );
 		}else {
 			resultString.append(name).append(SPACE).append(operator).append(SPACE).append(QUOTATION).append(AttributeUtil.getAsStringValue(atr)).append(QUOTATION);
-		
 		}
 		
 		return resultString;

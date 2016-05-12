@@ -255,7 +255,7 @@ public class SalesfrcManager {
 		HttpClient httpClient = HttpClientBuilder.create().build();
 
 		String uri = 
-				new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append("...s").toString();
+				new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(uid).toString();
 		
 		HttpDelete httpDelete = new HttpDelete(uri);
 		httpDelete.addHeader(oauthHeader);

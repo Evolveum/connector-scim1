@@ -1,14 +1,17 @@
 package com.evolveum.polygon.salesfrconn;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.identityconnectors.common.CollectionUtil;
+import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.filter.AndFilter;
+import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
@@ -59,6 +62,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	private static Map<String, String> nameDictionaryUser = CollectionUtil.newCaseInsensitiveMap();
 	
 	private static Map<String, String> nameDictionaryGroup = CollectionUtil.newCaseInsensitiveMap();
+	
+	private static Map< String, HashMap<String, String>> AnameDictionaryGroup =  new HashMap<String, HashMap<String, String>>() ;
+	
+	private static HashMap<String, String> secDictionaryGroup =  new HashMap<String, String>() ;
 		static {
 			nameDictionaryUser.put("userName","userName");
 			nameDictionaryUser.put("name","formatted");
@@ -87,7 +94,16 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 			//nameDictionaryGroup.put("meta", "meta");
 			nameDictionaryGroup.put("displayName", "displayName");
 			//nameDictionaryGroup.put("members", "members");
+			
+			
+			// array dictonaries and values
+			secDictionaryGroup.put("type", "email.type");
+			secDictionaryGroup.put("value", "email.value");
+			
+			AnameDictionaryGroup.put("emails", secDictionaryGroup);
 		}
+		
+		
 	
 	@Override
 	public StringBuilder visitAndFilter(ObjectClass p, AndFilter filter) {
@@ -125,7 +141,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	public StringBuilder visitContainsFilter(ObjectClass p, ContainsFilter filter) {
 		if (!filter.getName().isEmpty()){
 			
-			Map<String, String> nameDictionary = setDictionary(p);
+			Map<String, String> nameDictionary = setDictionary(p, filter);
 			
 			if (nameDictionary.containsKey(filter.getName())){
 			return BuildString(filter.getAttribute(),CONTAINS , nameDictionary.get(filter.getName()));
@@ -150,7 +166,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	public StringBuilder visitEqualsFilter(ObjectClass p, EqualsFilter filter) {
 		if (!filter.getName().isEmpty()){
 		
-			Map<String, String> nameDictionary = setDictionary(p);
+			Map<String, String> nameDictionary = setDictionary(p, filter);
 			
 			if (nameDictionary.containsKey(filter.getName())){
 			
@@ -160,7 +176,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 			LOGGER.error("Usuported attribute name",filter.getName());
 			throw new InvalidAttributeValueException("Usuported attribute name");
 			}
-			}else{
+		}else{
 
 			LOGGER.error("Filter atribute key name EMPTY");
 			throw new InvalidAttributeValueException("No atribute key name provided");
@@ -180,7 +196,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 		
 		if (!filter.getName().isEmpty()){
 			
-			Map<String, String> nameDictionary = setDictionary(p);
+			Map<String, String> nameDictionary = setDictionary(p, filter);
 			
 			if (nameDictionary.containsKey(filter.getName())){
 		 
@@ -189,7 +205,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 		LOGGER.error("Usuported attribute name",filter.getName());
 		throw new InvalidAttributeValueException("Usuported attribute name");
 		}
-		}else{
+	}else{
 
 		LOGGER.error("Filter atribute key name EMPTY");
 		throw new InvalidAttributeValueException("No atribute key name provided");
@@ -200,7 +216,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	public StringBuilder visitGreaterThanOrEqualFilter(ObjectClass p, GreaterThanOrEqualFilter filter) {
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p);
+			Map<String, String> nameDictionary = setDictionary(p, filter);
 			
 			if (nameDictionary.containsKey(filter.getName())){
 			 
@@ -220,7 +236,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	public StringBuilder visitLessThanFilter(ObjectClass p, LessThanFilter filter) {
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p);
+			Map<String, String> nameDictionary = setDictionary(p, filter);
 			
 			if (nameDictionary.containsKey(filter.getName())){
 			 
@@ -235,7 +251,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 		
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p);
+			Map<String, String> nameDictionary = setDictionary(p, filter);
 			
 			if (nameDictionary.containsKey(filter.getName())){
 			 
@@ -299,7 +315,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	public StringBuilder visitStartsWithFilter(ObjectClass p, StartsWithFilter filter) {
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p);
+			Map<String, String> nameDictionary = setDictionary(p, filter);
 			
 			if (nameDictionary.containsKey(filter.getName())){
 			return BuildString(filter.getAttribute(), STARTSWITH, nameDictionary.get(filter.getName()));
@@ -318,7 +334,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	public StringBuilder visitEndsWithFilter(ObjectClass p, EndsWithFilter filter) {
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p);
+			Map<String, String> nameDictionary = setDictionary(p, filter);
+			
 			
 			if (nameDictionary.containsKey(filter.getName())){
 			
@@ -349,11 +366,17 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 		return resultString;
 	}
 	
-	private Map<String,String> setDictionary(ObjectClass objectClass){
-		
-	
+	private Map<String,String> setDictionary(ObjectClass objectClass, AttributeFilter filter){
 		
 		Map<String, String> nameDictionary = null;
+		
+		//TODO question, do we need to check if the filter request ist for an accound or a group ?
+		
+		if(AnameDictionaryGroup.containsKey(filter.getName())){
+			
+			nameDictionary = AnameDictionaryGroup.get(filter.getName());
+		}else // TODO remove if we dont
+		
 		if (ObjectClass.ACCOUNT.equals(objectClass)){
 			
 			nameDictionary=nameDictionaryUser;

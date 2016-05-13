@@ -104,44 +104,38 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler arg2, OperationOptions options) {
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
-	
-		if (ObjectClass.ACCOUNT.equals(objectClass)){
-			if(query == null){
+		
+		if (isSupportedQuery(objectClass, query)){
+		
+			if (ObjectClass.ACCOUNT.equals(objectClass)){
+			
+				if(query == null){
 				
 		ForceManager.qeueryEntity("", "Users/");
-			}else { 
-				if (isSupportedQueue(objectClass, query)){
-				//Attribute filterAttr = ((EqualsFilter) query).getAttribute();
-
-					StringBuilder build =  
-							query.accept(new FilterHandler(),objectClass);
-					
-					build.insert(0, "?filter=");
-					
-				ForceManager.qeueryEntity(build.toString(), "Users");
-				}
+		
+		///TODO Dont know if good practice, should ask !
+			}else if(query instanceof EqualsFilter && qIsUid(objectClass,query)){
+				
+				}else{ 
+						
+				qIsFilter(objectClass,query);
 			}
 		}else if(ObjectClass.GROUP.equals(objectClass)){
 			if(query == null){
 			ForceManager.qeueryEntity("", "Groups/");
-			
+			}
+			else if(query instanceof EqualsFilter && qIsUid(objectClass,query)){
+				
 			}else { 
-				if (isSupportedQueue(objectClass, query)){
-				//Attribute filterAttr = ((EqualsFilter) query).getAttribute();
-
-					StringBuilder build =  
-							query.accept(new FilterHandler(),objectClass);
-					
-					build.insert(0, "?filter=");
-					
-				ForceManager.qeueryEntity(build.toString(), "Groups");
-				}
+				
+				qIsFilter(objectClass,query);
 			}
 		}
 		else{
 			LOGGER.error("The provided objectClass is not supported: {0}", objectClass.getDisplayNameKey());
 			throw new IllegalArgumentException("objectClass " + objectClass.getDisplayNameKey()+ " is not supported");
 		}
+	}
 		
 	}
 	
@@ -149,7 +143,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		 SchemaBuilder schemaBuilder = new SchemaBuilder(SalesfrcConnector.class);
 	}
 	
-	protected boolean isSupportedQueue(ObjectClass objectClass, Filter filter){
+	protected boolean isSupportedQuery(ObjectClass objectClass, Filter filter){
 		
 if (filter instanceof EqualsFilter ){
 			
@@ -160,6 +154,40 @@ if (filter instanceof EqualsFilter ){
 			}	
 		}	
 		return true;
+	}
+	
+	private boolean qIsUid(ObjectClass objectClass, Filter query){
+		Attribute filterAttr = ((EqualsFilter) query).getAttribute();
+		
+		if(filterAttr instanceof Uid){
+			
+			if(ObjectClass.ACCOUNT.equals(objectClass)){
+			ForceManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Users/");
+			}else 
+			if(ObjectClass.GROUP.equals(objectClass)){
+				ForceManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Groups/");
+			}
+			
+			return true;
+		}else
+		return false;
+	}
+	
+	private void qIsFilter(ObjectClass objectClass, Filter query){
+		
+		StringBuilder build =  
+				query.accept(new FilterHandler(),objectClass);
+		
+		build.insert(0, "?filter=");
+		
+		
+		if(ObjectClass.ACCOUNT.equals(objectClass)){
+			ForceManager.qeueryEntity(build.toString(), "Users/");
+			}else 
+			if(ObjectClass.GROUP.equals(objectClass)){
+				ForceManager.qeueryEntity(build.toString(), "Groups/");
+			}
+		
 	}
 	/*
 	protected Attribute getKeyFromFilter(ObjectClass objectClass, Filter filter) {

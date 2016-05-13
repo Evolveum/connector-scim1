@@ -32,7 +32,9 @@ public class Main {
     	ObjectClass userC = ObjectClass.ACCOUNT;
     	ObjectClass groupC = ObjectClass.GROUP;
     	
-    	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("displayName","TesttestGroup2"));
+    	EqualsFilter aeq = (EqualsFilter)FilterBuilder.equalTo(TEST_UID);
+    	
+    /*TODO set for emails*/	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("emails","johnsnow@winterfell.com"));
     	
     	ContainsFilter con = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","john"));
     	
@@ -66,7 +68,7 @@ public class Main {
     	conn.init(conf);
     	
     	/// METODA KTORU HLADAS!!!!! VVVVVV
-    	conn.executeQuery(groupC, eq, handler, null);
+    	conn.executeQuery(userC, eq, handler, null);
     	/////
     	for(int i=0;i<result.size();i++){
     	    System.out.println(result.get(i));

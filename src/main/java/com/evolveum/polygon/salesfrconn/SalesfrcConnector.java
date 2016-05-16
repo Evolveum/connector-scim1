@@ -16,6 +16,8 @@ import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AndFilter;
+import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
+import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
@@ -35,12 +37,12 @@ configurationClass = SalesFrcConfiguration.class)
 
 public class SalesfrcConnector implements Connector, CreateOp, DeleteOp, SchemaOp,
 SearchOp<Filter>, TestOp, UpdateOp {
-    
-    private SalesFrcConfiguration configuration; 
-    private SalesfrcManager ForceManager;
-    
-    private static final Log LOGGER = Log.getLog(SalesfrcConnector.class);
-	
+
+	private SalesFrcConfiguration configuration; 
+	private SalesfrcManager ForceManager;
+
+	private static final Log LOGGER = Log.getLog(SalesfrcConnector.class);
+
 	@Override
 	public Schema schema() {
 		// TODO Auto-generated method stub
@@ -60,14 +62,17 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 	@Override
 	public Uid create(ObjectClass arg0, Set<Attribute> arg1, OperationOptions arg2) {
-		// TODO Auto-generated method stub
+		
+		UserDataBuilder userJson = new UserDataBuilder();
+
+		LOGGER.info("Json response: {0}", userJson.setUserObject(arg1).toString(1));
 		return null;
 	}
 
 	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -92,7 +97,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public void test() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -104,140 +109,87 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler arg2, OperationOptions options) {
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
-		
+
 		if (isSupportedQuery(objectClass, query)){
-		
+
 			if (ObjectClass.ACCOUNT.equals(objectClass)){
-			
+
 				if(query == null){
-				
-		ForceManager.qeueryEntity("", "Users/");
-		
-		///TODO Dont know if good practice, should ask !
-			}else if(query instanceof EqualsFilter && qIsUid(objectClass,query)){
-				
+
+					ForceManager.qeueryEntity("", "Users/");
+
+					///TODO Dont know if good practice, should ask !
+				}else if(query instanceof EqualsFilter && qIsUid(objectClass,query)){
+
 				}else{ 
-						
-				qIsFilter(objectClass,query);
+
+					qIsFilter(objectClass,query);
+				}
+			}else if(ObjectClass.GROUP.equals(objectClass)){
+				if(query == null){
+					ForceManager.qeueryEntity("", "Groups/");
+				}
+				else if(query instanceof EqualsFilter && qIsUid(objectClass,query)){
+
+				}else { 
+
+					qIsFilter(objectClass,query);
+				}
 			}
-		}else if(ObjectClass.GROUP.equals(objectClass)){
-			if(query == null){
-			ForceManager.qeueryEntity("", "Groups/");
-			}
-			else if(query instanceof EqualsFilter && qIsUid(objectClass,query)){
-				
-			}else { 
-				
-				qIsFilter(objectClass,query);
+			else{
+				LOGGER.error("The provided objectClass is not supported: {0}", objectClass.getDisplayNameKey());
+				throw new IllegalArgumentException("objectClass " + objectClass.getDisplayNameKey()+ " is not supported");
 			}
 		}
-		else{
-			LOGGER.error("The provided objectClass is not supported: {0}", objectClass.getDisplayNameKey());
-			throw new IllegalArgumentException("objectClass " + objectClass.getDisplayNameKey()+ " is not supported");
-		}
+
 	}
-		
-	}
-	
+
 	private void buildSchema(){
-		 SchemaBuilder schemaBuilder = new SchemaBuilder(SalesfrcConnector.class);
+		SchemaBuilder schemaBuilder = new SchemaBuilder(SalesfrcConnector.class);
 	}
-	
+
 	protected boolean isSupportedQuery(ObjectClass objectClass, Filter filter){
-		
-if (filter instanceof EqualsFilter ){
-			
-			Attribute attribute = ((EqualsFilter) filter).getAttribute();
-			
-			if (attribute instanceof Uid){
-			return true;	
-			}	
-		}	
-		return true;
+
+		if (filter instanceof AttributeFilter && !(filter instanceof ContainsAllValuesFilter )){
+
+			return true;
+		}	else{
+			return false;
+		}
 	}
-	
+
 	private boolean qIsUid(ObjectClass objectClass, Filter query){
 		Attribute filterAttr = ((EqualsFilter) query).getAttribute();
-		
+
 		if(filterAttr instanceof Uid){
-			
+
 			if(ObjectClass.ACCOUNT.equals(objectClass)){
-			ForceManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Users/");
+				ForceManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Users/");
 			}else 
-			if(ObjectClass.GROUP.equals(objectClass)){
-				ForceManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Groups/");
-			}
-			
+				if(ObjectClass.GROUP.equals(objectClass)){
+					ForceManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Groups/");
+				}
+
 			return true;
 		}else
-		return false;
+			return false;
 	}
-	
+
 	private void qIsFilter(ObjectClass objectClass, Filter query){
-		
+
 		StringBuilder build =  
 				query.accept(new FilterHandler(),objectClass);
-		
+
 		build.insert(0, "?filter=");
-		
-		
+
+
 		if(ObjectClass.ACCOUNT.equals(objectClass)){
 			ForceManager.qeueryEntity(build.toString(), "Users/");
-			}else 
+		}else 
 			if(ObjectClass.GROUP.equals(objectClass)){
 				ForceManager.qeueryEntity(build.toString(), "Groups/");
 			}
-		
+
 	}
-	/*
-	protected Attribute getKeyFromFilter(ObjectClass objectClass, Filter filter) {
-        Attribute key = null;
-        if (filter instanceof EqualsFilter) {
-            // Account, Group, OrgUnit object classes
-            Attribute filterAttr = ((EqualsFilter) filter).getAttribute();
-            if (filterAttr instanceof Uid) {
-                key = filterAttr;
-            } else if (ObjectClass.ACCOUNT.equals(objectClass) || ObjectClass.GROUP.equals(objectClass)
-                    && (filterAttr instanceof Name || filterAttr.getName().equalsIgnoreCase(ALIASES_ATTR))) {
-                key = filterAttr;
-            } else if (ORG_UNIT.equals(objectClass) && filterAttr.getName().equalsIgnoreCase(ORG_UNIT_PATH_ATTR)) {
-                key = filterAttr;
-            }
-        } else if (filter instanceof AndFilter) {
-            // Member object class
-            if (MEMBER.equals(objectClass)) {
-                Attribute groupKey = null;
-                Attribute memberKey = null;
-                StringBuilder memberId = new StringBuilder();
-
-                Collection<Filter> filters = ((AndFilter) filter).getFilters();
-                for (Filter f : filters) {
-                    if (f instanceof EqualsFilter) {
-                        Attribute filterAttr = ((EqualsFilter) f).getAttribute();
-                        if (filterAttr.getName().equalsIgnoreCase(GROUP_KEY_ATTR)) {
-                            groupKey = filterAttr;
-                        } else if (filterAttr.getName().equalsIgnoreCase(EMAIL_ATTR) || filterAttr.getName().
-                                equalsIgnoreCase(ALIAS_ATTR) || filterAttr instanceof Uid) {
-                            memberKey = filterAttr;
-                        } else {
-                            throw new UnsupportedOperationException(
-                                    "Only AndFilter('groupKey','memberKey') is supported");
-                        }
-                    } else {
-                        throw new UnsupportedOperationException(
-                                "Only AndFilter('groupKey','memberKey') is supported");
-                    }
-                }
-                if (memberKey != null && groupKey != null) {
-                    memberId.append(groupKey.getValue().get(0));
-                    memberId.append("/");
-                    memberId.append(memberKey.getValue().get(0));
-                    key = new Uid(memberId.toString());
-                }
-            }
-        }
-        return key;
-    } */
-
 
 }

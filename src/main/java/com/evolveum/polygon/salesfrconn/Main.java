@@ -1,12 +1,18 @@
 package com.evolveum.polygon.salesfrconn;
  
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.io.filefilter.NotFileFilter;
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -19,6 +25,8 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.common.objects.filter.NotFilter;
 import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
+
+import com.evolveum.polygon.test.slsfrc.JsonDataProvider;
  
 public class Main {
 
@@ -34,7 +42,7 @@ public class Main {
     	
     	EqualsFilter aeq = (EqualsFilter)FilterBuilder.equalTo(TEST_UID);
     	
-    /*TODO set for emails*/	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("emails","johnsnow@winterfell.com"));
+    /*TODO set for emails*/	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("userName","johnsnow@winterfell.com"));
     	
     	ContainsFilter con = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","john"));
     	
@@ -67,8 +75,62 @@ public class Main {
     	SalesfrcConnector conn = new SalesfrcConnector();
     	conn.init(conf);
     	
+    	//// test 
+    	
+    	
+    	
+    	Set<Attribute> attrs = new HashSet<Attribute>();
+        attrs.add(AttributeBuilder.build("userName", "bjensen@example.com"));
+        
+        Map<String, String> names = CollectionUtil.newCaseInsensitiveMap();
+        
+       Map<String, Map<String, String>> phoneNumbers = CollectionUtil.newCaseInsensitiveMap();
+       
+       Map<String, String> type = CollectionUtil.newCaseInsensitiveMap();
+       
+       names.put("formatted", "Ms. Barbara J Jensen III");
+       names.put("familyName", "Jensen");
+       names.put("givenName", "Barbara");
+       names.put("middleName", "Jane");
+       names.put("honorificPrefix", "Ms.");
+       names.put("honorificSuffix", "III");
+        
+       phoneNumbers.put("home", type);
+        phoneNumbers.put("work", type);
+        
+        type.put("type", "work");
+        type.put("value", "09182");
+        
+        attrs.add(AttributeBuilder.build("nickName", "Babs"));
+        attrs.add(AttributeBuilder.build("phoneNumbers", phoneNumbers));
+        attrs.add(AttributeBuilder.build("name", names));
+        
+        
+       /* for(Attribute at: attrs){
+        	
+        	if(at.getName() == "Telephone"){
+        		Map<String, Map<String, String>> m = (Map<String, Map<String, String>>) (AttributeUtil.getSingleValue(at));
+        		
+        		for(String key: m.keySet()){
+        			 System.out.println(m.get(key));
+        			 Map<String, String> ma = m.get(key);
+        			 
+        			 for(String keey: ma.keySet()){
+        				 
+        				 System.out.println(ma.get(keey));
+        			 }
+        		}
+        	}else{
+        	
+        System.out.println(AttributeUtil.getSingleValue(at));
+        }}
+        */
+        ///test
+        
     	/// METODA KTORU HLADAS!!!!! VVVVVV
+        conn.create(userC, attrs, null);
     	conn.executeQuery(userC, eq, handler, null);
+    	
     	/////
     	for(int i=0;i<result.size();i++){
     	    System.out.println(result.get(i));
@@ -84,6 +146,8 @@ public class Main {
 			return true;
 		}
 	};
+	
+	
     
     }
 

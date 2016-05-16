@@ -187,8 +187,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitExtendedFilter(ObjectClass p, Filter filter) {
-		// TODO Auto-generated method stub
-		return null;
+		LOGGER.error("Usuported filter",filter);
+		throw new NoSuchMethodError("Usuported attribute name");
 	}
 
 	@Override
@@ -370,12 +370,12 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 		
 		Map<String, String> nameDictionary = null;
 		
-		//TODO question, do we need to check if the filter request ist for an accound or a group ?
+		//TODO question, do we need to check if the filter request is for an accound or a group ?
 		
-		if(AnameDictionaryGroup.containsKey(filter.getName())){
+		//if(AnameDictionaryGroup.containsKey(filter.getName())){
 			
-			nameDictionary = AnameDictionaryGroup.get(filter.getName());
-		}else // TODO remove if we dont
+		//	nameDictionary = AnameDictionaryGroup.get(filter.getName());
+		//}else // TODO remove if we dont
 		
 		if (ObjectClass.ACCOUNT.equals(objectClass)){
 			

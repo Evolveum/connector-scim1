@@ -43,6 +43,19 @@ public class UserDataBuilder {
 				userObj.put(atributeName, AttributeUtil.getSingleValue(at));
 
 			}else if(atributeName == "name"){
+				
+				JSONObject nameElement = new JSONObject();
+
+				Map<String, String> nameSet = (Map<String, String>) AttributeUtil.getSingleValue(at);
+
+				for(String key: nameSet.keySet()){
+					//System.out.println(nameSet.get(key));
+					nameElement.put(key, nameSet.get(key));
+				}
+				userObj.put(atributeName, nameElement);
+				
+			}else if(atributeName == "urn:scim:schemas:extension:enterprise:1.0"){ // TODO Looks like something salesforce specific, must investigate
+				
 				JSONObject nameElement = new JSONObject();
 
 				Map<String, String> nameSet = (Map<String, String>) AttributeUtil.getSingleValue(at);
@@ -65,6 +78,9 @@ public class UserDataBuilder {
 
 				userObj.put(atributeName, buildLayeredAtrribute(at));
 
+			}else if(atributeName =="entitlements"){ /// TODO this is NOT from the CORE shema !
+
+				userObj.put(atributeName, buildLayeredAtrribute(at));
 
 			}else if(atributeName =="addresses"){
 
@@ -128,11 +144,11 @@ public class UserDataBuilder {
 
 		JSONObject arrayElement = new JSONObject();
 
-		Map<String, Map<String,String>> keys = (Map<String, Map<String,String>>) AttributeUtil.getSingleValue(at);
+		Map<String, Map<String,Object>> keys = (Map<String, Map<String,Object>>) AttributeUtil.getSingleValue(at);
 
 		for(String typeKey: keys.keySet()){
 			//System.out.println(nameSet.get(key));
-			Map<String,String> typeLayer = keys.get(typeKey);
+			Map<String,Object> typeLayer = keys.get(typeKey);
 
 			for(String key: typeLayer.keySet()){
 

@@ -64,6 +64,8 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	public Uid create(ObjectClass arg0, Set<Attribute> arg1, OperationOptions arg2) {
 		
 		UserDataBuilder userJson = new UserDataBuilder();
+		
+		ForceManager.createEntity("Users/", userJson.setUserObject(arg1));
 
 		LOGGER.info("Json response: {0}", userJson.setUserObject(arg1).toString(1));
 		return null;
@@ -150,10 +152,11 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 	protected boolean isSupportedQuery(ObjectClass objectClass, Filter filter){
 
-		if (filter instanceof AttributeFilter && !(filter instanceof ContainsAllValuesFilter )){
+		if ((filter instanceof AttributeFilter && !(filter instanceof ContainsAllValuesFilter ))|| filter == null){
 
 			return true;
 		}	else{
+			LOGGER.error("Unsuported filter type", filter);
 			return false;
 		}
 	}

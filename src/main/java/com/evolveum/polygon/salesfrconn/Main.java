@@ -80,31 +80,45 @@ public class Main {
     	
     	
     	Set<Attribute> attrs = new HashSet<Attribute>();
-        attrs.add(AttributeBuilder.build("userName", "bjensen@example.com"));
+        attrs.add(AttributeBuilder.build("userName", "stefan@stefansplace.com"));
         
         Map<String, String> names = CollectionUtil.newCaseInsensitiveMap();
         
-       Map<String, Map<String, String>> phoneNumbers = CollectionUtil.newCaseInsensitiveMap();
+        Map<String, String> foo = CollectionUtil.newCaseInsensitiveMap();
+        
+       Map<String, Map<String, Object>> phoneNumbers = CollectionUtil.newCaseInsensitiveMap();
        
-       Map<String, String> type = CollectionUtil.newCaseInsensitiveMap();
+       Map<String, Object> type = CollectionUtil.newCaseInsensitiveMap();
+       
+       Map<String, Map<String, Object>> emails = CollectionUtil.newCaseInsensitiveMap();
+       
+       Map<String, Object> emailAtr = CollectionUtil.newCaseInsensitiveMap();
+       
+       foo.put("organization", "00D58000000YfgfEAC");
        
        names.put("formatted", "Ms. Barbara J Jensen III");
        names.put("familyName", "Jensen");
        names.put("givenName", "Barbara");
-       names.put("middleName", "Jane");
-       names.put("honorificPrefix", "Ms.");
-       names.put("honorificSuffix", "III");
+       //names.put("middleName", "Jane");
+       //names.put("honorificPrefix", "Ms.");
+       //names.put("honorificSuffix", "III");
+       
+       emails.put("work",emailAtr);
+       emailAtr.put("type", "work");
+       emailAtr.put("value", "bjensen@example.com");
+       emailAtr.put("primary", true);
         
        phoneNumbers.put("home", type);
-        phoneNumbers.put("work", type);
         
-        type.put("type", "work");
-        type.put("value", "09182");
+        type.put("display", "Custom: Support Profile");
+        type.put("value", "00e58000000qvhqAAA");
+        type.put("primary", true);
         
         attrs.add(AttributeBuilder.build("nickName", "Babs"));
-        attrs.add(AttributeBuilder.build("phoneNumbers", phoneNumbers));
+        attrs.add(AttributeBuilder.build("entitlements", phoneNumbers));
         attrs.add(AttributeBuilder.build("name", names));
-        
+        attrs.add(AttributeBuilder.build("emails", emails));
+        attrs.add(AttributeBuilder.build("urn:scim:schemas:extension:enterprise:1.0", foo));
         
        /* for(Attribute at: attrs){
         	
@@ -128,8 +142,8 @@ public class Main {
         ///test
         
     	/// METODA KTORU HLADAS!!!!! VVVVVV
-        conn.create(userC, attrs, null);
-    	conn.executeQuery(userC, eq, handler, null);
+       conn.create(userC, attrs, null);
+    	conn.executeQuery(userC, aeq, handler, null);
     	
     	/////
     	for(int i=0;i<result.size();i++){

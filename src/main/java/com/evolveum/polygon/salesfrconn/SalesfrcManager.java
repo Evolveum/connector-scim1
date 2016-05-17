@@ -127,7 +127,10 @@ public class SalesfrcManager {
 					
 					try {
 						JSONObject json = new JSONObject(responseString);
-						System.out.println("Json from Q ->> \n" + json.toString(1) + "\n");
+						
+						//for id call -->> json.getJSONArray("Resources").getJSONObject(0).getString("id") // check of "Resources" is a good endpoint 
+						
+						LOGGER.info("Json response: {0}", json.toString(1));
 					} catch (JSONException e) {
 						
 						e.printStackTrace();
@@ -147,8 +150,11 @@ public class SalesfrcManager {
 	    }
 		
 	public void createEntity(String resourceEndPoint, JSONObject jsonObject){
-
+		logIntoService();
+		
 	    	HttpClient httpClient = HttpClientBuilder.create().build();
+	    	
+	    	System.out.println(scimBaseUri);
 	    	String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).toString();   	
 	    	
 	    	try {
@@ -167,6 +173,9 @@ public class SalesfrcManager {
 				 try {
 					HttpResponse response = httpClient.execute(httpPost);
 					
+					loginInstance.releaseConnection();
+			    	LOGGER.info("Connection released");
+					
 					int statusCode = response.getStatusLine().getStatusCode();
 					
 					if(statusCode==201){
@@ -174,6 +183,7 @@ public class SalesfrcManager {
 						
 						responseString = EntityUtils.toString(response.getEntity());
 						JSONObject json = new JSONObject(responseString);
+						///json.get("id");
 						LOGGER.info("Json response: {0}", json.toString(1));
 					}
 					

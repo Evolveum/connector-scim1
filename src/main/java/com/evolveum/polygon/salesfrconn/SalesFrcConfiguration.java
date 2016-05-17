@@ -12,7 +12,7 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
 	private static String SCIM_ENDPOINT = "/services/scim";
     private static String SCIM_VERSION = "/v1";
     
-    private  String USERNAME = "matus.macik@gmail.com"; // TODO the user will have to provide this information
+    private  String USERNAME = "matus.macik@gmail.com"; // TODO the user will have to provide this information/ better to change into non uri authentication
     private  String PASSWORD= "Iujm31hnPTlaN8tHPMgn3nn3lDS1fVZI";// TODO the user will have to provide this information
     private  String LOGINURL= "https://login.salesforce.com";
     private  String SERVICEGRANT = "/services/oauth2/token?grant_type=password";

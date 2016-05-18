@@ -370,7 +370,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 		
 		Map<String, String> nameDictionary = null;
 		
-		//TODO question, do we need to check if the filter request is for an accound or a group ?
+		//TODO question, do we need to check if the filter request is for an account or a group ?
 		
 		//if(AnameDictionaryGroup.containsKey(filter.getName())){
 			

@@ -13,7 +13,6 @@ public class UserDataBuilder {
 
 	public UserDataBuilder(){
 
-
 	}
 
 	public JSONObject setUserObject(Set<Attribute> attributes){
@@ -43,18 +42,6 @@ public class UserDataBuilder {
 				userObj.put(atributeName, AttributeUtil.getSingleValue(at));
 
 			}else if(atributeName == "name"){
-				
-				JSONObject nameElement = new JSONObject();
-
-				Map<String, String> nameSet = (Map<String, String>) AttributeUtil.getSingleValue(at);
-
-				for(String key: nameSet.keySet()){
-					//System.out.println(nameSet.get(key));
-					nameElement.put(key, nameSet.get(key));
-				}
-				userObj.put(atributeName, nameElement);
-				
-			}else if(atributeName == "urn:scim:schemas:extension:enterprise:1.0"){ // TODO Looks like something salesforce specific, must investigate
 				
 				JSONObject nameElement = new JSONObject();
 
@@ -128,6 +115,18 @@ public class UserDataBuilder {
 			}else if(atributeName =="groups"){
 
 				userObj.put(atributeName, buildLayeredAtrribute(at));
+				
+			}else if(atributeName == "urn:scim:schemas:extension:enterprise:1.0"){ // TODO Looks like something salesforce specific, must investigate
+				
+				JSONObject nameElement = new JSONObject();
+
+				Map<String, String> nameSet = (Map<String, String>) AttributeUtil.getSingleValue(at);
+
+				for(String key: nameSet.keySet()){
+					//System.out.println(nameSet.get(key));
+					nameElement.put(key, nameSet.get(key));
+				}
+				userObj.put(atributeName, nameElement);
 
 			}
 

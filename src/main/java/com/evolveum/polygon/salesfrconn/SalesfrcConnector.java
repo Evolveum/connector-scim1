@@ -63,9 +63,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public Uid create(ObjectClass arg0, Set<Attribute> arg1, OperationOptions arg2) {
 		
-		UserDataBuilder userJson = new UserDataBuilder();
+		GenericishDataBuilder userJson = new GenericishDataBuilder();
 		
-		ForceManager.createEntity("Users/", userJson.setUserObject(arg1));
+		//ForceManager.createEntity("Users/", userJson.setUserObject(arg1));
 
 		LOGGER.info("Json response: {0}", userJson.setUserObject(arg1).toString(1));
 		return null;

@@ -2,6 +2,7 @@ package com.evolveum.polygon.salesfrconn;
  
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -62,95 +63,175 @@ public class Main {
     	Attribute attribute = ((EqualsFilter) eq).getAttribute();
     	
     	String s = AttributeUtil.getStringValue(attribute);
-    				
-    	if(attribute instanceof Uid){
-    		
-    		
-    		System.out.println("yeah = "+ eq.getName());
-    		System.out.println("yeah = "+ s);
-    		
-    	}else {System.out.println("not Yeah");}
+    	
     	
     	SalesFrcConfiguration conf= new SalesFrcConfiguration();
     	SalesfrcConnector conn = new SalesfrcConnector();
     	conn.init(conf);
+
+        
+    	/// 
+       conn.create(userC, GenericBuilderTest(), null);
+    	//conn.executeQuery(userC, aeq, handler, null);
     	
-    	//// test 
-    	
-    	
-    	
-    	Set<Attribute> attrs = new HashSet<Attribute>();
-        attrs.add(AttributeBuilder.build("userName", "stefan@stefansplace.com"));
-        
-        Map<String, String> names = CollectionUtil.newCaseInsensitiveMap();
-        
-        Map<String, String> foo = CollectionUtil.newCaseInsensitiveMap();
-        
-       Map<String, Map<String, Object>> phoneNumbers = CollectionUtil.newCaseInsensitiveMap();
-       
-       Map<String, Object> type = CollectionUtil.newCaseInsensitiveMap();
-       
-       Map<String, Map<String, Object>> emails = CollectionUtil.newCaseInsensitiveMap();
-       
-       Map<String, Object> emailAtr = CollectionUtil.newCaseInsensitiveMap();
-       
-       foo.put("organization", "00D58000000YfgfEAC");
-       
-       names.put("formatted", "Ms. Barbara J Jensen III");
-       names.put("familyName", "Jensen");
-       names.put("givenName", "Barbara");
-       //names.put("middleName", "Jane");
-       //names.put("honorificPrefix", "Ms.");
-       //names.put("honorificSuffix", "III");
-       
-       emails.put("work",emailAtr);
-       emailAtr.put("type", "work");
-       emailAtr.put("value", "bjensen@example.com");
-       emailAtr.put("primary", true);
-        
-       phoneNumbers.put("home", type);
-        
-        type.put("display", "Custom: Support Profile");
-        type.put("value", "00e58000000qvhqAAA");
-        type.put("primary", true);
-        
-        attrs.add(AttributeBuilder.build("nickName", "Babs"));
-        attrs.add(AttributeBuilder.build("entitlements", phoneNumbers));
-        attrs.add(AttributeBuilder.build("name", names));
-        attrs.add(AttributeBuilder.build("emails", emails));
-        attrs.add(AttributeBuilder.build("urn:scim:schemas:extension:enterprise:1.0", foo));
-        
-       /* for(Attribute at: attrs){
-        	
-        	if(at.getName() == "Telephone"){
-        		Map<String, Map<String, String>> m = (Map<String, Map<String, String>>) (AttributeUtil.getSingleValue(at));
-        		
-        		for(String key: m.keySet()){
-        			 System.out.println(m.get(key));
-        			 Map<String, String> ma = m.get(key);
-        			 
-        			 for(String keey: ma.keySet()){
-        				 
-        				 System.out.println(ma.get(keey));
-        			 }
-        		}
-        	}else{
-        	
-        System.out.println(AttributeUtil.getSingleValue(at));
-        }}
-        */
-        ///test
-        
-    	/// METODA KTORU HLADAS!!!!! VVVVVV
-       conn.create(userC, attrs, null);
-    	conn.executeQuery(userC, aeq, handler, null);
-    	
-    	/////
-    	for(int i=0;i<result.size();i++){
-    	    System.out.println(result.get(i));
-    	} 
     	
     }
+    
+    private static Set<Attribute> GenericBuilderTest(){
+    	
+    	// Setting up attribute
+    	Set<Attribute> attr = new HashSet<Attribute>();
+        
+    	// Map for Maultivalue attribute name
+    	
+    	Map<String,Map<String, Object>> nameMap = new HashMap<String,Map<String,Object>>();
+    	Map<String, Object> names = new HashMap<String, Object>();
+    	
+    	// Map for Maultivalue attribute schema extension
+    	
+    	Map<String,Map<String, Object>> extensionMap = new HashMap<String,Map<String,Object>>();
+    	Map<String, Object> extensionAtributes = new HashMap<String, Object>();
+    	
+    	
+    	// Map for multilayered attribute Email
+        Map<String, Collection<Map<String, Object>>> emailMap = new HashMap<String, Collection<Map<String, Object>>>();
+        Map<String, Object> emailAttribute1 = new HashMap<String, Object>();
+        Map<String, Object> emailAttribute2 = new HashMap<String, Object>();
+        
+        // Map for multilayered attribute phoneNumbers
+        Map<String, Collection<Map<String, Object>>> phoneMap = new HashMap<String, Collection<Map<String, Object>>>();
+        Map<String, Object> phoneAttribute1 = new HashMap<String, Object>();
+        Map<String, Object> phoneAttribute2 = new HashMap<String, Object>();
+        
+     // Map for multilayered attribute entitlements
+        Map<String, Collection<Map<String, Object>>> entitlementMap = new HashMap<String, Collection<Map<String, Object>>>();
+        Map<String, Object> entitlementAttribute1 = new HashMap<String, Object>();
+        Map<String, Object> entitlementAttribute2 = new HashMap<String, Object>();
+        
+        //Name
+        names.put("formatted", "Harry Potter");
+        names.put("familyName", "Potter");
+        names.put("givenName", "Harry");
+        
+        nameMap.put("name", names);
+        
+        //extension ########## Enterprise extension
+        extensionAtributes.put("organization", "00D58000000YfgfEAC");
+        
+        extensionMap.put("urn:scim:schemas:extension:enterprise:1.0", extensionAtributes);
+        
+        // Email 
+        emailMap.put("emails", new ArrayList<Map<String,Object>>());
+        emailMap.get("emails").add(emailAttribute1);
+       
+        
+        emailAttribute1.put("type", "home");
+        
+        emailAttribute1.put ("value","someone@hometest554xz.com");
+        
+        emailAttribute2.put ("primary",true);
+        
+        emailAttribute2.put("type", "work");
+        
+        emailAttribute2.put("value","someone@hometest554xz.com");
+        
+        
+        //Entitlements
+        
+        entitlementMap.put("entitlements", new ArrayList<Map<String,Object>>());
+        entitlementMap.get("entitlements").add(entitlementAttribute1);
+        
+        entitlementAttribute1.put("display", "Custom: Support Profile");
+        
+        entitlementAttribute1.put ("value","00e58000000qvhqAAA");
+        
+        entitlementAttribute1.put("primary", true);
+        
+        
+        //Phone
+        
+        phoneMap.put("phoneNumbers", new ArrayList<Map<String,Object>>());
+        phoneMap.get("phoneNumbers").add(phoneAttribute1);
+        phoneMap.get("phoneNumbers").add(phoneAttribute2);
+        
+        phoneAttribute1.put("type", "mobile");
+        
+        phoneAttribute1.put ("value","+421 910039218");
+        
+        phoneAttribute2.put("type", "work");
+        
+        phoneAttribute2.put("value","+421 915039218");
+        
+        
+        // Attribute 
+        attr.add(AttributeBuilder.build("layeredAttrribute", emailMap));
+        attr.add(AttributeBuilder.build("layeredAttrribute", phoneMap));
+        attr.add(AttributeBuilder.build("layeredAttrribute", entitlementMap));
+        attr.add(AttributeBuilder.build("multiValueAttrribute", nameMap));
+        attr.add(AttributeBuilder.build("multiValueAttrribute",extensionMap));
+        attr.add(AttributeBuilder.build("nickName", "HP"));
+        attr.add(AttributeBuilder.build("userName", "harryp0234@hogwarts.com"));
+        
+        return attr;
+    }
+    
+    private static Set<Attribute> OldBuilderTest(){
+    	
+
+    	
+       	Set<Attribute> attr = new HashSet<Attribute>();
+       	
+       		
+       	attr.add(AttributeBuilder.build("userName", "stefan@stefansplace.com"));
+              
+           
+           Map<String, String> names = CollectionUtil.newCaseInsensitiveMap();
+           
+           
+           Map<String, String> foo = CollectionUtil.newCaseInsensitiveMap();
+           
+           Map<String, Map<String, Object>> phoneNumbers = CollectionUtil.newCaseInsensitiveMap();
+          
+           Map<String, Object> type = CollectionUtil.newCaseInsensitiveMap();
+           
+           Map<String, Map<String, Object>> emails = CollectionUtil.newCaseInsensitiveMap();
+          
+           Map<String, Object> emailAtr = CollectionUtil.newCaseInsensitiveMap();
+          
+          foo.put("organization", "00D58000000YfgfEAC");
+          
+          names.put("formatted", "Ms. Barbara J Jensen III");
+          names.put("familyName", "Jensen");
+          names.put("givenName", "Barbara");
+          
+          //names.put("middleName", "Jane");
+          //names.put("honorificPrefix", "Ms.");
+          //names.put("honorificSuffix", "III");
+          
+          emails.put("work",emailAtr);
+          emailAtr.put("type", "work");
+          emailAtr.put("value", "bjensen@example.com");
+          emailAtr.put("primary", true);
+           
+          phoneNumbers.put("home", type);
+           
+           type.put("display", "Custom: Support Profile");
+           type.put("value", "00e58000000qvhqAAA");
+           type.put("primary", true);
+           
+           
+           attr.add(AttributeBuilder.build("nickName", "Babs"));
+           attr.add(AttributeBuilder.build("entitlements", phoneNumbers));
+           
+           attr.add(AttributeBuilder.build("emails", emails));
+           attr.add(AttributeBuilder.build("urn:scim:schemas:extension:enterprise:1.0", foo));
+           
+        
+
+    	
+    	return attr;
+    }
+    
     
     static ResultsHandler handler= new ResultsHandler() {
 		

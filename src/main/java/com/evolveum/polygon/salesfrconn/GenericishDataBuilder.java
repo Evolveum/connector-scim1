@@ -24,21 +24,21 @@ public class GenericishDataBuilder {
 
 		for(Attribute at: attributes){
 
-			String attributeName = at.getName();
+			String attributeType = at.getName();
 
-			if(attributeName =="layeredAttrribute"){
+			if(attributeType =="layeredAttrribute"){
 
 				buildLayeredAtrribute(at, userObj);
 			}
-			else if(attributeName =="multiValueAttrribute"){
+			else if(attributeType =="multiValueAttrribute"){
 
 				buildMultiValueAtrribute(at,userObj);
-			} else if (attributeName == null) {
+			} else if (attributeType == null) {
 				
-				LOGGER.error("AttributeName has to be a not null value", attributeName);
+				LOGGER.error("AttributeName has to be a not null value", attributeType);
 			}else {
 				
-					userObj.put(attributeName, AttributeUtil.getSingleValue(at));
+					userObj.put(attributeType, AttributeUtil.getSingleValue(at));
 			}
 
 		}

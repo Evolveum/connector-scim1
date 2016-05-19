@@ -71,7 +71,7 @@ public class Main {
 
         
     	/// 
-       conn.create(userC, GenericBuilderTest(), null);
+       conn.create(userC, classicBuilderTest(), null);
     	//conn.executeQuery(userC, aeq, handler, null);
     	
     	
@@ -175,60 +175,25 @@ public class Main {
         return attr;
     }
     
-    private static Set<Attribute> OldBuilderTest(){
+    private static Set<Attribute> classicBuilderTest(){
     	
 
     	
        	Set<Attribute> attr = new HashSet<Attribute>();
        	
        		
-       	attr.add(AttributeBuilder.build("userName", "stefan@stefansplace.com"));
-              
+       	   attr.add(AttributeBuilder.build("userName", "stefan@stefansplace.com"));
+ 
            
-           Map<String, String> names = CollectionUtil.newCaseInsensitiveMap();
+           attr.add(AttributeBuilder.build("nickName", "Babss"));
+           attr.add(AttributeBuilder.build("entitlements.value", "entitlement"));
            
+           attr.add(AttributeBuilder.build("emails.work.value", "a"));
+           attr.add(AttributeBuilder.build("emails.type", "email"));
+           attr.add(AttributeBuilder.build("emails.value", "email"));
+           attr.add(AttributeBuilder.build("emails.value", "email"));
+           attr.add(AttributeBuilder.build("emails.value", "email"));
            
-           Map<String, String> foo = CollectionUtil.newCaseInsensitiveMap();
-           
-           Map<String, Map<String, Object>> phoneNumbers = CollectionUtil.newCaseInsensitiveMap();
-          
-           Map<String, Object> type = CollectionUtil.newCaseInsensitiveMap();
-           
-           Map<String, Map<String, Object>> emails = CollectionUtil.newCaseInsensitiveMap();
-          
-           Map<String, Object> emailAtr = CollectionUtil.newCaseInsensitiveMap();
-          
-          foo.put("organization", "00D58000000YfgfEAC");
-          
-          names.put("formatted", "Ms. Barbara J Jensen III");
-          names.put("familyName", "Jensen");
-          names.put("givenName", "Barbara");
-          
-          //names.put("middleName", "Jane");
-          //names.put("honorificPrefix", "Ms.");
-          //names.put("honorificSuffix", "III");
-          
-          emails.put("work",emailAtr);
-          emailAtr.put("type", "work");
-          emailAtr.put("value", "bjensen@example.com");
-          emailAtr.put("primary", true);
-           
-          phoneNumbers.put("home", type);
-           
-           type.put("display", "Custom: Support Profile");
-           type.put("value", "00e58000000qvhqAAA");
-           type.put("primary", true);
-           
-           
-           attr.add(AttributeBuilder.build("nickName", "Babs"));
-           attr.add(AttributeBuilder.build("entitlements", phoneNumbers));
-           
-           attr.add(AttributeBuilder.build("emails", emails));
-           attr.add(AttributeBuilder.build("urn:scim:schemas:extension:enterprise:1.0", foo));
-           
-        
-
-    	
     	return attr;
     }
     

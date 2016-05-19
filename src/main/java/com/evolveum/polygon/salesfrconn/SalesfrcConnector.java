@@ -63,7 +63,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public Uid create(ObjectClass arg0, Set<Attribute> arg1, OperationOptions arg2) {
 		
-		GenericishDataBuilder userJson = new GenericishDataBuilder();
+		UserDataBuilder userJson = new UserDataBuilder();
 		
 		//ForceManager.createEntity("Users/", userJson.setUserObject(arg1));
 

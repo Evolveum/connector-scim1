@@ -3,10 +3,12 @@ package com.evolveum.polygon.salesfrconn;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.identityconnectors.common.CollectionUtil;
+import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.json.JSONArray;
@@ -15,11 +17,12 @@ import org.json.JSONObject;
 public class UserDataBuilder {
 	
 	private static Map<String, String> nameDictionaryUser = CollectionUtil.newCaseInsensitiveMap();
+	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
+	
 	
 	static {
 		nameDictionaryUser.put("userName","userName");
 		
-		nameDictionaryUser.put("name","name");
 		nameDictionaryUser.put("name.formatted","formatted");
 		nameDictionaryUser.put("name.familyName","familyName");
 		nameDictionaryUser.put("name.givenName","givenName");
@@ -115,7 +118,6 @@ public class UserDataBuilder {
 		nameDictionaryUser.put("active","active");
 		//nameDictionaryUser.put("password","password");
 		
-		nameDictionaryUser.put("groups","groups");
 		nameDictionaryUser.put("groups.value","value");
 		nameDictionaryUser.put("groups.display","display");
 		
@@ -134,7 +136,10 @@ public class UserDataBuilder {
 	public JSONObject setUserObject(Set<Attribute> attributes){
 
 		JSONObject userObj = new JSONObject();
-
+		
+		Set<Attribute> multivalueAttribute = new HashSet<Attribute>();
+		Set<Attribute> multilaierAttribute = new HashSet<Attribute>();
+		
 		for(Attribute at: attributes){
 
 			String attributeName = at.getName();
@@ -142,10 +147,15 @@ public class UserDataBuilder {
 		if(nameDictionaryUser.containsKey(attributeName)){
 			if(attributeName.contains(".")){
 				
+			
 				String[] keyParts = attributeName.split("\\.");
-				
-				
-				translateToMap(at, attributeName);
+				 if(keyParts.length ==2){
+					 
+					multivalueAttribute.add(at);
+				 }
+				 else{
+					 multilaierAttribute.add(at);
+				 }
 				
 			}else{
 				
@@ -155,53 +165,103 @@ public class UserDataBuilder {
 		}else{System.out.println("not here");}
 		
 		}
-
+		
+		if(multivalueAttribute != null){
+			
+			
+		buildMultivalueAttribute(multivalueAttribute,userObj);
+		}
+		
+		if(multilaierAttribute != null){
+			
+			
+			buildLayeredAtrribute(multilaierAttribute, userObj);
+			}
 		return userObj;
 
 	}
 
 
-	private JSONArray buildLayeredAtrribute(Attribute at, String attributeName){
+	private JSONObject buildLayeredAtrribute(Set<Attribute> attr, JSONObject json){
 
-		JSONArray jArray = new JSONArray();
-
-		JSONObject arrayElement = new JSONObject();
+		String name="";
+		for(Attribute i: attr){
+			
+			String attributeName = i.getName();
+			String[] keyParts = attributeName.split("\\.");
+				
+				if(keyParts[0].intern().equals(name)){
+				}else{
+					JSONArray jArray = new JSONArray();		
+					name=keyParts[0].intern();
+					for(Attribute j: attr){
+						
+						String innerName = j.getName();
+						String[] innerKeyParts = innerName.split("\\.");
+							if(innerKeyParts[0].equals(name)){
+								
+								Set<Attribute> innerLayer = new HashSet<Attribute>();
+									innerLayer.add(j); /// TODO here is an error <-----------------------<-------------------
+								
+									String typeName = "";
+									
+									for(Attribute k: innerLayer){
+										
+										String secondName = k.getName();
+										String[] secondKeyPart = secondName.split("\\.");
+											
+										if(secondKeyPart[1].intern().equals(typeName)){
+										}
+										else{
+											JSONObject multivalueObject = new JSONObject();
+											typeName=secondKeyPart[1].intern();
+											System.out.println(typeName);
+												for( Attribute l: innerLayer){
+													System.out.print(innerLayer.toString());
+														String innerTypeName = l.getName();
+														String[] finalKey = innerTypeName.split("\\.");
+																if(finalKey[1].intern().equals(typeName)){
+																	multivalueObject.put(finalKey[2].intern(), AttributeUtil.getSingleValue(l));
+																}
+																System.out.println(finalKey[1].intern());
+												}
+												multivalueObject.put("type", secondKeyPart[1].intern());
+												jArray.put(multivalueObject);
+										}
+									}
+							}
+						
+					}
+					json.put(keyParts[0], jArray);
+				}			
+		}
 		
-		String[] keyParts = attributeName.split("\\.");
-		
-		arrayElement.put(keyParts[1], AttributeUtil.getSingleValue(at));
-		
-		jArray.put(arrayElement);
-
-		//for(String typeKey: keys.keySet()){
-			//System.out.println(nameSet.get(key));
-		//	Map<String,Object> typeLayer = keys.get(typeKey);
-
-			//for(String key: typeLayer.keySet()){
-
-				//arrayElement.put(key, typeLayer.get(key));
-
-			//}
-		//	jArray.put(arrayElement);
-		//}
-
-		return jArray;
+		return json;
 	}
 	
- public void translateToMap(Attribute at, String attributeName){
-	 
-	 Map<String, Collection<Map<String, Object>>> multiLayerAttribute = new HashMap<String, Collection<Map<String, Object>>>();
-	 
-	 String[] keyParts = attributeName.split("\\.");
-	 
-	 Map<String, Collection<Map <String, Object>>> map = new HashMap<String, Collection<Map <String, Object>>>();
-	 
-	 if(keyParts.length == 2){
+ public JSONObject buildMultivalueAttribute(Set<Attribute> attr, JSONObject json){
+	 	
+	 String name="";
+	for(Attribute i: attr){
+		String attributeName = i.getName();
+		String[] keyParts = attributeName.split("\\.");
 		
-		 Map<String, Object> ma = new HashMap<String, Object>();
-		
-		
-	 }
+		if(keyParts[0].intern().equals(name)){
+		}else{
+			JSONObject jObject = new JSONObject();
+			name=keyParts[0].intern();	
+			for(Attribute j: attr){
+				String innerName = j.getName();
+				String[] innerKeyParts = innerName.split("\\.");
+				if(innerKeyParts[0].intern().equals(name)){
+					jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(j));
+				}
+			}
+			json.put(keyParts[0], jObject);
+		}
+	}
+	return json;
+
 	 
  }
 

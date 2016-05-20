@@ -18,6 +18,7 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AndFilter;
+import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
@@ -189,10 +190,18 @@ public class Main {
            attr.add(AttributeBuilder.build("entitlements.value", "entitlement"));
            
            attr.add(AttributeBuilder.build("emails.work.value", "a"));
-           attr.add(AttributeBuilder.build("emails.type", "email"));
-           attr.add(AttributeBuilder.build("emails.value", "email"));
-           attr.add(AttributeBuilder.build("emails.value", "email"));
-           attr.add(AttributeBuilder.build("emails.value", "email"));
+           attr.add(AttributeBuilder.build("emails.work.primary", true));
+           
+           attr.add(AttributeBuilder.build("emails.home.value", "ee"));
+           
+           attr.add(AttributeBuilder.build("name.formatted","Matus Macik"));
+           attr.add(AttributeBuilder.build("name.familyName","Macik"));
+           attr.add(AttributeBuilder.build("name.givenName","Matus"));
+           
+           
+           attr.add(AttributeBuilder.build("groups.value","aaa"));
+           attr.add(AttributeBuilder.build("groups.display","bbb"));
+           
            
     	return attr;
     }

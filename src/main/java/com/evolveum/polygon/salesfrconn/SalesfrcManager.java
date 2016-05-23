@@ -17,6 +17,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -118,7 +119,8 @@ public class SalesfrcManager {
 	    	
 	    	try {
 				HttpResponse response = httpClient.execute(httpGet);
-				
+				loginInstance.releaseConnection();
+				LOGGER.info("Connection released");
 				int statusCode = response.getStatusLine().getStatusCode();
 				
 				if(statusCode == 200){
@@ -128,9 +130,18 @@ public class SalesfrcManager {
 					try {
 						JSONObject json = new JSONObject(responseString);
 						
-						//for id call -->> json.getJSONArray("Resources").getJSONObject(0).getString("id") // check of "Resources" is a good endpoint 
+						//for id call -->> json.getJSONArray("Resources").getJSONObject(0).getString("id") // check if "Resources" is a good endpoint 
+						
+						//Uid uid =new Uid(json.getString("id"));
+						
+						//System.out.println(json.getString("id"));
+						
+						ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
+						objBuilder.buildConnectorObject(json);
 						
 						LOGGER.info("Json response: {0}", json.toString(1));
+						LOGGER.info("Connection released");
+
 					} catch (JSONException e) {
 						
 						e.printStackTrace();
@@ -149,7 +160,7 @@ public class SalesfrcManager {
 	    	LOGGER.info("Connection released");
 	    }
 		
-	public void createEntity(String resourceEndPoint, JSONObject jsonObject){
+	public Uid createEntity(String resourceEndPoint, JSONObject jsonObject){
 		logIntoService();
 		
 	    	HttpClient httpClient = HttpClientBuilder.create().build();
@@ -184,7 +195,13 @@ public class SalesfrcManager {
 						responseString = EntityUtils.toString(response.getEntity());
 						JSONObject json = new JSONObject(responseString);
 						///json.get("id");
+						
+						Uid uid =new Uid(json.getString("id"));
+						
+						System.out.println(json.getString("id"));
+						
 						LOGGER.info("Json response: {0}", json.toString(1));
+						return uid;
 					}
 					
 					else{
@@ -207,6 +224,8 @@ public class SalesfrcManager {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+	    	loginInstance.releaseConnection();
+			return null;
 	    }
 
 	public void updateEntity(String q ,String resourceEndPoint, JSONObject jsonObject){

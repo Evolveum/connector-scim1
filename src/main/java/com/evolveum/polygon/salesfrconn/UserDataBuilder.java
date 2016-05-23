@@ -23,6 +23,8 @@ public class UserDataBuilder {
 	static {
 		nameDictionaryUser.put("userName","userName");
 		
+		nameDictionaryUser.put("userName","userName");
+		
 		nameDictionaryUser.put("name.formatted","formatted");
 		nameDictionaryUser.put("name.familyName","familyName");
 		nameDictionaryUser.put("name.givenName","givenName");
@@ -32,7 +34,7 @@ public class UserDataBuilder {
 		
 		nameDictionaryUser.put("displayName","displayName");
 		nameDictionaryUser.put("nickName","nickName");
-		nameDictionaryUser.put("profileUrl","profileUrl");
+		//nameDictionaryUser.put("profileUrl","profileUrl");
 		
 		
 		nameDictionaryUser.put("emails.work.value","value");
@@ -118,13 +120,19 @@ public class UserDataBuilder {
 		nameDictionaryUser.put("active","active");
 		//nameDictionaryUser.put("password","password");
 		
-		nameDictionaryUser.put("groups.value","value");
-		nameDictionaryUser.put("groups.display","display");
+		//nameDictionaryUser.put("groups.value","value");
+	//	nameDictionaryUser.put("groups.display","display");
 		
 		nameDictionaryUser.put("x509Certificates","x509Certificates");
 		nameDictionaryUser.put("x509Certificates.value","value");
 		
-
+		
+		// it might be a problem that this is an array
+		nameDictionaryUser.put("entitlements..value","value");
+		nameDictionaryUser.put("entitlements..primary","primary");
+		
+		nameDictionaryUser.put("schemaExtension.type","type");
+		nameDictionaryUser.put("schemaExtension.organization","organization");
 	}
 	
 
@@ -162,7 +170,7 @@ public class UserDataBuilder {
 				userObj.put(attributeName, AttributeUtil.getSingleValue(at));
 			}
 			
-		}else{System.out.println("not here");}
+		}else{LOGGER.error("Attribute name not defined in dictionary {0}", attributeName);}
 		
 		}
 		
@@ -185,81 +193,134 @@ public class UserDataBuilder {
 	private JSONObject buildLayeredAtrribute(Set<Attribute> attr, JSONObject json){
 
 		String name="";
+		ArrayList<String> checkedNames= new ArrayList<String>();
 		for(Attribute i: attr){
 			
 			String attributeName = i.getName();
 			String[] keyParts = attributeName.split("\\.");
 				
-				if(keyParts[0].intern().equals(name)){
+				if(checkedNames.contains(keyParts[0])){
+
 				}else{
-					JSONArray jArray = new JSONArray();		
+					Set<Attribute> innerLayer = new HashSet<Attribute>();
 					name=keyParts[0].intern();
+					checkedNames.add(name);
 					for(Attribute j: attr){
 						
 						String innerName = j.getName();
 						String[] innerKeyParts = innerName.split("\\.");
-							if(innerKeyParts[0].equals(name)){
-								
-								Set<Attribute> innerLayer = new HashSet<Attribute>();
-									innerLayer.add(j); /// TODO here is an error <-----------------------<-------------------
-								
-									String typeName = "";
-									
-									for(Attribute k: innerLayer){
-										
-										String secondName = k.getName();
-										String[] secondKeyPart = secondName.split("\\.");
-											
-										if(secondKeyPart[1].intern().equals(typeName)){
-										}
-										else{
-											JSONObject multivalueObject = new JSONObject();
-											typeName=secondKeyPart[1].intern();
-											System.out.println(typeName);
-												for( Attribute l: innerLayer){
-													System.out.print(innerLayer.toString());
-														String innerTypeName = l.getName();
-														String[] finalKey = innerTypeName.split("\\.");
-																if(finalKey[1].intern().equals(typeName)){
-																	multivalueObject.put(finalKey[2].intern(), AttributeUtil.getSingleValue(l));
-																}
-																System.out.println(finalKey[1].intern());
-												}
-												multivalueObject.put("type", secondKeyPart[1].intern());
-												jArray.put(multivalueObject);
-										}
-									}
+							
+						if(innerKeyParts[0].equals(name)){
+									innerLayer.add(j); 
 							}
-						
 					}
-					json.put(keyParts[0], jArray);
-				}			
+
+					String typeName = "";
+					JSONArray jArray = new JSONArray();	
+					
+					ArrayList<String> checkedTypeNames= new ArrayList<String>();
+					for(Attribute k: innerLayer){
+					
+						String secondName = k.getName();
+						String[] secondKeyPart = secondName.split("\\.");
+							
+						if(checkedTypeNames.contains(secondKeyPart[1].intern())){
+						}
+						else{
+							JSONObject multivalueObject = new JSONObject();
+							typeName=secondKeyPart[1].intern();
+							
+							checkedTypeNames.add(typeName);
+								for( Attribute l: innerLayer){
+									
+										String innerTypeName = l.getName();
+										String[] finalKey = innerTypeName.split("\\.");
+												
+										if(finalKey[1].intern().equals(typeName)){
+													multivalueObject.put(finalKey[2].intern(), AttributeUtil.getSingleValue(l));
+												}	
+								}
+								if(!secondKeyPart[1].intern().equals("")){
+								multivalueObject.put("type", secondKeyPart[1].intern());
+								}
+								jArray.put(multivalueObject);
+								
+						}
+						json.put(secondKeyPart[0], jArray);
+					}
+					
+					}			
 		}
+		
+		
+		
+		
+		
 		
 		return json;
 	}
 	
  public JSONObject buildMultivalueAttribute(Set<Attribute> attr, JSONObject json){
 	 	
+	 int count= 0;
 	 String name="";
+	 
+	 ArrayList<String> checkedNames= new ArrayList<String>();
+	 
+	 Set<Attribute> specialMlAttributes = new HashSet<Attribute>();
 	for(Attribute i: attr){
 		String attributeName = i.getName();
 		String[] keyParts = attributeName.split("\\.");
 		
-		if(keyParts[0].intern().equals(name)){
+		if(checkedNames.contains(keyParts[0].intern())){
 		}else{
 			JSONObject jObject = new JSONObject();
 			name=keyParts[0].intern();	
+			checkedNames.add(name);
 			for(Attribute j: attr){
 				String innerName = j.getName();
 				String[] innerKeyParts = innerName.split("\\.");
-				if(innerKeyParts[0].intern().equals(name)){
+				if(innerKeyParts[0].intern().equals(name)&&!name.equals("schema")){
 					jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(j));
+				}else if(innerKeyParts[0].intern().equals(name)&&name.equals("schema")){
+					specialMlAttributes.add(j);			
+					
 				}
 			}
+			if(specialMlAttributes.isEmpty()){
 			json.put(keyParts[0], jObject);
+			}
+			//
+			else {
+				String attrName="No shchema type";
+				Boolean nameSet= false;
+				
+				for(Attribute sa: specialMlAttributes){
+					String innerName = sa.getName();
+					String[] innerKeyParts = innerName.split("\\.");
+					if(innerKeyParts[1].intern().equals("type")&& !nameSet){
+						attrName = AttributeUtil.getAsStringValue(sa);
+						nameSet = true;
+					}else if(!innerKeyParts[1].intern().equals("type")){
+						
+						jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(sa));
+					}
+					
+				}
+				if(nameSet){
+					
+					json.put(attrName, jObject);
+					specialMlAttributes.removeAll(specialMlAttributes);
+					
+				}else{
+					
+					LOGGER.error("Schema type not speciffied {0}", attrName);
+				}
+				
+			}//
 		}
 	}
+	
 	return json;
 
 	 

@@ -63,11 +63,25 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public Uid create(ObjectClass arg0, Set<Attribute> arg1, OperationOptions arg2) {
 		
+		if(ObjectClass.ACCOUNT.equals(arg0)){
 		UserDataBuilder userJson = new UserDataBuilder();
 		
-		//ForceManager.createEntity("Users/", userJson.setUserObject(arg1));
+	     Uid uid = ForceManager.createEntity("Users/", userJson.setUserObject(arg1));
 
 		LOGGER.info("Json response: {0}", userJson.setUserObject(arg1).toString(1));
+		
+		return uid;
+		
+		}else if(ObjectClass.GROUP.equals(arg0)){
+			
+			GroupDataBuilder groupJson = new GroupDataBuilder();
+			
+			Uid uid = ForceManager.createEntity("Groups/", groupJson.setUserObject(arg1));
+			
+			LOGGER.info("Json response: {0}", groupJson.setUserObject(arg1).toString(1));
+			
+			return uid;
+		}
 		return null;
 	}
 

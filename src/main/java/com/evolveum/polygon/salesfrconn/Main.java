@@ -32,7 +32,7 @@ import com.evolveum.polygon.test.slsfrc.JsonDataProvider;
  
 public class Main {
 
-	public static final Uid TEST_UID = new Uid("00558000000VcXnAAK");
+	public static final Uid TEST_UID = new Uid("00558000000W2vRAAS");
 	public static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	
     public static void main(String[] args) {
@@ -42,6 +42,8 @@ public class Main {
     	ObjectClass userC = ObjectClass.ACCOUNT;
     	ObjectClass groupC = ObjectClass.GROUP;
     	
+    	Uid newObject = null;
+     	
     	EqualsFilter aeq = (EqualsFilter)FilterBuilder.equalTo(TEST_UID);
     	
     /*TODO set for emails*/	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("userName","johnsnow@winterfell.com"));
@@ -72,8 +74,10 @@ public class Main {
 
         
     	/// 
-       conn.create(userC, classicBuilderTest(), null);
-    	//conn.executeQuery(userC, aeq, handler, null);
+    	//newObject = conn.create(userC, classicBuilderTestUser(), null);
+    	
+    	System.out.println("new object uid: "+newObject);
+    	conn.executeQuery(userC, aeq, handler, null);
     	
     	
     }
@@ -176,36 +180,66 @@ public class Main {
         return attr;
     }
     
-    private static Set<Attribute> classicBuilderTest(){
+    private static Set<Attribute> classicBuilderTestUser(){
     	
 
     	
        	Set<Attribute> attr = new HashSet<Attribute>();
        	
        		
-       	   attr.add(AttributeBuilder.build("userName", "stefan@stefansplace.com"));
+       	   attr.add(AttributeBuilder.build("userName", "teest@eastcubattor1.com"));
  
            
-           attr.add(AttributeBuilder.build("nickName", "Babss"));
-           attr.add(AttributeBuilder.build("entitlements.value", "entitlement"));
+           attr.add(AttributeBuilder.build("nickName", "Stefan"));
            
-           attr.add(AttributeBuilder.build("emails.work.value", "a"));
+           attr.add(AttributeBuilder.build("emails.work.value", "teest@eastcubattor1.com"));  
            attr.add(AttributeBuilder.build("emails.work.primary", true));
+          // attr.add(AttributeBuilder.build("emails.home.value", "teesst@eastcubattor1.com"));
            
-           attr.add(AttributeBuilder.build("emails.home.value", "ee"));
-           
-           attr.add(AttributeBuilder.build("name.formatted","Matus Macik"));
-           attr.add(AttributeBuilder.build("name.familyName","Macik"));
-           attr.add(AttributeBuilder.build("name.givenName","Matus"));
+           attr.add(AttributeBuilder.build("name.formatted","Test Doe"));
+           attr.add(AttributeBuilder.build("name.familyName","Doe"));
+           attr.add(AttributeBuilder.build("name.givenName","Test"));
            
            
-           attr.add(AttributeBuilder.build("groups.value","aaa"));
-           attr.add(AttributeBuilder.build("groups.display","bbb"));
+     //      attr.add(AttributeBuilder.build("groups.value","aaa"));
+         //  attr.add(AttributeBuilder.build("groups.display","bbb"));
            
+          // attr.add(AttributeBuilder.build("addresses.home.locality", "snina"));
+          // attr.add(AttributeBuilder.build("addresses.home.region", "Presov"));
+         //  attr.add(AttributeBuilder.build("addresses.home.postalCode", "06901"));
+         //  attr.add(AttributeBuilder.build("addresses.home.country", "SR"));
+           
+           attr.add(AttributeBuilder.build("addresses.other.country", "SR"));
+           attr.add(AttributeBuilder.build("addresses.other.locality", "Kosice"));
+           attr.add(AttributeBuilder.build("addresses.other.region", "Kosice"));
+           attr.add(AttributeBuilder.build("addresses.other.primary", true));
+
+           attr.add(AttributeBuilder.build("entitlements..value", "00e58000000qvhqAAA"));
+           
+           attr.add(AttributeBuilder.build("schemaExtension.type", "urn:scim:schemas:extension:enterprise:1.0"));
+           attr.add(AttributeBuilder.build("schemaExtension.organization", "00D58000000YfgfEAC"));
+           
+      //    attr.add(AttributeBuilder.build("schema.organiazation", "TestOrg"));
            
     	return attr;
     }
     
+    
+private static Set<Attribute> classicBuilderTestGroup(){
+    	
+
+    	
+       	Set<Attribute> attr = new HashSet<Attribute>();
+       	
+       		
+       	   attr.add(AttributeBuilder.build("displayName", "teest@eastcubattor1.com"));
+       //	 attr.add(AttributeBuilder.build("members..value", "teest@eastcubattor1.com"));
+       	// attr.add(AttributeBuilder.build("members..display", "teest@eastcubattor1.com"));
+       	 
+       //	 attr.add(AttributeBuilder.build("members..value", "teest@eastcubattor1.com"));
+       //   attr.add(AttributeBuilder.build("members..display", "teest@eastcubattor1.com"));
+    	return attr;
+    }
     
     static ResultsHandler handler= new ResultsHandler() {
 		

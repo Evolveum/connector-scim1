@@ -227,12 +227,15 @@ public class SalesfrcManager {
 			return null;
 	    }
 
-	public void updateEntity(String q ,String resourceEndPoint, JSONObject jsonObject){
+	public Uid updateEntity(Uid uid ,String resourceEndPoint, JSONObject jsonObject){
+		
+		logIntoService();
 		
 	HttpClient httpClient = HttpClientBuilder.create().build();
-
+	System.out.println(uid.getUidValue());
+	System.out.println(uid.getUidValue());
 	String uri =
-			new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(q).toString();
+			new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(uid.getUidValue()).toString();
 	   	
 	   	HttpPatch httpPatch = new HttpPatch(uri);
 	   	
@@ -246,19 +249,22 @@ public class SalesfrcManager {
 				 httpPatch.setEntity(bodyContent);
 
 		    	HttpResponse response = httpClient.execute(httpPatch);
-		    	
+		    	loginInstance.releaseConnection();
 		    	int statusCode = response.getStatusLine().getStatusCode();
 				
 				if(statusCode==200||statusCode==201 ){
 					LOGGER.info("####Update of resource was succesfull####");
-					
+				;
 					responseString = EntityUtils.toString(response.getEntity());
 					JSONObject json = new JSONObject(responseString);
+					Uid id =new Uid(json.getString("id"));
 					LOGGER.ok("Json response: ", json.toString(1));
+					return id;
 				}
 				
 				else{
 					onNoSuccess(response,statusCode,responseString);
+					throw new IOException("Query was unsuccessful");
 				}
 				
 			} catch (UnsupportedEncodingException e) {
@@ -274,8 +280,8 @@ public class SalesfrcManager {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-			
+			loginInstance.releaseConnection();
+			return null;
 	   	
 	   }
 

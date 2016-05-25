@@ -77,9 +77,10 @@ public class Main {
     	//newObject = conn.create(userC, classicBuilderTestUser(), null);
     	
 
-    	//conn.executeQuery(userC, aeq, handler, null);
+    	conn.executeQuery(userC, aeq, handler, null);
     	
-    	conn.delete(userC, TEST_UID, null);
+    	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
+    	//conn.delete(userC, TEST_UID, null);
     	
     	
     }
@@ -188,7 +189,7 @@ public class Main {
     	
        	Set<Attribute> attr = new HashSet<Attribute>();
        	
-       		
+       		/**
        	   attr.add(AttributeBuilder.build("userName", "teest@eastcubattor1.com"));
  
            
@@ -222,7 +223,12 @@ public class Main {
            attr.add(AttributeBuilder.build("schemaExtension.organization", "00D58000000YfgfEAC"));
            
       //    attr.add(AttributeBuilder.build("schema.organiazation", "TestOrg"));
-           
+           */
+       	
+       	attr.add(AttributeBuilder.build("addresses.home.locality", "snina"));
+         attr.add(AttributeBuilder.build("addresses.home.region", "Presov"));
+        attr.add(AttributeBuilder.build("addresses.home.postalCode", "06901"));
+         attr.add(AttributeBuilder.build("addresses.home.country", "SR"));
     	return attr;
     }
     

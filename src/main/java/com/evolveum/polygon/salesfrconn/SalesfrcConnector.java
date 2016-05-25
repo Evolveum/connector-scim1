@@ -1,15 +1,18 @@
 package com.evolveum.polygon.salesfrconn;
 
 
+import java.util.List;
 import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Schema;
@@ -40,11 +43,22 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	private SalesFrcConfiguration configuration; 
 	private SalesfrcManager ForceManager;
 
+	 private Schema schema = null;
+	
 	private static final Log LOGGER = Log.getLog(SalesfrcConnector.class);
 
 	@Override
 	public Schema schema() {
-		// TODO Auto-generated method stub
+		
+		if(schema == null){
+		SchemaBuilder schemaBuilder = new SchemaBuilder(SalesfrcConnector.class);
+		
+		ObjectClassInfo user = UserDataBuilder.getUserSchema();
+		
+		schemaBuilder.defineObjectClass(user);
+		
+		return schemaBuilder.build() ;
+		}
 		return null;
 	}
 
@@ -89,6 +103,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		
 		if(uid==null){
 			LOGGER.error("No uid returned by the create method: {0} ", uid);
+			throw new IllegalArgumentException("No uid returned by the create method");
 		}
 		
 		return uid;
@@ -103,6 +118,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			
 			if(uid==null){
 				LOGGER.error("No uid returned by the create method: {0} ", uid);
+				throw new IllegalArgumentException("No uid returned by the create method");
 			}
 			return uid;
 		}else {
@@ -114,8 +130,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-
+		  configuration = null;
 	}
 
 	@Override
@@ -132,21 +147,61 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	}
 
 	@Override
-	public Uid update(ObjectClass arg0, Uid arg1, Set<Attribute> arg2, OperationOptions arg3) {
-		// TODO Auto-generated method stub
-		return null;
+	public Uid update(ObjectClass object, Uid id, Set<Attribute> attr, OperationOptions arg3) {
+
+		if(attr==null|| attr.isEmpty()){
+			LOGGER.error("Set of Attributes can not be null or empty: {}", attr);
+			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+		}
+		
+		if(ObjectClass.ACCOUNT.equals(object)){
+		UserDataBuilder userJson = new UserDataBuilder();
+		
+	    Uid uid = ForceManager.updateEntity(id, "Users", userJson.setUserObject(attr));
+
+		LOGGER.info("Json response: {0}", userJson.setUserObject(attr).toString(1));
+		
+		if(uid==null){
+			LOGGER.error("No uid returned by the create method: {0} ", uid);
+			throw new IllegalArgumentException("No uid returned by the create method");
+		}
+		
+		return uid;
+		
+		}else if(ObjectClass.GROUP.equals(object)){
+			
+			GroupDataBuilder groupJson = new GroupDataBuilder();
+			
+			Uid uid = ForceManager.updateEntity(id, "groups", groupJson.setUserObject(attr));
+			
+			LOGGER.info("Json response: {0}", groupJson.setUserObject(attr).toString(1));
+			
+			if(uid==null){
+				LOGGER.error("No uid returned by the create method: {0} ", uid);
+				throw new IllegalArgumentException("No uid returned by the create method");
+			}
+			return uid;
+		}else {
+			
+			LOGGER.error("Provided object value is not valid: {0}", object);
+			throw new IllegalArgumentException("Object value not valid");
+		}
 	}
 
 	@Override
 	public void test() {
-		// TODO Auto-generated method stub
+		LOGGER.ok("in test method/test OK");
 
 	}
 
 	@Override
 	public FilterTranslator<Filter> createFilterTranslator(ObjectClass arg0, OperationOptions arg1) {
-		// TODO Auto-generated method stub
-		return null;
+		return new FilterTranslator<Filter>() {
+			  @Override
+	            public List<Filter> translate(Filter filter) {
+	                return CollectionUtil.newList(filter);
+	            }
+		};
 	}
 
 	@Override

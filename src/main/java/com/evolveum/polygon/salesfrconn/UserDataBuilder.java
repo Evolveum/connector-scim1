@@ -10,7 +10,11 @@ import java.util.Set;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
+import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClassInfo;
+import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -23,7 +27,6 @@ public class UserDataBuilder {
 	static {
 		nameDictionaryUser.put("userName","userName");
 		
-		nameDictionaryUser.put("userName","userName");
 		
 		nameDictionaryUser.put("name.formatted","formatted");
 		nameDictionaryUser.put("name.familyName","familyName");
@@ -323,6 +326,34 @@ public class UserDataBuilder {
 	
 	return json;
 
+	 
+ }
+ 
+ public static ObjectClassInfo getUserSchema(){
+	 
+	 ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
+	 
+	 builder.addAttributeInfo(Name.INFO);
+
+     builder.addAttributeInfo(AttributeInfoBuilder.define("userName").setRequired(true)
+             .build());
+     builder.addAttributeInfo(AttributeInfoBuilder.define("name.formatted")
+             .build());
+     builder.addAttributeInfo(AttributeInfoBuilder.define("name.familyName").setRequired(true)
+    		 .build());
+     builder.addAttributeInfo(AttributeInfoBuilder.define("name.givenName").setRequired(true)
+    		 .build());
+     builder.addAttributeInfo(AttributeInfoBuilder.define("name.middleName")
+    		 .build());
+     builder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificPrefix")
+    		 .build());
+     builder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificSuffix")
+    		 .build());
+     
+     
+	 
+	return null;
+	 
 	 
  }
 

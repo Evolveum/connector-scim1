@@ -1,9 +1,8 @@
 package com.evolveum.polygon.salesfrconn;
-import java.awt.List;
+
 import java.util.ArrayList;
 
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.json.JSONArray;
@@ -45,8 +44,6 @@ public class ConnectorObjBuilder {
 						cob.addAttribute(s,((JSONObject) attribute).get(s));
 						
 					}
-					
-					
 					
 				}
 		}

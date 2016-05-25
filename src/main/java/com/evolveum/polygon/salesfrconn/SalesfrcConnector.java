@@ -1,6 +1,6 @@
 package com.evolveum.polygon.salesfrconn;
 
-import java.util.Collection;
+
 import java.util.Set;
 
 import org.apache.http.Header;
@@ -15,7 +15,6 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.framework.common.objects.filter.AndFilter;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
@@ -51,38 +50,66 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 	@Override
 	public void delete(ObjectClass object, Uid uid, OperationOptions arg2) {
-
+	
+		if(uid.getUidValue()==null|| uid.getUidValue().isEmpty()){
+			LOGGER.error("Uid not provided or empty: {0} ", uid.getUidValue());
+			throw new IllegalArgumentException("Uid value not provided or empty");
+		}
+		
+		if(object==null){
+			LOGGER.error("Object value not provided{0} ", object);
+			throw new IllegalArgumentException("Object value not provided");
+		}
+		
 		if(ObjectClass.ACCOUNT.equals(object)){
 			ForceManager.deleteEntity(uid, "Users");
 		}
 		else if(ObjectClass.GROUP.equals(object)){
 			ForceManager.deleteEntity(uid, "Groups");
+		}else {
+			LOGGER.error("Provided object value is not valid: {0}", object);
+			throw new IllegalArgumentException("Object value not valid");
 		}
 	}
 
 	@Override
-	public Uid create(ObjectClass arg0, Set<Attribute> arg1, OperationOptions arg2) {
+	public Uid create(ObjectClass object, Set<Attribute> attr, OperationOptions arg2) {
 		
-		if(ObjectClass.ACCOUNT.equals(arg0)){
+		if(attr==null|| attr.isEmpty()){
+			LOGGER.error("Set of Attributes can not be null or empty: {}", attr);
+			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+		}
+		
+		if(ObjectClass.ACCOUNT.equals(object)){
 		UserDataBuilder userJson = new UserDataBuilder();
 		
-	     Uid uid = ForceManager.createEntity("Users/", userJson.setUserObject(arg1));
+	     Uid uid = ForceManager.createEntity("Users/", userJson.setUserObject(attr));
 
-		LOGGER.info("Json response: {0}", userJson.setUserObject(arg1).toString(1));
+		LOGGER.info("Json response: {0}", userJson.setUserObject(attr).toString(1));
+		
+		if(uid==null){
+			LOGGER.error("No uid returned by the create method: {0} ", uid);
+		}
 		
 		return uid;
 		
-		}else if(ObjectClass.GROUP.equals(arg0)){
+		}else if(ObjectClass.GROUP.equals(object)){
 			
 			GroupDataBuilder groupJson = new GroupDataBuilder();
 			
-			Uid uid = ForceManager.createEntity("Groups/", groupJson.setUserObject(arg1));
+			Uid uid = ForceManager.createEntity("Groups/", groupJson.setUserObject(attr));
 			
-			LOGGER.info("Json response: {0}", groupJson.setUserObject(arg1).toString(1));
+			LOGGER.info("Json response: {0}", groupJson.setUserObject(attr).toString(1));
 			
+			if(uid==null){
+				LOGGER.error("No uid returned by the create method: {0} ", uid);
+			}
 			return uid;
+		}else {
+			
+			LOGGER.error("Provided object value is not valid: {0}", object);
+			throw new IllegalArgumentException("Object value not valid");
 		}
-		return null;
 	}
 
 	@Override
@@ -154,7 +181,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			}
 			else{
 				LOGGER.error("The provided objectClass is not supported: {0}", objectClass.getDisplayNameKey());
-				throw new IllegalArgumentException("objectClass " + objectClass.getDisplayNameKey()+ " is not supported");
+				throw new IllegalArgumentException("ObjectClass is not supported");
 			}
 		}
 
@@ -170,8 +197,8 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 			return true;
 		}	else{
-			LOGGER.error("Unsuported filter type", filter);
-			return false;
+			LOGGER.error("Provided filter is not supported: {0}", filter);
+			throw new IllegalArgumentException("Provided filter is not supported");
 		}
 	}
 

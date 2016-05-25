@@ -76,8 +76,10 @@ public class Main {
     	/// 
     	//newObject = conn.create(userC, classicBuilderTestUser(), null);
     	
-    	System.out.println("new object uid: "+newObject);
-    	conn.executeQuery(userC, aeq, handler, null);
+
+    	//conn.executeQuery(userC, aeq, handler, null);
+    	
+    	conn.delete(userC, TEST_UID, null);
     	
     	
     }

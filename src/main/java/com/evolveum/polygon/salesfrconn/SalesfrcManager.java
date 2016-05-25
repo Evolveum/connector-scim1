@@ -134,7 +134,6 @@ public class SalesfrcManager {
 						
 						//Uid uid =new Uid(json.getString("id"));
 						
-						//System.out.println(json.getString("id"));
 						
 						ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 						objBuilder.buildConnectorObject(json);
@@ -281,10 +280,15 @@ public class SalesfrcManager {
 	   }
 
 	public  void deleteEntity(Uid uid ,String resourceEndPoint){
+		
+		logIntoService();
+		
 		HttpClient httpClient = HttpClientBuilder.create().build();
+		
+		System.out.println(uid.getUidValue());
 
 		String uri = 
-				new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(uid).toString();
+				new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(uid.getUidValue()).toString();
 		
 		HttpDelete httpDelete = new HttpDelete(uri);
 		httpDelete.addHeader(oauthHeader);
@@ -294,10 +298,11 @@ public class SalesfrcManager {
 		
 		try {
 			HttpResponse response = httpClient.execute(httpDelete);
+			loginInstance.releaseConnection();
 			
 			int statusCode = response.getStatusLine().getStatusCode();
 			
-			if(statusCode==204 || statusCode==200){ /// malo by vracat 204 ale vrati 200 
+			if(statusCode==204 || statusCode==200){ 
 				LOGGER.info("####Deletion of resource was succesfull####");
 			}
 			
@@ -321,7 +326,7 @@ public class SalesfrcManager {
 		responseString = EntityUtils.toString(response.getEntity());
 		LOGGER.error("Query was unsuccessful. Status code returned is {0}", statusCode);
         LOGGER.info("####An error has occured. Http status: {0}", responseString);
-        System.exit(-1);
+        throw new IOException("Query was unsuccessful");
 	}
 	
 }

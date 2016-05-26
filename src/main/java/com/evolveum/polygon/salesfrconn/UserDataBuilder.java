@@ -350,9 +350,17 @@ public class UserDataBuilder {
 				.build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificSuffix")
 				.build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName")
+				.build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("nickName")
+				.build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("profileUrl")
+				.build());
+		
+	
 
-
-
+		System.out.println(builder.build().toString());
 		return builder.build();
 
 

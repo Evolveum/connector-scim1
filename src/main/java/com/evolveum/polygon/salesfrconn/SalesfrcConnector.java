@@ -59,7 +59,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		
 		return schemaBuilder.build() ;
 		}
-		return null;
+		return this.schema;
 	}
 
 	@Override

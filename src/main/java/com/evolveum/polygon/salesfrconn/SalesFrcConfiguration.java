@@ -58,8 +58,8 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
         this.CLIENTSECRET = clientSecret;
     }
     
-    @ConfigurationProperty(order = 4, displayMessageKey = "refreshtoken.display",
-            groupMessageKey = "basic.group", helpMessageKey = "refreshtoken.help", required = true,
+    @ConfigurationProperty(order = 4, displayMessageKey = "CLIENTID.display",
+            groupMessageKey = "basic.group", helpMessageKey = "CLIENTID.help", required = true,
             confidential = false)
     public String getClientID() {
         return CLIENTID;
@@ -69,6 +69,10 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
         this.CLIENTID = clientID;
     }
     
+    @ConfigurationProperty(order = 5, displayMessageKey = "SCIM_ENDPOINT.display",
+            groupMessageKey = "basic.group", helpMessageKey = "SCIM_ENDPOINT.help", required = true,
+            confidential = false)
+    
     public String getEndpoint() {
         return SCIM_ENDPOINT;
     }
@@ -76,6 +80,10 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
     public void setEndpoint(String endpoint) {
         this.SCIM_ENDPOINT = endpoint;
     }
+    
+    @ConfigurationProperty(order = 6, displayMessageKey = "SCIM_VERSION.display",
+            groupMessageKey = "basic.group", helpMessageKey = "SCIM_VERSION.help", required = true,
+            confidential = false)
     
     public String getVersion() {
         return SCIM_VERSION;
@@ -85,6 +93,11 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
         this.SCIM_VERSION = version;
     }
     
+    
+    @ConfigurationProperty(order = 7, displayMessageKey = "LOGINURL.display",
+            groupMessageKey = "basic.group", helpMessageKey = "LOGINURL.help", required = true,
+            confidential = false)
+    
     public String getLoginURL() {
         return LOGINURL;
     }
@@ -92,6 +105,10 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
     public void setLoginURL(String loginURL) {
         this.LOGINURL = loginURL;
     }
+    
+    @ConfigurationProperty(order = 8, displayMessageKey = "SERVICEGRANT.display",
+            groupMessageKey = "basic.group", helpMessageKey = "SERVICEGRANT.help", required = true,
+            confidential = false)
     
     public String getService() {
         return SERVICEGRANT;

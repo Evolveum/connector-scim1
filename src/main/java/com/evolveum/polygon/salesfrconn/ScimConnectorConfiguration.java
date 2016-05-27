@@ -7,7 +7,7 @@ import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
 import org.identityconnectors.framework.spi.StatefulConfiguration;
 
-public class SalesFrcConfiguration extends AbstractConfiguration implements StatefulConfiguration {
+public class ScimConnectorConfiguration extends AbstractConfiguration implements StatefulConfiguration {
 
 	private static String SCIM_ENDPOINT = "/services/scim";
     private static String SCIM_VERSION = "/v1";
@@ -19,7 +19,7 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
     private  String CLIENTID= "3MVG98_Psg5cppyZ.wx3xXhdg46KDzaNSwpQFRqKfsBdDnyHrNSTodpJ5il8ZAdSB4eIjlF3RagOYYXWz8vTB";// TODO the user will have to provide this information
     private  String CLIENTSECRET= "8826126769332672628";
 
-    private static final Log LOGGER = Log.getLog(SalesFrcConfiguration.class);
+    private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
     
 	@ConfigurationProperty(order = 1, displayMessageKey = "USERNAME.display",
             groupMessageKey = "basic.group", helpMessageKey = "USERNAME.help", required = true,
@@ -68,7 +68,7 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
     public void setClientID(String clientID) {
         this.CLIENTID = clientID;
     }
-    
+ 
     @ConfigurationProperty(order = 5, displayMessageKey = "SCIM_ENDPOINT.display",
             groupMessageKey = "basic.group", helpMessageKey = "SCIM_ENDPOINT.help", required = true,
             confidential = false)
@@ -80,7 +80,7 @@ public class SalesFrcConfiguration extends AbstractConfiguration implements Stat
     public void setEndpoint(String endpoint) {
         this.SCIM_ENDPOINT = endpoint;
     }
-    
+  
     @ConfigurationProperty(order = 6, displayMessageKey = "SCIM_VERSION.display",
             groupMessageKey = "basic.group", helpMessageKey = "SCIM_VERSION.help", required = true,
             confidential = false)

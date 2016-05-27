@@ -2,16 +2,16 @@
 <testng-results skipped="0" failed="0" total="1" passed="1">
   <reporter-output>
   </reporter-output>
-  <suite name="Command line suite" duration-ms="35" started-at="2016-04-29T07:28:24Z" finished-at="2016-04-29T07:28:24Z">
+  <suite name="Command line suite" duration-ms="17" started-at="2016-05-26T12:54:34Z" finished-at="2016-05-26T12:54:34Z">
     <groups>
     </groups>
-    <test name="Command line test" duration-ms="35" started-at="2016-04-29T07:28:24Z" finished-at="2016-04-29T07:28:24Z">
-      <class name="com.test.slsfrc.salesfrcTest.AppTest">
-        <test-method status="PASS" signature="testApp()[pri:0, instance:testApp(com.test.slsfrc.salesfrcTest.AppTest)]" name="testApp" duration-ms="18" started-at="2016-04-29T09:28:24Z" finished-at="2016-04-29T09:28:24Z">
+    <test name="Command line test" duration-ms="17" started-at="2016-05-26T12:54:34Z" finished-at="2016-05-26T12:54:34Z">
+      <class name="com.evolveum.polygon.test.slsfrc.AppTest">
+        <test-method status="PASS" signature="testApp()[pri:0, instance:testApp(com.evolveum.polygon.test.slsfrc.AppTest)]" name="testApp" duration-ms="3" started-at="2016-05-26T14:54:34Z" finished-at="2016-05-26T14:54:34Z">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testApp -->
-      </class> <!-- com.test.slsfrc.salesfrcTest.AppTest -->
+      </class> <!-- com.evolveum.polygon.test.slsfrc.AppTest -->
     </test> <!-- Command line test -->
   </suite> <!-- Command line suite -->
 </testng-results>

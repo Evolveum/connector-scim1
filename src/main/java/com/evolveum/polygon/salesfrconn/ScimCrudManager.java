@@ -25,20 +25,20 @@ import org.json.JSONTokener;
 
 import com.evolveum.polygon.salesfrconn.helpermethods.HttpPatch;
 
-public class SalesfrcManager {
+public class ScimCrudManager {
 	
 	private String scimBaseUri;
 	private Header oauthHeader;
 	private Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
-	private SalesFrcConfiguration conf;
+	private ScimConnectorConfiguration conf;
 	
 	
 	HttpPost loginInstance;
 	
-	private static final Log LOGGER = Log.getLog(SalesfrcManager.class);
+	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
 	
-	public SalesfrcManager(SalesFrcConfiguration conf){
-		this.conf=(SalesFrcConfiguration)conf;
+	public ScimCrudManager(ScimConnectorConfiguration conf){
+		this.conf=(ScimConnectorConfiguration)conf;
 	}
 
 				

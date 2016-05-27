@@ -8,15 +8,19 @@ import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+// Class containing the method needed for building connector objects from json objects
+
 public class ConnectorObjBuilder {
 
-	private static final Log LOGGER = Log.getLog(SalesfrcManager.class);
+	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
 	
 	public ConnectorObject buildConnectorObject(JSONObject jsonObject){
 		
+		LOGGER.info("Building the connector object from provided json");
+		
 		if(jsonObject == null){
-			LOGGER.error("Empty json object");
-			throw new IllegalArgumentException("Empty json object");
+			LOGGER.error("Empty json object was passed from data provider");
+			throw new IllegalArgumentException("Empty json object was passed from data provider ");
 		}
 		
 		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
@@ -24,9 +28,9 @@ public class ConnectorObjBuilder {
 		cob.setUid(jsonObject.getString("id"));
 		cob.setName(jsonObject.getString("id"));
 		
-		for(String a: jsonObject.keySet()){
+		for(String key: jsonObject.keySet()){
 		
-			Object attribute =jsonObject.get(a);
+			Object attribute =jsonObject.get(key);
 				if(attribute instanceof JSONArray){
 					JSONArray jArray = (JSONArray) attribute;
 					ArrayList<String> list= new ArrayList<String>();
@@ -36,19 +40,16 @@ public class ConnectorObjBuilder {
 						list.add(o.toString());
 							
 						}
-					cob.addAttribute(a, list);
+					cob.addAttribute(key, list);
 					
 				} else if(attribute instanceof JSONObject){
 					for(String s: ((JSONObject) attribute).keySet()){
 						
 						cob.addAttribute(s,((JSONObject) attribute).get(s));
-						
 					}
 					
 				}
 		}
-		
-		System.out.println(cob.build().toString());
 		return cob.build();
 		
 	}

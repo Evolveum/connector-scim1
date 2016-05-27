@@ -1,4 +1,4 @@
-package com.evolveum.polygon.salesfrconn;
+package com.evolveum.polygon.test.slsfrc;
 
 import java.util.Collection;
 import java.util.Map;
@@ -10,9 +10,11 @@ import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.evolveum.polygon.salesfrconn.ScimCrudManager;
+
 public class GenericishDataBuilder {
 
-	private static final Log LOGGER = Log.getLog(SalesfrcManager.class);
+	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
 	
 	public GenericishDataBuilder(){
 

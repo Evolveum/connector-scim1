@@ -34,24 +34,24 @@ import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 
 
-@ConnectorClass(displayNameKey = "Salesfrc.connector.display",
-configurationClass = SalesFrcConfiguration.class)
+@ConnectorClass(displayNameKey = "ScimConnector.connector.display",
+configurationClass = ScimConnectorConfiguration.class)
 
-public class SalesfrcConnector implements Connector, CreateOp, DeleteOp, SchemaOp,
+public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp,
 SearchOp<Filter>, TestOp, UpdateOp {
 
-	private SalesFrcConfiguration configuration; 
-	private SalesfrcManager ForceManager;
+	private ScimConnectorConfiguration configuration; 
+	private ScimCrudManager crudManager;
 
 	 private Schema schema = null;
 	
-	private static final Log LOGGER = Log.getLog(SalesfrcConnector.class);
+	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 
 	@Override
 	public Schema schema() {
 		
 		if(schema == null){
-		SchemaBuilder schemaBuilder = new SchemaBuilder(SalesfrcConnector.class);
+		SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
 		
 		ObjectClassInfo user = UserDataBuilder.getUserSchema();
 		
@@ -76,10 +76,10 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		}
 		
 		if(ObjectClass.ACCOUNT.equals(object)){
-			ForceManager.deleteEntity(uid, "Users");
+			crudManager.deleteEntity(uid, "Users");
 		}
 		else if(ObjectClass.GROUP.equals(object)){
-			ForceManager.deleteEntity(uid, "Groups");
+			crudManager.deleteEntity(uid, "Groups");
 		}else {
 			LOGGER.error("Provided object value is not valid: {0}", object);
 			throw new IllegalArgumentException("Object value not valid");
@@ -97,7 +97,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		if(ObjectClass.ACCOUNT.equals(object)){
 		UserDataBuilder userJson = new UserDataBuilder();
 		
-	     Uid uid = ForceManager.createEntity("Users/", userJson.setUserObject(attr));
+	     Uid uid = crudManager.createEntity("Users/", userJson.setUserObject(attr));
 
 		LOGGER.info("Json response: {0}", userJson.setUserObject(attr).toString(1));
 		
@@ -112,9 +112,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			
 			GroupDataBuilder groupJson = new GroupDataBuilder();
 			
-			Uid uid = ForceManager.createEntity("Groups/", groupJson.setUserObject(attr));
+			Uid uid = crudManager.createEntity("Groups/", groupJson.buildJsonObject(attr));
 			
-			LOGGER.info("Json response: {0}", groupJson.setUserObject(attr).toString(1));
+			LOGGER.info("Json response: {0}", groupJson.buildJsonObject(attr).toString(1));
 			
 			if(uid==null){
 				LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -141,9 +141,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 	@Override
 	public void init(Configuration configuration) {
-		this.configuration = (SalesFrcConfiguration)configuration;
+		this.configuration = (ScimConnectorConfiguration)configuration;
 		this.configuration.validate();
-		this.ForceManager = new SalesfrcManager((SalesFrcConfiguration)configuration);
+		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration)configuration);
 	}
 
 	@Override
@@ -157,7 +157,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		if(ObjectClass.ACCOUNT.equals(object)){
 		UserDataBuilder userJson = new UserDataBuilder();
 		
-	    Uid uid = ForceManager.updateEntity(id, "Users", userJson.setUserObject(attr));
+	    Uid uid = crudManager.updateEntity(id, "Users", userJson.setUserObject(attr));
 
 		LOGGER.info("Json response: {0}", userJson.setUserObject(attr).toString(1));
 		
@@ -172,9 +172,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			
 			GroupDataBuilder groupJson = new GroupDataBuilder();
 			
-			Uid uid = ForceManager.updateEntity(id, "groups", groupJson.setUserObject(attr));
+			Uid uid = crudManager.updateEntity(id, "groups", groupJson.buildJsonObject(attr));
 			
-			LOGGER.info("Json response: {0}", groupJson.setUserObject(attr).toString(1));
+			LOGGER.info("Json response: {0}", groupJson.buildJsonObject(attr).toString(1));
 			
 			if(uid==null){
 				LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -214,7 +214,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 				if(query == null){
 
-					ForceManager.qeueryEntity("", "Users/");
+					crudManager.qeueryEntity("", "Users/");
 
 					///TODO Dont know if good practice, should ask !
 				}else if(query instanceof EqualsFilter && qIsUid(objectClass,query)){
@@ -225,7 +225,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 				}
 			}else if(ObjectClass.GROUP.equals(objectClass)){
 				if(query == null){
-					ForceManager.qeueryEntity("", "Groups/");
+					crudManager.qeueryEntity("", "Groups/");
 				}
 				else if(query instanceof EqualsFilter && qIsUid(objectClass,query)){
 
@@ -243,7 +243,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	}
 
 	private void buildSchema(){
-		SchemaBuilder schemaBuilder = new SchemaBuilder(SalesfrcConnector.class);
+		SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
 	}
 
 	protected boolean isSupportedQuery(ObjectClass objectClass, Filter filter){
@@ -263,10 +263,10 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		if(filterAttr instanceof Uid){
 
 			if(ObjectClass.ACCOUNT.equals(objectClass)){
-				ForceManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Users/");
+				crudManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Users/");
 			}else 
 				if(ObjectClass.GROUP.equals(objectClass)){
-					ForceManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Groups/");
+					crudManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Groups/");
 				}
 
 			return true;
@@ -283,10 +283,10 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 
 		if(ObjectClass.ACCOUNT.equals(objectClass)){
-			ForceManager.qeueryEntity(build.toString(), "Users/");
+			crudManager.qeueryEntity(build.toString(), "Users/");
 		}else 
 			if(ObjectClass.GROUP.equals(objectClass)){
-				ForceManager.qeueryEntity(build.toString(), "Groups/");
+				crudManager.qeueryEntity(build.toString(), "Groups/");
 			}
 
 	}

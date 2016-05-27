@@ -1,0 +1,12 @@
+com\evolveum\polygon\salesfrconn\GenericishDataBuilder.class
+com\evolveum\polygon\salesfrconn\GroupDataBuilder.class
+com\evolveum\polygon\salesfrconn\SalesfrcConnector.class
+com\evolveum\polygon\salesfrconn\ConnectorObjBuilder.class
+com\evolveum\polygon\salesfrconn\FilterHandler.class
+com\evolveum\polygon\salesfrconn\Main$1.class
+com\evolveum\polygon\salesfrconn\SalesfrcConnector$1.class
+com\evolveum\polygon\salesfrconn\helpermethods\HttpPatch.class
+com\evolveum\polygon\salesfrconn\SalesFrcConfiguration.class
+com\evolveum\polygon\salesfrconn\UserDataBuilder.class
+com\evolveum\polygon\salesfrconn\Main.class
+com\evolveum\polygon\salesfrconn\SalesfrcManager.class

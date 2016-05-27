@@ -19,7 +19,8 @@ public class GroupDataBuilder {
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
 	
 	
-	/// problem with adding multiple members into group, no way to identify the relationship between an object and its attributes
+	
+	///TODO problem with adding multiple members into group, no way to identify the relationship between an object and its attributes
 	
 	static {
 	nameDictionaryUser.put("displayName","displayName");
@@ -29,11 +30,13 @@ public class GroupDataBuilder {
 	nameDictionaryUser.put("members..display","display");
 	}
 	
-	public JSONObject setUserObject(Set<Attribute> attributes){
+	public JSONObject buildJsonObject(Set<Attribute> attributes){
+		LOGGER.info("Building Json data from group attributes");
+		
+		
+		JSONObject groupObj = new JSONObject();
 
-		JSONObject userObj = new JSONObject();
-
-		Set<Attribute> multilaierAttribute = new HashSet<Attribute>();
+		Set<Attribute> multiLaierAttribute = new HashSet<Attribute>();
 		
 		for(Attribute at: attributes){
 
@@ -44,22 +47,23 @@ public class GroupDataBuilder {
 				
 			
 
-					 multilaierAttribute.add(at);
+					 multiLaierAttribute.add(at);
 			}else{
 				
-				userObj.put(attributeName, AttributeUtil.getSingleValue(at));
+				groupObj.put(attributeName, AttributeUtil.getSingleValue(at));
 			}
 			
-		}else{LOGGER.error("Attribute name not defined in dictionary {0}", attributeName);}
+		}else{LOGGER.error("Attribute name not defined in group dictionary {0}", attributeName);}
 		
+		throw new IllegalArgumentException("Can not create group attribute. Attribute not defined");
 		}
 		
-		if(multilaierAttribute != null){
+		if(multiLaierAttribute != null){
 			
 			
-			buildLayeredAtrribute(multilaierAttribute, userObj);
+			buildLayeredAtrribute(multiLaierAttribute, groupObj);
 			}
-		return userObj;
+		return groupObj;
 
 	}
 	

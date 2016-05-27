@@ -2,6 +2,13 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+<parent>
+	<artifactId>connector-parent</artifactId>
+        <groupId>com.evolveum.polygon</groupId>
+        <version>1.4.3.0-SNAPSHOT</version>
+</parent>
+    
+        
   <groupId>com.test.slsfrc</groupId>
   <artifactId>salesfrcTest</artifactId>
   <version>0.0.1-SNAPSHOT</version>
@@ -11,9 +18,32 @@
   <url>http://maven.apache.org</url>
 
   <properties>
+	<maven.compiler.source>1.7</maven.compiler.source>
+	<maven.compiler.target>1.7</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
+  
+  <build>
+     <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -45,7 +75,7 @@
     <dependency>
     	<groupId>net.tirasa.connid</groupId>
     	<artifactId>connector-framework</artifactId>
-    	<version>1.4.2.0</version>
+    	<version>1.4.2.0</version><!--$NO-MVN-MAN-VER$-->
     </dependency>
     <dependency>
     	<groupId>net.tirasa.connid</groupId>
@@ -53,5 +83,12 @@
     	<version>1.4.2.0</version>
     	<scope>test</scope>
     </dependency>
+    <dependency>
+    	<groupId>commons-io</groupId>
+    	<artifactId>commons-io</artifactId>
+    	<version>2.5</version>
+    </dependency>
+    
+    
   </dependencies>
 </project>

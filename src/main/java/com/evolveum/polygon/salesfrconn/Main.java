@@ -28,7 +28,7 @@ import org.identityconnectors.framework.common.objects.filter.NotFilter;
 import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 
-import com.evolveum.polygon.test.slsfrc.JsonDataProvider;
+//import com.evolveum.polygon.test.slsfrc.JsonDataProvider;
  
 public class Main {
 
@@ -68,8 +68,8 @@ public class Main {
     	String s = AttributeUtil.getStringValue(attribute);
     	
     	
-    	SalesFrcConfiguration conf= new SalesFrcConfiguration();
-    	SalesfrcConnector conn = new SalesfrcConnector();
+    	ScimConnectorConfiguration conf= new ScimConnectorConfiguration();
+    	ScimConnector conn = new ScimConnector();
     	conn.init(conf);
 
         
@@ -77,11 +77,11 @@ public class Main {
     	//newObject = conn.create(userC, classicBuilderTestUser(), null);
     	
 
-    	//conn.executeQuery(userC, aeq, handler, null);
+    	conn.executeQuery(userC, aeq, handler, null);
     	
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
     	//conn.delete(userC, TEST_UID, null);
-    	conn.schema();
+    	//conn.schema();
     	
     }
     

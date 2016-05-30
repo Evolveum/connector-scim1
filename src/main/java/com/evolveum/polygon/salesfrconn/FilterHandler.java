@@ -58,47 +58,47 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	private static final String NOT ="not";
 
-	private static Map<String, String> nameDictionaryUser = CollectionUtil.newCaseInsensitiveMap();
+	private static Map<String, String> objectNameDictionaryUser = CollectionUtil.newCaseInsensitiveMap();
 
-	private static Map<String, String> nameDictionaryGroup = CollectionUtil.newCaseInsensitiveMap();
+	private static Map<String, String> objectNameDictionaryGroup = CollectionUtil.newCaseInsensitiveMap();
 
 	private static Map< String, HashMap<String, String>> arrayNameDictionary =  new HashMap<String, HashMap<String, String>>() ;
 
-	private static HashMap<String, String> secDictionaryGroup =  new HashMap<String, String>() ;
+	private static HashMap<String, String> aObjectDictionaryGroup =  new HashMap<String, String>() ;
 	static {
-		nameDictionaryUser.put("userName","userName");
-		nameDictionaryUser.put("name","formatted");
-		nameDictionaryUser.put("displayName","displayName");
-		nameDictionaryUser.put("nickName","nickName");
-		nameDictionaryUser.put("profileUrl","profileUrl");
-		nameDictionaryUser.put("title","title");
-		nameDictionaryUser.put("userType","userType");
-		nameDictionaryUser.put("id","id");
-		nameDictionaryUser.put("externalId","externalId");
+		objectNameDictionaryUser.put("userName","userName");
+		objectNameDictionaryUser.put("name","formatted");
+		objectNameDictionaryUser.put("displayName","displayName");
+		objectNameDictionaryUser.put("nickName","nickName");
+		objectNameDictionaryUser.put("profileUrl","profileUrl");
+		objectNameDictionaryUser.put("title","title");
+		objectNameDictionaryUser.put("userType","userType");
+		objectNameDictionaryUser.put("id","id");
+		objectNameDictionaryUser.put("externalId","externalId");
 
 
-		nameDictionaryUser.put("preferredLanguage","preferredLanguage");
-		nameDictionaryUser.put("locale","locale");
-		nameDictionaryUser.put("timezone","timezone");
-		nameDictionaryUser.put("active","active");
+		objectNameDictionaryUser.put("preferredLanguage","preferredLanguage");
+		objectNameDictionaryUser.put("locale","locale");
+		objectNameDictionaryUser.put("timezone","timezone");
+		objectNameDictionaryUser.put("active","active");
 
-		nameDictionaryUser.put("email","email");
+		objectNameDictionaryUser.put("email","email");
 
 
 		///Group dictionary
 
-		nameDictionaryGroup.put("id", "id");
-		nameDictionaryGroup.put("externalId", "externalId");
+		objectNameDictionaryGroup.put("id", "id");
+		objectNameDictionaryGroup.put("externalId", "externalId");
 
-		nameDictionaryGroup.put("displayName", "displayName");
+		objectNameDictionaryGroup.put("displayName", "displayName");
 		//nameDictionaryGroup.put("members", "members");
 
 		// TODO define the rest of array dictionaries for complex attributes
 		// array dictionaries and values
-		secDictionaryGroup.put("type", "email.type");
-		secDictionaryGroup.put("value", "email.value");
+		aObjectDictionaryGroup.put("type", "email.type");
+		aObjectDictionaryGroup.put("value", "email.value");
 
-		arrayNameDictionary.put("emails", secDictionaryGroup);
+		arrayNameDictionary.put("emails", aObjectDictionaryGroup);
 	}
 
 
@@ -272,12 +272,12 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitNotFilter(ObjectClass p, NotFilter filter) {
-		StringBuilder finalQuery = new StringBuilder();
+		StringBuilder completeQuery = new StringBuilder();
 
-		finalQuery.append(NOT).append(SPACE).append(filter.getFilter().accept(this, p));
+		completeQuery.append(NOT).append(SPACE).append(filter.getFilter().accept(this, p));
 
 
-		return finalQuery;
+		return completeQuery;
 	}
 
 	@Override
@@ -382,9 +382,9 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 		if (ObjectClass.ACCOUNT.equals(objectClass)){
 
-			nameDictionary=nameDictionaryUser;
+			nameDictionary=objectNameDictionaryUser;
 		}else if(ObjectClass.GROUP.equals(objectClass)) {
-			nameDictionary=nameDictionaryUser;
+			nameDictionary=objectNameDictionaryUser;
 
 		}
 		return nameDictionary;

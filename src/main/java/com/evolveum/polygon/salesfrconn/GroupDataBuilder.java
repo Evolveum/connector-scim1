@@ -15,7 +15,7 @@ import org.json.JSONObject;
 public class GroupDataBuilder {
 	
 	
-	private static Map<String, String> nameDictionaryUser = CollectionUtil.newCaseInsensitiveMap();
+	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
 	
 	
@@ -23,11 +23,11 @@ public class GroupDataBuilder {
 	///TODO problem with adding multiple members into group, no way to identify the relationship between an object and its attributes
 	
 	static {
-	nameDictionaryUser.put("displayName","displayName");
+	objectNameDictionary.put("displayName","displayName");
 	
 
-	nameDictionaryUser.put("members..value","value");
-	nameDictionaryUser.put("members..display","display");
+	objectNameDictionary.put("members..value","value");
+	objectNameDictionary.put("members..display","display");
 	}
 	
 	public JSONObject buildJsonObject(Set<Attribute> attributes){
@@ -36,32 +36,32 @@ public class GroupDataBuilder {
 		
 		JSONObject groupObj = new JSONObject();
 
-		Set<Attribute> multiLaierAttribute = new HashSet<Attribute>();
+		Set<Attribute> multiLayerAttribute = new HashSet<Attribute>();
 		
 		for(Attribute at: attributes){
 
 			String attributeName = at.getName();
 
-		if(nameDictionaryUser.containsKey(attributeName)){
+		if(objectNameDictionary.containsKey(attributeName)){
 			if(attributeName.contains(".")){
 				
 			
 
-					 multiLaierAttribute.add(at);
+					 multiLayerAttribute.add(at);
 			}else{
 				
 				groupObj.put(attributeName, AttributeUtil.getSingleValue(at));
 			}
 			
-		}else{LOGGER.error("Attribute name not defined in group dictionary {0}", attributeName);}
-		
-		throw new IllegalArgumentException("Can not create group attribute. Attribute not defined");
+		}else{
+		LOGGER.error("Attribute name not defined in group dictionary {0}", attributeName);
+		throw new IllegalArgumentException("Attribute in create query not defined for translation");
+		}
 		}
 		
-		if(multiLaierAttribute != null){
+		if(multiLayerAttribute != null){
 			
-			
-			buildLayeredAtrribute(multiLaierAttribute, groupObj);
+			buildLayeredAtrribute(multiLayerAttribute, groupObj);
 			}
 		return groupObj;
 
@@ -69,25 +69,25 @@ public class GroupDataBuilder {
 	
 	private JSONObject buildLayeredAtrribute(Set<Attribute> attr, JSONObject json){
 
-		String name="";
-		ArrayList<String> checkedNames= new ArrayList<String>();
+		String layeredObjectName="";
+		ArrayList<String> checkedLObjectNames= new ArrayList<String>();
 		for(Attribute i: attr){
 			
 			String attributeName = i.getName();
 			String[] keyParts = attributeName.split("\\.");
 				
-				if(checkedNames.contains(keyParts[0])){
+				if(checkedLObjectNames.contains(keyParts[0])){
 
 				}else{
 					Set<Attribute> innerLayer = new HashSet<Attribute>();
-					name=keyParts[0].intern();
-					checkedNames.add(name);
+					layeredObjectName=keyParts[0].intern();
+					checkedLObjectNames.add(layeredObjectName);
 					for(Attribute j: attr){
 						
 						String innerName = j.getName();
 						String[] innerKeyParts = innerName.split("\\.");
 							
-						if(innerKeyParts[0].equals(name)){
+						if(innerKeyParts[0].equals(layeredObjectName)){
 									innerLayer.add(j); 
 							}
 					}

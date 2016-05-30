@@ -20,122 +20,122 @@ import org.json.JSONObject;
 
 public class UserDataBuilder {
 
-	private static Map<String, String> nameDictionaryUser = CollectionUtil.newCaseInsensitiveMap();
+	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
 
 
 	static {
-		nameDictionaryUser.put("userName","userName");
+		objectNameDictionary.put("userName","userName");
 
 
-		nameDictionaryUser.put("name.formatted","formatted");
-		nameDictionaryUser.put("name.familyName","familyName");
-		nameDictionaryUser.put("name.givenName","givenName");
-		nameDictionaryUser.put("name.middleName","middleName");
-		nameDictionaryUser.put("name.honorificPrefix","honorificPrefix");
-		nameDictionaryUser.put("name.honorificSuffix","honorificSuffix");
+		objectNameDictionary.put("name.formatted","formatted");
+		objectNameDictionary.put("name.familyName","familyName");
+		objectNameDictionary.put("name.givenName","givenName");
+		objectNameDictionary.put("name.middleName","middleName");
+		objectNameDictionary.put("name.honorificPrefix","honorificPrefix");
+		objectNameDictionary.put("name.honorificSuffix","honorificSuffix");
 
-		nameDictionaryUser.put("displayName","displayName");
-		nameDictionaryUser.put("nickName","nickName");
+		objectNameDictionary.put("displayName","displayName");
+		objectNameDictionary.put("nickName","nickName");
 		//nameDictionaryUser.put("profileUrl","profileUrl");
 
 
-		nameDictionaryUser.put("emails.work.value","value");
-		nameDictionaryUser.put("emails.work.primary","primary");
+		objectNameDictionary.put("emails.work.value","value");
+		objectNameDictionary.put("emails.work.primary","primary");
 
-		nameDictionaryUser.put("emails.home.value","value");
-		nameDictionaryUser.put("emails.home.primary","primary");
+		objectNameDictionary.put("emails.home.value","value");
+		objectNameDictionary.put("emails.home.primary","primary");
 
-		nameDictionaryUser.put("emails.other.value","value");
-		nameDictionaryUser.put("emails.other.primary","primary");
-
-
-
-		nameDictionaryUser.put("addresses.work.streetAddress","streetAddress");
-		nameDictionaryUser.put("addresses.work.locality","locality");
-		nameDictionaryUser.put("addresses.work.region","region");
-		nameDictionaryUser.put("addresses.work.postalCode","postalCode");
-		nameDictionaryUser.put("addresses.work.country","country");
-		nameDictionaryUser.put("addresses.work.formatted","formatted");
-		nameDictionaryUser.put("addresses.work.primary","primary");
+		objectNameDictionary.put("emails.other.value","value");
+		objectNameDictionary.put("emails.other.primary","primary");
 
 
-		nameDictionaryUser.put("addresses.home.streetAddress","streetAddress");
-		nameDictionaryUser.put("addresses.home.locality","locality");
-		nameDictionaryUser.put("addresses.home.region","region");
-		nameDictionaryUser.put("addresses.home.postalCode","postalCode");
-		nameDictionaryUser.put("addresses.home.country","country");
-		nameDictionaryUser.put("addresses.home.formatted","formatted");
-		nameDictionaryUser.put("addresses.home.primary","primary");
 
-		nameDictionaryUser.put("addresses.other.streetAddress","streetAddress");
-		nameDictionaryUser.put("addresses.other.locality","locality");
-		nameDictionaryUser.put("addresses.other.region","region");
-		nameDictionaryUser.put("addresses.other.postalCode","postalCode");
-		nameDictionaryUser.put("addresses.other.country","country");
-		nameDictionaryUser.put("addresses.other.formatted","formatted");
-		nameDictionaryUser.put("addresses.other.primary","primary");
+		objectNameDictionary.put("addresses.work.streetAddress","streetAddress");
+		objectNameDictionary.put("addresses.work.locality","locality");
+		objectNameDictionary.put("addresses.work.region","region");
+		objectNameDictionary.put("addresses.work.postalCode","postalCode");
+		objectNameDictionary.put("addresses.work.country","country");
+		objectNameDictionary.put("addresses.work.formatted","formatted");
+		objectNameDictionary.put("addresses.work.primary","primary");
 
 
-		nameDictionaryUser.put("phoneNumbers.work.value","value");
+		objectNameDictionary.put("addresses.home.streetAddress","streetAddress");
+		objectNameDictionary.put("addresses.home.locality","locality");
+		objectNameDictionary.put("addresses.home.region","region");
+		objectNameDictionary.put("addresses.home.postalCode","postalCode");
+		objectNameDictionary.put("addresses.home.country","country");
+		objectNameDictionary.put("addresses.home.formatted","formatted");
+		objectNameDictionary.put("addresses.home.primary","primary");
 
-		nameDictionaryUser.put("phoneNumbers.home.value","value");
-
-		nameDictionaryUser.put("phoneNumbers.mobile.value","value");
-
-		nameDictionaryUser.put("phoneNumbers.fax.value","value");
-
-		nameDictionaryUser.put("phoneNumbers.pager.value","value");
-
-
-		nameDictionaryUser.put("photos.photo.value","value");
-
-		nameDictionaryUser.put("photos.thumbnail.value","value");
-
-
-		nameDictionaryUser.put("ims.aim.value","type");
-
-		nameDictionaryUser.put("ims.gtalk.value","type");
-
-		nameDictionaryUser.put("ims.icq.value","type");
-
-		nameDictionaryUser.put("ims.msn.value","type");
-
-		nameDictionaryUser.put("ims.xmpp.value","type");
-
-		nameDictionaryUser.put("ims.skype.value","type");
-
-		nameDictionaryUser.put("ims.qq.value","type");
-
-		nameDictionaryUser.put("ims.yahoo.value","type");
-
-		nameDictionaryUser.put("ims.other.value","type");
+		objectNameDictionary.put("addresses.other.streetAddress","streetAddress");
+		objectNameDictionary.put("addresses.other.locality","locality");
+		objectNameDictionary.put("addresses.other.region","region");
+		objectNameDictionary.put("addresses.other.postalCode","postalCode");
+		objectNameDictionary.put("addresses.other.country","country");
+		objectNameDictionary.put("addresses.other.formatted","formatted");
+		objectNameDictionary.put("addresses.other.primary","primary");
 
 
-		nameDictionaryUser.put("userType","userType");
-		nameDictionaryUser.put("title","title");
-		nameDictionaryUser.put("preferredLanguage","preferredLanguage");
-		nameDictionaryUser.put("locale","locale");
+		objectNameDictionary.put("phoneNumbers.work.value","value");
 
-		nameDictionaryUser.put("id","id");
-		nameDictionaryUser.put("externalId","externalId");
-		nameDictionaryUser.put("timezone","timezone");
-		nameDictionaryUser.put("active","active");
-		nameDictionaryUser.put("password","password");
+		objectNameDictionary.put("phoneNumbers.home.value","value");
+
+		objectNameDictionary.put("phoneNumbers.mobile.value","value");
+
+		objectNameDictionary.put("phoneNumbers.fax.value","value");
+
+		objectNameDictionary.put("phoneNumbers.pager.value","value");
+
+
+		objectNameDictionary.put("photos.photo.value","value");
+
+		objectNameDictionary.put("photos.thumbnail.value","value");
+
+
+		objectNameDictionary.put("ims.aim.value","type");
+
+		objectNameDictionary.put("ims.gtalk.value","type");
+
+		objectNameDictionary.put("ims.icq.value","type");
+
+		objectNameDictionary.put("ims.msn.value","type");
+
+		objectNameDictionary.put("ims.xmpp.value","type");
+
+		objectNameDictionary.put("ims.skype.value","type");
+
+		objectNameDictionary.put("ims.qq.value","type");
+
+		objectNameDictionary.put("ims.yahoo.value","type");
+
+		objectNameDictionary.put("ims.other.value","type");
+
+
+		objectNameDictionary.put("userType","userType");
+		objectNameDictionary.put("title","title");
+		objectNameDictionary.put("preferredLanguage","preferredLanguage");
+		objectNameDictionary.put("locale","locale");
+
+		objectNameDictionary.put("id","id");
+		objectNameDictionary.put("externalId","externalId");
+		objectNameDictionary.put("timezone","timezone");
+		objectNameDictionary.put("active","active");
+		objectNameDictionary.put("password","password");
 
 		//nameDictionaryUser.put("groups.value","value");
 		//	nameDictionaryUser.put("groups.display","display");
 
-		nameDictionaryUser.put("x509Certificates","x509Certificates");
-		nameDictionaryUser.put("x509Certificates.value","value");
+		objectNameDictionary.put("x509Certificates","x509Certificates");
+		objectNameDictionary.put("x509Certificates.value","value");
 
 
 		// TODO it might be a problem that this is an array
-		nameDictionaryUser.put("entitlements..value","value");
-		nameDictionaryUser.put("entitlements..primary","primary");
+		objectNameDictionary.put("entitlements..value","value");
+		objectNameDictionary.put("entitlements..primary","primary");
 
-		nameDictionaryUser.put("schemaExtension.type","type");
-		nameDictionaryUser.put("schemaExtension.organization","organization");
+		objectNameDictionary.put("schemaExtension.type","type");
+		objectNameDictionary.put("schemaExtension.organization","organization");
 	}
 
 
@@ -148,24 +148,24 @@ public class UserDataBuilder {
 
 		JSONObject userObj = new JSONObject();
 
-		Set<Attribute> multivalueAttribute = new HashSet<Attribute>();
-		Set<Attribute> multilaierAttribute = new HashSet<Attribute>();
+		Set<Attribute> multiValueAttribute = new HashSet<Attribute>();
+		Set<Attribute> multiLayerAttribute = new HashSet<Attribute>();
 
 		for(Attribute at: attributes){
 
 			String attributeName = at.getName();
 
-			if(nameDictionaryUser.containsKey(attributeName)){
+			if(objectNameDictionary.containsKey(attributeName)){
 				if(attributeName.contains(".")){
 
 
 					String[] keyParts = attributeName.split("\\.");
 					if(keyParts.length ==2){
 
-						multivalueAttribute.add(at);
+						multiValueAttribute.add(at);
 					}
 					else{
-						multilaierAttribute.add(at);
+						multiLayerAttribute.add(at);
 					}
 
 				}else{
@@ -177,16 +177,16 @@ public class UserDataBuilder {
 
 		}
 
-		if(multivalueAttribute != null){
+		if(multiValueAttribute != null){
 
 
-			buildMultivalueAttribute(multivalueAttribute,userObj);
+			buildMultivalueAttribute(multiValueAttribute,userObj);
 		}
 
-		if(multilaierAttribute != null){
+		if(multiLayerAttribute != null){
 
 
-			buildLayeredAtrribute(multilaierAttribute, userObj);
+			buildLayeredAtrribute(multiLayerAttribute, userObj);
 		}
 		return userObj;
 

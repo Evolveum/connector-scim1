@@ -3,7 +3,6 @@ package com.evolveum.polygon.salesfrconn;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.codehaus.groovy.ast.stmt.LoopingStatement;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;

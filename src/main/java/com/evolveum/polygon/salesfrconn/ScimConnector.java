@@ -71,7 +71,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		}
 		
 		if(object==null){
-			LOGGER.error("Object value not provided{0} ", object);
+			LOGGER.error("Object value not provided {0} ", object);
 			throw new IllegalArgumentException("Object value not provided");
 		}
 		
@@ -90,7 +90,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	public Uid create(ObjectClass object, Set<Attribute> attr, OperationOptions arg2) {
 		
 		if(attr==null|| attr.isEmpty()){
-			LOGGER.error("Set of Attributes can not be null or empty: {}", attr);
+			LOGGER.error("Set of Attributes can not be null or empty", attr);
 			throw new IllegalArgumentException("Set of Attributes value is null or empty");
 		}
 		
@@ -145,6 +145,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		this.configuration.validate();
 		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration)configuration);
 	}
+	
 
 	@Override
 	public Uid update(ObjectClass object, Uid id, Set<Attribute> attr, OperationOptions arg3) {
@@ -205,33 +206,39 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	}
 
 	@Override
-	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler arg2, OperationOptions options) {
+	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
 
+		if(handler == null){
+			
+			LOGGER.error("Result handler for queuery is null");
+		//	throw new IllegalArgumentException("Result handler can not be null");
+		}
+		
 		if (isSupportedQuery(objectClass, query)){
 
 			if (ObjectClass.ACCOUNT.equals(objectClass)){
 
 				if(query == null){
 
-					crudManager.qeueryEntity("", "Users/");
+					crudManager.qeueryEntity("", "Users/", handler);
 
 					///TODO Dont know if good practice, should ask !
-				}else if(query instanceof EqualsFilter && qIsUid(objectClass,query)){
+				}else if(query instanceof EqualsFilter && qIsUid(objectClass,query, handler)){
 
 				}else{ 
 
-					qIsFilter(objectClass,query);
+					qIsFilter(objectClass,query, handler);
 				}
 			}else if(ObjectClass.GROUP.equals(objectClass)){
 				if(query == null){
-					crudManager.qeueryEntity("", "Groups/");
+					crudManager.qeueryEntity("", "Groups/", handler);
 				}
-				else if(query instanceof EqualsFilter && qIsUid(objectClass,query)){
+				else if(query instanceof EqualsFilter && qIsUid(objectClass,query, handler)){
 
 				}else { 
 
-					qIsFilter(objectClass,query);
+					qIsFilter(objectClass,query, handler);
 				}
 			}
 			else{
@@ -242,9 +249,6 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 	}
 
-	private void buildSchema(){
-		SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
-	}
 
 	protected boolean isSupportedQuery(ObjectClass objectClass, Filter filter){
 
@@ -257,16 +261,16 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		}
 	}
 
-	private boolean qIsUid(ObjectClass objectClass, Filter query){
+	private boolean qIsUid(ObjectClass objectClass, Filter query, ResultsHandler resultHandler){
 		Attribute filterAttr = ((EqualsFilter) query).getAttribute();
 
 		if(filterAttr instanceof Uid){
 
 			if(ObjectClass.ACCOUNT.equals(objectClass)){
-				crudManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Users/");
+				crudManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Users/", resultHandler);
 			}else 
 				if(ObjectClass.GROUP.equals(objectClass)){
-					crudManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Groups/");
+					crudManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Groups/", resultHandler);
 				}
 
 			return true;
@@ -274,7 +278,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			return false;
 	}
 
-	private void qIsFilter(ObjectClass objectClass, Filter query){
+	private void qIsFilter(ObjectClass objectClass, Filter query, ResultsHandler resultHandler){
 
 		StringBuilder build =  
 				query.accept(new FilterHandler(),objectClass);
@@ -283,10 +287,10 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 
 		if(ObjectClass.ACCOUNT.equals(objectClass)){
-			crudManager.qeueryEntity(build.toString(), "Users/");
+			crudManager.qeueryEntity(build.toString(), "Users/", resultHandler);
 		}else 
 			if(ObjectClass.GROUP.equals(objectClass)){
-				crudManager.qeueryEntity(build.toString(), "Groups/");
+				crudManager.qeueryEntity(build.toString(), "Groups/", resultHandler);
 			}
 
 	}

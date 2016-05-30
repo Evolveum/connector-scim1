@@ -18,6 +18,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -97,7 +98,7 @@ public class ScimCrudManager {
 		        LOGGER.info("####Successful login####");
 		}
 		
-		public void qeueryEntity(String q ,String resourceEndPoint){
+		public void qeueryEntity(String q ,String resourceEndPoint,ResultsHandler resultHandler){
 			logIntoService();
 	    	HttpClient httpClient = HttpClientBuilder.create().build();
 	    	
@@ -130,7 +131,7 @@ public class ScimCrudManager {
 						JSONObject json = new JSONObject(responseString);
 						
 						ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
-						objBuilder.buildConnectorObject(json);
+						resultHandler.handle(objBuilder.buildConnectorObject(json));
 						
 						LOGGER.info("Json response: {0}", json.toString(1));
 
@@ -141,7 +142,7 @@ public class ScimCrudManager {
 
 				} else {
 					
-					onNoSuccess(response,statusCode,responseString,q);
+					onNoSuccess(response,statusCode,responseString,uri);
 				}
 				
 			} catch (IOException e) {
@@ -156,8 +157,6 @@ public class ScimCrudManager {
 		logIntoService();
 		
 	    	HttpClient httpClient = HttpClientBuilder.create().build();
-	    	
-	    	System.out.println(scimBaseUri);
 	    	String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).toString();   	
 	    	
 	    	try {
@@ -189,8 +188,6 @@ public class ScimCrudManager {
 						///json.get("id");
 						
 						Uid uid =new Uid(json.getString("id"));
-						
-						System.out.println(json.getString("id"));
 						
 						LOGGER.info("Json response: {0}", json.toString(1));
 						return uid;
@@ -225,8 +222,6 @@ public class ScimCrudManager {
 		logIntoService();
 		
 	HttpClient httpClient = HttpClientBuilder.create().build();
-	System.out.println(uid.getUidValue());
-	System.out.println(uid.getUidValue());
 	String uri =
 			new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(uid.getUidValue()).toString();
 	   	
@@ -247,7 +242,7 @@ public class ScimCrudManager {
 				
 				if(statusCode==200||statusCode==201 ){
 					LOGGER.info("####Update of resource was succesfull####");
-				;
+					
 					responseString = EntityUtils.toString(response.getEntity());
 					JSONObject json = new JSONObject(responseString);
 					Uid id =new Uid(json.getString("id"));

@@ -36,7 +36,7 @@ public class Main {
 	public static final Uid TEST_UID = new Uid("00558000000W2vRAAS");
 	public static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	
-	private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
+	private static final Log LOGGER = Log.getLog(Main.class);
 	
     public static void main(String[] args) {
     	
@@ -75,15 +75,9 @@ public class Main {
     	ScimConnector conn = new ScimConnector();
     	conn.init(conf);
 
-        String first, second, third;
-        
-        first = "1"; second="2"; third ="3";
-    	
-    	/// 
     	//newObject = conn.create(userC, classicBuilderTestUser(), null);
 
     	conn.executeQuery(userC, aeq, handler, null);
-    	
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
     	//conn.delete(userC, TEST_UID, null);
     	//conn.schema();

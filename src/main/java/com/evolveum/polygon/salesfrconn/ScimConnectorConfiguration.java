@@ -21,7 +21,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 
     private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
     
-	@ConfigurationProperty(order = 1, displayMessageKey = "USERNAME.display",
+	@ConfigurationProperty(order = 1, displayMessageKey = "USERNAME",
             groupMessageKey = "basic.group", helpMessageKey = "USERNAME.help", required = true,
             confidential = false)
 	
@@ -33,7 +33,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
         this.USERNAME = username;
     }
     
-    @ConfigurationProperty(order = 2, displayMessageKey = "PASSWORD.display",
+    @ConfigurationProperty(order = 2, displayMessageKey = "PASSWORD",
             groupMessageKey = "basic.group", helpMessageKey = "PASSWORD.help", required = true,
             confidential = false)
     
@@ -46,7 +46,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		this.PASSWORD = passwd;
 	}
 	
-    @ConfigurationProperty(order = 3, displayMessageKey = "CLIENTSECRET.display",
+    @ConfigurationProperty(order = 3, displayMessageKey = "CLIENTSECRET",
             groupMessageKey = "basic.group", helpMessageKey = "CLIENTSECRET.help", required = true,
             confidential = false)
     
@@ -58,7 +58,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
         this.CLIENTSECRET = clientSecret;
     }
     
-    @ConfigurationProperty(order = 4, displayMessageKey = "CLIENTID.display",
+    @ConfigurationProperty(order = 4, displayMessageKey = "CLIENTID",
             groupMessageKey = "basic.group", helpMessageKey = "CLIENTID.help", required = true,
             confidential = false)
     public String getClientID() {
@@ -69,7 +69,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
         this.CLIENTID = clientID;
     }
  
-    @ConfigurationProperty(order = 5, displayMessageKey = "SCIM_ENDPOINT.display",
+    @ConfigurationProperty(order = 5, displayMessageKey = "SCIM_ENDPOINT",
             groupMessageKey = "basic.group", helpMessageKey = "SCIM_ENDPOINT.help", required = true,
             confidential = false)
     
@@ -81,7 +81,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
         this.SCIM_ENDPOINT = endpoint;
     }
   
-    @ConfigurationProperty(order = 6, displayMessageKey = "SCIM_VERSION.display",
+    @ConfigurationProperty(order = 6, displayMessageKey = "SCIM_VERSION",
             groupMessageKey = "basic.group", helpMessageKey = "SCIM_VERSION.help", required = true,
             confidential = false)
     
@@ -94,7 +94,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
     }
     
     
-    @ConfigurationProperty(order = 7, displayMessageKey = "LOGINURL.display",
+    @ConfigurationProperty(order = 7, displayMessageKey = "LOGINURL",
             groupMessageKey = "basic.group", helpMessageKey = "LOGINURL.help", required = true,
             confidential = false)
     
@@ -106,7 +106,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
         this.LOGINURL = loginURL;
     }
     
-    @ConfigurationProperty(order = 8, displayMessageKey = "SERVICEGRANT.display",
+    @ConfigurationProperty(order = 8, displayMessageKey = "SERVICEGRANT",
             groupMessageKey = "basic.group", helpMessageKey = "SERVICEGRANT.help", required = true,
             confidential = false)
     

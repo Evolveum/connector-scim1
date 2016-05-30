@@ -50,6 +50,7 @@ public class ConnectorObjBuilder {
 					
 				}
 		}
+		LOGGER.error("Heeeey im here!!! and with {0} ",cob.build());
 		return cob.build();
 		
 	}

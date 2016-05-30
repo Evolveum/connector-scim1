@@ -1,10 +1,9 @@
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\Main.java
-C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\SalesfrcConnector.java
+C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\ScimConnectorConfiguration.java
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\ConnectorObjBuilder.java
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\UserDataBuilder.java
-C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\SalesFrcConfiguration.java
-C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\GenericishDataBuilder.java
+C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\ScimCrudManager.java
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\GroupDataBuilder.java
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\helpermethods\HttpPatch.java
-C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\SalesfrcManager.java
+C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\ScimConnector.java
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\salesfrconn\FilterHandler.java

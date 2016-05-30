@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.apache.commons.io.filefilter.NotFileFilter;
 import org.identityconnectors.common.CollectionUtil;
+import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
@@ -34,6 +35,8 @@ public class Main {
 
 	public static final Uid TEST_UID = new Uid("00558000000W2vRAAS");
 	public static final ArrayList<ConnectorObject> result = new ArrayList<>();
+	
+	private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
 	
     public static void main(String[] args) {
     	
@@ -72,10 +75,12 @@ public class Main {
     	ScimConnector conn = new ScimConnector();
     	conn.init(conf);
 
+        String first, second, third;
         
+        first = "1"; second="2"; third ="3";
+    	
     	/// 
     	//newObject = conn.create(userC, classicBuilderTestUser(), null);
-    	
 
     	conn.executeQuery(userC, aeq, handler, null);
     	

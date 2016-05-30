@@ -66,9 +66,9 @@ public class ScimCrudManager {
 		        // verify response is HTTP OK
 		        final int statusCode = response.getStatusLine().getStatusCode();
 		        if (statusCode != HttpStatus.SC_OK) {
-		           LOGGER.error("Error authenticating to Force.com: {0}",statusCode);
+		           LOGGER.error("Error with authenticating : {0}",statusCode);
 		            try {
-						LOGGER.info("*Error cause: {0}", EntityUtils.toString(response.getEntity()));
+					LOGGER.info("---Error cause: {0}", EntityUtils.toString(response.getEntity()));
 					} catch (ParseException | IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -111,7 +111,6 @@ public class ScimCrudManager {
 	    			new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append(q).toString();
 	    	LOGGER.info("qeury url: {0}", uri);
 	    	HttpGet httpGet = new HttpGet(uri);
-	    	LOGGER.info("oauth2 header: {0}", oauthHeader);
 	    	httpGet.addHeader(oauthHeader);
 	    	httpGet.addHeader(prettyPrintHeader);
 	    	
@@ -130,16 +129,10 @@ public class ScimCrudManager {
 					try {
 						JSONObject json = new JSONObject(responseString);
 						
-						//for id call -->> json.getJSONArray("Resources").getJSONObject(0).getString("id") // check if "Resources" is a good endpoint 
-						
-						//Uid uid =new Uid(json.getString("id"));
-						
-						
 						ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 						objBuilder.buildConnectorObject(json);
 						
 						LOGGER.info("Json response: {0}", json.toString(1));
-						LOGGER.info("Connection released");
 
 					} catch (JSONException e) {
 						
@@ -148,7 +141,7 @@ public class ScimCrudManager {
 
 				} else {
 					
-					onNoSuccess(response,statusCode,responseString);
+					onNoSuccess(response,statusCode,responseString,q);
 				}
 				
 			} catch (IOException e) {
@@ -204,7 +197,7 @@ public class ScimCrudManager {
 					}
 					
 					else{
-						onNoSuccess(response, statusCode, responseString);	
+						onNoSuccess(response, statusCode, responseString, "creating new object");	
 					}
 					
 				} catch (ClientProtocolException e) {
@@ -263,7 +256,7 @@ public class ScimCrudManager {
 				}
 				
 				else{
-					onNoSuccess(response,statusCode,responseString);
+					onNoSuccess(response,statusCode,responseString,"updating object");
 					throw new IOException("Query was unsuccessful");
 				}
 				
@@ -316,7 +309,7 @@ public class ScimCrudManager {
 				
 				LOGGER.info("####Resource not found or resource was already deleted####");
 			}else{
-				onNoSuccess(response, statusCode, responseString);
+				onNoSuccess(response, statusCode, responseString,"deleting object");
 			}
 			
 		} catch (ClientProtocolException e) {
@@ -328,9 +321,9 @@ public class ScimCrudManager {
 		}
 	}
 	
-	private void onNoSuccess(HttpResponse response, int statusCode, String responseString) throws ParseException, IOException {
+	private void onNoSuccess(HttpResponse response, int statusCode, String responseString, String message) throws ParseException, IOException {
 		responseString = EntityUtils.toString(response.getEntity());
-		LOGGER.error("Query was unsuccessful. Status code returned is {0}", statusCode);
+		LOGGER.error("Query for {1} was unsuccessful. Status code returned is {0}", statusCode, message);
         LOGGER.info("####An error has occured. Http status: {0}", responseString);
         throw new IOException("Query was unsuccessful");
 	}

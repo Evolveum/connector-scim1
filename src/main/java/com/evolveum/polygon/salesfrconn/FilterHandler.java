@@ -282,35 +282,35 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitOrFilter(ObjectClass p, OrFilter filter) {
-		StringBuilder finalQuery = new StringBuilder();
+		StringBuilder completeQuery = new StringBuilder();
 
 		boolean isFirst = true;
 
 		for (Filter f: filter.getFilters()){
 
 			if (isFirst){
-				finalQuery=f.accept(this,p);
-				finalQuery.append(SPACE);
-				finalQuery.append(OR);
+				completeQuery=f.accept(this,p);
+				completeQuery.append(SPACE);
+				completeQuery.append(OR);
 				isFirst=false;
 
 			}else {
 
-				finalQuery.append(SPACE);
+				completeQuery.append(SPACE);
 				if (f instanceof OrFilter || f instanceof AndFilter){
-					finalQuery.append("(");
-					finalQuery.append(f.accept(this,p).toString());
-					finalQuery.append(")");
+					completeQuery.append("(");
+					completeQuery.append(f.accept(this,p).toString());
+					completeQuery.append(")");
 				}else {
 
-					finalQuery.append(f.accept(this,p).toString());
+					completeQuery.append(f.accept(this,p).toString());
 				}
 
 			}
 
 		}
 
-		return finalQuery;
+		return completeQuery;
 
 	}
 

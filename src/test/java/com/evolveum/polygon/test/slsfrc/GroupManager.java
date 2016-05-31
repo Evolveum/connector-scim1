@@ -18,7 +18,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.evolveum.polygon.salesfrconn.helpermethods.HttpPatch;
+import com.evolveum.polygon.scim.common.HttpPatch;
 
 public class GroupManager {
 

@@ -1,4 +1,4 @@
-package com.evolveum.polygon.salesfrconn;
+package com.evolveum.polygon.scim;
 
 
 import java.util.List;
@@ -166,8 +166,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			LOGGER.error("No uid returned by the create method: {0} ", uid);
 			throw new IllegalArgumentException("No uid returned by the create method");
 		}
-		
-		return uid;
+		return uid;	
 		
 		}else if(ObjectClass.GROUP.equals(object)){
 			
@@ -183,7 +182,6 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			}
 			return uid;
 		}else {
-			
 			LOGGER.error("Provided object value is not valid: {0}", object);
 			throw new IllegalArgumentException("Object value not valid");
 		}
@@ -192,7 +190,6 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public void test() {
 		LOGGER.ok("in test method/test OK");
-
 	}
 
 	@Override
@@ -222,8 +219,6 @@ SearchOp<Filter>, TestOp, UpdateOp {
 				if(query == null){
 
 					crudManager.qeueryEntity("", "Users/", handler);
-
-					///TODO Dont know if good practice, should ask !
 				}else if(query instanceof EqualsFilter && qIsUid(objectClass,query, handler)){
 
 				}else{ 
@@ -277,7 +272,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		}else
 			return false;
 	}
-
+	
 	private void qIsFilter(ObjectClass objectClass, Filter query, ResultsHandler resultHandler){
 
 		StringBuilder build =  
@@ -292,7 +287,6 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			if(ObjectClass.GROUP.equals(objectClass)){
 				crudManager.qeueryEntity(build.toString(), "Groups/", resultHandler);
 			}
-
 	}
 
 }

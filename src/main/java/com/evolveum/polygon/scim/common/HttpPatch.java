@@ -1,4 +1,4 @@
-package com.evolveum.polygon.salesfrconn.helpermethods;
+package com.evolveum.polygon.scim.common;
 
 import org.apache.http.client.methods.HttpPost;
 
@@ -10,6 +10,4 @@ public class HttpPatch extends HttpPost {
 	 public String getMethod() {
 		 return "PATCH";
 	 }
-
-
 }

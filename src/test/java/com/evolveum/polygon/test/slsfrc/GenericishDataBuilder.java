@@ -10,7 +10,7 @@ import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.evolveum.polygon.salesfrconn.ScimCrudManager;
+import com.evolveum.polygon.scim.ScimCrudManager;
 
 public class GenericishDataBuilder {
 

@@ -1,4 +1,4 @@
-package com.evolveum.polygon.salesfrconn;
+package com.evolveum.polygon.scim;
 
 
 import org.identityconnectors.common.StringUtil;
@@ -21,8 +21,8 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 
     private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
     
-	@ConfigurationProperty(order = 1, displayMessageKey = "USERNAME",
-            groupMessageKey = "basic.group", helpMessageKey = "USERNAME.help", required = true,
+	@ConfigurationProperty(order = 1, displayMessageKey = "Username",
+            groupMessageKey = "basic.group", helpMessageKey = "Please provie the administrator user name.", required = true,
             confidential = false)
 	
 	public String getUserName() {
@@ -92,7 +92,6 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
     public void setVersion(String version) {
         this.SCIM_VERSION = version;
     }
-    
     
     @ConfigurationProperty(order = 7, displayMessageKey = "LOGINURL",
             groupMessageKey = "basic.group", helpMessageKey = "LOGINURL.help", required = true,

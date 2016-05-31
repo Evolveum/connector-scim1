@@ -1,4 +1,4 @@
-package com.evolveum.polygon.salesfrconn;
+package com.evolveum.polygon.scim;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -104,9 +104,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitAndFilter(ObjectClass p, AndFilter filter) {
-
-
-
 		LOGGER.info("Processing request trought and filter");
 
 		StringBuilder completeQuery = new StringBuilder();
@@ -348,8 +345,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 			}
 		}else{
 
-			LOGGER.error("Filter atribute key name EMPTY");
-			throw new InvalidAttributeValueException("No atribute key name provided");
+			LOGGER.error("Filter atribute key name EMPTY while processing an ends with filter");
+			throw new InvalidAttributeValueException("No atribute key name provided while processing an ends with filter");
 		}
 	}
 
@@ -360,7 +357,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 		StringBuilder resultString = new StringBuilder();
 		if(atr == null ){
 
-			LOGGER.error("Filter atribude value is EMPTY, please provide atribute value ", atr );
+			LOGGER.error("Filter atribude value is EMPTY while building filter queuery, please provide atribute value ", atr );
+			throw new InvalidAttributeValueException("No atribute value provided while building filter queuery");
 		}else {
 			resultString.append(name).append(SPACE).append(operator).append(SPACE).append(QUOTATION).append(AttributeUtil.getAsStringValue(atr)).append(QUOTATION);
 		}

@@ -67,7 +67,7 @@ public class ScimCrudManager {
 			LOGGER.error(
 					"An protocol exception has ocoured while processing the http response to the login request. Possible mismatch in interpretation of the HTTP specification: {0}",
 					e.getLocalizedMessage());
-			LOGGER.warn(
+			LOGGER.info(
 					"An protocol exception has ocoured while processing the http response to the login request. Possible mismatch in interpretation of the HTTP specification: {0}",
 					e);
 
@@ -77,7 +77,7 @@ public class ScimCrudManager {
 
 			LOGGER.error("An error ocoured while processing the queuery http response to the login request : {0}",
 					ioException.getLocalizedMessage());
-			LOGGER.warn("An error ocoured while processing the queuery http response to the login request : {0}",
+			LOGGER.info("An error ocoured while processing the queuery http response to the login request : {0}",
 					ioException);
 			throw new ConnectorIOException(ioException);
 		}
@@ -92,7 +92,7 @@ public class ScimCrudManager {
 
 				LOGGER.error("An exception has ocoured while parsing the http response to the login request: {0}",
 						e.getLocalizedMessage());
-				LOGGER.warn("An exception has ocoured while parsing the http response to the login request: {0}", e);
+				LOGGER.info("An exception has ocoured while parsing the http response to the login request: {0}", e);
 				throw new ConnectorIOException(e);
 			}
 		}
@@ -104,7 +104,7 @@ public class ScimCrudManager {
 
 			LOGGER.error("An exception has ocoured while parsing the http response to the login request: {0}",
 					ioException.getLocalizedMessage());
-			LOGGER.warn("An exception has ocoured while parsing the http response to the login request: {0}",
+			LOGGER.info("An exception has ocoured while parsing the http response to the login request: {0}",
 					ioException);
 			throw new ConnectorIOException(ioException);
 		}
@@ -120,7 +120,7 @@ public class ScimCrudManager {
 			LOGGER.error(
 					"An exception has ocoured while setting the variable \"jsonObject\". Ocourance while processing the http response to the login request: {0}",
 					jsonException.getLocalizedMessage());
-			LOGGER.warn(
+			LOGGER.info(
 					"An exception has ocoured while setting the variable \"jsonObject\". Ocourance while processing the http response to the login request: {0}",
 					jsonException);
 			throw new ConnectorException(jsonException);
@@ -183,7 +183,7 @@ public class ScimCrudManager {
 					LOGGER.error(
 							"An exception has ocoured while setting the variable \"jsonObject\". Ocourance while processing the http response to the queuey request for: {1}, exception message: {0}",
 							jsonException.getLocalizedMessage(), q);
-					LOGGER.warn(
+					LOGGER.info(
 							"An exception has ocoured while setting the variable \"jsonObject\". Ocourance while processing the http response to the queuey request for: {1}, exception message: {0}",
 							jsonException, q);
 					throw new ConnectorException(jsonException);
@@ -203,7 +203,7 @@ public class ScimCrudManager {
 			LOGGER.error(
 					"An error ocoured while processing the queuery http response. Ocourance while processing the http response to the queuey request for: {1}, exception message: {0}",
 					e.getLocalizedMessage(), q);
-			LOGGER.warn(
+			LOGGER.info(
 					"An error ocoured while processing the queuery http response. Ocourance while processing the http response to the queuey request for: {1}, exception message: {0}",
 					e, q);
 			throw new ConnectorIOException(e);
@@ -259,7 +259,7 @@ public class ScimCrudManager {
 				LOGGER.error(
 						"An protocol exception has ocoured while in the process of creating a new resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
 						e.getLocalizedMessage());
-				LOGGER.warn(
+				LOGGER.info(
 						"An protocol exception has ocoured while in the process of creating a new resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
 						e);
 				throw new ConnectionFailedException(e);
@@ -268,7 +268,7 @@ public class ScimCrudManager {
 				LOGGER.error(
 						"An error has ocoured while processing the http response. Ocourance in the process of creating a new resource object: : {0}",
 						e.getLocalizedMessage());
-				LOGGER.warn(
+				LOGGER.info(
 						"An error has ocoured while processing the http response. Ocourance in the process of creating a new resource object: : {0}",
 						e);
 
@@ -280,7 +280,7 @@ public class ScimCrudManager {
 			LOGGER.error(
 					"An exception has ocoured while processing an json object. Ocourance in the process of creating a new resource object: {0}",
 					e.getLocalizedMessage());
-			LOGGER.warn(
+			LOGGER.info(
 					"An exception has ocoured while processing an json object. Ocourance in the process of creating a new resource object: {0}",
 					e);
 
@@ -288,7 +288,7 @@ public class ScimCrudManager {
 		} catch (UnsupportedEncodingException e1) {
 			LOGGER.error("Unsupported encoding: {0}. Ocourance in the process of creating a new resource object ",
 					e1.getMessage());
-			LOGGER.warn("Unsupported encoding: {0}. Ocourance in the process of creating a new resource object ", e1);
+			LOGGER.info("Unsupported encoding: {0}. Ocourance in the process of creating a new resource object ", e1);
 
 			throw new ConnectorException(e1);
 		}
@@ -337,7 +337,7 @@ public class ScimCrudManager {
 
 			LOGGER.error("Unsupported encoding: {0}. Ocourance in the process of updating a resource object ",
 					e.getMessage());
-			LOGGER.warn("Unsupported encoding: {0}. Ocourance in the process of updating a resource object ", e);
+			LOGGER.info("Unsupported encoding: {0}. Ocourance in the process of updating a resource object ", e);
 
 			throw new ConnectorException(e);
 
@@ -346,7 +346,7 @@ public class ScimCrudManager {
 			LOGGER.error(
 					"An exception has ocoured while processing an json object. Ocourance in the process of updating a resource object: {0}",
 					e.getLocalizedMessage());
-			LOGGER.warn(
+			LOGGER.info(
 					"An exception has ocoured while processing an json object. Ocourance in the process of updating a resource object: {0}",
 					e);
 
@@ -355,7 +355,7 @@ public class ScimCrudManager {
 			LOGGER.error(
 					"An protocol exception has ocoured while in the process of updating a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
 					e.getLocalizedMessage());
-			LOGGER.warn(
+			LOGGER.info(
 					"An protocol exception has ocoured while in the process of updating a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
 					e);
 			throw new ConnectionFailedException(e);
@@ -364,7 +364,7 @@ public class ScimCrudManager {
 			LOGGER.error(
 					"An error has ocoured while processing the http response. Ocourance in the process of updating a resource object: : {0}",
 					e.getLocalizedMessage());
-			LOGGER.warn(
+			LOGGER.info(
 					"An error has ocoured while processing the http response. Ocourance in the process of creating a resource object: : {0}",
 					e);
 
@@ -412,7 +412,7 @@ public class ScimCrudManager {
 			LOGGER.error(
 					"An protocol exception has ocoured while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
 					e.getLocalizedMessage());
-			LOGGER.warn(
+			LOGGER.info(
 					"An protocol exception has ocoured while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
 					e);
 			throw new ConnectionFailedException(e);
@@ -420,7 +420,7 @@ public class ScimCrudManager {
 			LOGGER.error(
 					"An error has ocoured while processing the http response. Ocourance in the process of deleting a resource object: : {0}",
 					e.getLocalizedMessage());
-			LOGGER.warn(
+			LOGGER.info(
 					"An error has ocoured while processing the http response. Ocourance in the process of deleting a resource object: : {0}",
 					e);
 
@@ -437,7 +437,7 @@ public class ScimCrudManager {
 		}
 		LOGGER.error("Query for {1} was unsuccessful. Status code returned is {0}", statusCode, message);
 		LOGGER.info("An error has occured. Http status: {0}", responseString);
-		LOGGER.warn("Query for {1} was unsuccessful. Status code returned is {0}", statusCode, message);
+		LOGGER.info("Query for {1} was unsuccessful. Status code returned is {0}", statusCode, message);
 
 		throw new ConnectorIOException("Query was unsuccessful");
 	}

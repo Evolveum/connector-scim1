@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="2" failures="0" name="TestSuite" time="0.228" errors="0" skipped="0">
+<testsuite tests="2" failures="0" name="TestSuite" time="0.122" errors="0" skipped="0">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk1.8.0_91\jre\bin"/>
     <property name="java.vm.version" value="25.91-b14"/>
-    <property name="user.country.format" value="US"/>
     <property name="java.vm.vendor" value="Oracle Corporation"/>
     <property name="maven.multiModuleProjectDirectory" value="C:\Users\Matus\PracaProjekty\salesfrcTest"/>
     <property name="java.vendor.url" value="http://java.oracle.com/"/>
@@ -13,7 +12,7 @@
     <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
     <property name="file.encoding.pkg" value="sun.io"/>
     <property name="user.script" value=""/>
-    <property name="user.country" value="SK"/>
+    <property name="user.country" value="US"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="sun.os.patch.level" value=""/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
@@ -47,8 +46,7 @@
     <property name="java.home" value="C:\Program Files\Java\jdk1.8.0_91\jre"/>
     <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher clean install"/>
     <property name="java.specification.vendor" value="Oracle Corporation"/>
-    <property name="user.language" value="sk"/>
-    <property name="user.language.format" value="en"/>
+    <property name="user.language" value="en"/>
     <property name="awt.toolkit" value="sun.awt.windows.WToolkit"/>
     <property name="java.vm.info" value="mixed mode"/>
     <property name="java.version" value="1.8.0_91"/>
@@ -65,6 +63,6 @@
     <property name="sun.desktop" value="windows"/>
     <property name="sun.cpu.isalist" value="amd64"/>
   </properties>
-  <testcase classname="com.evolveum.polygon.test.slsfrc.Testclass" name="testClass" time="0.014"/>
-  <testcase classname="com.evolveum.polygon.test.slsfrc.AppTest" name="testApp on testApp(com.evolveum.polygon.test.slsfrc.AppTest)" time="0.214"/>
+  <testcase classname="com.evolveum.polygon.test.slsfrc.Testclass" name="testClass" time="0.006"/>
+  <testcase classname="com.evolveum.polygon.test.slsfrc.AppTest" name="testApp on testApp(com.evolveum.polygon.test.slsfrc.AppTest)" time="0.116"/>
 </testsuite>

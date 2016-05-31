@@ -16,6 +16,8 @@ import org.json.JSONObject;
 // Class containing the method needed for building connector objects from json objects
 
 public class ConnectorObjBuilder {
+	
+	// TODO there will be overhead because we need to get each name from the list of resources if we list all resources and that can be done only by searching for individual UIDs
 
 	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
 	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();

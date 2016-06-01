@@ -17,7 +17,9 @@ import org.json.JSONObject;
 
 public class ConnectorObjBuilder {
 	
-	// TODO there will be overhead because we need to get each name from the list of resources if we list all resources and that can be done only by searching for individual UIDs
+	// TODO there will be overhead because we need to get each name from the list of resources 
+	// if we list all resources and that can be done only by searching for individual UIDs eg. 
+	// ScimCrudManager class caller method of this class
 
 	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
 	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
@@ -29,15 +31,18 @@ public class ConnectorObjBuilder {
 	objectNameDictionary.put("id", "id");
 	//
 	objectNameDictionary.put("name.formatted", "formatted");
-	objectNameDictionary.put("name.familyName", "familyName");
-	objectNameDictionary.put("name.givenName", "givenName");
-	objectNameDictionary.put("name.middleName", "middleName");
-	objectNameDictionary.put("name.honorificPrefix", "honorificPrefix");
-	objectNameDictionary.put("name.honorificSuffix", "honorificSuffix");
+	objectNameDictionary.put("familyName", "name.familyName");
+	objectNameDictionary.put("givenName", "name.givenName");
+	objectNameDictionary.put("middleName", "name.middleName");
+	objectNameDictionary.put("honorificPrefix", "name.honorificPrefix");
+	objectNameDictionary.put("honorificSuffix", "name.honorificSuffix");
 
 	objectNameDictionary.put("displayName", "displayName");
 	objectNameDictionary.put("nickName", "nickName");
 	
+	objectNameDictionary.put("userType", "userType");
+	objectNameDictionary.put("locale", "locale");
+	objectNameDictionary.put("preferredLanguage", "preferredLanguage");
 	}
 	
 	public ConnectorObject buildConnectorObject(JSONObject jsonObject) throws ConnectException{
@@ -50,10 +55,9 @@ public class ConnectorObjBuilder {
 		}
 		
 		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
-		if (jsonObject.has("id")){
+
 		cob.setUid(jsonObject.getString("id"));
-		cob.setName(jsonObject.getString("id"));
-		}
+		cob.setName(jsonObject.getString("userName"));
 		
 		for(String key: jsonObject.keySet()){
 			Object attribute =jsonObject.get(key);
@@ -69,20 +73,19 @@ public class ConnectorObjBuilder {
 					cob.addAttribute(key, list);
 					
 					*/
-				} else if(attribute instanceof JSONObject){/*
+				} else if(attribute instanceof JSONObject){
 					for(String s: ((JSONObject) attribute).keySet()){
-						
-						cob.addAttribute(s,((JSONObject) attribute).get(s));
-					}
-					*/
-				} else { 
-					for(String akey :objectNameDictionary.keySet()){
-						if (objectNameDictionary.get(akey).intern()== key.intern()){
-							cob.addAttribute(key.intern(), jsonObject.get(key));
+						if(objectNameDictionary.containsKey(s.intern())){
+						cob.addAttribute(objectNameDictionary.get(s),((JSONObject) attribute).get(s));
 						}
-						
 					}
 					
+				} else { 
+					
+					if(objectNameDictionary.containsKey(key.intern())){
+						System.out.println(objectNameDictionary.get(key));
+						cob.addAttribute(objectNameDictionary.get(key), jsonObject.get(key));
+					}					
 				}
 		}
 		System.out.println(cob.build());

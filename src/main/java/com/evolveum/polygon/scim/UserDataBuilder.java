@@ -313,6 +313,11 @@ public class UserDataBuilder {
 		builder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificSuffix").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("nickName").build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("userType").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("locale").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("preferredLanguage").build());
+		
 		//
 		builder.addAttributeInfo(AttributeInfoBuilder.define("id").build());
 		//

@@ -145,8 +145,6 @@ public class ScimCrudManager {
 
 		try {
 			HttpResponse response = httpClient.execute(httpGet);
-			loginInstance.releaseConnection();
-			LOGGER.info("Connection released");
 			int statusCode = response.getStatusLine().getStatusCode();
 
 			if (statusCode == 200) {
@@ -157,16 +155,42 @@ public class ScimCrudManager {
 					JSONObject jsonObject = new JSONObject(responseString);
 					try {
 					if (q != ""){
+						loginInstance.releaseConnection();
 						ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 						resultHandler.handle(objBuilder.buildConnectorObject(jsonObject));
 
 					} else{						
 						for(int i=0 ; i<jsonObject.getJSONArray("Resources").length(); i++){
-							ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
-							resultHandler.handle(objBuilder.buildConnectorObject(jsonObject.getJSONArray("Resources").getJSONObject(i)));
+							JSONObject minResourceJson = new JSONObject();
+							minResourceJson = jsonObject.getJSONArray("Resources").getJSONObject(i);
+							if(minResourceJson.has("id") && minResourceJson.getString("id")!=null){
+		
+								String resourceUri= minResourceJson.getJSONObject("meta").getString("location").toString();
+								HttpGet httpGetR= new HttpGet(resourceUri);
+								httpGetR.addHeader(oauthHeader);
+								httpGetR.addHeader(prettyPrintHeader);
+								
+								HttpResponse resourceResponse = httpClient.execute(httpGetR);
+								
+								statusCode = resourceResponse.getStatusLine().getStatusCode();
 
+								if (statusCode == 200) {
+
+									responseString = EntityUtils.toString(resourceResponse.getEntity());
+									JSONObject fullResourcejson = new JSONObject(responseString);
+									
+									ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
+									resultHandler.handle(objBuilder.buildConnectorObject(fullResourcejson));
+									
+								}else{
+									loginInstance.releaseConnection();
+									LOGGER.info("Connection released");
+									onNoSuccess(resourceResponse, statusCode, responseString, resourceUri);
+								}
+
+							}//TODO else statement
 						}
-						
+						loginInstance.releaseConnection();
 					}
 					
 					} catch (Exception e) {
@@ -190,7 +214,8 @@ public class ScimCrudManager {
 				}
 
 			} else {
-
+				loginInstance.releaseConnection();
+				LOGGER.info("Connection released");
 				onNoSuccess(response, statusCode, responseString, uri);
 			}
 

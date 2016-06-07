@@ -10,6 +10,7 @@ import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -26,17 +27,21 @@ public class ConnectorObjBuilder {
 	
 	static{
 		
-	objectNameDictionary.put("userName", "userName");
+	//objectNameDictionary.put("userName", "userName");
 	//
 	objectNameDictionary.put("id", "id");
 	//
-	objectNameDictionary.put("name.formatted", "formatted");
+	
+	objectNameDictionary.put("name", "name");
+	objectNameDictionary.put("formatted", "name.formatted");
 	objectNameDictionary.put("familyName", "name.familyName");
 	objectNameDictionary.put("givenName", "name.givenName");
 	objectNameDictionary.put("middleName", "name.middleName");
 	objectNameDictionary.put("honorificPrefix", "name.honorificPrefix");
 	objectNameDictionary.put("honorificSuffix", "name.honorificSuffix");
-
+	
+	objectNameDictionary.put("emails", "emails");
+	
 	objectNameDictionary.put("displayName", "displayName");
 	objectNameDictionary.put("nickName", "nickName");
 	
@@ -57,12 +62,19 @@ public class ConnectorObjBuilder {
 		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
 
 		cob.setUid(jsonObject.getString("id"));
-		cob.setName(jsonObject.getString("userName"));
 		
+		if(!jsonObject.has("userName")){
+			cob.setName(jsonObject.getString("displayName"));
+			cob.setObjectClass(ObjectClass.GROUP);
+		}else{
+		cob.setName(jsonObject.getString("userName"));
+		}
 		for(String key: jsonObject.keySet()){
 			Object attribute =jsonObject.get(key);
+			
+			if(objectNameDictionary.containsKey(key.intern())){
 				if(attribute instanceof JSONArray){
-					/*
+					
 					JSONArray jArray = (JSONArray) attribute;
 					ArrayList<String> list= new ArrayList<String>();
 					
@@ -72,7 +84,7 @@ public class ConnectorObjBuilder {
 						}
 					cob.addAttribute(key, list);
 					
-					*/
+					
 				} else if(attribute instanceof JSONObject){
 					for(String s: ((JSONObject) attribute).keySet()){
 						if(objectNameDictionary.containsKey(s.intern())){
@@ -82,12 +94,10 @@ public class ConnectorObjBuilder {
 					
 				} else { 
 					
-					if(objectNameDictionary.containsKey(key.intern())){
-						System.out.println(objectNameDictionary.get(key));
 						cob.addAttribute(objectNameDictionary.get(key), jsonObject.get(key));
-					}					
+				
 				}
-		}
+		}}
 		System.out.println(cob.build());
 		return cob.build();
 		

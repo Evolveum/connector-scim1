@@ -9,7 +9,11 @@ import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
+import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClassInfo;
+import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -121,6 +125,19 @@ public class GroupDataBuilder {
 		}
 
 		return json;
+	}
+	
+	public static ObjectClassInfo getGroupSchema() {
+
+		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
+
+		builder.addAttributeInfo(Name.INFO);
+
+		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").setRequired(true).build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members..value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members..display").setRequired(false).build());
+	
+		return builder.build();
 	}
 
 }

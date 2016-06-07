@@ -55,7 +55,10 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		
 		ObjectClassInfo user = UserDataBuilder.getUserSchema();
 		
+		ObjectClassInfo group = GroupDataBuilder.getGroupSchema();
+		
 		schemaBuilder.defineObjectClass(user);
+		schemaBuilder.defineObjectClass(group);
 		
 		return schemaBuilder.build() ;
 		}

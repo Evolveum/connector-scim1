@@ -33,7 +33,7 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
  
 public class Main {
 
-	public static final Uid TEST_UID = new Uid("00558000000W2vRAAS");
+	public static final Uid TEST_UID = new Uid("00G58000000eGaxEAE");
 	public static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	
 	private static final Log LOGGER = Log.getLog(Main.class);
@@ -77,7 +77,7 @@ public class Main {
 
     	//newObject = conn.create(userC, classicBuilderTestUser(), null);
 
-    	conn.executeQuery(userC, aeq, handler, null);
+    	conn.executeQuery(groupC, null, handler, null);
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
     	//conn.delete(userC, TEST_UID, null);
     	//conn.schema();

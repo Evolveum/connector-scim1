@@ -318,11 +318,23 @@ public class UserDataBuilder {
 		builder.addAttributeInfo(AttributeInfoBuilder.define("locale").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("preferredLanguage").build());
 		
+		
 		//
 		builder.addAttributeInfo(AttributeInfoBuilder.define("id").build());
 		//
 		//builder.addAttributeInfo(AttributeInfoBuilder.define("profileUrl").build());
-
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails").setMultiValued(true).build());
+		
+		/*builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.primary").build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.primary").build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.primary").build());
+		 */
 		return builder.build();
 	}
 }

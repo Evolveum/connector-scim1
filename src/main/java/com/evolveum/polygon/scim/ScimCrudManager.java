@@ -150,9 +150,12 @@ public class ScimCrudManager {
 			if (statusCode == 200) {
 
 				responseString = EntityUtils.toString(response.getEntity());
+				
 
 				try {
 					JSONObject jsonObject = new JSONObject(responseString);
+					
+					
 					try {
 					if (q != ""){
 						loginInstance.releaseConnection();

@@ -33,7 +33,7 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
  
 public class Main {
 
-	public static final Uid TEST_UID = new Uid("00G58000000eGaxEAE");
+	public static final Uid TEST_UID = new Uid("00558000000W2vRAAS");
 	public static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	
 	private static final Log LOGGER = Log.getLog(Main.class);
@@ -49,9 +49,9 @@ public class Main {
      	
     	EqualsFilter aeq = (EqualsFilter)FilterBuilder.equalTo(TEST_UID);
     	
-    /*TODO set for emails*/	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("userName","johnsnow@winterfell.com"));
+    /*TODO set for emails*/	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("name.familyName","Potter"));
     	
-    	ContainsFilter con = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","john"));
+    	ContainsFilter con = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","harryp0234"));
     	
     	ContainsFilter ct = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","aeoinoaiedoiaedionasinad"));
     	
@@ -59,7 +59,7 @@ public class Main {
     	
     	OrFilter orf = (OrFilter) FilterBuilder.or(eq, ct);
     	
-    	AndFilter andf = (AndFilter) FilterBuilder.and(con, orf);
+    	AndFilter andf = (AndFilter) FilterBuilder.and(con, con);
     	
     	NotFilter not= (NotFilter)FilterBuilder.not(eq);
     
@@ -77,11 +77,12 @@ public class Main {
 
     	//newObject = conn.create(userC, classicBuilderTestUser(), null);
 
-    	conn.executeQuery(groupC, aeq, handler, null);
+    	conn.executeQuery(userC, eq, handler, null);
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
     	//conn.delete(userC, TEST_UID, null);
     	//conn.schema();
     	
+    	LOGGER.info("Handler result: {0}", result); // Result handler 
     }
     
     private static Set<Attribute> GenericBuilderTest(){

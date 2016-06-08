@@ -14,7 +14,7 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-// Class containing the method needed for building connector objects from json objects
+// Class containing methods needed for building connector objects from json objects
 
 public class ConnectorObjBuilder {
 	
@@ -23,33 +23,41 @@ public class ConnectorObjBuilder {
 	// ScimCrudManager class caller method of this class
 
 	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
-	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
-	
+	private static Map<String, String> acountObjectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
+	private static Map<String, String> groupObjectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 	static{
 		
 	//objectNameDictionary.put("userName", "userName");
 	//
-	objectNameDictionary.put("id", "id");
+	acountObjectNameDictionary.put("id", "id");
 	//
 	
-	objectNameDictionary.put("name", "name");
-	objectNameDictionary.put("formatted", "name.formatted");
-	objectNameDictionary.put("familyName", "name.familyName");
-	objectNameDictionary.put("givenName", "name.givenName");
-	objectNameDictionary.put("middleName", "name.middleName");
-	objectNameDictionary.put("honorificPrefix", "name.honorificPrefix");
-	objectNameDictionary.put("honorificSuffix", "name.honorificSuffix");
+	acountObjectNameDictionary.put("name", "name");
+	acountObjectNameDictionary.put("formatted", "name.formatted");
+	acountObjectNameDictionary.put("familyName", "name.familyName");
+	acountObjectNameDictionary.put("givenName", "name.givenName");
+	acountObjectNameDictionary.put("middleName", "name.middleName");
+	acountObjectNameDictionary.put("honorificPrefix", "name.honorificPrefix");
+	acountObjectNameDictionary.put("honorificSuffix", "name.honorificSuffix");
 	
-	objectNameDictionary.put("emails", "emails");
+	acountObjectNameDictionary.put("emails", "emails");
 	
-	objectNameDictionary.put("displayName", "displayName");
-	objectNameDictionary.put("nickName", "nickName");
+	acountObjectNameDictionary.put("displayName", "displayName");
+	acountObjectNameDictionary.put("nickName", "nickName");
 	
-	objectNameDictionary.put("userType", "userType");
-	objectNameDictionary.put("locale", "locale");
-	objectNameDictionary.put("preferredLanguage", "preferredLanguage");
+	acountObjectNameDictionary.put("userType", "userType");
+	acountObjectNameDictionary.put("locale", "locale");
+	acountObjectNameDictionary.put("preferredLanguage", "preferredLanguage");
+	
+	//Group dictionary definition 
+	
+	groupObjectNameDictionary.put("displayName", "displayName");
+	//groupObjectNameDictionary.put("members", "members");
+	
+	groupObjectNameDictionary.put("display", "members..display");
+	groupObjectNameDictionary.put("value", "members..value");
+	
 	}
-	
 	public ConnectorObject buildConnectorObject(JSONObject jsonObject) throws ConnectException{
 		
 		LOGGER.info("Building the connector object from provided json");
@@ -60,14 +68,17 @@ public class ConnectorObjBuilder {
 		}
 		
 		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
+		Map<String, String> objectNameDictionary = null;
 
 		cob.setUid(jsonObject.getString("id"));
 		
 		if(!jsonObject.has("userName")){
 			cob.setName(jsonObject.getString("displayName"));
-			cob.setObjectClass(ObjectClass.GROUP); ////////////////error in object type def, see midPoint
+			cob.setObjectClass(ObjectClass.GROUP);
+			objectNameDictionary =groupObjectNameDictionary;
 		}else{
 		cob.setName(jsonObject.getString("userName"));
+		objectNameDictionary =acountObjectNameDictionary;
 		}
 		for(String key: jsonObject.keySet()){
 			Object attribute =jsonObject.get(key);
@@ -89,16 +100,18 @@ public class ConnectorObjBuilder {
 					for(String s: ((JSONObject) attribute).keySet()){
 						if(objectNameDictionary.containsKey(s.intern())){
 						cob.addAttribute(objectNameDictionary.get(s),((JSONObject) attribute).get(s));
+						
 						}
 					}
 					
 				} else { 
 					
 						cob.addAttribute(objectNameDictionary.get(key), jsonObject.get(key));
-				
+						
 				}
 		}}
-		System.out.println(cob.build());
+		
+	 LOGGER.error("Connector object {0}", cob.build());
 		return cob.build();
 		
 	}

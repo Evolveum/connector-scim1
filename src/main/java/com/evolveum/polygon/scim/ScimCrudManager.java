@@ -131,10 +131,18 @@ public class ScimCrudManager {
 		LOGGER.info("Login Successful");
 	}
 
-	public void qeueryEntity(String q, String resourceEndPoint, ResultsHandler resultHandler) {
+	public void qeueryEntity(Object queuery, String resourceEndPoint, ResultsHandler resultHandler) {
 		logIntoService();
 		HttpClient httpClient = HttpClientBuilder.create().build();
-
+		String q;
+		if(queuery instanceof Uid){
+			
+			q = ((Uid)queuery).getUidValue();
+		}else{
+			
+			q = (String)queuery;
+		}
+		
 		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append(q).toString();
 		LOGGER.info("qeury url: {0}", uri);
 		HttpGet httpGet = new HttpGet(uri);
@@ -146,18 +154,16 @@ public class ScimCrudManager {
 		try {
 			HttpResponse response = httpClient.execute(httpGet);
 			int statusCode = response.getStatusLine().getStatusCode();
-
 			if (statusCode == 200) {
 
 				responseString = EntityUtils.toString(response.getEntity());
-				
-
+				if(!responseString.isEmpty()){
 				try {
 					JSONObject jsonObject = new JSONObject(responseString);
 					
-					
+					LOGGER.error("the json object {0}",jsonObject); // TODO delete this error
 					try {
-					if (q != ""){
+					if (queuery instanceof Uid){
 						loginInstance.releaseConnection();
 						ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 						resultHandler.handle(objBuilder.buildConnectorObject(jsonObject));
@@ -182,8 +188,12 @@ public class ScimCrudManager {
 									responseString = EntityUtils.toString(resourceResponse.getEntity());
 									JSONObject fullResourcejson = new JSONObject(responseString);
 									
+									LOGGER.error("the fullResourcejson object {0}",fullResourcejson); // TODO delete this error
+									
 									ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 									resultHandler.handle(objBuilder.buildConnectorObject(fullResourcejson));
+									
+									
 									
 								}else{
 									loginInstance.releaseConnection();
@@ -216,7 +226,12 @@ public class ScimCrudManager {
 					throw new ConnectorException(jsonException);
 				}
 
-			} else {
+			}else{
+			 loginInstance.releaseConnection();
+			LOGGER.error("Service provider response is empty, responce returned on queuery: {0}", queuery);
+			throw new ConnectorException("Service provider response is empty, exception ocoured while fetching response from service provider endpoint.");
+				
+			}} else {
 				loginInstance.releaseConnection();
 				LOGGER.info("Connection released");
 				onNoSuccess(response, statusCode, responseString, uri);

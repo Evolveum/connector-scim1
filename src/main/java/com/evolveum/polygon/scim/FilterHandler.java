@@ -57,45 +57,57 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	private static final String NOT ="not";
 
-	private static Map<String, String> objectNameDictionaryUser = CollectionUtil.newCaseInsensitiveMap();
+	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 
-	private static Map<String, String> objectNameDictionaryGroup = CollectionUtil.newCaseInsensitiveMap();
 
 	private static Map< String, HashMap<String, String>> arrayNameDictionary =  new HashMap<String, HashMap<String, String>>() ;
 
 	private static HashMap<String, String> aObjectDictionaryGroup =  new HashMap<String, String>() ;
 	static {
-		objectNameDictionaryUser.put("userName","userName");
-		objectNameDictionaryUser.put("name","formatted");
-		objectNameDictionaryUser.put("displayName","displayName");
-		objectNameDictionaryUser.put("nickName","nickName");
-		objectNameDictionaryUser.put("profileUrl","profileUrl");
-		objectNameDictionaryUser.put("title","title");
-		objectNameDictionaryUser.put("userType","userType");
-		objectNameDictionaryUser.put("id","id");
-		objectNameDictionaryUser.put("externalId","externalId");
+		objectNameDictionary.put("userName","userName");
+		objectNameDictionary.put("name","formatted");
+		objectNameDictionary.put("displayName","displayName");
+		objectNameDictionary.put("nickName","nickName");
+		objectNameDictionary.put("profileUrl","profileUrl");
+		objectNameDictionary.put("title","title");
+		objectNameDictionary.put("userType","userType");
+		objectNameDictionary.put("id","id");
+		objectNameDictionary.put("externalId","externalId");
 
+		
+		objectNameDictionary.put("name.formatted", "name.formatted");
+		objectNameDictionary.put("name.familyName", "name.familyName");
+		objectNameDictionary.put("name.givenName", "name.givenName");
+		objectNameDictionary.put("name.middleName", "name.middleName");
+		objectNameDictionary.put("name.honorificPrefix", "name.honorificPrefix");
+		objectNameDictionary.put("name.honorificSuffix", "name.honorificSuffix");
 
-		objectNameDictionaryUser.put("preferredLanguage","preferredLanguage");
-		objectNameDictionaryUser.put("locale","locale");
-		objectNameDictionaryUser.put("timezone","timezone");
-		objectNameDictionaryUser.put("active","active");
+		objectNameDictionary.put("preferredLanguage","preferredLanguage");
+		objectNameDictionary.put("locale","locale");
+		objectNameDictionary.put("timezone","timezone");
+		objectNameDictionary.put("active","active");
 
-		objectNameDictionaryUser.put("email","email");
-
-
+		/*
+		objectNameDictionaryUser.put("emails.work.value","emails.value");
+		objectNameDictionaryUser.put("emails.work.primary","emails.primary");
+		
+		objectNameDictionaryUser.put("emails.home.value","emails.value");
+		objectNameDictionaryUser.put("emails.home.primary","emails.primary");
+		
+		objectNameDictionaryUser.put("emails.other.value","emails.value");
+		objectNameDictionaryUser.put("emails.other.primary","emails.primary");
+		
+		 */
 		///Group dictionary
 
-		objectNameDictionaryGroup.put("id", "id");
-		objectNameDictionaryGroup.put("externalId", "externalId");
+		objectNameDictionary.put("id", "id");
+		objectNameDictionary.put("externalId", "externalId");
 
-		objectNameDictionaryGroup.put("displayName", "displayName");
+		objectNameDictionary.put("displayName", "displayName");
 		//nameDictionaryGroup.put("members", "members");
 
 		// TODO define the rest of array dictionaries for complex attributes
 		// array dictionaries and values
-		aObjectDictionaryGroup.put("type", "email.type");
-		aObjectDictionaryGroup.put("value", "email.value");
 
 		arrayNameDictionary.put("emails", aObjectDictionaryGroup);
 	}
@@ -359,7 +371,17 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 			LOGGER.error("Filter atribude value is EMPTY while building filter queuery, please provide atribute value ", atr );
 			throw new InvalidAttributeValueException("No atribute value provided while building filter queuery");
-		}else {
+		}else if (name.contains(".")) {
+
+					String[] keyParts = name.split("\\.");
+					if (keyParts.length == 3) {
+					System.out.println("333333333333333");
+					} else {
+						
+			resultString.append(name).append(SPACE).append(operator).append(SPACE).append(QUOTATION).append(AttributeUtil.getAsStringValue(atr)).append(QUOTATION);
+					}
+
+					} else {
 			resultString.append(name).append(SPACE).append(operator).append(SPACE).append(QUOTATION).append(AttributeUtil.getAsStringValue(atr)).append(QUOTATION);
 		}
 
@@ -379,9 +401,9 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 		if (ObjectClass.ACCOUNT.equals(objectClass)){
 
-			nameDictionary=objectNameDictionaryUser;
+			nameDictionary=objectNameDictionary;
 		}else if(ObjectClass.GROUP.equals(objectClass)) {
-			nameDictionary=objectNameDictionaryUser;
+			nameDictionary=objectNameDictionary;
 
 		}
 		return nameDictionary;

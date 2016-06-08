@@ -208,9 +208,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
-		if(query !=null){
+
 		LOGGER.error("this is the filter you are looking for: {0}", query); ////TODO delete this error 
-		}
+
 		if(handler == null){
 			
 			LOGGER.error("Result handler for queuery is null");
@@ -256,8 +256,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 			return true;
 		}	else{
-			LOGGER.error("Provided filter is not supported: {0}", filter);
-			throw new IllegalArgumentException("Provided filter is not supported");
+	//		LOGGER.error("Provided filter is not supported: {0}", filter);
+			//throw new IllegalArgumentException("Provided filter is not supported");
+			return true;
 		}
 	}
 
@@ -267,10 +268,10 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		if(filterAttr instanceof Uid){
 
 			if(ObjectClass.ACCOUNT.equals(objectClass)){
-				crudManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Users/", resultHandler);
+				crudManager.qeueryEntity((Uid) filterAttr, "Users/", resultHandler);
 			}else 
 				if(ObjectClass.GROUP.equals(objectClass)){
-					crudManager.qeueryEntity(((Uid) filterAttr).getUidValue(), "Groups/", resultHandler);
+					crudManager.qeueryEntity((Uid) filterAttr, "Groups/", resultHandler);
 				}
 
 			return true;

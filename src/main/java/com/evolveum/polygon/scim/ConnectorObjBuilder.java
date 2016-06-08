@@ -65,7 +65,7 @@ public class ConnectorObjBuilder {
 		
 		if(!jsonObject.has("userName")){
 			cob.setName(jsonObject.getString("displayName"));
-			cob.setObjectClass(ObjectClass.GROUP);
+			cob.setObjectClass(ObjectClass.GROUP); ////////////////error in object type def, see midPoint
 		}else{
 		cob.setName(jsonObject.getString("userName"));
 		}

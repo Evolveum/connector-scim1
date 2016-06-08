@@ -77,7 +77,7 @@ public class Main {
 
     	//newObject = conn.create(userC, classicBuilderTestUser(), null);
 
-    	conn.executeQuery(groupC, null, handler, null);
+    	conn.executeQuery(groupC, aeq, handler, null);
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
     	//conn.delete(userC, TEST_UID, null);
     	//conn.schema();

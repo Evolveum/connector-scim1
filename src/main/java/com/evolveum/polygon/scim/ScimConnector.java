@@ -208,7 +208,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	@Override
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
-
+		if(query !=null){
+		LOGGER.error("this is the filter you are looking for: {0}", query); ////TODO delete this error 
+		}
 		if(handler == null){
 			
 			LOGGER.error("Result handler for queuery is null");

@@ -12,6 +12,7 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.json.JSONArray;
@@ -131,6 +132,7 @@ public class GroupDataBuilder {
 
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
 
+		builder.setType(ObjectClass.GROUP_NAME);
 		builder.addAttributeInfo(Name.INFO);
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").setRequired(true).build());

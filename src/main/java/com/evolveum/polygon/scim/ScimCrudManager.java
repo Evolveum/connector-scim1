@@ -3,6 +3,7 @@ package com.evolveum.polygon.scim;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
+import java.util.logging.Logger;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -22,6 +23,8 @@ import org.identityconnectors.framework.common.exceptions.ConnectionFailedExcept
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.json.JSONException;
@@ -161,7 +164,7 @@ public class ScimCrudManager {
 				try {
 					JSONObject jsonObject = new JSONObject(responseString);
 					
-					LOGGER.error("the json object {0}",jsonObject); // TODO delete this error
+					LOGGER.info("Json object returned from service provider: {0}",jsonObject);
 					try {
 					if (queuery instanceof Uid){
 						loginInstance.releaseConnection();
@@ -184,14 +187,16 @@ public class ScimCrudManager {
 								statusCode = resourceResponse.getStatusLine().getStatusCode();
 
 								if (statusCode == 200) {
-
 									responseString = EntityUtils.toString(resourceResponse.getEntity());
 									JSONObject fullResourcejson = new JSONObject(responseString);
 									
-									LOGGER.error("the fullResourcejson object {0}",fullResourcejson); // TODO delete this error
+									LOGGER.info("The {0}. resource json object which was returned by the service provider ",i+1,fullResourcejson);
 									
 									ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
-									resultHandler.handle(objBuilder.buildConnectorObject(fullResourcejson));
+									
+									ConnectorObject conOb = objBuilder.buildConnectorObject(fullResourcejson);
+									
+									resultHandler.handle(conOb);
 									
 									
 									
@@ -201,7 +206,11 @@ public class ScimCrudManager {
 									onNoSuccess(resourceResponse, statusCode, responseString, resourceUri);
 								}
 
-							}//TODO else statement
+							} else {
+								LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
+								
+								throw new ConnectorException("No uid present in fetchet object while processing queuery result");
+							}
 						}
 						loginInstance.releaseConnection();
 					}

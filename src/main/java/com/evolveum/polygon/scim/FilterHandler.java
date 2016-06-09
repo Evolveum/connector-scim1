@@ -3,10 +3,12 @@ package com.evolveum.polygon.scim;
 import java.util.HashMap;
 import java.util.Map;
 
+
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.filter.AndFilter;
@@ -16,6 +18,7 @@ import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
+import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.common.objects.filter.FilterVisitor;
 import org.identityconnectors.framework.common.objects.filter.GreaterThanFilter;
 import org.identityconnectors.framework.common.objects.filter.GreaterThanOrEqualFilter;
@@ -87,17 +90,19 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 		objectNameDictionary.put("timezone","timezone");
 		objectNameDictionary.put("active","active");
 
-		/*
-		objectNameDictionaryUser.put("emails.work.value","emails.value");
-		objectNameDictionaryUser.put("emails.work.primary","emails.primary");
 		
-		objectNameDictionaryUser.put("emails.home.value","emails.value");
-		objectNameDictionaryUser.put("emails.home.primary","emails.primary");
+		objectNameDictionary.put("emails.work.value","emails.value");
+		objectNameDictionary.put("emails.work.primary","emails.primary");
 		
-		objectNameDictionaryUser.put("emails.other.value","emails.value");
-		objectNameDictionaryUser.put("emails.other.primary","emails.primary");
+		objectNameDictionary.put("emails.home.value","emails.value");
+		objectNameDictionary.put("emails.home.primary","emails.primary");
 		
-		 */
+		objectNameDictionary.put("emails.value","emails.value");
+		objectNameDictionary.put("emails.type","emails.type");
+		
+		
+		objectNameDictionary.put("emails.other.primary","emails.primary");
+		 
 		///Group dictionary
 
 		objectNameDictionary.put("id", "id");
@@ -152,10 +157,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	public StringBuilder visitContainsFilter(ObjectClass p, ContainsFilter filter) {
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p, filter);
+			//Map<String, String> nameDictionary = setDictionary(p, filter);
 
-			if (nameDictionary.containsKey(filter.getName())){
-				return BuildString(filter.getAttribute(),CONTAINS , nameDictionary.get(filter.getName()));
+			if (objectNameDictionary.containsKey(filter.getName())){
+				return BuildString(filter.getAttribute(),CONTAINS , objectNameDictionary.get(filter.getName()));
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
@@ -176,17 +181,22 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	@Override
 	public StringBuilder visitEqualsFilter(ObjectClass p, EqualsFilter filter) {
 		if (!filter.getName().isEmpty()){
+			StringBuilder preprocessedFilter = processArrayQ(filter, p);
+			if (preprocessedFilter == null){
 
-			Map<String, String> nameDictionary = setDictionary(p, filter);
+			if (objectNameDictionary.containsKey(filter.getName())){
 
-			if (nameDictionary.containsKey(filter.getName())){
-
-				return BuildString(filter.getAttribute(),EQUALS,nameDictionary.get(filter.getName()));
+				return BuildString(filter.getAttribute(),EQUALS,objectNameDictionary.get(filter.getName()));
 
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
 			}
+			
+		}else 
+		{	
+			return preprocessedFilter;
+		}
 		}else{
 
 			LOGGER.error("Filter atribute key name EMPTY");
@@ -207,11 +217,11 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p, filter);
+			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
 
-			if (nameDictionary.containsKey(filter.getName())){
+			if (objectNameDictionary.containsKey(filter.getName())){
 
-				return BuildString(filter.getAttribute(), GREATERTHAN, nameDictionary.get(filter.getName()));
+				return BuildString(filter.getAttribute(), GREATERTHAN, objectNameDictionary.get(filter.getName()));
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
@@ -227,11 +237,11 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	public StringBuilder visitGreaterThanOrEqualFilter(ObjectClass p, GreaterThanOrEqualFilter filter) {
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p, filter);
+			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
 
-			if (nameDictionary.containsKey(filter.getName())){
+			if (objectNameDictionary.containsKey(filter.getName())){
 
-				return BuildString(filter.getAttribute(), GREATEROREQ, nameDictionary.get(filter.getName()));
+				return BuildString(filter.getAttribute(), GREATEROREQ, objectNameDictionary.get(filter.getName()));
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
@@ -247,11 +257,11 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	public StringBuilder visitLessThanFilter(ObjectClass p, LessThanFilter filter) {
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p, filter);
+			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
 
-			if (nameDictionary.containsKey(filter.getName())){
+			if (objectNameDictionary.containsKey(filter.getName())){
 
-				return BuildString(filter.getAttribute(), LESSTHAN, nameDictionary.get(filter.getName()));
+				return BuildString(filter.getAttribute(), LESSTHAN, objectNameDictionary.get(filter.getName()));
 			}
 		}
 		return null;
@@ -262,11 +272,11 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p, filter);
+			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
 
-			if (nameDictionary.containsKey(filter.getName())){
+			if (objectNameDictionary.containsKey(filter.getName())){
 
-				return BuildString(filter.getAttribute(), LESSOREQ, nameDictionary.get(filter.getName()));
+				return BuildString(filter.getAttribute(), LESSOREQ, objectNameDictionary.get(filter.getName()));
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
@@ -326,10 +336,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	public StringBuilder visitStartsWithFilter(ObjectClass p, StartsWithFilter filter) {
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p, filter);
+			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
 
-			if (nameDictionary.containsKey(filter.getName())){
-				return BuildString(filter.getAttribute(), STARTSWITH, nameDictionary.get(filter.getName()));
+			if (objectNameDictionary.containsKey(filter.getName())){
+				return BuildString(filter.getAttribute(), STARTSWITH, objectNameDictionary.get(filter.getName()));
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
@@ -345,12 +355,12 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	public StringBuilder visitEndsWithFilter(ObjectClass p, EndsWithFilter filter) {
 		if (!filter.getName().isEmpty()){
 
-			Map<String, String> nameDictionary = setDictionary(p, filter);
+			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
 
 
-			if (nameDictionary.containsKey(filter.getName())){
+			if (objectNameDictionary.containsKey(filter.getName())){
 
-				return BuildString(filter.getAttribute(), ENDSWITH, nameDictionary.get(filter.getName()));
+				return BuildString(filter.getAttribute(), ENDSWITH, objectNameDictionary.get(filter.getName()));
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
@@ -371,42 +381,44 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 			LOGGER.error("Filter atribude value is EMPTY while building filter queuery, please provide atribute value ", atr );
 			throw new InvalidAttributeValueException("No atribute value provided while building filter queuery");
-		}else if (name.contains(".")) {
-
-					String[] keyParts = name.split("\\.");
-					if (keyParts.length == 3) {
-					System.out.println("333333333333333");
-					} else {
-						
-			resultString.append(name).append(SPACE).append(operator).append(SPACE).append(QUOTATION).append(AttributeUtil.getAsStringValue(atr)).append(QUOTATION);
-					}
-
-					} else {
+		}else {
 			resultString.append(name).append(SPACE).append(operator).append(SPACE).append(QUOTATION).append(AttributeUtil.getAsStringValue(atr)).append(QUOTATION);
 		}
 
 		return resultString;
 	}
 
-	private Map<String,String> setDictionary(ObjectClass objectClass, AttributeFilter filter){
+	private StringBuilder processArrayQ(AttributeFilter filter, ObjectClass p){
+		
+		//TODO question // does this follow the scim specs ? email.tye eq work and email.value eq someone@someplace.com
+		
+		StringBuilder processedString = new StringBuilder();
+		
+		if (filter.getName().contains(".")) {
+			
+					String[] keyParts = filter.getName().split("\\.");
+					if (keyParts.length == 3) {
+					
+						AttributeFilter variableFilter = null;
+						
+					if(filter instanceof EqualsFilter){
 
-		Map<String, String> nameDictionary = null;
-
-		//TODO question, do we need to check if the filter request is for an account or a group ?
-
-		//if(AnameDictionaryGroup.containsKey(filter.getName())){
-
-		//	nameDictionary = AnameDictionaryGroup.get(filter.getName());
-		//}else // TODO remove if we dont
-
-		if (ObjectClass.ACCOUNT.equals(objectClass)){
-
-			nameDictionary=objectNameDictionary;
-		}else if(ObjectClass.GROUP.equals(objectClass)) {
-			nameDictionary=objectNameDictionary;
-
-		}
-		return nameDictionary;
+						StringBuilder keyName = new StringBuilder(keyParts[0]).append(".").append(keyParts[2]);
+						EqualsFilter eqfilter = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build(keyName.toString(),AttributeUtil.getAsStringValue(filter.getAttribute())));
+						variableFilter =eqfilter;
+					}
+						StringBuilder type = new StringBuilder(keyParts[0]).append(".").append("type");
+						
+						EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build(type.toString(),keyParts[1]));
+						AndFilter and = (AndFilter) FilterBuilder.and(eq, variableFilter);
+						
+						System.out.println(and);
+						processedString = and.accept(this, p);
+						return processedString;
+					} 
+					return null;
+					}
+		return null;
 	}
 
 }

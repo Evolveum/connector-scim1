@@ -8,6 +8,7 @@ import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.Name;
@@ -138,7 +139,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 	@Override
 	public Configuration getConfiguration() {
-		// TODO Auto-generated method stub
+		
 		return this.configuration;
 	}
 
@@ -209,12 +210,12 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
 
-		LOGGER.error("this is the filter you are looking for: {0}", query); ////TODO delete this error 
+		LOGGER.info("The filter which is beaing processed: {0}", query);
 
 		if(handler == null){
 			
 			LOGGER.error("Result handler for queuery is null");
-		//	throw new IllegalArgumentException("Result handler can not be null");
+			throw new ConnectorException("Result handler for queuery can not be null");
 		}
 		
 		if (isSupportedQuery(objectClass, query)){

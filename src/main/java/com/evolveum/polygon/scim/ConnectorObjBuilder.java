@@ -40,12 +40,13 @@ public class ConnectorObjBuilder {
 	acountObjectNameDictionary.put("honorificPrefix", "name.honorificPrefix");
 	acountObjectNameDictionary.put("honorificSuffix", "name.honorificSuffix");
 	
-	acountObjectNameDictionary.put("emails", "emails");
+	//acountObjectNameDictionary.put("emails", "emails");
 	
 	acountObjectNameDictionary.put("displayName", "displayName");
 	acountObjectNameDictionary.put("nickName", "nickName");
 	
 	acountObjectNameDictionary.put("userType", "userType");
+	acountObjectNameDictionary.put("userName", "userName");
 	acountObjectNameDictionary.put("locale", "locale");
 	acountObjectNameDictionary.put("preferredLanguage", "preferredLanguage");
 	

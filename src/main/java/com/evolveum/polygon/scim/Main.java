@@ -49,7 +49,7 @@ public class Main {
      	
     	EqualsFilter aeq = (EqualsFilter)FilterBuilder.equalTo(TEST_UID);
     	
-    /*TODO set for emails*/	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("name.familyName","Potter"));
+    /*TODO set for emails*/	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("emails.work.value","someone@hometest554xz.com"));
     	
     	ContainsFilter con = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","harryp0234"));
     	
@@ -77,7 +77,7 @@ public class Main {
 
     	//newObject = conn.create(userC, classicBuilderTestUser(), null);
 
-    	conn.executeQuery(userC, eq, handler, null);
+    	conn.executeQuery(userC, null, handler, null);
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
     	//conn.delete(userC, TEST_UID, null);
     	//conn.schema();

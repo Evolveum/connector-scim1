@@ -133,6 +133,8 @@ public class UserDataBuilder {
 
 	public JSONObject setUserObject(Set<Attribute> attributes) {
 
+		LOGGER.info("Building account JsonObject");
+		
 		JSONObject userObj = new JSONObject();
 
 		Set<Attribute> multiValueAttribute = new HashSet<Attribute>();
@@ -159,7 +161,7 @@ public class UserDataBuilder {
 				}
 
 			} else {
-				LOGGER.error("Attribute name not defined in dictionary {0}", attributeName);
+				LOGGER.warn("Attribute name not defined in dictionary {0}", attributeName);
 			}
 		}
 
@@ -267,7 +269,7 @@ public class UserDataBuilder {
 				}
 				//
 				else {
-					String attrName = "No shchema type";
+					String attrName = "No schema type";
 					Boolean nameSet = false;
 
 					for (Attribute sa : specialMlAttributes) {
@@ -287,7 +289,7 @@ public class UserDataBuilder {
 						specialMlAttributes.removeAll(specialMlAttributes);
 
 					} else {
-						LOGGER.error("Schema type not speciffied {0}. Error ocourance while translating user object attribute set", attrName);
+						LOGGER.error("Schema type not speciffied {0}. Error ocourance while translating user object attribute set: {0}", attrName);
 						throw new InvalidAttributeValueException("Schema type not speciffied. Error ocourance while translating user object attribute set");
 					}
 
@@ -326,7 +328,7 @@ public class UserDataBuilder {
 		
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails").setMultiValued(true).build());
 		
-		/*builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.primary").build());
 		
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.value").build());
@@ -334,7 +336,7 @@ public class UserDataBuilder {
 		
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.primary").build());
-		 */
+		 
 		return builder.build();
 	}
 }

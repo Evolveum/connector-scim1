@@ -25,6 +25,7 @@ public class ConnectorObjBuilder {
 	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
 	private static Map<String, String> acountObjectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 	private static Map<String, String> groupObjectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
+	private static Map<String, String> simArrayDictionary = CollectionUtil.newCaseInsensitiveMap();
 	static{
 		
 	//objectNameDictionary.put("userName", "userName");
@@ -58,6 +59,13 @@ public class ConnectorObjBuilder {
 	groupObjectNameDictionary.put("display", "members..display");
 	groupObjectNameDictionary.put("value", "members..value");
 	
+	
+	// Array object with similar key/value pairs 
+	simArrayDictionary.put("emails", "emails");
+	simArrayDictionary.put("type", "type");
+	simArrayDictionary.put("value", "value");
+	simArrayDictionary.put("primary", "primary");
+	
 	}
 	public ConnectorObject buildConnectorObject(JSONObject jsonObject) throws ConnectException{
 		
@@ -84,17 +92,39 @@ public class ConnectorObjBuilder {
 		for(String key: jsonObject.keySet()){
 			Object attribute =jsonObject.get(key);
 			
-			if(objectNameDictionary.containsKey(key.intern())){
+			if(objectNameDictionary.containsKey(key.intern())||simArrayDictionary.containsKey(key.intern())){
 				if(attribute instanceof JSONArray){
 					
 					JSONArray jArray = (JSONArray) attribute;
 					ArrayList<String> list= new ArrayList<String>();
 					
 						for(Object o: jArray){
-						list.add(o.toString());
+							if(o instanceof JSONObject){
+								if(simArrayDictionary.containsKey(key.intern())){
+									String objectKeyName = "";
+									StringBuilder objectKeyBilder = new StringBuilder(key.intern());
+								for(String s: ((JSONObject) o).keySet()){
+									if (simArrayDictionary.containsKey(s.intern())){
+									if(s.intern() == "type"){
+									objectKeyName = objectKeyBilder.append(".").append(((JSONObject) o).get(s)).toString();
+										break;
+									}
+								}}
+								
+								for(String s: ((JSONObject) o).keySet()){
+									if(simArrayDictionary.containsKey(s.intern())){
+									if(s.intern() == "type"){
+								}else {
+									objectKeyBilder.delete(0, objectKeyBilder.length());
+									objectKeyBilder.append(objectKeyName).append(".").append(s.intern());
+								cob.addAttribute(objectKeyBilder.toString(), ((JSONObject) o).get(s));	
+								}
+								}
+							}}
 							
 						}
-					cob.addAttribute(key, list);
+							}
+					//cob.addAttribute(key, list);
 					
 					
 				} else if(attribute instanceof JSONObject){
@@ -112,7 +142,7 @@ public class ConnectorObjBuilder {
 				}
 		}}
 		
-	 LOGGER.error("Connector object {0}", cob.build());
+	 LOGGER.info("Connector object {0}", cob.build());
 		return cob.build();
 		
 	}

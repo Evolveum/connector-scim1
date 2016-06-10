@@ -22,7 +22,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
     private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
     
 	@ConfigurationProperty(order = 1, displayMessageKey = "Username",
-            groupMessageKey = "basic.group", helpMessageKey = "Please provie the administrator user name.", required = true,
+            groupMessageKey = "basic.group", helpMessageKey = "Please provide the administrator user name.", required = true,
             confidential = false)
 	
 	public String getUserName() {

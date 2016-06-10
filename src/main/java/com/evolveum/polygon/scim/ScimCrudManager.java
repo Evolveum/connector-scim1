@@ -52,6 +52,7 @@ public class ScimCrudManager {
 
 		HttpClient httpclient = HttpClientBuilder.create().build();
 
+		// Building the login url TODO Replace to login method
 		String loginURL = new StringBuilder(conf.getLoginURL()).append(conf.getService()).append("&client_id=")
 				.append(conf.getClientID()).append("&client_secret=").append(conf.getClientSecret())
 				.append("&username=").append(conf.getUserName()).append("&password=").append(conf.getPassword())
@@ -60,10 +61,10 @@ public class ScimCrudManager {
 		loginInstance = new HttpPost(loginURL);
 		HttpResponse response = null;
 
-		LOGGER.info("The login URL value is: {0}", loginURL);
+		//LOGGER.info("The login URL value is: {0}", loginURL);
 
 		try {
-			// Execute the login POST request
+	
 			response = httpclient.execute(loginInstance);
 		} catch (ClientProtocolException e) {
 
@@ -85,7 +86,6 @@ public class ScimCrudManager {
 			throw new ConnectorIOException(ioException);
 		}
 
-		// verify response is HTTP OK
 		final int statusCode = response.getStatusLine().getStatusCode();
 		if (statusCode != HttpStatus.SC_OK) {
 			LOGGER.error("Error with authenticating : {0}", statusCode);
@@ -121,10 +121,10 @@ public class ScimCrudManager {
 		} catch (JSONException jsonException) {
 
 			LOGGER.error(
-					"An exception has ocoured while setting the variable \"jsonObject\". Ocourance while processing the http response to the login request: {0}",
+					"An exception has ocoured while setting the \"jsonObject\". Ocourance while processing the http response to the login request: {0}",
 					jsonException.getLocalizedMessage());
 			LOGGER.info(
-					"An exception has ocoured while setting the variable \"jsonObject\". Ocourance while processing the http response to the login request: {0}",
+					"An exception has ocoured while setting the \"jsonObject\". Ocourance while processing the http response to the login request: {0}",
 					jsonException);
 			throw new ConnectorException(jsonException);
 		}
@@ -190,7 +190,7 @@ public class ScimCrudManager {
 									responseString = EntityUtils.toString(resourceResponse.getEntity());
 									JSONObject fullResourcejson = new JSONObject(responseString);
 									
-									LOGGER.info("The {0}. resource json object which was returned by the service provider ",i+1,fullResourcejson);
+									LOGGER.info("The {0}. resource json object which was returned by the service provider: {1}",i+1,fullResourcejson);
 									
 									ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 									
@@ -216,7 +216,8 @@ public class ScimCrudManager {
 					}
 					
 					} catch (Exception e) {
-						LOGGER.error("Builder error", e.getLocalizedMessage());
+						LOGGER.error("Builder error. Error while building connId object. The excetion message: {0}", e.getLocalizedMessage());
+						LOGGER.info("Builder error. Error while building connId object. The excetion message: {0}", e);
 					throw new ConnectorException(e);
 					}
 
@@ -339,7 +340,7 @@ public class ScimCrudManager {
 			throw new ConnectorException(e);
 		} catch (UnsupportedEncodingException e1) {
 			LOGGER.error("Unsupported encoding: {0}. Ocourance in the process of creating a new resource object ",
-					e1.getMessage());
+					e1.getLocalizedMessage());
 			LOGGER.info("Unsupported encoding: {0}. Ocourance in the process of creating a new resource object ", e1);
 
 			throw new ConnectorException(e1);
@@ -450,12 +451,12 @@ public class ScimCrudManager {
 			int statusCode = response.getStatusLine().getStatusCode();
 
 			if (statusCode == 204 || statusCode == 200) {
-				LOGGER.info("####Deletion of resource was succesfull####");
+				LOGGER.info("Deletion of resource was succesfull");
 			}
 
 			else if (statusCode == 404) {
 
-				LOGGER.info("####Resource not found or resource was already deleted####");
+				LOGGER.info("Resource not found or resource was already deleted");
 			} else {
 				onNoSuccess(response, statusCode, responseString, "deleting object");
 			}

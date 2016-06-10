@@ -121,7 +121,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitAndFilter(ObjectClass p, AndFilter filter) {
-		LOGGER.info("Processing request trought and filter");
+		LOGGER.info("Processing request trought AND filter");
 
 		StringBuilder completeQuery = new StringBuilder();
 
@@ -155,15 +155,23 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitContainsFilter(ObjectClass p, ContainsFilter filter) {
+		LOGGER.info("Processing request trought CONTAINS filter");
+		
 		if (!filter.getName().isEmpty()){
 
-			//Map<String, String> nameDictionary = setDictionary(p, filter);
+			StringBuilder preprocessedFilter = processArrayQ(filter, p);
+			if (preprocessedFilter == null){
+				
 
 			if (objectNameDictionary.containsKey(filter.getName())){
 				return BuildString(filter.getAttribute(),CONTAINS , objectNameDictionary.get(filter.getName()));
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
+			}
+			}else 
+			{	
+				return preprocessedFilter;
 			}
 		}else{
 
@@ -180,6 +188,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitEqualsFilter(ObjectClass p, EqualsFilter filter) {
+		LOGGER.info("Processing request trought EQUALS filter");
+		
 		if (!filter.getName().isEmpty()){
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null){
@@ -214,17 +224,22 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitGreaterThanFilter(ObjectClass p, GreaterThanFilter filter) {
-
+		LOGGER.info("Processing request trought GREATHERtHAN filter");
+		
 		if (!filter.getName().isEmpty()){
 
-			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
-
+			StringBuilder preprocessedFilter = processArrayQ(filter, p);
+			if (preprocessedFilter == null){
+			
 			if (objectNameDictionary.containsKey(filter.getName())){
 
 				return BuildString(filter.getAttribute(), GREATERTHAN, objectNameDictionary.get(filter.getName()));
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
+			}	}else 
+			{	
+				return preprocessedFilter;
 			}
 		}else{
 
@@ -235,16 +250,21 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitGreaterThanOrEqualFilter(ObjectClass p, GreaterThanOrEqualFilter filter) {
+		LOGGER.info("Processing request trought GREATHERTtHANoReQUAL filter");
 		if (!filter.getName().isEmpty()){
 
-			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
-
+			StringBuilder preprocessedFilter = processArrayQ(filter, p);
+			if (preprocessedFilter == null){
+			
 			if (objectNameDictionary.containsKey(filter.getName())){
 
 				return BuildString(filter.getAttribute(), GREATEROREQ, objectNameDictionary.get(filter.getName()));
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
+			}}else 
+			{	
+				return preprocessedFilter;
 			}
 		}else{
 
@@ -255,13 +275,18 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitLessThanFilter(ObjectClass p, LessThanFilter filter) {
+		LOGGER.info("Processing request trought LESStHAN filter");
 		if (!filter.getName().isEmpty()){
 
-			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
-
+			StringBuilder preprocessedFilter = processArrayQ(filter, p);
+			if (preprocessedFilter == null){
+			
 			if (objectNameDictionary.containsKey(filter.getName())){
 
 				return BuildString(filter.getAttribute(), LESSTHAN, objectNameDictionary.get(filter.getName()));
+			}}else 
+			{	
+				return preprocessedFilter;
 			}
 		}
 		return null;
@@ -269,17 +294,21 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitLessThanOrEqualFilter(ObjectClass p, LessThanOrEqualFilter filter) {
-
+		LOGGER.info("Processing request trought LESStHANoReQUAL filter");
 		if (!filter.getName().isEmpty()){
 
-			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
-
+			StringBuilder preprocessedFilter = processArrayQ(filter, p);
+			if (preprocessedFilter == null){
+			
 			if (objectNameDictionary.containsKey(filter.getName())){
 
 				return BuildString(filter.getAttribute(), LESSOREQ, objectNameDictionary.get(filter.getName()));
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
+			}}else 
+			{	
+				return preprocessedFilter;
 			}
 		}else{
 
@@ -290,6 +319,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitNotFilter(ObjectClass p, NotFilter filter) {
+		LOGGER.info("Processing request trought NOT filter");
 		StringBuilder completeQuery = new StringBuilder();
 
 		completeQuery.append(NOT).append(SPACE).append(filter.getFilter().accept(this, p));
@@ -300,6 +330,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitOrFilter(ObjectClass p, OrFilter filter) {
+		LOGGER.info("Processing request trought OR filter");
 		StringBuilder completeQuery = new StringBuilder();
 
 		boolean isFirst = true;
@@ -334,15 +365,20 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitStartsWithFilter(ObjectClass p, StartsWithFilter filter) {
+		LOGGER.info("Processing request trought STARTSwITH filter");
 		if (!filter.getName().isEmpty()){
 
-			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
-
+			StringBuilder preprocessedFilter = processArrayQ(filter, p);
+			if (preprocessedFilter == null){
+			
 			if (objectNameDictionary.containsKey(filter.getName())){
 				return BuildString(filter.getAttribute(), STARTSWITH, objectNameDictionary.get(filter.getName()));
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
+			}}else 
+			{	
+				return preprocessedFilter;
 			}
 		}else{
 
@@ -353,10 +389,12 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 	@Override
 	public StringBuilder visitEndsWithFilter(ObjectClass p, EndsWithFilter filter) {
+		LOGGER.info("Processing request trought ENDSwITH filter");
 		if (!filter.getName().isEmpty()){
 
-			//Map<String, String> objectNameDictionary = setDictionary(p, filter);
-
+			StringBuilder preprocessedFilter = processArrayQ(filter, p);
+			if (preprocessedFilter == null){
+			
 
 			if (objectNameDictionary.containsKey(filter.getName())){
 
@@ -364,6 +402,9 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 			}else{
 				LOGGER.error("Usuported attribute name procesed by queuery filter: {0}",filter.getName());
 				throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
+			}}else 
+			{	
+				return preprocessedFilter;
 			}
 		}else{
 

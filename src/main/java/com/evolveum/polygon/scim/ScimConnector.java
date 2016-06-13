@@ -99,11 +99,10 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		}
 		
 		if(ObjectClass.ACCOUNT.equals(object)){
-		UserDataBuilder userJson = new UserDataBuilder();
+		ObjectTranslator userBuild = new UserDataBuilder();
 		
-	     Uid uid = crudManager.createEntity("Users/", userJson.setUserObject(attr));
+	     Uid uid = crudManager.createEntity("Users/", userBuild, attr);
 
-		LOGGER.info("Json response: {0}", userJson.setUserObject(attr).toString(1));
 		
 		if(uid==null){
 			LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -114,11 +113,10 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		
 		}else if(ObjectClass.GROUP.equals(object)){
 			
-			GroupDataBuilder groupJson = new GroupDataBuilder();
+			GroupDataBuilder groupBuild = new GroupDataBuilder();
 			
-			Uid uid = crudManager.createEntity("Groups/", groupJson.buildJsonObject(attr));
-			
-			LOGGER.info("Json response: {0}", groupJson.buildJsonObject(attr).toString(1));
+			Uid uid = crudManager.createEntity("Groups/", groupBuild, attr);
+
 			
 			if(uid==null){
 				LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -162,9 +160,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		if(ObjectClass.ACCOUNT.equals(object)){
 		UserDataBuilder userJson = new UserDataBuilder();
 		
-	    Uid uid = crudManager.updateEntity(id, "Users", userJson.setUserObject(attr));
+	    Uid uid = crudManager.updateEntity(id, "Users", userJson.translateSetToJson(attr));
 
-		LOGGER.info("Json response: {0}", userJson.setUserObject(attr).toString(1));
+		LOGGER.info("Json response: {0}", userJson.translateSetToJson(attr).toString(1));
 		
 		if(uid==null){
 			LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -176,9 +174,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			
 			GroupDataBuilder groupJson = new GroupDataBuilder();
 			
-			Uid uid = crudManager.updateEntity(id, "groups", groupJson.buildJsonObject(attr));
+			Uid uid = crudManager.updateEntity(id, "groups", groupJson.translateSetToJson(attr));
 			
-			LOGGER.info("Json response: {0}", groupJson.buildJsonObject(attr).toString(1));
+			LOGGER.info("Json response: {0}", groupJson.translateSetToJson(attr).toString(1));
 			
 			if(uid==null){
 				LOGGER.error("No uid returned by the create method: {0} ", uid);

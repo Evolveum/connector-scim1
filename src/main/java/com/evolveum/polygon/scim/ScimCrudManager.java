@@ -3,6 +3,7 @@ package com.evolveum.polygon.scim;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.http.Header;
@@ -23,6 +24,8 @@ import org.identityconnectors.framework.common.exceptions.ConnectionFailedExcept
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
@@ -48,8 +51,8 @@ public class ScimCrudManager {
 		this.conf = (ScimConnectorConfiguration) conf;
 	}
 
-	private void logIntoService() {
-
+	private String logIntoService() { // TODO check if good Idea
+		String oID= null;
 		HttpClient httpclient = HttpClientBuilder.create().build();
 
 		// Building the login url TODO Replace to login method
@@ -114,8 +117,15 @@ public class ScimCrudManager {
 		JSONObject jsonObject = null;
 		String loginAccessToken = null;
 		String loginInstanceUrl = null;
+		String orgID = null;
 		try {
+			
 			jsonObject = (JSONObject) new JSONTokener(getResult).nextValue();
+			if (jsonObject.has("id")){
+			orgID= jsonObject.getString("id");
+			String idParts [] =orgID.split("\\/");
+			 oID = idParts[4];
+			}
 			loginAccessToken = jsonObject.getString("access_token");
 			loginInstanceUrl = jsonObject.getString("instance_url");
 		} catch (JSONException jsonException) {
@@ -132,6 +142,7 @@ public class ScimCrudManager {
 				.toString();
 		oauthHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
 		LOGGER.info("Login Successful");
+		return oID;
 	}
 
 	public void qeueryEntity(Object queuery, String resourceEndPoint, ResultsHandler resultHandler) {
@@ -266,9 +277,22 @@ public class ScimCrudManager {
 		LOGGER.info("Connection released");
 	}
 
-	public Uid createEntity(String resourceEndPoint, JSONObject jsonObject) {
-		logIntoService();
-
+	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes) {
+		
+		String oID = logIntoService();
+		if (oID !=null){
+			LOGGER.info("The organization ID is: {0}", oID);
+			attributes.add(AttributeBuilder.build("schemaExtension.type", "urn:scim:schemas:extension:enterprise:1.0")); // TODO schema may change 
+			attributes.add(AttributeBuilder.build("schemaExtension.organization", oID));
+		}else {
+			
+			LOGGER.info("No organization ID specified in instance URL");
+		}
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		jsonObject = objectTranslator.translateSetToJson(attributes);
+		
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).toString();
 

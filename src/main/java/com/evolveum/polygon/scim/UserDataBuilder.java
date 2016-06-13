@@ -19,7 +19,7 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class UserDataBuilder {
+public class UserDataBuilder implements ObjectTranslator{
 
 	private static Map<String, String> objectNameDictionaryUser = CollectionUtil.newCaseInsensitiveMap();
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
@@ -131,7 +131,7 @@ public class UserDataBuilder {
 	public UserDataBuilder() {
 	}
 
-	public JSONObject setUserObject(Set<Attribute> attributes) {
+	public JSONObject translateSetToJson(Set<Attribute> attributes) {
 
 		LOGGER.info("Building account JsonObject");
 		
@@ -336,7 +336,14 @@ public class UserDataBuilder {
 		
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.primary").build());
-		 
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("schemaExtension.type").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("schemaExtension.organization").build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements..value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements..primary").build());
+		
+		
 		return builder.build();
 	}
 }

@@ -75,9 +75,9 @@ public class Main {
     	ScimConnector conn = new ScimConnector();
     	conn.init(conf);
 
-    	//newObject = conn.create(userC, classicBuilderTestUser(), null);
+    	newObject = conn.create(userC, classicBuilderTestUser(), null);
 
-    	conn.executeQuery(userC, null, handler, null);
+    	//conn.executeQuery(userC, null, handler, null);
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
     	//conn.delete(userC, TEST_UID, null);
     	//conn.schema();
@@ -189,41 +189,37 @@ public class Main {
     	
        	Set<Attribute> attr = new HashSet<Attribute>();
        	
-       		/**
-       	   attr.add(AttributeBuilder.build("userName", "teest@eastcubattor1.com"));
+       		
+       	   attr.add(AttributeBuilder.build("userName", "newTest2@eastcubattor1.com"));
  
            
-           attr.add(AttributeBuilder.build("nickName", "Stefan"));
+           attr.add(AttributeBuilder.build("nickName", "testUserOne"));
            
-           attr.add(AttributeBuilder.build("emails.work.value", "teest@eastcubattor1.com"));  
+           attr.add(AttributeBuilder.build("emails.work.value", "newTest2@eastcubattor1.com"));  
            attr.add(AttributeBuilder.build("emails.work.primary", true));
-          // attr.add(AttributeBuilder.build("emails.home.value", "teesst@eastcubattor1.com"));
+          // attr.add(AttributeBuilder.build("emails.home.value", "teeawsst@eastcubattor1.com"));
            
-           attr.add(AttributeBuilder.build("name.formatted","Test Doe"));
-           attr.add(AttributeBuilder.build("name.familyName","Doe"));
+           attr.add(AttributeBuilder.build("name.formatted","Test Johnsson"));
+           attr.add(AttributeBuilder.build("name.familyName","Johnsson"));
            attr.add(AttributeBuilder.build("name.givenName","Test"));
            
            
      //      attr.add(AttributeBuilder.build("groups.value","aaa"));
          //  attr.add(AttributeBuilder.build("groups.display","bbb"));
-           
-          // attr.add(AttributeBuilder.build("addresses.home.locality", "snina"));
-          // attr.add(AttributeBuilder.build("addresses.home.region", "Presov"));
-         //  attr.add(AttributeBuilder.build("addresses.home.postalCode", "06901"));
-         //  attr.add(AttributeBuilder.build("addresses.home.country", "SR"));
-           
-           attr.add(AttributeBuilder.build("addresses.other.country", "SR"));
-           attr.add(AttributeBuilder.build("addresses.other.locality", "Kosice"));
-           attr.add(AttributeBuilder.build("addresses.other.region", "Kosice"));
-           attr.add(AttributeBuilder.build("addresses.other.primary", true));
+         /* 
+           attr.add(AttributeBuilder.build("addresses.home.locality", "snina"));
+           attr.add(AttributeBuilder.build("addresses.home.region", "Presov"));
+           attr.add(AttributeBuilder.build("addresses.home.postalCode", "06901"));
+           attr.add(AttributeBuilder.build("addresses.home.country", "SR"));
+         */   
 
            attr.add(AttributeBuilder.build("entitlements..value", "00e58000000qvhqAAA"));
            
-           attr.add(AttributeBuilder.build("schemaExtension.type", "urn:scim:schemas:extension:enterprise:1.0"));
-           attr.add(AttributeBuilder.build("schemaExtension.organization", "00D58000000YfgfEAC"));
+           //attr.add(AttributeBuilder.build("schemaExtension.type", "urn:scim:schemas:extension:enterprise:1.0")); // TODO has to be manadatory 
+          // attr.add(AttributeBuilder.build("schemaExtension.organization", "00D58000000YfgfEAC")); // TODO has to be manadatory 
            
       //    attr.add(AttributeBuilder.build("schema.organiazation", "TestOrg"));
-           */
+           
        	
        	attr.add(AttributeBuilder.build("addresses.home.locality", "snina"));
          attr.add(AttributeBuilder.build("addresses.home.region", "Presov"));

@@ -18,7 +18,7 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class GroupDataBuilder {
+public class GroupDataBuilder implements ObjectTranslator {
 
 
 	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
@@ -35,7 +35,7 @@ public class GroupDataBuilder {
 		objectNameDictionary.put("members..display","display");
 	}
 
-	public JSONObject buildJsonObject(Set<Attribute> attributes){
+	public JSONObject translateSetToJson(Set<Attribute> attributes){
 		LOGGER.info("Building Json data from group attributes");
 
 

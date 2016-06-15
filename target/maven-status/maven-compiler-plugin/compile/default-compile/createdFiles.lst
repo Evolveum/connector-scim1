@@ -1,3 +1,4 @@
+com\evolveum\polygon\scim\ObjectTranslator.class
 com\evolveum\polygon\scim\FilterHandler.class
 com\evolveum\polygon\scim\ScimConnector$1.class
 com\evolveum\polygon\scim\GroupDataBuilder.class

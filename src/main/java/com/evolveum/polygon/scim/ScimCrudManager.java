@@ -3,6 +3,7 @@ package com.evolveum.polygon.scim;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -52,7 +53,7 @@ public class ScimCrudManager {
 	}
 
 	private String logIntoService() { // TODO check if good Idea
-		String oID= null;
+		String orgID= null;
 		HttpClient httpclient = HttpClientBuilder.create().build();
 
 		// Building the login url TODO Replace to login method
@@ -117,14 +118,13 @@ public class ScimCrudManager {
 		JSONObject jsonObject = null;
 		String loginAccessToken = null;
 		String loginInstanceUrl = null;
-		String orgID = null;
 		try {
 			
 			jsonObject = (JSONObject) new JSONTokener(getResult).nextValue();
 			if (jsonObject.has("id")){
 			orgID= jsonObject.getString("id");
 			String idParts [] =orgID.split("\\/");
-			 oID = idParts[4];
+			orgID = idParts[4];
 			}
 			loginAccessToken = jsonObject.getString("access_token");
 			loginInstanceUrl = jsonObject.getString("instance_url");
@@ -142,7 +142,7 @@ public class ScimCrudManager {
 				.toString();
 		oauthHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
 		LOGGER.info("Login Successful");
-		return oID;
+		return orgID;
 	}
 
 	public void qeueryEntity(Object queuery, String resourceEndPoint, ResultsHandler resultHandler) {
@@ -278,12 +278,17 @@ public class ScimCrudManager {
 	}
 
 	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes) {
-		
+		Set<Attribute> attr = new HashSet<Attribute>();
 		String oID = logIntoService();
+		
+		// injection of organization ID into the set of attributes
 		if (oID !=null){
 			LOGGER.info("The organization ID is: {0}", oID);
-			attributes.add(AttributeBuilder.build("schemaExtension.type", "urn:scim:schemas:extension:enterprise:1.0")); // TODO schema may change 
-			attributes.add(AttributeBuilder.build("schemaExtension.organization", oID));
+			
+			attr.add(AttributeBuilder.build("schema.type", "urn:scim:schemas:extension:enterprise:1.0")); // TODO schema may change 
+			attr.add(AttributeBuilder.build("schema.organization", oID));
+			
+			LOGGER.info("The finnal attribute set: {0}", attr);
 		}else {
 			
 			LOGGER.info("No organization ID specified in instance URL");
@@ -291,7 +296,7 @@ public class ScimCrudManager {
 		
 		JSONObject jsonObject = new JSONObject();
 		
-		jsonObject = objectTranslator.translateSetToJson(attributes);
+		jsonObject = objectTranslator.translateSetToJson(attributes, attr);
 		
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).toString();

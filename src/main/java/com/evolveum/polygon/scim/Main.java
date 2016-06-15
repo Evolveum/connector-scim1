@@ -75,9 +75,9 @@ public class Main {
     	ScimConnector conn = new ScimConnector();
     	conn.init(conf);
 
-    	newObject = conn.create(userC, classicBuilderTestUser(), null);
+    	//newObject = conn.create(userC, classicBuilderTestUser(), null);
 
-    	//conn.executeQuery(userC, null, handler, null);
+    	conn.executeQuery(userC, null, handler, null);
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
     	//conn.delete(userC, TEST_UID, null);
     	//conn.schema();
@@ -190,18 +190,18 @@ public class Main {
        	Set<Attribute> attr = new HashSet<Attribute>();
        	
        		
-       	   attr.add(AttributeBuilder.build("userName", "newTest2@eastcubattor1.com"));
+       	   attr.add(AttributeBuilder.build("userName", "newTest3@eastcubattor1.com"));
  
            
-           attr.add(AttributeBuilder.build("nickName", "testUserOne"));
+           attr.add(AttributeBuilder.build("nickName", "TestUserThree"));
            
-           attr.add(AttributeBuilder.build("emails.work.value", "newTest2@eastcubattor1.com"));  
+           attr.add(AttributeBuilder.build("emails.work.value", "newTest3@eastcubattor1.com"));  
            attr.add(AttributeBuilder.build("emails.work.primary", true));
           // attr.add(AttributeBuilder.build("emails.home.value", "teeawsst@eastcubattor1.com"));
            
-           attr.add(AttributeBuilder.build("name.formatted","Test Johnsson"));
+           attr.add(AttributeBuilder.build("name.formatted","TestThree Johnsson"));
            attr.add(AttributeBuilder.build("name.familyName","Johnsson"));
-           attr.add(AttributeBuilder.build("name.givenName","Test"));
+           attr.add(AttributeBuilder.build("name.givenName","TestThree"));
            
            
      //      attr.add(AttributeBuilder.build("groups.value","aaa"));
@@ -215,8 +215,8 @@ public class Main {
 
            attr.add(AttributeBuilder.build("entitlements..value", "00e58000000qvhqAAA"));
            
-           //attr.add(AttributeBuilder.build("schemaExtension.type", "urn:scim:schemas:extension:enterprise:1.0")); // TODO has to be manadatory 
-          // attr.add(AttributeBuilder.build("schemaExtension.organization", "00D58000000YfgfEAC")); // TODO has to be manadatory 
+           //attr.add(AttributeBuilder.build("schemaExtension.type", "urn:scim:schemas:extension:enterprise:1.0"));  
+          // attr.add(AttributeBuilder.build("schemaExtension.organization", "00D58000000YfgfEAC")); 
            
       //    attr.add(AttributeBuilder.build("schema.organiazation", "TestOrg"));
            
@@ -236,7 +236,7 @@ private static Set<Attribute> classicBuilderTestGroup(){
        	Set<Attribute> attr = new HashSet<Attribute>();
        	
        		
-       	   attr.add(AttributeBuilder.build("displayName", "teest@eastcubattor1.com"));
+       	   attr.add(AttributeBuilder.build("displayName", "newTest3@eastcubattor1.com"));
        //	 attr.add(AttributeBuilder.build("members..value", "teest@eastcubattor1.com"));
        	// attr.add(AttributeBuilder.build("members..display", "teest@eastcubattor1.com"));
        	 

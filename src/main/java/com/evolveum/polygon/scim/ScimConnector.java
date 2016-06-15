@@ -160,9 +160,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		if(ObjectClass.ACCOUNT.equals(object)){
 		UserDataBuilder userJson = new UserDataBuilder();
 		
-	    Uid uid = crudManager.updateEntity(id, "Users", userJson.translateSetToJson(attr));
+	    Uid uid = crudManager.updateEntity(id, "Users", userJson.translateSetToJson(attr, null));
 
-		LOGGER.info("Json response: {0}", userJson.translateSetToJson(attr).toString(1));
+		LOGGER.info("Json response: {0}", userJson.translateSetToJson(attr, null).toString(1));
 		
 		if(uid==null){
 			LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -174,9 +174,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			
 			GroupDataBuilder groupJson = new GroupDataBuilder();
 			
-			Uid uid = crudManager.updateEntity(id, "groups", groupJson.translateSetToJson(attr));
+			Uid uid = crudManager.updateEntity(id, "groups", groupJson.translateSetToJson(attr, null));
 			
-			LOGGER.info("Json response: {0}", groupJson.translateSetToJson(attr).toString(1));
+			LOGGER.info("Json response: {0}", groupJson.translateSetToJson(attr, null).toString(1));
 			
 			if(uid==null){
 				LOGGER.error("No uid returned by the create method: {0} ", uid);

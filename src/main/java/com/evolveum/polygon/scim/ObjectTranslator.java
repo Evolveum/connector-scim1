@@ -7,5 +7,5 @@ import org.json.JSONObject;
 
 public interface ObjectTranslator {
 	
-	JSONObject translateSetToJson(Set<Attribute> attributes);
+	JSONObject translateSetToJson(Set<Attribute> imattributes,Set<Attribute> connattributes);
 }

@@ -124,14 +124,14 @@ public class UserDataBuilder implements ObjectTranslator{
 		objectNameDictionaryUser.put("entitlements..value", "value");
 		objectNameDictionaryUser.put("entitlements..primary", "primary");
 
-		objectNameDictionaryUser.put("schemaExtension.type", "type");
-		objectNameDictionaryUser.put("schemaExtension.organization", "organization");
+		objectNameDictionaryUser.put("schema.type", "type");
+		objectNameDictionaryUser.put("schema.organization", "organization");
 	}
 
 	public UserDataBuilder() {
 	}
 
-	public JSONObject translateSetToJson(Set<Attribute> attributes) {
+	public JSONObject translateSetToJson(Set<Attribute> imattributes,Set<Attribute> connattributes  ) {
 
 		LOGGER.info("Building account JsonObject");
 		
@@ -139,8 +139,15 @@ public class UserDataBuilder implements ObjectTranslator{
 
 		Set<Attribute> multiValueAttribute = new HashSet<Attribute>();
 		Set<Attribute> multiLayerAttribute = new HashSet<Attribute>();
+		
+		if (connattributes !=null){
+			for (Attribute at: connattributes){				
+				multiValueAttribute.add(at);
+			}
+			
+		}
 
-		for (Attribute at : attributes) {
+		for (Attribute at : imattributes) {
 
 			String attributeName = at.getName();
 
@@ -326,7 +333,6 @@ public class UserDataBuilder implements ObjectTranslator{
 		//
 		//builder.addAttributeInfo(AttributeInfoBuilder.define("profileUrl").build());
 		
-		builder.addAttributeInfo(AttributeInfoBuilder.define("emails").setMultiValued(true).build());
 		
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.primary").build());
@@ -336,9 +342,6 @@ public class UserDataBuilder implements ObjectTranslator{
 		
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.primary").build());
-		
-		builder.addAttributeInfo(AttributeInfoBuilder.define("schemaExtension.type").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("schemaExtension.organization").build());
 		
 		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements..value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements..primary").build());

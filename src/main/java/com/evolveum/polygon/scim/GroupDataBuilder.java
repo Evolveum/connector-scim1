@@ -35,7 +35,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 		objectNameDictionary.put("members..display","display");
 	}
 
-	public JSONObject translateSetToJson(Set<Attribute> attributes){
+	public JSONObject translateSetToJson(Set<Attribute> imattributes,Set<Attribute> connattributes ){
 		LOGGER.info("Building Json data from group attributes");
 
 
@@ -43,7 +43,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 		Set<Attribute> multiLayerAttribute = new HashSet<Attribute>();
 
-		for(Attribute at: attributes){
+		for(Attribute at: imattributes){
 
 			String attributeName = at.getName();
 

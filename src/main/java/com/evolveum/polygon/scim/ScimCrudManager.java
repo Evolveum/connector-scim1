@@ -187,7 +187,9 @@ public class ScimCrudManager {
 							JSONObject minResourceJson = new JSONObject();
 							minResourceJson = jsonObject.getJSONArray("Resources").getJSONObject(i);
 							if(minResourceJson.has("id") && minResourceJson.getString("id")!=null){
-		
+								
+								if(minResourceJson.has("meta")){
+								
 								String resourceUri= minResourceJson.getJSONObject("meta").getString("location").toString();
 								HttpGet httpGetR= new HttpGet(resourceUri);
 								httpGetR.addHeader(oauthHeader);
@@ -216,8 +218,13 @@ public class ScimCrudManager {
 									LOGGER.info("Connection released");
 									onNoSuccess(resourceResponse, statusCode, responseString, resourceUri);
 								}
-
-							} else {
+								//TODO check if good condition for schema identification 
+							}else if (minResourceJson.has("endpoint")) {
+								ScimSchemaParser scimParser = new ScimSchemaParser(minResourceJson);
+								genericSchemaObjectBuilder oBuilder = new genericSchemaObjectBuilder();
+								oBuilder.buildSchema(scimParser.geAttributeMap());
+								
+							}} else {
 								LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
 								
 								throw new ConnectorException("No uid present in fetchet object while processing queuery result");
@@ -231,8 +238,8 @@ public class ScimCrudManager {
 						LOGGER.info("Builder error. Error while building connId object. The excetion message: {0}", e);
 					throw new ConnectorException(e);
 					}
-
-					LOGGER.info("Json response: {0}", jsonObject.toString(1));
+					// TODO uncomment json response info
+					// LOGGER.info("Json response: {0}", jsonObject.toString(1));
 
 				} catch (JSONException jsonException) {
 					if (q == null) {

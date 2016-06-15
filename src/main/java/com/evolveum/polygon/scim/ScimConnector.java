@@ -23,6 +23,7 @@ import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
+import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
@@ -146,6 +147,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		this.configuration = (ScimConnectorConfiguration)configuration;
 		this.configuration.validate();
 		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration)configuration);
+		lookForSchemas();
 	}
 	
 
@@ -292,6 +294,12 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			if(ObjectClass.GROUP.equals(objectClass)){
 				crudManager.qeueryEntity(build.toString(), "Groups/", resultHandler);
 			}
+	}
+	
+	private void lookForSchemas(){
+		
+		crudManager.qeueryEntity("", "Schemas/", null);
+		
 	}
 
 }

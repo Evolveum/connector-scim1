@@ -11,7 +11,7 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class genericSchemaObjectBuilder {
+public class GenericSchemaObjectBuilder {
 
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 	
@@ -54,8 +54,8 @@ public class genericSchemaObjectBuilder {
 
 		
 			if(mapAttributeKey.intern() == "readOnly"){
-				infoBuilder.setUpdateable(((Boolean)schemaAttributeMap.get(mapAttributeKey)));
-				infoBuilder.setCreateable(((Boolean)schemaAttributeMap.get(mapAttributeKey)));
+				infoBuilder.setUpdateable((!(Boolean)schemaAttributeMap.get(mapAttributeKey)));
+				infoBuilder.setCreateable((!(Boolean)schemaAttributeMap.get(mapAttributeKey)));
 			}
 			else if(mapAttributeKey.intern() == "type"){
 				
@@ -83,9 +83,11 @@ public class genericSchemaObjectBuilder {
 				// TODO question
 				// type "complex" and "datetime" not supported
 				
-				if((String)schemaAttributeMap.get(mapAttributeKey) == "string"){
+				if(schemaAttributeMap.get(mapAttributeKey).toString().intern() == "string"){
+					
 					infoBuilder.setType(String.class);
-				}else if (((String)schemaAttributeMap.get(mapAttributeKey) == "boolean")){
+				}else if ( schemaAttributeMap.get(mapAttributeKey).toString().intern() == "boolean"){
+				
 					infoBuilder.setType(Boolean.class);
 				} // TODO find how to work with "complex" type
 				

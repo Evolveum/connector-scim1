@@ -221,7 +221,7 @@ public class ScimCrudManager {
 								//TODO check if good condition for schema identification 
 							}else if (minResourceJson.has("endpoint")) {
 								ScimSchemaParser scimParser = new ScimSchemaParser(minResourceJson);
-								genericSchemaObjectBuilder oBuilder = new genericSchemaObjectBuilder();
+								GenericSchemaObjectBuilder oBuilder = new GenericSchemaObjectBuilder();
 								oBuilder.buildSchema(scimParser.geAttributeMap());
 								
 							}} else {

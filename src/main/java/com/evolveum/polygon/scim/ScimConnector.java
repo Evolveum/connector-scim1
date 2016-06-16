@@ -55,6 +55,8 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		if(schema == null){
 		SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
 		
+		lookForSchemas();
+		
 		ObjectClassInfo user = UserDataBuilder.getUserSchema();
 		
 		ObjectClassInfo group = GroupDataBuilder.getGroupSchema();
@@ -147,7 +149,6 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		this.configuration = (ScimConnectorConfiguration)configuration;
 		this.configuration.validate();
 		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration)configuration);
-		lookForSchemas();
 	}
 	
 

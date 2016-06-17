@@ -1,8 +1,9 @@
 package com.evolveum.polygon.scim;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.Name;
@@ -15,9 +16,10 @@ public class GenericSchemaObjectBuilder {
 
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 	
-	public ObjectClassInfo buildSchema (Map<String, Map<String, Object>> attributeMap){
+	public ObjectClassInfo  buildSchema (Map<String, Map<String, Object>> attributeMap ){
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
 		builder.addAttributeInfo(Name.INFO);
+		
 		
 		for(String key: attributeMap.keySet()){
 			
@@ -46,8 +48,8 @@ public class GenericSchemaObjectBuilder {
 				
 		}
 		LOGGER.error("Schema: {0}",builder.build());
+	
 		return builder.build();
-
 	}
 	
 	private AttributeInfoBuilder keyChecker(AttributeInfoBuilder infoBuilder, Map<String, Object> schemaAttributeMap, String mapAttributeKey){
@@ -102,6 +104,4 @@ public class GenericSchemaObjectBuilder {
 		
 		return infoBuilder;
 	}
-	
-	
 }

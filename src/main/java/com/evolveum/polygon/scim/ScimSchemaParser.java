@@ -1,6 +1,8 @@
 package com.evolveum.polygon.scim;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
@@ -8,16 +10,18 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ScimSchemaParser {
-	Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
-	Map<String, String> hlAttributeMap = new HashMap<String, String>();
-
+	
+	private Map<String, Map<String, Object>> attributeMap;
+	private Map<String, String> hlAttributeMap;
+	
+	private List<Map<String, Map<String, Object>>> attributeMapList = new ArrayList<Map<String, Map<String, Object>>>();
+	private List<Map<String, String>> hlAttributeMapList = new ArrayList<Map<String, String>>();
+	
 	private static final Log LOGGER = Log.getLog(ScimSchemaParser.class);
 
-	public ScimSchemaParser(JSONObject schemaJson) {
-		parseSchema(schemaJson);
-	}
-
-	private void parseSchema(JSONObject schemaJson) {
+	public void parseSchema(JSONObject schemaJson) {
+		hlAttributeMap = new HashMap<String, String>();
+		attributeMap = new HashMap<String, Map<String, Object>>();
 		for (String key : schemaJson.keySet()) {
 
 			// Iterating trough higher layer attributes
@@ -35,7 +39,10 @@ public class ScimSchemaParser {
 
 		}
 
-		LOGGER.error("The hash map: {0}", attributeMap);
+		hlAttributeMapList.add(hlAttributeMap);
+		attributeMapList.add(attributeMap);
+		LOGGER.info("The list of attribute maps: {0}", hlAttributeMapList);
+		LOGGER.info("The list of attribute maps: {0}", attributeMapList);
 	}
 
 
@@ -113,14 +120,15 @@ public class ScimSchemaParser {
 		}
 	}
 
-	public Map<String, Map<String, Object>> geAttributeMap() {
-		return attributeMap;
+	public List<Map<String, Map<String, Object>>> getAttributeMapList() {
+		return attributeMapList;
 
 	}
 
-	public Map<String, String> gethlAttributeMap() {
-		return hlAttributeMap;
+	public List<Map<String, String>> gethlAttributeMapList() {
+		return hlAttributeMapList;
 	}
+	
 
 	private Map<String, Object> parseSubAttribute(JSONObject subAttribute, Map<String, Object> subAttributeMap) {
 		HashMap<String, Object> attributeObjects = new HashMap<String, Object>();

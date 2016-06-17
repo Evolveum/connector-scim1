@@ -27,8 +27,11 @@ import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
+import org.identityconnectors.framework.common.objects.ObjectClassInfo;
+import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.json.JSONException;
@@ -219,12 +222,8 @@ public class ScimCrudManager {
 									onNoSuccess(resourceResponse, statusCode, responseString, resourceUri);
 								}
 								//TODO check if good condition for schema identification 
-							}else if (minResourceJson.has("endpoint")) {
-								ScimSchemaParser scimParser = new ScimSchemaParser(minResourceJson);
-								GenericSchemaObjectBuilder oBuilder = new GenericSchemaObjectBuilder();
-								oBuilder.buildSchema(scimParser.geAttributeMap());
-								
-							}} else {
+							}
+								} else {
 								LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
 								
 								throw new ConnectorException("No uid present in fetchet object while processing queuery result");
@@ -282,6 +281,69 @@ public class ScimCrudManager {
 
 		loginInstance.releaseConnection();
 		LOGGER.info("Connection released");
+	}
+	public ScimSchemaParser qeueryEntity(Object queuery, String resourceEndPoint){
+		
+		//TODO delete this println
+		
+		System.out.println("query of schemas");
+		logIntoService();
+		HttpClient httpClient = HttpClientBuilder.create().build();
+		String q;
+		q = (String)queuery;
+		
+		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append(q).toString();
+		LOGGER.info("qeury url: {0}", uri);
+		HttpGet httpGet = new HttpGet(uri);
+		httpGet.addHeader(oauthHeader);
+		httpGet.addHeader(prettyPrintHeader);
+		
+		String responseString = null;
+		
+		HttpResponse response;
+		try {
+			response = httpClient.execute(httpGet);
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == 200) {
+				
+				responseString = EntityUtils.toString(response.getEntity());
+				if(!responseString.isEmpty()){
+					
+					JSONObject jsonObject = new JSONObject(responseString);
+					LOGGER.info("Json object returned from service provider: {0}",jsonObject);
+					ScimSchemaParser scimParser = new ScimSchemaParser();
+					for(int i=0 ; i<jsonObject.getJSONArray("Resources").length(); i++){
+						JSONObject minResourceJson = new JSONObject();
+						minResourceJson = jsonObject.getJSONArray("Resources").getJSONObject(i);
+						if(minResourceJson.has("id") && minResourceJson.getString("id")!=null){
+							if (minResourceJson.has("endpoint")) {
+							scimParser.parseSchema(minResourceJson);
+								
+							}else {
+								LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
+								
+								throw new ConnectorException("No uid present in fetchet object while processing queuery result");
+							}
+							
+						}
+					
+					}
+					return scimParser;
+					
+				}
+				
+			}
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		//TODO add exception
+		return null;
 	}
 
 	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes) {

@@ -1,7 +1,9 @@
 package com.evolveum.polygon.scim;
 
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
@@ -44,6 +46,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 
 	private ScimConnectorConfiguration configuration; 
 	private ScimCrudManager crudManager;
+	private ScimSchemaParser schemaParser;
 
 	 private Schema schema = null;
 	
@@ -53,9 +56,9 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	public Schema schema() {
 		
 		if(schema == null){
+			
+			
 		SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
-		
-		lookForSchemas();
 		
 		ObjectClassInfo user = UserDataBuilder.getUserSchema();
 		
@@ -149,6 +152,8 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		this.configuration = (ScimConnectorConfiguration)configuration;
 		this.configuration.validate();
 		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration)configuration);
+		this.schemaParser = crudManager.qeueryEntity("", "Schemas/");
+		buildSchemas();
 	}
 	
 
@@ -296,10 +301,30 @@ SearchOp<Filter>, TestOp, UpdateOp {
 				crudManager.qeueryEntity(build.toString(), "Groups/", resultHandler);
 			}
 	}
-	
-	private void lookForSchemas(){
+	private void buildSchemas(){
 		
-		crudManager.qeueryEntity("", "Schemas/", null);
+		SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
+		GenericSchemaObjectBuilder schemaObjectBuilder = new GenericSchemaObjectBuilder();
+		int iterator=0;
+		Map<String,String> hlAtrribute = new HashMap<String,String>();
+		for(Map<String, Map<String, Object>> attributeMap:  schemaParser.getAttributeMapList()){
+			hlAtrribute = schemaParser.gethlAttributeMapList().get(iterator);
+			ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap);
+			for(String key: hlAtrribute.keySet()){
+				if(key.intern() == "name"){
+				String schemaName = hlAtrribute.get(key);	
+				if(schemaName == "User"){
+					
+					//TODO schema type can be defined in the attributeObjectBuilder /> generic schema object builder...
+
+				}
+				}
+				
+			}
+			iterator++;
+			//ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap);
+		//	schemaBuilder.defineObjectClass(oclassInfo);
+		}
 		
 	}
 

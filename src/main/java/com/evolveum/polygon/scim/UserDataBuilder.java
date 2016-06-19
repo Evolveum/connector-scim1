@@ -307,6 +307,8 @@ public class UserDataBuilder implements ObjectTranslator{
 		return json;
 	}
 
+	
+	// TODO method to define user schema if generic methods can not be applied
 	public static ObjectClassInfo getUserSchema() {
 
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();

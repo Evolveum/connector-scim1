@@ -23,50 +23,7 @@ public class ConnectorObjBuilder {
 	// ScimCrudManager class caller method of this class
 
 	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
-	private static Map<String, String> acountObjectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
-	private static Map<String, String> groupObjectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
-	private static Map<String, String> simArrayDictionary = CollectionUtil.newCaseInsensitiveMap();
-	static{
-		
-	//objectNameDictionary.put("userName", "userName");
-	//
-	acountObjectNameDictionary.put("id", "id");
-	//
 	
-	acountObjectNameDictionary.put("name", "name");
-	acountObjectNameDictionary.put("formatted", "name.formatted");
-	acountObjectNameDictionary.put("familyName", "name.familyName");
-	acountObjectNameDictionary.put("givenName", "name.givenName");
-	acountObjectNameDictionary.put("middleName", "name.middleName");
-	acountObjectNameDictionary.put("honorificPrefix", "name.honorificPrefix");
-	acountObjectNameDictionary.put("honorificSuffix", "name.honorificSuffix");
-	
-	//acountObjectNameDictionary.put("emails", "emails");
-	
-	acountObjectNameDictionary.put("displayName", "displayName");
-	acountObjectNameDictionary.put("nickName", "nickName");
-	
-	acountObjectNameDictionary.put("userType", "userType");
-	acountObjectNameDictionary.put("userName", "userName");
-	acountObjectNameDictionary.put("locale", "locale");
-	acountObjectNameDictionary.put("preferredLanguage", "preferredLanguage");
-	
-	//Group dictionary definition 
-	
-	groupObjectNameDictionary.put("displayName", "displayName");
-	//groupObjectNameDictionary.put("members", "members");
-	
-	groupObjectNameDictionary.put("display", "members..display");
-	groupObjectNameDictionary.put("value", "members..value");
-	
-	
-	// Array object with similar key/value pairs 
-	simArrayDictionary.put("emails", "emails");
-	simArrayDictionary.put("type", "type");
-	simArrayDictionary.put("value", "value");
-	simArrayDictionary.put("primary", "primary");
-	
-	}
 	public ConnectorObject buildConnectorObject(JSONObject jsonObject) throws ConnectException{
 		
 		LOGGER.info("Building the connector object from provided json");
@@ -84,63 +41,77 @@ public class ConnectorObjBuilder {
 		if(!jsonObject.has("userName")){
 			cob.setName(jsonObject.getString("displayName"));
 			cob.setObjectClass(ObjectClass.GROUP);
-			objectNameDictionary =groupObjectNameDictionary;
 		}else{
 		cob.setName(jsonObject.getString("userName"));
-		objectNameDictionary =acountObjectNameDictionary;
 		}
 		for(String key: jsonObject.keySet()){
 			Object attribute =jsonObject.get(key);
 			
-			if(objectNameDictionary.containsKey(key.intern())||simArrayDictionary.containsKey(key.intern())){
+			if(key.intern() == "meta" || key.intern() == "alias" || key.intern() == "schemas"){
+				// do nothing -> some inconsistencies found in meta attribute in the schema definition present
+				// in the Schemas/ resource and the actual atrributes in an resource representation (salesForce) (meta.location)
+			
+			}else
+			
 				if(attribute instanceof JSONArray){
 					
 					JSONArray jArray = (JSONArray) attribute;
-					ArrayList<String> list= new ArrayList<String>();
 					
 						for(Object o: jArray){
+							StringBuilder objectKeyBilder = new StringBuilder(key.intern());
+							String objectKeyName = "";
 							if(o instanceof JSONObject){
-								if(simArrayDictionary.containsKey(key.intern())){
-									String objectKeyName = "";
-									StringBuilder objectKeyBilder = new StringBuilder(key.intern());
 								for(String s: ((JSONObject) o).keySet()){
-									if (simArrayDictionary.containsKey(s.intern())){
+									
 									if(s.intern() == "type"){
 									objectKeyName = objectKeyBilder.append(".").append(((JSONObject) o).get(s)).toString();
+									objectKeyBilder.delete(0, objectKeyBilder.length());
 										break;
 									}
-								}}
+								}
 								
 								for(String s: ((JSONObject) o).keySet()){
-									if(simArrayDictionary.containsKey(s.intern())){
+									
 									if(s.intern() == "type"){
 								}else {
-									objectKeyBilder.delete(0, objectKeyBilder.length());
-									objectKeyBilder.append(objectKeyName).append(".").append(s.intern());
+									if(objectKeyName !=""){
+									objectKeyBilder= objectKeyBilder.append(objectKeyName).append(".").append(s.intern());
+									}else{
+										objectKeyName= objectKeyBilder.toString();
+										objectKeyBilder= objectKeyBilder.append(".").append(s.intern());
+									}
+								
 								cob.addAttribute(objectKeyBilder.toString(), ((JSONObject) o).get(s));	
+								objectKeyBilder.delete(0, objectKeyBilder.length());
 								}
-								}
-							}}
+							}
+							
+						}else{
+							objectKeyName = objectKeyBilder.append(".").append(o.toString()).toString();
+							cob.addAttribute(objectKeyName,o.toString());
 							
 						}
 							}
-					//cob.addAttribute(key, list);
-					
-					
+
 				} else if(attribute instanceof JSONObject){
 					for(String s: ((JSONObject) attribute).keySet()){
-						if(objectNameDictionary.containsKey(s.intern())){
+						
+						/**if(objectNameDictionary.containsKey(s.intern())){
 						cob.addAttribute(objectNameDictionary.get(s),((JSONObject) attribute).get(s));
 						
 						}
+						*/
+						StringBuilder nameBuilder = new StringBuilder(key.intern());
+						cob.addAttribute(nameBuilder.append(".").append(s).toString(),((JSONObject) attribute).get(s));
+						
 					}
 					
 				} else { 
 					
-						cob.addAttribute(objectNameDictionary.get(key), jsonObject.get(key));
+						cob.addAttribute(key.intern(), jsonObject.get(key));
 						
 				}
-		}}
+		}
 		
 	 LOGGER.info("Connector object {0}", cob.build());
 		return cob.build();

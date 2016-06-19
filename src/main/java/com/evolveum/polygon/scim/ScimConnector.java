@@ -27,6 +27,7 @@ import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
+import org.identityconnectors.framework.common.objects.filter.StringFilter;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.ConnectorClass;
@@ -47,6 +48,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 	private ScimConnectorConfiguration configuration; 
 	private ScimCrudManager crudManager;
 	private ScimSchemaParser schemaParser;
+	private Boolean genericsCanBeApplied = false;
 
 	 private Schema schema = null;
 	
@@ -57,16 +59,16 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		
 		if(schema == null){
 			
-			
 		SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
-		
-		ObjectClassInfo user = UserDataBuilder.getUserSchema();
-		
-		ObjectClassInfo group = GroupDataBuilder.getGroupSchema();
-		
-		schemaBuilder.defineObjectClass(user);
-		schemaBuilder.defineObjectClass(group);
-		
+		if(this.schemaParser !=null){
+		buildSchemas(schemaBuilder);
+		}else {
+			
+			ObjectClassInfo userSchemaInfo = UserDataBuilder.getUserSchema();
+			ObjectClassInfo groupSchemaInfo = GroupDataBuilder.getGroupSchema();
+			schemaBuilder.defineObjectClass(userSchemaInfo);
+			schemaBuilder.defineObjectClass(groupSchemaInfo);
+		}
 		return schemaBuilder.build() ;
 		}
 		return this.schema;
@@ -153,7 +155,8 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		this.configuration.validate();
 		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration)configuration);
 		this.schemaParser = crudManager.qeueryEntity("", "Schemas/");
-		buildSchemas();
+		// TODO delete method call ... just for test purposess 
+		schema();
 	}
 	
 
@@ -225,34 +228,72 @@ SearchOp<Filter>, TestOp, UpdateOp {
 		}
 		
 		if (isSupportedQuery(objectClass, query)){
+			
+			if(genericsCanBeApplied){
+				
+				String endpointName = objectClass.getObjectClassValue();
+				if(endpointName.intern() == ObjectClass.ACCOUNT.getObjectClassValue().intern()){
+				if(query == null){
+					crudManager.qeueryEntity("", "Users/",handler);
+					
+				}else if(query instanceof EqualsFilter && qIsUid("Users/",query, handler)){
+
+				}else{ 
+
+					qIsFilter("Users/",query, handler);
+				}
+				}
+				else if(endpointName.intern() == ObjectClass.GROUP.getObjectClassValue().intern()){
+					if(query == null){
+						crudManager.qeueryEntity("", "Groups/",handler);
+						
+					}else if(query instanceof EqualsFilter && qIsUid("Groups/",query, handler)){
+
+					}else{ 
+
+						qIsFilter("Groups/",query, handler);
+					}
+					}
+				else{
+					StringBuilder setEndpointFormat = new StringBuilder(endpointName);
+					if(query == null){
+						crudManager.qeueryEntity("", setEndpointFormat.append("/").toString() ,handler);
+					}else if(query instanceof EqualsFilter && qIsUid(setEndpointFormat.append("/").toString(),query, handler)){
+
+					}else{ 
+
+						qIsFilter(setEndpointFormat.append("/").toString(),query, handler);
+					}
+					}
+			}else{
 
 			if (ObjectClass.ACCOUNT.equals(objectClass)){
 
 				if(query == null){
 
 					crudManager.qeueryEntity("", "Users/", handler);
-				}else if(query instanceof EqualsFilter && qIsUid(objectClass,query, handler)){
+				}else if(query instanceof EqualsFilter && qIsUid("Users/",query, handler)){
 
 				}else{ 
 
-					qIsFilter(objectClass,query, handler);
+					qIsFilter("Users/",query, handler);
 				}
 			}else if(ObjectClass.GROUP.equals(objectClass)){
 				if(query == null){
 					crudManager.qeueryEntity("", "Groups/", handler);
 				}
-				else if(query instanceof EqualsFilter && qIsUid(objectClass,query, handler)){
+				else if(query instanceof EqualsFilter && qIsUid("Groups/",query, handler)){
 
 				}else { 
 
-					qIsFilter(objectClass,query, handler);
+					qIsFilter("Groups/",query, handler);
 				}
 			}
 			else{
 				LOGGER.error("The provided objectClass is not supported: {0}", objectClass.getDisplayNameKey());
 				throw new IllegalArgumentException("ObjectClass is not supported");
 			}
-		}
+		}}
 
 	}
 
@@ -264,68 +305,49 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			return true;
 		}	else{
 	//		LOGGER.error("Provided filter is not supported: {0}", filter);
-			//throw new IllegalArgumentException("Provided filter is not supported");
-			return true;
+			throw new IllegalArgumentException("Provided filter is not supported");
 		}
 	}
 
-	private boolean qIsUid(ObjectClass objectClass, Filter query, ResultsHandler resultHandler){
+	private boolean qIsUid(String endPoint, Filter query, ResultsHandler resultHandler){
 		Attribute filterAttr = ((EqualsFilter) query).getAttribute();
 
 		if(filterAttr instanceof Uid){
-
-			if(ObjectClass.ACCOUNT.equals(objectClass)){
-				crudManager.qeueryEntity((Uid) filterAttr, "Users/", resultHandler);
-			}else 
-				if(ObjectClass.GROUP.equals(objectClass)){
-					crudManager.qeueryEntity((Uid) filterAttr, "Groups/", resultHandler);
-				}
-
+				crudManager.qeueryEntity((Uid) filterAttr, endPoint, resultHandler);
 			return true;
 		}else
 			return false;
 	}
 	
-	private void qIsFilter(ObjectClass objectClass, Filter query, ResultsHandler resultHandler){
+	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler){
 
 		StringBuilder build =  
-				query.accept(new FilterHandler(),objectClass);
+				query.accept(new FilterHandler(),endPoint);
 
 		build.insert(0, "?filter=");
+			crudManager.qeueryEntity(build.toString(), endPoint, resultHandler);
 
-
-		if(ObjectClass.ACCOUNT.equals(objectClass)){
-			crudManager.qeueryEntity(build.toString(), "Users/", resultHandler);
-		}else 
-			if(ObjectClass.GROUP.equals(objectClass)){
-				crudManager.qeueryEntity(build.toString(), "Groups/", resultHandler);
-			}
+	
 	}
-	private void buildSchemas(){
+	private SchemaBuilder buildSchemas(SchemaBuilder schemaBuilder){
 		
-		SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
 		GenericSchemaObjectBuilder schemaObjectBuilder = new GenericSchemaObjectBuilder();
 		int iterator=0;
 		Map<String,String> hlAtrribute = new HashMap<String,String>();
 		for(Map<String, Map<String, Object>> attributeMap:  schemaParser.getAttributeMapList()){
 			hlAtrribute = schemaParser.gethlAttributeMapList().get(iterator);
-			ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap);
+			
 			for(String key: hlAtrribute.keySet()){
-				if(key.intern() == "name"){
+				if(key.intern() == "endpoint"){
 				String schemaName = hlAtrribute.get(key);	
-				if(schemaName == "User"){
-					
-					//TODO schema type can be defined in the attributeObjectBuilder /> generic schema object builder...
-
+				ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap,schemaName );
+				schemaBuilder.defineObjectClass(oclassInfo);
 				}
-				}
-				
 			}
 			iterator++;
-			//ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap);
-		//	schemaBuilder.defineObjectClass(oclassInfo);
 		}
-		
+		genericsCanBeApplied =true;
+		return schemaBuilder;
 	}
 
 }

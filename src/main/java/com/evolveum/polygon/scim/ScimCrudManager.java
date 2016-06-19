@@ -283,10 +283,6 @@ public class ScimCrudManager {
 		LOGGER.info("Connection released");
 	}
 	public ScimSchemaParser qeueryEntity(Object queuery, String resourceEndPoint){
-		
-		//TODO delete this println
-		
-		System.out.println("query of schemas");
 		logIntoService();
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String q;

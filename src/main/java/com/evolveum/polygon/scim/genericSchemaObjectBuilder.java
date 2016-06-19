@@ -7,6 +7,7 @@ import java.util.Map;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.json.JSONArray;
@@ -14,10 +15,13 @@ import org.json.JSONObject;
 
 public class GenericSchemaObjectBuilder {
 
+	// TODO SOME attributes not defined in the Schemas/ endpoint and present in resources (salesForce)
+	
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 	
-	public ObjectClassInfo  buildSchema (Map<String, Map<String, Object>> attributeMap ){
+	public ObjectClassInfo  buildSchema (Map<String, Map<String, Object>> attributeMap, String objectTypeName ){
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
+		
 		builder.addAttributeInfo(Name.INFO);
 		
 		
@@ -47,8 +51,18 @@ public class GenericSchemaObjectBuilder {
 			builder.addAttributeInfo(infoBuilder.build());
 				
 		}
-		LOGGER.error("Schema: {0}",builder.build());
-	
+		
+	if(objectTypeName.intern() =="/Users"){
+		builder.setType(ObjectClass.ACCOUNT_NAME);
+		
+	}else if (objectTypeName.intern() =="/Groups"){
+		builder.setType(ObjectClass.GROUP_NAME);
+	}
+	else {
+		ObjectClass objectClass = new ObjectClass(objectTypeName);
+		builder.setType(objectClass.getObjectClassValue());
+	}
+	LOGGER.error("Schema: {0}",builder.build());
 		return builder.build();
 	}
 	

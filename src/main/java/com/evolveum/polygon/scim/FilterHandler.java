@@ -30,7 +30,7 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 
 // Missing filterVisitor methods/filters from SCIM v1 specification: not equal, present
 
-public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> {
+public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 	private static final Log LOGGER = Log.getLog(FilterHandler.class);
 
@@ -120,7 +120,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 
 	@Override
-	public StringBuilder visitAndFilter(ObjectClass p, AndFilter filter) {
+	public StringBuilder visitAndFilter(String p, AndFilter filter) {
 		LOGGER.info("Processing request trought AND filter");
 
 		StringBuilder completeQuery = new StringBuilder();
@@ -154,7 +154,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	}
 
 	@Override
-	public StringBuilder visitContainsFilter(ObjectClass p, ContainsFilter filter) {
+	public StringBuilder visitContainsFilter(String p, ContainsFilter filter) {
 		LOGGER.info("Processing request trought CONTAINS filter");
 		
 		if (!filter.getName().isEmpty()){
@@ -181,13 +181,13 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	}
 
 	@Override
-	public StringBuilder visitContainsAllValuesFilter(ObjectClass p, ContainsAllValuesFilter filter) {
+	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public StringBuilder visitEqualsFilter(ObjectClass p, EqualsFilter filter) {
+	public StringBuilder visitEqualsFilter(String p, EqualsFilter filter) {
 		LOGGER.info("Processing request trought EQUALS filter");
 		
 		if (!filter.getName().isEmpty()){
@@ -217,13 +217,13 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 
 
 	@Override
-	public StringBuilder visitExtendedFilter(ObjectClass p, Filter filter) {
+	public StringBuilder visitExtendedFilter(String p, Filter filter) {
 		LOGGER.error("Usuported filter",filter);
 		throw new NoSuchMethodError("Usuported queuery filter");
 	}
 
 	@Override
-	public StringBuilder visitGreaterThanFilter(ObjectClass p, GreaterThanFilter filter) {
+	public StringBuilder visitGreaterThanFilter(String p, GreaterThanFilter filter) {
 		LOGGER.info("Processing request trought GREATHERtHAN filter");
 		
 		if (!filter.getName().isEmpty()){
@@ -249,7 +249,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	}
 
 	@Override
-	public StringBuilder visitGreaterThanOrEqualFilter(ObjectClass p, GreaterThanOrEqualFilter filter) {
+	public StringBuilder visitGreaterThanOrEqualFilter(String p, GreaterThanOrEqualFilter filter) {
 		LOGGER.info("Processing request trought GREATHERTtHANoReQUAL filter");
 		if (!filter.getName().isEmpty()){
 
@@ -274,7 +274,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	}
 
 	@Override
-	public StringBuilder visitLessThanFilter(ObjectClass p, LessThanFilter filter) {
+	public StringBuilder visitLessThanFilter(String p, LessThanFilter filter) {
 		LOGGER.info("Processing request trought LESStHAN filter");
 		if (!filter.getName().isEmpty()){
 
@@ -293,7 +293,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	}
 
 	@Override
-	public StringBuilder visitLessThanOrEqualFilter(ObjectClass p, LessThanOrEqualFilter filter) {
+	public StringBuilder visitLessThanOrEqualFilter(String p, LessThanOrEqualFilter filter) {
 		LOGGER.info("Processing request trought LESStHANoReQUAL filter");
 		if (!filter.getName().isEmpty()){
 
@@ -318,7 +318,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	}
 
 	@Override
-	public StringBuilder visitNotFilter(ObjectClass p, NotFilter filter) {
+	public StringBuilder visitNotFilter(String p, NotFilter filter) {
 		LOGGER.info("Processing request trought NOT filter");
 		StringBuilder completeQuery = new StringBuilder();
 
@@ -329,7 +329,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	}
 
 	@Override
-	public StringBuilder visitOrFilter(ObjectClass p, OrFilter filter) {
+	public StringBuilder visitOrFilter(String p, OrFilter filter) {
 		LOGGER.info("Processing request trought OR filter");
 		StringBuilder completeQuery = new StringBuilder();
 
@@ -364,7 +364,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	}
 
 	@Override
-	public StringBuilder visitStartsWithFilter(ObjectClass p, StartsWithFilter filter) {
+	public StringBuilder visitStartsWithFilter(String p, StartsWithFilter filter) {
 		LOGGER.info("Processing request trought STARTSwITH filter");
 		if (!filter.getName().isEmpty()){
 
@@ -388,7 +388,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 	}
 
 	@Override
-	public StringBuilder visitEndsWithFilter(ObjectClass p, EndsWithFilter filter) {
+	public StringBuilder visitEndsWithFilter(String p, EndsWithFilter filter) {
 		LOGGER.info("Processing request trought ENDSwITH filter");
 		if (!filter.getName().isEmpty()){
 
@@ -429,7 +429,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, ObjectClass> 
 		return resultString;
 	}
 
-	private StringBuilder processArrayQ(AttributeFilter filter, ObjectClass p){
+	private StringBuilder processArrayQ(AttributeFilter filter, String p){
 		
 		//TODO question // does this follow the scim specs ? email.tye eq work and email.value eq someone@someplace.com
 		

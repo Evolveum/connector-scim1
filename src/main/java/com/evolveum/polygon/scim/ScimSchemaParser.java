@@ -87,7 +87,7 @@ public class ScimSchemaParser {
 								JSONObject cannonicalValue = new JSONObject();
 								cannonicalValue = ((JSONArray) cannonicalValues).getJSONObject(j);
 								for (String k : subAttributeMap.keySet()) {
-									if (k.intern() != "type") {
+									if (k.intern() != "type") { // TODO some other complex attribute names may be used
 										StringBuilder complexAttrName = new StringBuilder(attributeName);
 										attributeMap.put(
 												complexAttrName.append(".").append(cannonicalValue.get("value"))

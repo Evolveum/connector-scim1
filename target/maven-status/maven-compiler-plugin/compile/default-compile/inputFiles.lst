@@ -5,6 +5,8 @@ C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\sci
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\scim\GroupDataBuilder.java
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\scim\UserDataBuilder.java
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\scim\ScimCrudManager.java
+C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\scim\GenericSchemaObjectBuilder.java
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\scim\FilterHandler.java
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\scim\ScimConnector.java
 C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\scim\ConnectorObjBuilder.java
+C:\Users\Matus\PracaProjekty\salesfrcTest\src\main\java\com\evolveum\polygon\scim\ScimSchemaParser.java

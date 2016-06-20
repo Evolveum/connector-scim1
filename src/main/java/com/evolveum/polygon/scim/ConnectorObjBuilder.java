@@ -62,8 +62,9 @@ public class ConnectorObjBuilder {
 							String objectKeyName = "";
 							if(o instanceof JSONObject){
 								for(String s: ((JSONObject) o).keySet()){
-									
 									if(s.intern() == "type"){
+										
+										
 									objectKeyName = objectKeyBilder.append(".").append(((JSONObject) o).get(s)).toString();
 									objectKeyBilder.delete(0, objectKeyBilder.length());
 										break;

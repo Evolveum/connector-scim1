@@ -32,9 +32,8 @@ public class GenericSchemaObjectBuilder {
 			Map<String, Object> schemaAttributeMap = new HashMap<String, Object>();
 			schemaAttributeMap = attributeMap.get(key);
 				for(String mapAttributeKey: schemaAttributeMap.keySet()){
-					
 						if(mapAttributeKey.intern() == "subAttributes"){
-							
+							// TODO dead weight / check cases when this is true
 							 infoBuilder = new AttributeInfoBuilder(key.intern());
 							 JSONArray jsonArray = new JSONArray();
 							 jsonArray= ((JSONArray)schemaAttributeMap.get(mapAttributeKey));
@@ -114,7 +113,6 @@ public class GenericSchemaObjectBuilder {
 			else if(mapAttributeKey.intern() == "multiValued"){
 				infoBuilder.setMultiValued(((Boolean)schemaAttributeMap.get(mapAttributeKey)));
 			}
-			
 		
 		return infoBuilder;
 	}

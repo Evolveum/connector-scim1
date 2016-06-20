@@ -80,17 +80,22 @@ public class ScimSchemaParser {
 					if (hasTypeValues){
 						Map<String, Object> typeObject = new HashMap<String, Object>();
 						typeObject = (Map<String, Object>) subAttributeMap.get("type");
-						if (typeObject.containsKey("canonicalValues")) {
-							JSONArray cannonicalValues = new JSONArray();
-							cannonicalValues = (JSONArray) typeObject.get("canonicalValues");
-							for (int j = 0; j < cannonicalValues.length(); j++) {
-								JSONObject cannonicalValue = new JSONObject();
-								cannonicalValue = ((JSONArray) cannonicalValues).getJSONObject(j);
+						if (typeObject.containsKey("canonicalValues")|| typeObject.containsKey("referenceTypes")) {
+							JSONArray referenceValues = new JSONArray();
+							if (typeObject.containsKey("canonicalValues")){
+								referenceValues = (JSONArray) typeObject.get("canonicalValues");
+								}else {
+									referenceValues = (JSONArray) typeObject.get("referenceTypes");
+								}
+							
+							for (int j = 0; j < referenceValues.length(); j++) {
+								JSONObject referenceValue = new JSONObject();
+								referenceValue = ((JSONArray) referenceValues).getJSONObject(j);
 								for (String k : subAttributeMap.keySet()) {
 									if (k.intern() != "type") { // TODO some other complex attribute names may be used
 										StringBuilder complexAttrName = new StringBuilder(attributeName);
 										attributeMap.put(
-												complexAttrName.append(".").append(cannonicalValue.get("value"))
+												complexAttrName.append(".").append(referenceValue.get("value"))
 												.append(".").append(k).toString(),
 												(HashMap<String, Object>) subAttributeMap.get(k));
 										isComplex=true;
@@ -98,9 +103,30 @@ public class ScimSchemaParser {
 									}
 								}
 							}
+						}else {
+							ArrayList<String> defaultReferenceTypeValues = new ArrayList<String>();
+							defaultReferenceTypeValues.add("User");
+							defaultReferenceTypeValues.add("Group");
+							//defaultReferenceValues.add("external");
+							//defaultReferenceValues.add("uri");
+							for (String k : subAttributeMap.keySet()) {
+								if (k.intern() != "type") {
+									for(String defaultTypeReferenceValues: defaultReferenceTypeValues){
+								StringBuilder complexAttrName = new StringBuilder(attributeName);
+								complexAttrName.append(".").append(defaultTypeReferenceValues);
+								attributeMap.put(
+										complexAttrName.append(".").append(k).toString(),
+										(HashMap<String, Object>) subAttributeMap.get(k));
+								isComplex=true;
+								}}
+							
+						}
+							
+							
 						}
 
 					}else{
+						
 						for (String k : subAttributeMap.keySet()) {
 						StringBuilder complexAttrName = new StringBuilder(attributeName);
 						attributeMap.put(

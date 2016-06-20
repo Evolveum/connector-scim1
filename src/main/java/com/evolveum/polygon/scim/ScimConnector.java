@@ -105,6 +105,38 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			LOGGER.error("Set of Attributes can not be null or empty", attr);
 			throw new IllegalArgumentException("Set of Attributes value is null or empty");
 		}
+
+		if(genericsCanBeApplied){
+			String endpointName = object.getObjectClassValue();
+			
+			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())){
+				
+				for(Map<String,String> hlAtrribute:  schemaParser.gethlAttributeMapList()){
+					for(String attributeKeys: hlAtrribute.keySet()){
+						if("endpoint".equals(attributeKeys)){
+							if(hlAtrribute.containsValue("/Users")){
+									int position= schemaParser.gethlAttributeMapList().indexOf(hlAtrribute);
+								
+							}
+							
+						}
+					}
+					
+				}
+				
+			}else if(endpointName.equals(ObjectClass.GROUP.getObjectClassValue())){
+				
+				
+			}else {
+				
+				StringBuilder setEndpointFormat = new StringBuilder(endpointName);
+				
+				
+			}
+			
+			
+			return null;
+		}else{
 		
 		if(ObjectClass.ACCOUNT.equals(object)){
 		ObjectTranslator userBuild = new UserDataBuilder();
@@ -135,7 +167,7 @@ SearchOp<Filter>, TestOp, UpdateOp {
 			
 			LOGGER.error("Provided object value is not valid: {0}", object);
 			throw new IllegalArgumentException("Object value not valid");
-		}
+		}}
 	}
 
 	@Override

@@ -3,7 +3,7 @@ package com.evolveum.polygon.scim;
 import java.util.HashMap;
 import java.util.Map;
 
-
+import org.apache.http.conn.scheme.Scheme;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
@@ -31,6 +31,11 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 // Missing filterVisitor methods/filters from SCIM v1 specification: not equal, present
 
 public class FilterHandler implements FilterVisitor<StringBuilder, String> {
+	
+	public FilterHandler(Map<String, Map<String, Object>> schemaMap) {
+		translateSchemaMapToDictionary(schemaMap);
+	}
+	
 
 	private static final Log LOGGER = Log.getLog(FilterHandler.class);
 
@@ -461,5 +466,27 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 					}
 		return null;
 	}
+	
+	private void translateSchemaMapToDictionary(Map<String, Map<String, Object>> schemaMap){
+		
+		if(schemaMap !=null){
+		for (String attributeNameKey: schemaMap.keySet() ){
+			String[] attributeNameKeyParts = attributeNameKey.split("\\."); // eg. emails.work.value 
+			if(attributeNameKeyParts.length == 3){
+				StringBuilder buildAttributeDictionaryValue = new StringBuilder(attributeNameKeyParts[0]).append(".").append(attributeNameKeyParts[2]);
+				objectNameDictionary.put(attributeNameKey, buildAttributeDictionaryValue.toString());
+				
+			}else {
+				
+				objectNameDictionary.put(attributeNameKey, attributeNameKey);
+			}
+			
+		}
+		LOGGER.info("The filter dictionary which was build from the provided schema: {0}", objectNameDictionary);
+		
+	}else {
+		//TODO do nothing
+	}
+		}
 
 }

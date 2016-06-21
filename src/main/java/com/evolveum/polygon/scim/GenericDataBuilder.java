@@ -24,7 +24,8 @@ public class GenericDataBuilder implements ObjectTranslator{
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
 
 
-	public JSONObject translateSetToJson(Set<Attribute> imattributes,Set<Attribute> connattributes, Map<String, String> objectNameDictionary ) {
+	public JSONObject translateSetToJson(Set<Attribute> imattributes, Set<Attribute> connattributes,
+			Map<String, Map<String, Object>> attributeMap) {
 
 		LOGGER.info("Building account JsonObject");
 		
@@ -44,7 +45,7 @@ public class GenericDataBuilder implements ObjectTranslator{
 
 			String attributeName = at.getName();
 
-			if (objectNameDictionary.containsKey(attributeName)) {
+			if (attributeMap.containsKey(attributeName)) {
 				if (attributeName.contains(".")) {
 
 					String[] keyParts = attributeName.split("\\.");
@@ -125,7 +126,7 @@ public class GenericDataBuilder implements ObjectTranslator{
 								multivalueObject.put(finalKey[2].intern(), AttributeUtil.getSingleValue(l));
 							}
 						}
-						if (!secondKeyPart[1].intern().equals("")) {
+						if (!secondKeyPart[1].intern().equals("")&&!secondKeyPart[1].intern().equals("default") ) {
 							multivalueObject.put("type", secondKeyPart[1].intern());
 						}
 						jArray.put(multivalueObject);

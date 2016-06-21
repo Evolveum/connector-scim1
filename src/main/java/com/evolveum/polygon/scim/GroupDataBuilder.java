@@ -141,5 +141,11 @@ public class GroupDataBuilder implements ObjectTranslator {
 	
 		return builder.build();
 	}
+	@Override
+	public JSONObject translateSetToJson(Set<Attribute> imattributes, Set<Attribute> connattributes,
+			Map<String, Map<String, Object>> attributeMap) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

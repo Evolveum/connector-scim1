@@ -3,7 +3,9 @@ package com.evolveum.polygon.scim;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -342,27 +344,28 @@ public class ScimCrudManager {
 		return null;
 	}
 
-	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes) {
-		Set<Attribute> attr = new HashSet<Attribute>();
+	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes, Object attributeMap) {
+		Set<Attribute> orgIdAttributeset = new HashSet<Attribute>();
 		String oID = logIntoService();
 		
 		// injection of organization ID into the set of attributes
 		if (oID !=null){
 			LOGGER.info("The organization ID is: {0}", oID);
 			
-			attr.add(AttributeBuilder.build("schema.type", "urn:scim:schemas:extension:enterprise:1.0")); // TODO schema may change 
-			attr.add(AttributeBuilder.build("schema.organization", oID));
-			
-			LOGGER.info("The finnal attribute set: {0}", attr);
+			orgIdAttributeset.add(AttributeBuilder.build("schema.type", "urn:scim:schemas:extension:enterprise:1.0")); // TODO schema may change 
+			orgIdAttributeset.add(AttributeBuilder.build("schema.organization", oID));
 		}else {
-			
+			orgIdAttributeset = null;
 			LOGGER.info("No organization ID specified in instance URL");
 		}
 		
 		JSONObject jsonObject = new JSONObject();
 		
-		jsonObject = objectTranslator.translateSetToJson(attributes, attr);
-		
+		if(attributeMap !=null && attributeMap instanceof HashMap<?, ?>){
+		jsonObject = objectTranslator.translateSetToJson(attributes, orgIdAttributeset,(Map<String, Map<String, Object>>) attributeMap);
+		}else{
+		jsonObject = objectTranslator.translateSetToJson(attributes, orgIdAttributeset);
+		}
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).toString();
 

@@ -33,7 +33,7 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
  
 public class Main {
 
-	public static final Uid TEST_UID = new Uid("00558000000W2vRAAS");
+	public static final Uid TEST_UID = new Uid("00558000001ImIRAA0");
 	public static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	
 	private static final Log LOGGER = Log.getLog(Main.class);
@@ -44,12 +44,13 @@ public class Main {
     	
     	ObjectClass userC = ObjectClass.ACCOUNT;
     	ObjectClass groupC = ObjectClass.GROUP;
+    	ObjectClass entitlement = new ObjectClass("/Entitlements");
     	
     	Uid newObject = null;
      	
     	EqualsFilter aeq = (EqualsFilter)FilterBuilder.equalTo(TEST_UID);
     	
-    /*TODO set for emails*/	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("emails.work.value","someone@hometest554xz.com"));
+    /*TODO set for emails*/	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("userName","newTest3@eastcubattor1.com"));
     	
     	ContainsFilter con = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","harryp0234"));
     	
@@ -74,10 +75,12 @@ public class Main {
     	ScimConnectorConfiguration conf= new ScimConnectorConfiguration();
     	ScimConnector conn = new ScimConnector();
     	conn.init(conf);
+    	conn.schema();
 
-    	newObject = conn.create(userC, classicBuilderTestUser(), null);
-
-    	//conn.executeQuery(groupC, null, handler, null);
+    	//newObject = conn.create(entitlement, classicBuilderTestUser(), null);
+    	
+    	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
+    	conn.executeQuery(userC, eq, handler, null);
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
     	//conn.delete(userC, TEST_UID, null);
     	//conn.schema();
@@ -213,7 +216,7 @@ public class Main {
            attr.add(AttributeBuilder.build("addresses.home.country", "SR"));
          */   
 
-           attr.add(AttributeBuilder.build("entitlements..value", "00e58000000qvhqAAA"));
+           attr.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
            
            //attr.add(AttributeBuilder.build("schemaExtension.type", "urn:scim:schemas:extension:enterprise:1.0"));  
           // attr.add(AttributeBuilder.build("schemaExtension.organization", "00D58000000YfgfEAC")); 

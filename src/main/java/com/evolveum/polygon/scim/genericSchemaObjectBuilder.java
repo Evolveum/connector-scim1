@@ -61,7 +61,7 @@ public class GenericSchemaObjectBuilder {
 		ObjectClass objectClass = new ObjectClass(objectTypeName);
 		builder.setType(objectClass.getObjectClassValue());
 	}
-	LOGGER.error("Schema: {0}",builder.build());
+	LOGGER.info("Schema: {0}",builder.build());
 		return builder.build();
 	}
 	

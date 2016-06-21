@@ -41,15 +41,12 @@ public class ScimSchemaParser {
 
 		hlAttributeMapList.add(hlAttributeMap);
 		attributeMapList.add(attributeMap);
-		LOGGER.info("The list of attribute maps: {0}", hlAttributeMapList);
-		LOGGER.info("The list of attribute maps: {0}", attributeMapList);
 	}
-
-
 
 	private void parseAttribute(JSONObject attribute) {
 		String attributeName = null;
 		Boolean isComplex = false;
+		Boolean isMultiValued = false;
 		Map<String, Object> attributeObjects = new HashMap<String, Object>();
 		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
 		for (String key : attribute.keySet()) {
@@ -67,6 +64,16 @@ public class ScimSchemaParser {
 						}
 					}
 				}
+				
+				for (String nameKey : attribute.keySet()) {
+					if (nameKey.intern() == "multiValued") {
+						isMultiValued = (Boolean)attribute.get(nameKey);
+						break;
+					}
+					
+				}
+				
+				
 				for (int i = 0; i < subAttribtues.length(); i++) {
 					JSONObject subAttribute = new JSONObject();
 					subAttribute = subAttribtues.getJSONObject(i);
@@ -75,6 +82,7 @@ public class ScimSchemaParser {
 				for (String typeKey : subAttributeMap.keySet()) {
 					if (typeKey.intern() == "type") {
 						hasTypeValues = true;
+						break;
 					}
 				}
 					if (hasTypeValues){
@@ -126,13 +134,23 @@ public class ScimSchemaParser {
 						}
 
 					}else{
-						
+						if (!isMultiValued){
 						for (String k : subAttributeMap.keySet()) {
 						StringBuilder complexAttrName = new StringBuilder(attributeName);
 						attributeMap.put(
 								complexAttrName.append(".").append(k).toString(),
 								(HashMap<String, Object>) subAttributeMap.get(k));
 						isComplex=true;
+					}}else {
+						for (String k : subAttributeMap.keySet()) {
+							StringBuilder complexAttrName = new StringBuilder(attributeName);
+							attributeMap.put(
+									complexAttrName.append(".").append("default").append(".").append(k).toString(),
+									(HashMap<String, Object>) subAttributeMap.get(k));
+							isComplex=true;
+					}
+						
+						
 					}}
 				
 			} else {
@@ -163,9 +181,7 @@ public class ScimSchemaParser {
 			if (key.intern() == "name") {
 				subAttributeName = subAttribute.get(key).toString();
 			} else {
-
 				attributeObjects.put(key, subAttribute.get(key));
-
 			}
 		}
 		subAttributeMap.put(subAttributeName, attributeObjects);

@@ -36,6 +36,9 @@ import org.identityconnectors.framework.spi.operations.SchemaOp;
 import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
+import org.json.JSONObject;
+
+import groovy.json.JsonBuilder;
 
 @ConnectorClass(displayNameKey = "ScimConnector.connector.display", configurationClass = ScimConnectorConfiguration.class)
 
@@ -45,6 +48,10 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	private ScimCrudManager crudManager;
 	private ScimSchemaParser schemaParser;
 	private Boolean genericsCanBeApplied = false;
+	
+	private static final String SCHEMAS ="Schemas/";
+	private static final String USERS ="Users";
+	private static final String GROUPS ="Groups";
 
 	private Schema schema = null;
 
@@ -93,13 +100,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					if (hlAtrribute!=null){
 
 
-								crudManager.deleteEntity(uid, "Users");
+								crudManager.deleteEntity(uid, USERS);
 					}
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 				Map<String, String> hlAtrribute;
 				hlAtrribute = fetchHighLevelAttributeMap("/Groups");
 					if (hlAtrribute!=null){
-								crudManager.deleteEntity(uid, "Groups");
+								crudManager.deleteEntity(uid, GROUPS);
 					}
 			} else {
 				
@@ -113,9 +120,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		} else {
 
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				crudManager.deleteEntity(uid, "Users");
+				crudManager.deleteEntity(uid, USERS);
 			} else if (ObjectClass.GROUP.equals(object)) {
-				crudManager.deleteEntity(uid, "Groups");
+				crudManager.deleteEntity(uid, GROUPS);
 			} else {
 				LOGGER.error("Provided object value is not valid: {0}", object);
 				throw new IllegalArgumentException("Object value not valid");
@@ -144,7 +151,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 						attributeMap=fetchAttributeMap(hlAtrribute,attributeMap);
 						
-								uid = crudManager.createEntity("Users", jsonDataBuilder, attr, attributeMap);
+								uid = crudManager.createEntity(USERS, jsonDataBuilder, attr, attributeMap);
 					}
 					
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
@@ -156,7 +163,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 							Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 							attributeMap=fetchAttributeMap(hlAtrribute,attributeMap);
 							
-								uid = crudManager.createEntity("Groups", jsonDataBuilder, attr, attributeMap);
+								uid = crudManager.createEntity(GROUPS, jsonDataBuilder, attr, attributeMap);
 
 						}
 
@@ -169,8 +176,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 						attributeMap=fetchAttributeMap(hlAtrribute,attributeMap);
 
-								String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements
-																						
+								String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements										
 
 								String endpointNamePart = endpointNameParts[1];
 
@@ -185,7 +191,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				ObjectTranslator userBuild = new UserDataBuilder();
 
-				Uid uid = crudManager.createEntity("Users/", userBuild, attr, null);
+				Uid uid = crudManager.createEntity(USERS, userBuild, attr, null);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -198,7 +204,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				GroupDataBuilder groupBuild = new GroupDataBuilder();
 
-				Uid uid = crudManager.createEntity("Groups/", groupBuild, attr, null);
+				Uid uid = crudManager.createEntity(GROUPS, groupBuild, attr, null);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -216,6 +222,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	@Override
 	public void dispose() {
 		configuration = null;
+		crudManager= null;
+		schemaParser= null;
 	}
 
 	@Override
@@ -229,7 +237,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		this.configuration = (ScimConnectorConfiguration) configuration;
 		this.configuration.validate();
 		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration) configuration);
-		this.schemaParser = crudManager.qeueryEntity("", "Schemas/");
+		this.schemaParser = crudManager.qeueryEntity("", SCHEMAS);
 	}
 
 	@Override
@@ -253,7 +261,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 						attributeMap=fetchAttributeMap(hlAtrribute,attributeMap);
 
-								uid = crudManager.updateEntity(id, "Users",
+								uid = crudManager.updateEntity(id, USERS,
 										genericDataBuilder.translateSetToJson(attr, null, attributeMap));
 					}
 
@@ -267,7 +275,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 						attributeMap=fetchAttributeMap(hlAtrribute,attributeMap);
 
-								uid = crudManager.updateEntity(id, "Groups",
+								uid = crudManager.updateEntity(id, GROUPS,
 										genericDataBuilder.translateSetToJson(attr, null, attributeMap));
 					}
 
@@ -294,10 +302,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				UserDataBuilder userJson = new UserDataBuilder();
+				JSONObject userJsonObject = new JSONObject();
+				
+				userJsonObject = userJson.translateSetToJson(attr, null);
 
-				Uid uid = crudManager.updateEntity(id, "Users", userJson.translateSetToJson(attr, null));
+				Uid uid = crudManager.updateEntity(id, USERS, userJsonObject);
 
-				LOGGER.info("Json response: {0}", userJson.translateSetToJson(attr, null).toString(1));
+				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -308,10 +319,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			} else if (ObjectClass.GROUP.equals(object)) {
 
 				GroupDataBuilder groupJson = new GroupDataBuilder();
+				JSONObject groupJsonObject = new JSONObject();
+				
+				groupJsonObject = groupJson.translateSetToJson(attr, null);
 
-				Uid uid = crudManager.updateEntity(id, "groups", groupJson.translateSetToJson(attr, null));
+				Uid uid = crudManager.updateEntity(id, GROUPS, groupJsonObject);
 
-				LOGGER.info("Json response: {0}", groupJson.translateSetToJson(attr, null).toString(1));
+				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -327,6 +341,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	@Override
 	public void test() {
+		
+		
+		
 		LOGGER.ok("in test method/test OK");
 	}
 
@@ -361,9 +378,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					if (query == null) {
 						
 						
-						crudManager.qeueryEntity("", "Users/", handler);
+						crudManager.qeueryEntity("", USERS, handler);
 
-					} else if (query instanceof EqualsFilter && qIsUid("Users/", query, handler)) {
+					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
 					} else {
 						Map<String, String> hlAtrribute;
@@ -375,9 +392,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					}
 				} else if (endpointName.intern() == ObjectClass.GROUP.getObjectClassValue().intern()) {
 					if (query == null) {
-						crudManager.qeueryEntity("", "Groups/", handler);
+						crudManager.qeueryEntity("", GROUPS, handler);
 
-					} else if (query instanceof EqualsFilter && qIsUid("Groups/", query, handler)) {
+					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
 
 					} else {
 						Map<String, String> hlAtrribute;
@@ -388,18 +405,20 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 						qIsFilter("Groups/", query, handler,attributeMap);
 					}
 				} else {
-					StringBuilder setEndpointFormat = new StringBuilder(endpointName);
+					String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements										
+					String endpointNamePart = endpointNameParts[1];
 					if (query == null) {
-						crudManager.qeueryEntity("", setEndpointFormat.append("/").toString(), handler);
+						crudManager.qeueryEntity("", endpointNamePart, handler);
 					} else if (query instanceof EqualsFilter
-							&& qIsUid(setEndpointFormat.append("/").toString(), query, handler)) {
+							&& qIsUid(endpointNamePart, query, handler)) {
 
 					} else {
 						Map<String, String> hlAtrribute;
 						hlAtrribute = fetchHighLevelAttributeMap(endpointName);
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 						attributeMap=fetchAttributeMap(hlAtrribute, attributeMap);
-
+						StringBuilder setEndpointFormat = new StringBuilder(endpointNamePart);
+						
 						qIsFilter(setEndpointFormat.append("/").toString(), query, handler,attributeMap);
 					}
 				}
@@ -409,8 +428,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 					if (query == null) {
 
-						crudManager.qeueryEntity("", "Users/", handler);
-					} else if (query instanceof EqualsFilter && qIsUid("Users/", query, handler)) {
+						crudManager.qeueryEntity("", USERS, handler);
+					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
 					} else {
 
@@ -418,8 +437,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					}
 				} else if (ObjectClass.GROUP.equals(objectClass)) {
 					if (query == null) {
-						crudManager.qeueryEntity("", "Groups/", handler);
-					} else if (query instanceof EqualsFilter && qIsUid("Groups/", query, handler)) {
+						crudManager.qeueryEntity("", GROUPS, handler);
+					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
 
 					} else {
 

@@ -33,10 +33,16 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
  
 public class Main {
 
-	public static final Uid TEST_UID = new Uid("00558000001ImIRAA0");
-	public static final ArrayList<ConnectorObject> result = new ArrayList<>();
-	
+	private static final Uid TEST_UID = new Uid("00558000001ImIRAA0");
+	private static final Uid BLANC_TEST_UID = null;
+	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	private static final Log LOGGER = Log.getLog(Main.class);
+	
+	
+	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
+	private static final ObjectClass groupClass = ObjectClass.GROUP;
+	private static final ObjectClass entitlementClass = new ObjectClass("/Entitlements");
+	
 	
     public static void main(String[] args) {
     	
@@ -46,41 +52,16 @@ public class Main {
     	ObjectClass groupC = ObjectClass.GROUP;
     	ObjectClass entitlement = new ObjectClass("/Entitlements");
     	
-    	Uid newObject = null;
-     	
-    	EqualsFilter aeq = (EqualsFilter)FilterBuilder.equalTo(TEST_UID);
-    	
-    /*TODO set for emails*/	EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("userName","newTest3@eastcubattor1.com"));
-    	
-    	ContainsFilter con = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","harryp0234"));
-    	
-    	ContainsFilter ct = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","aeoinoaiedoiaedionasinad"));
-    	
-    
-    	
-    	OrFilter orf = (OrFilter) FilterBuilder.or(eq, ct);
-    	
-    	AndFilter andf = (AndFilter) FilterBuilder.and(con, con);
-    	
-    	NotFilter not= (NotFilter)FilterBuilder.not(eq);
-    
-    	
-    	//System.out.println(eq.);
-    	
-    	Attribute attribute = ((EqualsFilter) eq).getAttribute();
-    	
-    	String s = AttributeUtil.getStringValue(attribute);
     	
     	
-    	ScimConnectorConfiguration conf= new ScimConnectorConfiguration();
-    	ScimConnector conn = new ScimConnector();
-    	conn.init(conf);
-    	conn.schema();
+    	listAllfromResourcesTest();
 
     	//newObject = conn.create(entitlement, classicBuilderTestUser(), null);
     	
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
-    	conn.executeQuery(userC, null, handler, null);
+    	
+    	//conn.executeQuery(userC, null, handler, null);
+    	
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
     	//conn.delete(userC, TEST_UID, null);
     	//conn.schema();
@@ -186,7 +167,7 @@ public class Main {
         return attr;
     }
     
-    private static Set<Attribute> classicBuilderTestUser(){
+    private static Set<Attribute> BuilderTestUser(){
     	
 
     	
@@ -232,7 +213,9 @@ public class Main {
     }
     
     
-private static Set<Attribute> classicBuilderTestGroup(){
+
+    
+private static Set<Attribute> BuilderTestGroup(){
     	
 
     	
@@ -257,7 +240,81 @@ private static Set<Attribute> classicBuilderTestGroup(){
 		}
 	};
 	
+	private static  void listAllfromResourcesTest(){
+		ScimConnector conn = new ScimConnector();
+
+		initConnector(conn);
+    	
+    	conn.executeQuery(userClass, null, handler, null);
+    	conn.executeQuery(groupClass, null, handler, null);
+    	conn.executeQuery(entitlementClass, null, handler, null);
+	}
 	
+	private static  void deleteResourceTest(){
+		ScimConnector conn = new ScimConnector();
+
+		initConnector(conn);
+    	
+	    conn.delete(userClass, BLANC_TEST_UID, null);
+	    conn.delete(groupClass, BLANC_TEST_UID, null);
+	    conn.delete(entitlementClass, BLANC_TEST_UID, null);
+	    
+	}
+	
+	private static  void createResourceTest(){
+		ScimConnector conn = new ScimConnector();
+
+		initConnector(conn);
+    	
+	  conn.create(userClass, BuilderTestUser(), null);
+	  conn.create(groupClass, BuilderTestGroup(), null);
+	   //conn.create(entitlementClass, attr, null);
+	    
+	}
+	private static  void updateResourceTest(){
+		ScimConnector conn = new ScimConnector();
+
+		initConnector(conn);
+    	
+	 conn.update(userClass,BLANC_TEST_UID ,BuilderTestUser(), null);
+	 conn.update(groupClass,BLANC_TEST_UID,BuilderTestGroup(), null);
+	 //  conn.update(entitlementClass, ,attr, null);
+	    
+	}
+	
+	private static  void filterMethodsTest(){
+		ScimConnector conn = new ScimConnector();
+
+		ContainsFilter conrainsFilterTest = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","harryp0234"));
+		EqualsFilter equalsFilterTest = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("userName","newTest3@eastcubattor1.com"));
+
+    	//OrFilter orFilterTest = (OrFilter) FilterBuilder.or(eq, ct);
+    	
+    	//AndFilter andFilterTest = (AndFilter) FilterBuilder.and(con, con);
+    	
+    	//NotFilter notFilterTest= (NotFilter)FilterBuilder.not(eq);
+		
+		//StartsWithFilter startsWithFilterTest = (StartsWithFilter) FilterBuilder.startsWith(AttributeBuilder.build(""));
+		
+		//EndsWithFilter endsWithFilter = (EndsWithFilter)FilterBuilder.endsWith(AttributeBuilder.build(""));
+		
+		//EndsWithFilter endsWithFilter = (EndsWithFilter)FilterBuilder.endsWith(AttributeBuilder.build(""));
+		
+		initConnector(conn);
+		
+		conn.executeQuery(userClass, conrainsFilterTest, handler, null);
+    	conn.executeQuery(groupClass, equalsFilterTest, handler, null);
+	}
+	
+	
+	private static ScimConnector initConnector(ScimConnector conn){
+		
+		ScimConnectorConfiguration conf= new ScimConnectorConfiguration();
+    	conn.init(conf);
+    	conn.schema();
+    	
+    	return conn;
+	}
     
     }
 

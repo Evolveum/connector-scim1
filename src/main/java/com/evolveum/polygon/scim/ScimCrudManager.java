@@ -162,7 +162,7 @@ public class ScimCrudManager {
 			q = (String)queuery;
 		}
 		
-		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append(q).toString();
+		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(q).toString();
 		LOGGER.info("qeury url: {0}", uri);
 		HttpGet httpGet = new HttpGet(uri);
 		httpGet.addHeader(oauthHeader);
@@ -367,7 +367,7 @@ public class ScimCrudManager {
 		jsonObject = objectTranslator.translateSetToJson(attributes, orgIdAttributeset);
 		}
 		HttpClient httpClient = HttpClientBuilder.create().build();
-		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).toString();
+		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").toString();
 
 		try {
 			LOGGER.info("New user jsonObj: {0}", jsonObject);

@@ -80,7 +80,7 @@ public class Main {
     	//newObject = conn.create(entitlement, classicBuilderTestUser(), null);
     	
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
-    	conn.executeQuery(userC, eq, handler, null);
+    	conn.executeQuery(userC, null, handler, null);
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
     	//conn.delete(userC, TEST_UID, null);
     	//conn.schema();
@@ -248,7 +248,7 @@ private static Set<Attribute> classicBuilderTestGroup(){
     	return attr;
     }
     
-    static ResultsHandler handler= new ResultsHandler() {
+ public static ResultsHandler handler= new ResultsHandler() {
 		
 		@Override
 		public boolean handle(ConnectorObject connectorObject) {

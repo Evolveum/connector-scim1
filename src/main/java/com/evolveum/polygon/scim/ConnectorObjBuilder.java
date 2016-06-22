@@ -1,7 +1,11 @@
 package com.evolveum.polygon.scim;
 
+import java.awt.List;
+import java.awt.font.MultipleMaster;
 import java.net.ConnectException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.identityconnectors.common.CollectionUtil;
@@ -24,7 +28,7 @@ public class ConnectorObjBuilder {
 
 	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
 	
-	public ConnectorObject buildConnectorObject(JSONObject jsonObject) throws ConnectException{
+	public ConnectorObject buildConnectorObject(JSONObject jsonObject, String resourceEndPoint) throws ConnectException{
 		
 		LOGGER.info("Building the connector object from provided json");
 		
@@ -38,11 +42,18 @@ public class ConnectorObjBuilder {
 
 		cob.setUid(jsonObject.getString("id"));
 		
-		if(!jsonObject.has("userName")){
-			cob.setName(jsonObject.getString("displayName"));
-			cob.setObjectClass(ObjectClass.GROUP);
+		if("Users".equals(resourceEndPoint)){
+			cob.setName(jsonObject.getString("userName"));
+		}else if ("Groups".equals(resourceEndPoint)) {
+		
+		cob.setName(jsonObject.getString("displayName"));
+		cob.setObjectClass(ObjectClass.GROUP);
 		}else{
-		cob.setName(jsonObject.getString("userName"));
+			cob.setName(jsonObject.getString("displayName"));
+			StringBuilder objectClassNameBuilder = new StringBuilder("/").append(resourceEndPoint);
+			ObjectClass objectClass = new ObjectClass(resourceEndPoint);;
+			cob.setObjectClass(objectClass);
+			
 		}
 		for(String key: jsonObject.keySet()){
 			Object attribute =jsonObject.get(key);
@@ -57,14 +68,14 @@ public class ConnectorObjBuilder {
 					
 					JSONArray jArray = (JSONArray) attribute;
 					
+					Map<String, Collection<String>> attributeMap= new HashMap<String, Collection<String>>();
+					Collection<String> list = new ArrayList<String>();
 						for(Object o: jArray){
 							StringBuilder objectKeyBilder = new StringBuilder(key.intern());
 							String objectKeyName = "";
 							if(o instanceof JSONObject){
 								for(String s: ((JSONObject) o).keySet()){
 									if(s.intern() == "type"){
-										
-										
 									objectKeyName = objectKeyBilder.append(".").append(((JSONObject) o).get(s)).toString();
 									objectKeyBilder.delete(0, objectKeyBilder.length());
 										break;
@@ -78,14 +89,28 @@ public class ConnectorObjBuilder {
 									if(objectKeyName !=""){
 									objectKeyBilder= objectKeyBilder.append(objectKeyName).append(".").append(s.intern());
 									}else{
-										objectKeyName= objectKeyBilder.toString();
+										objectKeyName= objectKeyBilder.append(".").append("default").toString();
 										objectKeyBilder= objectKeyBilder.append(".").append(s.intern());
 									}
-								
-								cob.addAttribute(objectKeyBilder.toString(), ((JSONObject) o).get(s));	
-								objectKeyBilder.delete(0, objectKeyBilder.length());
+									
+									if(list.isEmpty()){
+									list.add(((JSONObject) o).getString(s).toString());
+									attributeMap.put(objectKeyBilder.toString(), list);
+									}else{
+										if(attributeMap.containsKey(objectKeyBilder.toString())){
+											list.add(((JSONObject) o).getString(s).toString());
+										}
+										
+									}
+									
+									//cob.addAttribute(objectKeyBilder.toString(), ((JSONObject) o).getString(s));	
+									objectKeyBilder.delete(0, objectKeyBilder.length());
+									
+									
 								}
 							}
+								
+								//
 							
 						}else{
 							objectKeyName = objectKeyBilder.append(".").append(o.toString()).toString();
@@ -93,6 +118,10 @@ public class ConnectorObjBuilder {
 							
 						}
 							}
+						
+						//test 
+							System.out.println(list);
+							//cob.addAttribute("members.User.value", list);
 
 				} else if(attribute instanceof JSONObject){
 					for(String s: ((JSONObject) attribute).keySet()){

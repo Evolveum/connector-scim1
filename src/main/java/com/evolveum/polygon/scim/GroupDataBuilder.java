@@ -116,6 +116,8 @@ public class GroupDataBuilder implements ObjectTranslator {
 							if(finalKey[1].intern().equals(typeName)){
 								multivalueObject.put(finalKey[2].intern(), AttributeUtil.getSingleValue(l));
 							}	
+						}if (!secondKeyPart[1].intern().equals("")&&!secondKeyPart[1].intern().equals("default") ) {
+							multivalueObject.put("type", secondKeyPart[1].intern());
 						}
 						jArray.put(multivalueObject);
 					}
@@ -136,15 +138,15 @@ public class GroupDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(Name.INFO);
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").setRequired(true).build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members..value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members..display").setRequired(false).build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.display").setRequired(false).build());
 	
 		return builder.build();
 	}
 	@Override
 	public JSONObject translateSetToJson(Set<Attribute> imattributes, Set<Attribute> connattributes,
 			Map<String, Map<String, Object>> attributeMap) {
-		// TODO Auto-generated method stub
+		// Method not implemented in this class.
 		return null;
 	}
 

@@ -84,7 +84,7 @@ public class ScimCrudManager {
 					"An protocol exception has ocoured while processing the http response to the login request. Possible mismatch in interpretation of the HTTP specification: {0}",
 					e);
 
-			throw new ConnectionFailedException(e);
+			throw new ConnectionFailedException("An protocol exception has ocoured while processing the http response to the login request. Possible mismatch in interpretation of the HTTP specification",e);
 
 		} catch (IOException ioException) {
 
@@ -92,7 +92,7 @@ public class ScimCrudManager {
 					ioException.getLocalizedMessage());
 			LOGGER.info("An error ocoured while processing the queuery http response to the login request : {0}",
 					ioException);
-			throw new ConnectorIOException(ioException);
+			throw new ConnectorIOException("An error ocoured while processing the queuery http response to the login request",ioException);
 		}
 
 		final int statusCode = response.getStatusLine().getStatusCode();
@@ -105,7 +105,7 @@ public class ScimCrudManager {
 				LOGGER.error("An exception has ocoured while parsing the http response to the login request: {0}",
 						e.getLocalizedMessage());
 				LOGGER.info("An exception has ocoured while parsing the http response to the login request: {0}", e);
-				throw new ConnectorIOException(e);
+				throw new ConnectorIOException("An exception has ocoured while parsing the http response to the login request.",e);
 			}
 		}
 
@@ -118,7 +118,7 @@ public class ScimCrudManager {
 					ioException.getLocalizedMessage());
 			LOGGER.info("An exception has ocoured while parsing the http response to the login request: {0}",
 					ioException);
-			throw new ConnectorIOException(ioException);
+			throw new ConnectorIOException("An exception has ocoured while parsing the http response to the login request",ioException);
 		}
 		JSONObject jsonObject = null;
 		String loginAccessToken = null;
@@ -141,7 +141,7 @@ public class ScimCrudManager {
 			LOGGER.info(
 					"An exception has ocoured while setting the \"jsonObject\". Ocourance while processing the http response to the login request: {0}",
 					jsonException);
-			throw new ConnectorException(jsonException);
+			throw new ConnectorException("An exception has ocoured while setting the \"jsonObject\".",jsonException);
 		}
 		scimBaseUri = new StringBuilder(loginInstanceUrl).append(conf.getEndpoint()).append(conf.getVersion())
 				.toString();
@@ -185,7 +185,7 @@ public class ScimCrudManager {
 					if (queuery instanceof Uid){
 						loginInstance.releaseConnection();
 						ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
-						resultHandler.handle(objBuilder.buildConnectorObject(jsonObject));
+						resultHandler.handle(objBuilder.buildConnectorObject(jsonObject,resourceEndPoint));
 
 					} else{						
 						for(int i=0 ; i<jsonObject.getJSONArray("Resources").length(); i++){
@@ -212,7 +212,7 @@ public class ScimCrudManager {
 									
 									ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 									
-									ConnectorObject conOb = objBuilder.buildConnectorObject(fullResourcejson);
+									ConnectorObject conOb = objBuilder.buildConnectorObject(fullResourcejson,resourceEndPoint);
 									
 									resultHandler.handle(conOb);
 									
@@ -223,7 +223,7 @@ public class ScimCrudManager {
 									LOGGER.info("Connection released");
 									onNoSuccess(resourceResponse, statusCode, responseString, resourceUri);
 								}
-								//TODO check if good condition for schema identification 
+								 
 							}
 								} else {
 								LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
@@ -252,7 +252,7 @@ public class ScimCrudManager {
 					LOGGER.info(
 							"An exception has ocoured while setting the variable \"jsonObject\". Ocourance while processing the http response to the queuey request for: {1}, exception message: {0}",
 							jsonException, q);
-					throw new ConnectorException(jsonException);
+					throw new ConnectorException("An exception has ocoured while setting the variable \"jsonObject\".",jsonException);
 				}
 
 			}else{
@@ -278,7 +278,7 @@ public class ScimCrudManager {
 			LOGGER.info(
 					"An error ocoured while processing the queuery http response. Ocourance while processing the http response to the queuey request for: {1}, exception message: {0}",
 					e, q);
-			throw new ConnectorIOException(e);
+			throw new ConnectorIOException("An error ocoured while processing the queuery http response.",e);
 		}
 
 		loginInstance.releaseConnection();
@@ -330,17 +330,29 @@ public class ScimCrudManager {
 					
 				}
 				
+			}else {
+				LOGGER.warn("Query for {1} was unsuccessful. Status code returned is {0}", statusCode, resourceEndPoint);
+				LOGGER.warn("No definition for provided shcemas was found, the connector will switch to default core schema configuration!");
+				return null;
 			}
 		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error(
+					"An protocol exception has ocoured while in the process of querying the provider Schemas resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
+					e.getLocalizedMessage());
+			LOGGER.info(
+					"An protocol exception has ocoured while in the process of querying the provider Schemas resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
+					e);
+			throw new ConnectorException("An protocol exception has ocoured while in the process of querying the provider Schemas resource object. Possible mismatch in interpretation of the HTTP specification",e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error(
+					"An error has ocoured while processing the http response. Ocourance in the process of querying the provider Schemas resource object: {0}",
+					e.getLocalizedMessage());
+			LOGGER.info(
+					"An error has ocoured while processing the http response. Ocourance in the process of querying the provider Schemas resource object: {0}",
+					e);
+
+			throw new ConnectorIOException("An error has ocoured while processing the http response. Ocourance in the process of querying the provider Schemas resource object",e);
 		}
-		
-		
-		//TODO add exception
 		return null;
 	}
 
@@ -356,7 +368,7 @@ public class ScimCrudManager {
 			orgIdAttributeset.add(AttributeBuilder.build("schema.organization", oID));
 		}else {
 			orgIdAttributeset = null;
-			LOGGER.info("No organization ID specified in instance URL");
+			LOGGER.warn("No organization ID specified in instance URL");
 		}
 		
 		JSONObject jsonObject = new JSONObject();
@@ -370,7 +382,7 @@ public class ScimCrudManager {
 		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").toString();
 
 		try {
-			LOGGER.info("New user jsonObj: {0}", jsonObject);
+			LOGGER.info("New json object: {0}", jsonObject);
 
 			HttpPost httpPost = new HttpPost(uri);
 			httpPost.addHeader(oauthHeader);
@@ -412,17 +424,17 @@ public class ScimCrudManager {
 				LOGGER.info(
 						"An protocol exception has ocoured while in the process of creating a new resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
 						e);
-				throw new ConnectionFailedException(e);
+				throw new ConnectionFailedException("An protocol exception has ocoured while in the process of creating a new resource object. Possible mismatch in interpretation of the HTTP specification: {0}",e);
 
 			} catch (IOException e) {
 				LOGGER.error(
-						"An error has ocoured while processing the http response. Ocourance in the process of creating a new resource object: : {0}",
+						"An error has ocoured while processing the http response. Ocourance in the process of creating a new resource object: {0}",
 						e.getLocalizedMessage());
 				LOGGER.info(
-						"An error has ocoured while processing the http response. Ocourance in the process of creating a new resource object: : {0}",
+						"An error has ocoured while processing the http response. Ocourance in the process of creating a new resource object: {0}",
 						e);
 
-				throw new ConnectorIOException(e);
+				throw new ConnectorIOException("An error has ocoured while processing the http response. Ocourance in the process of creating a new resource object",e);
 			}
 
 		} catch (JSONException e) {
@@ -434,13 +446,13 @@ public class ScimCrudManager {
 					"An exception has ocoured while processing an json object. Ocourance in the process of creating a new resource object: {0}",
 					e);
 
-			throw new ConnectorException(e);
+			throw new ConnectorException("An exception has ocoured while processing an json object. Ocourance in the process of creating a new resource objec",e);
 		} catch (UnsupportedEncodingException e1) {
 			LOGGER.error("Unsupported encoding: {0}. Ocourance in the process of creating a new resource object ",
 					e1.getLocalizedMessage());
 			LOGGER.info("Unsupported encoding: {0}. Ocourance in the process of creating a new resource object ", e1);
 
-			throw new ConnectorException(e1);
+			throw new ConnectorException("Unsupported encoding, ocourance in the process of creating a new resource object ",e1);
 		}
 		loginInstance.releaseConnection();
 		throw new UnknownUidException("No uid returned in the process of resource creation");
@@ -489,7 +501,7 @@ public class ScimCrudManager {
 					e.getMessage());
 			LOGGER.info("Unsupported encoding: {0}. Ocourance in the process of updating a resource object ", e);
 
-			throw new ConnectorException(e);
+			throw new ConnectorException("Unsupported encoding, ocourance in the process of updating a resource object ",e);
 
 		} catch (JSONException e) {
 
@@ -500,7 +512,7 @@ public class ScimCrudManager {
 					"An exception has ocoured while processing an json object. Ocourance in the process of updating a resource object: {0}",
 					e);
 
-			throw new ConnectorException(e);
+			throw new ConnectorException("An exception has ocoured while processing an json object,ocourance in the process of updating a resource object", e);
 		} catch (ClientProtocolException e) {
 			LOGGER.error(
 					"An protocol exception has ocoured while in the process of updating a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
@@ -508,17 +520,17 @@ public class ScimCrudManager {
 			LOGGER.info(
 					"An protocol exception has ocoured while in the process of updating a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
 					e);
-			throw new ConnectionFailedException(e);
+			throw new ConnectionFailedException("An protocol exception has ocoured while in the process of updating a resource object, Possible mismatch in the interpretation of the HTTP specification.",e);
 		} catch (IOException e) {
 
 			LOGGER.error(
-					"An error has ocoured while processing the http response. Ocourance in the process of updating a resource object: : {0}",
+					"An error has ocoured while processing the http response. Ocourance in the process of updating a resource object: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An error has ocoured while processing the http response. Ocourance in the process of creating a resource object: : {0}",
+					"An error has ocoured while processing the http response. Ocourance in the process of creating a resource object: {0}",
 					e);
 
-			throw new ConnectorIOException(e);
+			throw new ConnectorIOException("An error has ocoured while processing the http response. Ocourance in the process of creating a resource object",e);
 
 		}
 		loginInstance.releaseConnection();
@@ -565,7 +577,7 @@ public class ScimCrudManager {
 			LOGGER.info(
 					"An protocol exception has ocoured while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
 					e);
-			throw new ConnectionFailedException(e);
+			throw new ConnectionFailedException("An protocol exception has ocoured while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification.",e);
 		} catch (IOException e) {
 			LOGGER.error(
 					"An error has ocoured while processing the http response. Ocourance in the process of deleting a resource object: : {0}",
@@ -574,7 +586,7 @@ public class ScimCrudManager {
 					"An error has ocoured while processing the http response. Ocourance in the process of deleting a resource object: : {0}",
 					e);
 
-			throw new ConnectorIOException(e);
+			throw new ConnectorIOException("An error has ocoured while processing the http response. Ocourance in the process of deleting a resource object.",e);
 		}
 	}
 

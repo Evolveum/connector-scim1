@@ -355,7 +355,7 @@ public class UserDataBuilder implements ObjectTranslator{
 	@Override
 	public JSONObject translateSetToJson(Set<Attribute> imattributes, Set<Attribute> connattributes,
 			Map<String, Map<String, Object>> attributeMap) {
-		// TODO Auto-generated method stub
+		// Method not implemented in this class.
 		return null;
 	}
 }

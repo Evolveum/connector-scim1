@@ -245,9 +245,9 @@ private static Set<Attribute> BuilderTestGroup(){
 
 		initConnector(conn);
     	
-    	conn.executeQuery(userClass, null, handler, null);
+    	//conn.executeQuery(userClass, null, handler, null);
     	conn.executeQuery(groupClass, null, handler, null);
-    	conn.executeQuery(entitlementClass, null, handler, null);
+		//conn.executeQuery(entitlementClass, null, handler, null);
 	}
 	
 	private static  void deleteResourceTest(){

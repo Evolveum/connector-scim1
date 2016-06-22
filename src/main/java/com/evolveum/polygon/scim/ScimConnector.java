@@ -38,7 +38,6 @@ import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 import org.json.JSONObject;
 
-import groovy.json.JsonBuilder;
 
 @ConnectorClass(displayNameKey = "ScimConnector.connector.display", configurationClass = ScimConnectorConfiguration.class)
 
@@ -360,6 +359,10 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	@Override
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
+		
+		
+		// TODO test log
+		LOGGER.error("Options: {0}", options);
 
 		LOGGER.info("The filter which is beaing processed: {0}", query);
 

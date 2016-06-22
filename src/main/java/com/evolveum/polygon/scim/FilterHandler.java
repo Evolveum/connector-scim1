@@ -187,7 +187,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 	@Override
 	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
-		// TODO Auto-generated method stub
+		// Filter method not implemented.
+		LOGGER.error("Filter method not implemented: ContainsAllValuesFilter ");
 		return null;
 	}
 

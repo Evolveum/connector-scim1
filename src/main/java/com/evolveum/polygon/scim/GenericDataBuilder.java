@@ -203,7 +203,7 @@ public class GenericDataBuilder implements ObjectTranslator{
 
 	@Override
 	public JSONObject translateSetToJson(Set<Attribute> imattributes, Set<Attribute> connattributes) {
-		// TODO Auto-generated method stub
+		// // method not implemented in this class
 		return null;
 	}
 }

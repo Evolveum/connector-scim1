@@ -43,7 +43,7 @@ public class GenericSchemaObjectBuilder {
 							 }
 						break;
 					}else {
-						keyChecker(infoBuilder, schemaAttributeMap, mapAttributeKey);
+						keyChecker(infoBuilder, schemaAttributeMap, mapAttributeKey,key);
 					}
 						
 				}
@@ -58,14 +58,18 @@ public class GenericSchemaObjectBuilder {
 		builder.setType(ObjectClass.GROUP_NAME);
 	}
 	else {
-		ObjectClass objectClass = new ObjectClass(objectTypeName);
+		String [] splitTypeMame = objectTypeName.split("\\/");
+		
+		ObjectClass objectClass = new ObjectClass(splitTypeMame[1]);
+		//System.out.println(objectClass.getDisplayNameKey());
+		//System.out.println(objectClass.getObjectClassValue());
 		builder.setType(objectClass.getObjectClassValue());
 	}
 	LOGGER.info("Schema: {0}",builder.build());
 		return builder.build();
 	}
 	
-	private AttributeInfoBuilder keyChecker(AttributeInfoBuilder infoBuilder, Map<String, Object> schemaAttributeMap, String mapAttributeKey){
+	private AttributeInfoBuilder keyChecker(AttributeInfoBuilder infoBuilder, Map<String, Object> schemaAttributeMap, String mapAttributeKey, String key){
 
 		
 			if(mapAttributeKey.intern() == "readOnly"){
@@ -112,6 +116,12 @@ public class GenericSchemaObjectBuilder {
 			}
 			else if(mapAttributeKey.intern() == "multiValued"){
 				infoBuilder.setMultiValued(((Boolean)schemaAttributeMap.get(mapAttributeKey)));
+			}
+		
+			// TODO test delete
+			if("members.User.value".equals(key)|| "members.Group.value".equals(key)){
+				
+				infoBuilder.setMultiValued(true);
 			}
 		
 		return infoBuilder;

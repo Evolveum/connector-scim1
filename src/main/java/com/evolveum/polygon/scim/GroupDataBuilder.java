@@ -24,10 +24,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
 
-
-
-	///TODO problem with adding multiple members into group, no way to identify the relationship between an object and its attributes
-
+		// TODO define new defaut dictionary
 	static {
 		objectNameDictionary.put("displayName","displayName");
 

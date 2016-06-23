@@ -77,38 +77,14 @@ public class GenericSchemaObjectBuilder {
 				infoBuilder.setCreateable((!(Boolean)schemaAttributeMap.get(mapAttributeKey)));
 			}
 			else if(mapAttributeKey.intern() == "type"){
-				
-				/*
-				 * String.class
-				 * long.class
-				 * Long.class
-				 * char.class
-				 * Character.class
-				 * double.class
-				 * Double.class
-				 * float.class
-				 * Float.class
-				 * int.class
-				 * Integer.class
-				 * boolean.class
-				 * Boolean.class
-				 * byte.class
-				 * Byte.class
-				 * byte[].class
-				 * BigDecimal.class
-				 * BigInteger.class
-				 * Map.class
-				 * */
-				// TODO question
-				// type "complex" and "datetime" not supported
-				
+
 				if(schemaAttributeMap.get(mapAttributeKey).toString().intern() == "string"){
 					
 					infoBuilder.setType(String.class);
 				}else if ( schemaAttributeMap.get(mapAttributeKey).toString().intern() == "boolean"){
 				
 					infoBuilder.setType(Boolean.class);
-				} // TODO find how to work with "complex" type
+				} 
 				
 			}
 			else if(mapAttributeKey.intern() == "required"){

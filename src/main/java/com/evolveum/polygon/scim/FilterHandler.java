@@ -437,8 +437,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 	private StringBuilder processArrayQ(AttributeFilter filter, String p){
 		
-		//TODO question // does this follow the scim specs ? email.tye eq work and email.value eq someone@someplace.com
-		
 		StringBuilder processedString = new StringBuilder();
 		
 		if (filter.getName().contains(".")) {

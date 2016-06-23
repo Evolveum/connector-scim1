@@ -359,11 +359,14 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	@Override
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
+		StringBuilder queryUriSnippet = new StringBuilder("");
+		if(options != null){
+			queryUriSnippet=processOptions(options);
+		}
 		
-		
-		// TODO test log
-		LOGGER.error("Options: {0}", options);
-
+	
+		LOGGER.error("The operation options: {0}", options.getPagedResultsOffset());
+		LOGGER.error("The operation options: {0}", options.getPageSize());
 		LOGGER.info("The filter which is beaing processed: {0}", query);
 
 		if (handler == null) {
@@ -380,8 +383,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				if (endpointName.intern() == ObjectClass.ACCOUNT.getObjectClassValue().intern()) {
 					if (query == null) {
 						
-						
-						crudManager.qeueryEntity("", USERS, handler);
+						crudManager.qeueryEntity(queryUriSnippet.toString(), USERS, handler);
 
 					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
@@ -391,7 +393,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 						attributeMap=fetchAttributeMap(hlAtrribute, attributeMap);
 						
-						qIsFilter("Users/", query, handler,attributeMap);
+						qIsFilter("Users", query, handler, attributeMap, queryUriSnippet);
 					}
 				} else if (endpointName.intern() == ObjectClass.GROUP.getObjectClassValue().intern()) {
 					if (query == null) {
@@ -405,7 +407,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 						attributeMap=fetchAttributeMap(hlAtrribute, attributeMap);
 						
-						qIsFilter("Groups/", query, handler,attributeMap);
+						qIsFilter("Groups", query, handler, attributeMap,queryUriSnippet);
 					}
 				} else {
 					String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements										
@@ -422,7 +424,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 						attributeMap=fetchAttributeMap(hlAtrribute, attributeMap);
 						StringBuilder setEndpointFormat = new StringBuilder(endpointNamePart);
 						
-						qIsFilter(setEndpointFormat.append("/").toString(), query, handler,attributeMap);
+						qIsFilter(setEndpointFormat.toString(), query, handler,attributeMap,queryUriSnippet);
 					}
 				}
 			} else {
@@ -435,8 +437,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
 					} else {
-
-						qIsFilter("Users/", query, handler,null);
+						qIsFilter("Users", query, handler, null,queryUriSnippet);
 					}
 				} else if (ObjectClass.GROUP.equals(objectClass)) {
 					if (query == null) {
@@ -445,7 +446,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 					} else {
 
-						qIsFilter("Groups/", query, handler, null);
+						qIsFilter("Groups", query, handler, null, queryUriSnippet);
 					}
 				} else {
 					LOGGER.error("The provided objectClass is not supported: {0}", objectClass.getDisplayNameKey());
@@ -477,13 +478,11 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			return false;
 	}
 
-	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler,Map<String,Map<String,Object>> schemaMap) {
+	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler,Map<String,Map<String,Object>> schemaMap, StringBuilder queryUriSnippet) {
 
-		StringBuilder build = query.accept(new FilterHandler(schemaMap), endPoint);
-
-		build.insert(0, "?filter=");
-		crudManager.qeueryEntity(build.toString(), endPoint, resultHandler);
-
+		queryUriSnippet.append("&filter=").append(query.accept(new FilterHandler(schemaMap), endPoint));
+		
+		crudManager.qeueryEntity(queryUriSnippet.toString(), endPoint, resultHandler);
 	}
 
 	private SchemaBuilder buildSchemas(SchemaBuilder schemaBuilder) {
@@ -524,6 +523,26 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				}
 			}
 	
+		return null;
+	}
+	
+	//TODO
+	/*
+	ERROR (com.evolveum.polygon.scim.ScimConnector): method: null msg:Options: OperationOptions: {ALLOW_PARTIAL_ATTRIBUTE_VALUES:true,PAGED_RESULTS_OFFSET:21,PAGE_SIZE:20}
+	2016-06-23 13:13:54,924 [] [Thread-23] ERROR (com.evolveum.polygon.scim.ScimConnector): method: null msg:Options atributes: {0}
+	2016-06-23 13:13:54,924 [] [Thread-23] ERROR (com.evolveum.polygon.scim.ScimConnector): method: null msg:Options pagesize: 20
+	2016-06-23 13:13:54,924 [] [Thread-23] ERROR (com.evolveum.polygon.scim.ScimConnector): method: null msg:Options options: {ALLOW_PARTIAL_ATTRIBUTE_VALUES=true, PAGED_RESULTS_OFFSET=21, PAGE_SIZE=20}
+	*/
+	private StringBuilder processOptions(OperationOptions options){
+		Integer pageSize = options.getPageSize();
+		Integer PagedResultsOffset = options.getPagedResultsOffset();
+		if(pageSize != null && PagedResultsOffset != null){
+			//?pageSize=25&pageStartIndex=50
+			StringBuilder queryBuilder = new StringBuilder("?startIndex=").append(PagedResultsOffset).append("&").append("count=").append(pageSize);
+			// TODO question maximum results per page ? 
+			
+			return queryBuilder;
+		}
 		return null;
 	}
 	

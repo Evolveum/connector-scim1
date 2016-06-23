@@ -16,6 +16,7 @@ import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AndFilter;
@@ -53,9 +54,20 @@ public class Main {
     	ObjectClass entitlement = new ObjectClass("/Entitlements");
     	
     	
-    	
-    	listAllfromResourcesTest();
+        
+        Map<String, Object> operationOptions = new HashMap<String, Object>();
 
+        operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
+        operationOptions.put("PAGED_RESULTS_OFFSET", 4);
+        operationOptions.put("PAGE_SIZE", 6);
+        
+        
+		OperationOptions options = new OperationOptions(operationOptions );
+		
+    	
+    	listAllfromResourcesTest(options);
+    	filterMethodsTest(options);
+    	
     	//newObject = conn.create(entitlement, classicBuilderTestUser(), null);
     	
     	//conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
@@ -100,6 +112,7 @@ public class Main {
         Map<String, Object> entitlementAttribute1 = new HashMap<String, Object>();
         Map<String, Object> entitlementAttribute2 = new HashMap<String, Object>();
         
+ 
         //Name
         names.put("formatted", "Harry Potter");
         names.put("familyName", "Potter");
@@ -240,12 +253,12 @@ private static Set<Attribute> BuilderTestGroup(){
 		}
 	};
 	
-	private static  void listAllfromResourcesTest(){
+	private static  void listAllfromResourcesTest(OperationOptions options){
 		ScimConnector conn = new ScimConnector();
 
 		initConnector(conn);
     	
-    	conn.executeQuery(userClass, null, handler, null);
+    	conn.executeQuery(userClass, null, handler, options);
     	//conn.executeQuery(groupClass, null, handler, null);
 		//conn.executeQuery(entitlementClass, null, handler, null);
 	}
@@ -282,12 +295,14 @@ private static Set<Attribute> BuilderTestGroup(){
 	    
 	}
 	
-	private static  void filterMethodsTest(){
+	private static  void filterMethodsTest(OperationOptions options){
 		ScimConnector conn = new ScimConnector();
 
 		ContainsFilter conrainsFilterTest = (ContainsFilter)FilterBuilder.contains(AttributeBuilder.build("userName","harryp0234"));
 		EqualsFilter equalsFilterTest = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build("userName","newTest3@eastcubattor1.com"));
-
+		EqualsFilter uidEqualsFilterTest = (EqualsFilter)FilterBuilder.equalTo(TEST_UID);
+		
+		
     	//OrFilter orFilterTest = (OrFilter) FilterBuilder.or(eq, ct);
     	
     	//AndFilter andFilterTest = (AndFilter) FilterBuilder.and(con, con);
@@ -300,10 +315,10 @@ private static Set<Attribute> BuilderTestGroup(){
 		
 		//EndsWithFilter endsWithFilter = (EndsWithFilter)FilterBuilder.endsWith(AttributeBuilder.build(""));
 		
-		initConnector(conn);
+	//	initConnector(conn);
 		
-		conn.executeQuery(userClass, conrainsFilterTest, handler, null);
-    	conn.executeQuery(groupClass, equalsFilterTest, handler, null);
+		//conn.executeQuery(userClass, equalsFilterTest, handler, options);
+    	//conn.executeQuery(groupClass, equalsFilterTest, handler, null);
 	}
 	
 	

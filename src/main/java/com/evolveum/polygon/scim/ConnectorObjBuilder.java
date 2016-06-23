@@ -28,35 +28,32 @@ public class ConnectorObjBuilder {
 
 	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
 	
-	public ConnectorObject buildConnectorObject(JSONObject jsonObject, String resourceEndPoint) throws ConnectException{
+	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint) throws ConnectException{
 		
 		LOGGER.info("Building the connector object from provided json");
 		
-		if(jsonObject == null){
+		if(resourceJsonObject == null){
 			LOGGER.error("Empty json object was passed from data provider. Error ocourance while building connector object");
 			throw new ConnectException("Empty json object was passed from data provider. Error ocourance while building connector object");
 		}
 		
 		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
-		Map<String, String> objectNameDictionary = null;
-
-		cob.setUid(jsonObject.getString("id"));
+		cob.setUid(resourceJsonObject.getString("id"));
 		
 		if("Users".equals(resourceEndPoint)){
-			cob.setName(jsonObject.getString("userName"));
+			cob.setName(resourceJsonObject.getString("userName"));
 		}else if ("Groups".equals(resourceEndPoint)) {
 		
-		cob.setName(jsonObject.getString("displayName"));
+		cob.setName(resourceJsonObject.getString("displayName"));
 		cob.setObjectClass(ObjectClass.GROUP);
 		}else{
-			cob.setName(jsonObject.getString("displayName"));
-			StringBuilder objectClassNameBuilder = new StringBuilder("/").append(resourceEndPoint);
+			cob.setName(resourceJsonObject.getString("displayName"));
 			ObjectClass objectClass = new ObjectClass(resourceEndPoint);;
 			cob.setObjectClass(objectClass);
 			
 		}
-		for(String key: jsonObject.keySet()){
-			Object attribute =jsonObject.get(key);
+		for(String key: resourceJsonObject.keySet()){
+			Object attribute =resourceJsonObject.get(key);
 			
 			if("meta".equals(key.intern())|| "alias".equals(key.intern()) || "schemas".equals(key.intern())){
 				// do nothing -> some inconsistencies found in meta attribute in the schema definition present
@@ -72,14 +69,14 @@ public class ConnectorObjBuilder {
 					Collection<Object> attributeValues = new ArrayList<Object>();
 					
 						for(Object o: jArray){
-							StringBuilder objectKeyBilder = new StringBuilder(key.intern());
+							StringBuilder objectNameBilder = new StringBuilder(key.intern());
 							String objectKeyName = "";
 							if(o instanceof JSONObject){
 								for(String s: ((JSONObject) o).keySet()){
 									
 									if("type".equals(s.intern())){
-									objectKeyName = objectKeyBilder.append(".").append(((JSONObject) o).get(s)).toString();
-									objectKeyBilder.delete(0, objectKeyBilder.length());
+									objectKeyName = objectNameBilder.append(".").append(((JSONObject) o).get(s)).toString();
+									objectNameBilder.delete(0, objectNameBilder.length());
 										break;
 									}
 								}
@@ -88,28 +85,29 @@ public class ConnectorObjBuilder {
 									
 									if("type".equals(s.intern())){
 								}else {
-									if(objectKeyName !=""){
-									objectKeyBilder= objectKeyBilder.append(objectKeyName).append(".").append(s.intern());
+									
+									if(!"".equals(objectKeyName)){
+									objectNameBilder= objectNameBilder.append(objectKeyName).append(".").append(s.intern());
 									}else{
-										objectKeyName= objectKeyBilder.append(".").append("default").toString();
-										objectKeyBilder= objectKeyBilder.append(".").append(s.intern());
+										objectKeyName= objectNameBilder.append(".").append("default").toString();
+										objectNameBilder= objectNameBilder.append(".").append(s.intern());
 									}
 									
 									if(attributeValues.isEmpty()){
 									attributeValues.add(((JSONObject) o).get(s));
-									multivaluedAttributeMap.put(objectKeyBilder.toString(), attributeValues);
+									multivaluedAttributeMap.put(objectNameBilder.toString(), attributeValues);
 									}else{
-										if(multivaluedAttributeMap.containsKey(objectKeyBilder.toString())){
-											attributeValues = multivaluedAttributeMap.get(objectKeyBilder.toString());
+										if(multivaluedAttributeMap.containsKey(objectNameBilder.toString())){
+											attributeValues = multivaluedAttributeMap.get(objectNameBilder.toString());
 											attributeValues.add(((JSONObject) o).get(s));
 										}else{
 											Collection<Object> newAttributeValues = new ArrayList<Object>();
 											newAttributeValues.add(((JSONObject) o).get(s));
-											multivaluedAttributeMap.put(objectKeyBilder.toString(), newAttributeValues);
+											multivaluedAttributeMap.put(objectNameBilder.toString(), newAttributeValues);
 										}
 										
 									}
-									objectKeyBilder.delete(0, objectKeyBilder.length());
+									objectNameBilder.delete(0, objectNameBilder.length());
 									
 									
 								}
@@ -118,7 +116,7 @@ public class ConnectorObjBuilder {
 								//
 							
 						}else{
-							objectKeyName = objectKeyBilder.append(".").append(o.toString()).toString();
+							objectKeyName = objectNameBilder.append(".").append(o.toString()).toString();
 							cob.addAttribute(objectKeyName,o.toString());
 							
 						}
@@ -139,38 +137,20 @@ public class ConnectorObjBuilder {
 						
 						}
 						*/
-						StringBuilder nameBuilder = new StringBuilder(key.intern());
-						cob.addAttribute(nameBuilder.append(".").append(s).toString(),((JSONObject) attribute).get(s));
+						StringBuilder objectNameBilder = new StringBuilder(key.intern());
+						cob.addAttribute(objectNameBilder.append(".").append(s).toString(),((JSONObject) attribute).get(s));
 						
 					}
 					
 				} else { 
 					
-						cob.addAttribute(key.intern(), jsonObject.get(key));
+						cob.addAttribute(key.intern(), resourceJsonObject.get(key));
 						
 				}
 		}
-		
-	 LOGGER.info("Connector object {0}", cob.build());
-		return cob.build();
+		ConnectorObject finalConnectorObject = cob.build();
+		LOGGER.info("The connector object returned for the processed json: {0}", finalConnectorObject);
+		return finalConnectorObject;
 		
 	}
 }
-
-
-/*
- * builder.addAttributeInfo(Name.INFO);
-
-		builder.addAttributeInfo(AttributeInfoBuilder.define("userName").setRequired(true).build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("name.formatted").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("name.familyName").setRequired(true).build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("name.givenName").setRequired(true).build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("name.middleName").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificPrefix").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificSuffix").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("nickName").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("profileUrl").build());
- * 
- * */
- 

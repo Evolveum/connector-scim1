@@ -187,7 +187,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 	@Override
 	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
-		// Filter method not implemented.
 		LOGGER.error("Filter method not implemented: ContainsAllValuesFilter ");
 		return null;
 	}
@@ -230,7 +229,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 	@Override
 	public StringBuilder visitGreaterThanFilter(String p, GreaterThanFilter filter) {
-		LOGGER.info("Processing request trought GREATHERtHAN filter");
+		LOGGER.info("Processing request trought GREATHERTHAN filter");
 		
 		if (!filter.getName().isEmpty()){
 
@@ -256,7 +255,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 	@Override
 	public StringBuilder visitGreaterThanOrEqualFilter(String p, GreaterThanOrEqualFilter filter) {
-		LOGGER.info("Processing request trought GREATHERTtHANoReQUAL filter");
+		LOGGER.info("Processing request trought GREATHERTHANOREQUAL filter");
 		if (!filter.getName().isEmpty()){
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -281,7 +280,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 	@Override
 	public StringBuilder visitLessThanFilter(String p, LessThanFilter filter) {
-		LOGGER.info("Processing request trought LESStHAN filter");
+		LOGGER.info("Processing request trought LESSTHAN filter");
 		if (!filter.getName().isEmpty()){
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -300,7 +299,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 	@Override
 	public StringBuilder visitLessThanOrEqualFilter(String p, LessThanOrEqualFilter filter) {
-		LOGGER.info("Processing request trought LESStHANoReQUAL filter");
+		LOGGER.info("Processing request trought LESSTHANOREQUAL filter");
 		if (!filter.getName().isEmpty()){
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -371,7 +370,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 	@Override
 	public StringBuilder visitStartsWithFilter(String p, StartsWithFilter filter) {
-		LOGGER.info("Processing request trought STARTSwITH filter");
+		LOGGER.info("Processing request trought STARTSWITH filter");
 		if (!filter.getName().isEmpty()){
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -395,7 +394,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 	@Override
 	public StringBuilder visitEndsWithFilter(String p, EndsWithFilter filter) {
-		LOGGER.info("Processing request trought ENDSwITH filter");
+		LOGGER.info("Processing request trought ENDSWITH filter");
 		if (!filter.getName().isEmpty()){
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -441,7 +440,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		
 		if (filter.getName().contains(".")) {
 			
-					String[] keyParts = filter.getName().split("\\.");
+					String[] keyParts = filter.getName().split("\\."); // eq. email.work.value
 					if (keyParts.length == 3) {
 					
 						AttributeFilter variableFilter = null;
@@ -457,7 +456,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 						EqualsFilter eq = (EqualsFilter)FilterBuilder.equalTo(AttributeBuilder.build(type.toString(),keyParts[1]));
 						AndFilter and = (AndFilter) FilterBuilder.and(eq, variableFilter);
 						
-						System.out.println(and);
 						processedString = and.accept(this, p);
 						return processedString;
 					} 
@@ -484,7 +482,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		LOGGER.info("The filter dictionary which was build from the provided schema: {0}", objectNameDictionary);
 		
 	}else {
-		//TODO do nothing
+		LOGGER.warn("No schema provided, switching to default filter dictionary ");
 	}
 		}
 

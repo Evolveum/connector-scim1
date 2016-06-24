@@ -60,7 +60,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	public Schema schema() {
 
 		if (schema == null) {
-
+// test log delete
 			SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
 			if (this.schemaParser != null) {
 				buildSchemas(schemaBuilder);
@@ -237,6 +237,10 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		this.configuration.validate();
 		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration) configuration);
 		this.schemaParser = crudManager.qeueryEntity("", SCHEMAS);
+		if (this.schemaParser != null) {
+			genericsCanBeApplied = true;
+		}
+		
 	}
 
 	@Override
@@ -342,8 +346,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	public void test() {
 		
 		
-		
-		LOGGER.ok("in test method/test OK");
 	}
 
 	@Override
@@ -360,13 +362,12 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
 		StringBuilder queryUriSnippet = new StringBuilder("");
+		
 		if(options != null){
 			queryUriSnippet=processOptions(options);
 		}
 		
-	
-		LOGGER.error("The operation options: {0}", options.getPagedResultsOffset());
-		LOGGER.error("The operation options: {0}", options.getPageSize());
+		LOGGER.info("The operation options: {0}", options);
 		LOGGER.info("The filter which is beaing processed: {0}", query);
 
 		if (handler == null) {
@@ -397,7 +398,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					}
 				} else if (endpointName.intern() == ObjectClass.GROUP.getObjectClassValue().intern()) {
 					if (query == null) {
-						crudManager.qeueryEntity("", GROUPS, handler);
+						crudManager.qeueryEntity(queryUriSnippet.toString(), GROUPS, handler);
 
 					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
 
@@ -413,7 +414,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements										
 					String endpointNamePart = endpointNameParts[1];
 					if (query == null) {
-						crudManager.qeueryEntity("", endpointNamePart, handler);
+						crudManager.qeueryEntity(queryUriSnippet.toString(), endpointNamePart, handler);
 					} else if (query instanceof EqualsFilter
 							&& qIsUid(endpointNamePart, query, handler)) {
 
@@ -432,8 +433,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				if (ObjectClass.ACCOUNT.equals(objectClass)) {
 
 					if (query == null) {
-
-						crudManager.qeueryEntity("", USERS, handler);
+						crudManager.qeueryEntity(queryUriSnippet.toString(), USERS, handler);
 					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
 					} else {
@@ -441,7 +441,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					}
 				} else if (ObjectClass.GROUP.equals(objectClass)) {
 					if (query == null) {
-						crudManager.qeueryEntity("", GROUPS, handler);
+						crudManager.qeueryEntity(queryUriSnippet.toString(), GROUPS, handler);
 					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
 
 					} else {
@@ -463,7 +463,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			return true;
 		} else {
-			// LOGGER.error("Provided filter is not supported: {0}", filter);
+			 LOGGER.error("Provided filter is not supported: {0}", filter);
 			throw new IllegalArgumentException("Provided filter is not supported");
 		}
 	}
@@ -502,7 +502,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			}
 			iterator++;
 		}
-		genericsCanBeApplied = true;
+
 		return schemaBuilder;
 	}
 	
@@ -526,20 +526,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		return null;
 	}
 	
-	//TODO
-	/*
-	ERROR (com.evolveum.polygon.scim.ScimConnector): method: null msg:Options: OperationOptions: {ALLOW_PARTIAL_ATTRIBUTE_VALUES:true,PAGED_RESULTS_OFFSET:21,PAGE_SIZE:20}
-	2016-06-23 13:13:54,924 [] [Thread-23] ERROR (com.evolveum.polygon.scim.ScimConnector): method: null msg:Options atributes: {0}
-	2016-06-23 13:13:54,924 [] [Thread-23] ERROR (com.evolveum.polygon.scim.ScimConnector): method: null msg:Options pagesize: 20
-	2016-06-23 13:13:54,924 [] [Thread-23] ERROR (com.evolveum.polygon.scim.ScimConnector): method: null msg:Options options: {ALLOW_PARTIAL_ATTRIBUTE_VALUES=true, PAGED_RESULTS_OFFSET=21, PAGE_SIZE=20}
-	*/
 	private StringBuilder processOptions(OperationOptions options){
+		
 		Integer pageSize = options.getPageSize();
 		Integer PagedResultsOffset = options.getPagedResultsOffset();
 		if(pageSize != null && PagedResultsOffset != null){
-			//?pageSize=25&pageStartIndex=50
 			StringBuilder queryBuilder = new StringBuilder("?startIndex=").append(PagedResultsOffset).append("&").append("count=").append(pageSize);
-			// TODO question maximum results per page ? 
+			
 			
 			return queryBuilder;
 		}

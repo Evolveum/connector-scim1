@@ -57,21 +57,37 @@ public class ScimCrudManager {
 		this.conf = (ScimConnectorConfiguration) conf;
 	}
 
-	private String logIntoService() { // TODO check if good Idea
+	private String logIntoService() {
+		
 		String orgID= null;
 		HttpClient httpclient = HttpClientBuilder.create().build();
 
-		// Building the login url TODO Replace to login method
-		String loginURL = new StringBuilder(conf.getLoginURL()).append(conf.getService()).append("&client_id=")
+		
+		
+		String loginURL =new StringBuilder(conf.getLoginURL()).append(conf.getService()).toString();
+		String uri = new StringBuilder("&client_id=")
 				.append(conf.getClientID()).append("&client_secret=").append(conf.getClientSecret())
 				.append("&username=").append(conf.getUserName()).append("&password=").append(conf.getPassword())
 				.toString();
-
+		
 		loginInstance = new HttpPost(loginURL);
 		HttpResponse response = null;
+		
+		StringEntity bodyContent;
+		try {
+			bodyContent = new StringEntity(uri);
+			bodyContent.setContentType("application/x-www-form-urlencoded");
+			loginInstance.setEntity(bodyContent);
+			
+			
+		} catch (UnsupportedEncodingException e1) {
+			LOGGER.error("Unsupported encoding: {0}. Ocourance in the process of login into the service",
+					e1.getLocalizedMessage());
+			LOGGER.info("Unsupported encoding: {0}. Ocourance in the process of login into the service", e1);
 
-		//LOGGER.info("The login URL value is: {0}", loginURL);
-
+			throw new ConnectorException("Unsupported encoding. Ocourance in the process of login into the service",e1);
+		}
+			
 		try {
 	
 			response = httpclient.execute(loginInstance);
@@ -173,6 +189,7 @@ public class ScimCrudManager {
 		try {
 			HttpResponse response = httpClient.execute(httpGet);
 			int statusCode = response.getStatusLine().getStatusCode();
+			LOGGER.info("status code: {0}", statusCode);
 			if (statusCode == 200) {
 
 				responseString = EntityUtils.toString(response.getEntity());
@@ -258,7 +275,7 @@ public class ScimCrudManager {
 			}else{
 			 loginInstance.releaseConnection();
 			LOGGER.error("Service provider response is empty, responce returned on queuery: {0}", queuery);
-			throw new ConnectorException("Service provider response is empty, exception ocoured while fetching response from service provider endpoint.");
+			throw new ConnectorException("No resources returned for the selected criteria. Please change list or search criteria.");
 				
 			}} else {
 				loginInstance.releaseConnection();
@@ -328,6 +345,8 @@ public class ScimCrudManager {
 					}
 					return scimParser;
 					
+				}else {
+					LOGGER.warn("No definition for provided shcemas was found, the connector will switch to default core schema configuration!");
 				}
 				
 			}else {

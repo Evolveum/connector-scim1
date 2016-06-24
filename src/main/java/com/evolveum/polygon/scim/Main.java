@@ -58,7 +58,7 @@ public class Main {
         Map<String, Object> operationOptions = new HashMap<String, Object>();
 
         operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
-        operationOptions.put("PAGED_RESULTS_OFFSET", 4);
+        operationOptions.put("PAGED_RESULTS_OFFSET", 1);
         operationOptions.put("PAGE_SIZE", 6);
         
         

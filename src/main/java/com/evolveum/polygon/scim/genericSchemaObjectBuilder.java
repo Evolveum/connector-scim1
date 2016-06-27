@@ -25,25 +25,26 @@ public class GenericSchemaObjectBuilder {
 		builder.addAttributeInfo(Name.INFO);
 		
 		
-		for(String key: attributeMap.keySet()){
+		for(String attributeName: attributeMap.keySet()){
 			
-			AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(key.intern());
+			AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 			
-			Map<String, Object> schemaAttributeMap = new HashMap<String, Object>();
-			schemaAttributeMap = attributeMap.get(key);
-				for(String mapAttributeKey: schemaAttributeMap.keySet()){
-						if(mapAttributeKey.intern() == "subAttributes"){
+			Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
+			schemaSubPropertiesMap = attributeMap.get(attributeName);
+				for(String subPropertieName: schemaSubPropertiesMap.keySet()){
+						if("subAttributes".equals(subPropertieName.intern())){
 							// TODO dead weight / check cases when this is true
-							 infoBuilder = new AttributeInfoBuilder(key.intern());
+							 infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 							 JSONArray jsonArray = new JSONArray();
-							 jsonArray= ((JSONArray)schemaAttributeMap.get(mapAttributeKey));
+							 jsonArray= ((JSONArray)schemaSubPropertiesMap.get(subPropertieName));
 							 for(int i=0; i<jsonArray.length();i++){
+								 System.out.println(attributeName.intern());
 								 JSONObject attribute = new JSONObject();
 								 attribute = jsonArray.getJSONObject(i);
 							 }
 						break;
 					}else {
-						keyChecker(infoBuilder, schemaAttributeMap, mapAttributeKey,key);
+						subPropertiesChecker(infoBuilder, schemaSubPropertiesMap, subPropertieName,attributeName);
 					}
 						
 				}
@@ -51,46 +52,74 @@ public class GenericSchemaObjectBuilder {
 				
 		}
 		
-	if(objectTypeName.intern() =="/Users"){
+	if("/Users".equals(objectTypeName.intern())){
 		builder.setType(ObjectClass.ACCOUNT_NAME);
 		
-	}else if (objectTypeName.intern() =="/Groups"){
+	}else if ("/Groups".equals(objectTypeName.intern())){
 		builder.setType(ObjectClass.GROUP_NAME);
 	}
 	else {
-		String [] splitTypeMame = objectTypeName.split("\\/");
-		
+		String [] splitTypeMame = objectTypeName.split("\\/"); // e.q. /Entitlements
 		ObjectClass objectClass = new ObjectClass(splitTypeMame[1]);
-		//System.out.println(objectClass.getDisplayNameKey());
-		//System.out.println(objectClass.getObjectClassValue());
 		builder.setType(objectClass.getObjectClassValue());
 	}
 	LOGGER.info("Schema: {0}",builder.build());
 		return builder.build();
 	}
 	
-	private AttributeInfoBuilder keyChecker(AttributeInfoBuilder infoBuilder, Map<String, Object> schemaAttributeMap, String mapAttributeKey, String key){
+	private AttributeInfoBuilder subPropertiesChecker(AttributeInfoBuilder infoBuilder, Map<String, Object> schemaAttributeMap, String mapAttributeKey, String key){
 
 		
-			if(mapAttributeKey.intern() == "readOnly"){
+			if("readOnly".equals(mapAttributeKey.intern())){
+			
 				infoBuilder.setUpdateable((!(Boolean)schemaAttributeMap.get(mapAttributeKey)));
 				infoBuilder.setCreateable((!(Boolean)schemaAttributeMap.get(mapAttributeKey)));
+				
+			}else if("mutability".equals(mapAttributeKey.intern())){
+				String value = schemaAttributeMap.get(mapAttributeKey).toString();
+				if("readWrite".equals(value)){
+					infoBuilder.setUpdateable(true);
+					infoBuilder.setCreateable(true);
+					infoBuilder.setReadable(true);
+				}else if("writeOnly".equals(value)){
+					infoBuilder.setUpdateable(true);
+					infoBuilder.setCreateable(true);
+					infoBuilder.setReadable(false);
+					
+				}else if("readOnly".equals(value)){
+					infoBuilder.setUpdateable(false);
+					infoBuilder.setCreateable(false);
+					infoBuilder.setReadable(true);
+					
+				}else if("immutable".equals(value)){
+					
+					infoBuilder.setUpdateable(false);
+					infoBuilder.setCreateable(false);
+					infoBuilder.setReadable(false);
+				}else{
+					 if(value.isEmpty()){
+						 
+					 }else{
+					LOGGER.warn("Unknown nmutability attribute in schema translation: {0} ", value);
+					 }
+				}
+				
 			}
-			else if(mapAttributeKey.intern() == "type"){
+			else if("type".equals(mapAttributeKey.intern())){
 
-				if(schemaAttributeMap.get(mapAttributeKey).toString().intern() == "string"){
+				if("string".equals(schemaAttributeMap.get(mapAttributeKey).toString().intern())){
 					
 					infoBuilder.setType(String.class);
-				}else if ( schemaAttributeMap.get(mapAttributeKey).toString().intern() == "boolean"){
+				}else if ("boolean".equals(schemaAttributeMap.get(mapAttributeKey).toString().intern())){
 				
 					infoBuilder.setType(Boolean.class);
 				} 
 				
 			}
-			else if(mapAttributeKey.intern() == "required"){
+			else if("required".equals(mapAttributeKey.intern())){
 				infoBuilder.setRequired(((Boolean)schemaAttributeMap.get(mapAttributeKey)));
 			}
-			else if(mapAttributeKey.intern() == "multiValued"){
+			else if("multiValued".equals(mapAttributeKey.intern())){
 				infoBuilder.setMultiValued(((Boolean)schemaAttributeMap.get(mapAttributeKey)));
 			}
 		

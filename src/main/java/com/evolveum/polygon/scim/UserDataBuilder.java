@@ -19,7 +19,7 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class UserDataBuilder implements ObjectTranslator{
+public class UserDataBuilder implements ObjectTranslator {
 
 	private static Map<String, String> objectNameDictionaryUser = CollectionUtil.newCaseInsensitiveMap();
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
@@ -120,9 +120,8 @@ public class UserDataBuilder implements ObjectTranslator{
 		objectNameDictionaryUser.put("x509Certificates", "x509Certificates");
 		objectNameDictionaryUser.put("x509Certificates.value", "value");
 
-		// TODO it might be a problem that this is an array
-		objectNameDictionaryUser.put("entitlements..value", "value");
-		objectNameDictionaryUser.put("entitlements..primary", "primary");
+		objectNameDictionaryUser.put("entitlements.default.value", "value");
+		objectNameDictionaryUser.put("entitlements.default.primary", "primary");
 
 		objectNameDictionaryUser.put("schema.type", "type");
 		objectNameDictionaryUser.put("schema.organization", "organization");
@@ -131,23 +130,23 @@ public class UserDataBuilder implements ObjectTranslator{
 	public UserDataBuilder() {
 	}
 
-	public JSONObject translateSetToJson(Set<Attribute> imattributes,Set<Attribute> connattributes  ) {
+	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
 
 		LOGGER.info("Building account JsonObject");
-		
+
 		JSONObject userObj = new JSONObject();
 
 		Set<Attribute> multiValueAttribute = new HashSet<Attribute>();
 		Set<Attribute> multiLayerAttribute = new HashSet<Attribute>();
-		
-		if (connattributes !=null){
-			for (Attribute at: connattributes){				
+
+		if (injectedAttributes != null) {
+			for (Attribute at : injectedAttributes) {
 				multiValueAttribute.add(at);
 			}
-			
+
 		}
 
-		for (Attribute at : imattributes) {
+		for (Attribute at : imsAttributes) {
 
 			String attributeName = at.getName();
 
@@ -183,61 +182,67 @@ public class UserDataBuilder implements ObjectTranslator{
 
 	}
 
-	private JSONObject buildLayeredAtrribute(Set<Attribute> attr, JSONObject json) {
+	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
 
-		String name = "";
+		String mainAttributeName = "";
 		ArrayList<String> checkedNames = new ArrayList<String>();
-		for (Attribute i : attr) {
+		for (Attribute i : multiLayerAttribute) {
 
 			String attributeName = i.getName();
-			String[] keyParts = attributeName.split("\\.");
+			String[] attributeNameParts = attributeName.split("\\."); // e.q.
+																		// email.work.value
 
-			if (checkedNames.contains(keyParts[0])) {
+			if (checkedNames.contains(attributeNameParts[0])) {
 
 			} else {
-				Set<Attribute> innerLayer = new HashSet<Attribute>();
-				name = keyParts[0].intern();
-				checkedNames.add(name);
-				for (Attribute j : attr) {
+				Set<Attribute> subAttributeLayerSet = new HashSet<Attribute>();
+				mainAttributeName = attributeNameParts[0].intern();
+				checkedNames.add(mainAttributeName);
+				for (Attribute j : multiLayerAttribute) {
 
-					String innerName = j.getName();
-					String[] innerKeyParts = innerName.split("\\.");
+					String secondLoopAttributeName = j.getName();
+					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.q.
+																									// email.work.value
 
-					if (innerKeyParts[0].equals(name)) {
-						innerLayer.add(j);
+					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)) {
+						subAttributeLayerSet.add(j);
 					}
 				}
 
-				String typeName = "";
+				String canonicaltypeName = "";
 				JSONArray jArray = new JSONArray();
 
 				ArrayList<String> checkedTypeNames = new ArrayList<String>();
-				for (Attribute k : innerLayer) {
+				for (Attribute k : subAttributeLayerSet) {
 
-					String secondName = k.getName();
-					String[] secondKeyPart = secondName.split("\\.");
+					String nameFromSubSet = k.getName();
+					String[] nameFromSubSetParts = nameFromSubSet.split("\\."); // e.q.
+																				// email.work.value
 
-					if (checkedTypeNames.contains(secondKeyPart[1].intern())) {
+					if (checkedTypeNames.contains(nameFromSubSetParts[1].intern())) {
 					} else {
 						JSONObject multivalueObject = new JSONObject();
-						typeName = secondKeyPart[1].intern();
+						canonicaltypeName = nameFromSubSetParts[1].intern();
 
-						checkedTypeNames.add(typeName);
-						for (Attribute l : innerLayer) {
+						checkedTypeNames.add(canonicaltypeName);
+						for (Attribute l : subAttributeLayerSet) {
 
-							String innerTypeName = l.getName();
-							String[] finalKey = innerTypeName.split("\\.");
+							String secondLoopNameFromSubSetParts = l.getName();
+							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
+																												// email.work.value
 
-							if (finalKey[1].intern().equals(typeName)) {
-								multivalueObject.put(finalKey[2].intern(), AttributeUtil.getSingleValue(l));
+							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
+								multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+										AttributeUtil.getSingleValue(l));
 							}
 						}
-						if (!secondKeyPart[1].intern().equals("")) {
-							multivalueObject.put("type", secondKeyPart[1].intern());
+						if (!nameFromSubSetParts[1].intern().equals("")
+								&& !nameFromSubSetParts[1].intern().equals("default")) {
+							multivalueObject.put("type", nameFromSubSetParts[1].intern());
 						}
 						jArray.put(multivalueObject);
 					}
-					json.put(secondKeyPart[0], jArray);
+					json.put(nameFromSubSetParts[0], jArray);
 				}
 
 			}
@@ -245,59 +250,67 @@ public class UserDataBuilder implements ObjectTranslator{
 		return json;
 	}
 
-	public JSONObject buildMultivalueAttribute(Set<Attribute> attr, JSONObject json) {
+	public JSONObject buildMultivalueAttribute(Set<Attribute> multiValueAttribute, JSONObject json) {
 
-		String name = "";
+		String mainAttributeName = "";
 
 		ArrayList<String> checkedNames = new ArrayList<String>();
 
 		Set<Attribute> specialMlAttributes = new HashSet<Attribute>();
-		for (Attribute i : attr) {
+		for (Attribute i : multiValueAttribute) {
 			String attributeName = i.getName();
-			String[] keyParts = attributeName.split("\\.");
+			String[] attributeNameParts = attributeName.split("\\."); // e.g.
+																		// name.givenName
 
-			if (checkedNames.contains(keyParts[0].intern())) {
+			if (checkedNames.contains(attributeNameParts[0].intern())) {
 			} else {
 				JSONObject jObject = new JSONObject();
-				name = keyParts[0].intern();
-				checkedNames.add(name);
-				for (Attribute j : attr) {
-					String innerName = j.getName();
-					String[] innerKeyParts = innerName.split("\\.");
-					if (innerKeyParts[0].intern().equals(name) && !name.equals("schema")) {
-						jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(j));
-					} else if (innerKeyParts[0].intern().equals(name) && name.equals("schema")) {
+				mainAttributeName = attributeNameParts[0].intern();
+				checkedNames.add(mainAttributeName);
+				for (Attribute j : multiValueAttribute) {
+					String secondLoopAttributeName = j.getName();
+					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.g.
+																									// name.givenName
+					if (secondLoopAttributeNameParts[0].intern().equals(mainAttributeName)
+							&& !mainAttributeName.equals("schema")) {
+						jObject.put(secondLoopAttributeNameParts[1], AttributeUtil.getSingleValue(j));
+					} else if (secondLoopAttributeNameParts[0].intern().equals(mainAttributeName)
+							&& mainAttributeName.equals("schema")) {
 						specialMlAttributes.add(j);
 
 					}
 				}
 				if (specialMlAttributes.isEmpty()) {
-					json.put(keyParts[0], jObject);
+					json.put(attributeNameParts[0], jObject);
 				}
 				//
 				else {
-					String attrName = "No schema type";
-					Boolean nameSet = false;
+					String sMlAttributeName = "No schema type";
+					Boolean nameWasSet = false;
 
-					for (Attribute sa : specialMlAttributes) {
-						String innerName = sa.getName();
-						String[] innerKeyParts = innerName.split("\\.");
-						if (innerKeyParts[1].intern().equals("type") && !nameSet) {
-							attrName = AttributeUtil.getAsStringValue(sa);
-							nameSet = true;
+					for (Attribute specialAtribute : specialMlAttributes) {
+						String innerName = specialAtribute.getName();
+						String[] innerKeyParts = innerName.split("\\."); // e.g.
+																			// name.givenName
+						if (innerKeyParts[1].intern().equals("type") && !nameWasSet) {
+							sMlAttributeName = AttributeUtil.getAsStringValue(specialAtribute);
+							nameWasSet = true;
 						} else if (!innerKeyParts[1].intern().equals("type")) {
 
-							jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(sa));
+							jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(specialAtribute));
 						}
 					}
-					if (nameSet) {
+					if (nameWasSet) {
 
-						json.put(attrName, jObject);
+						json.put(sMlAttributeName, jObject);
 						specialMlAttributes.removeAll(specialMlAttributes);
 
 					} else {
-						LOGGER.error("Schema type not speciffied {0}. Error ocourance while translating user object attribute set: {0}", attrName);
-						throw new InvalidAttributeValueException("Schema type not speciffied. Error ocourance while translating user object attribute set");
+						LOGGER.error(
+								"Schema type not speciffied {0}. Error ocourance while translating user object attribute set: {0}",
+								sMlAttributeName);
+						throw new InvalidAttributeValueException(
+								"Schema type not speciffied. Error ocourance while translating user object attribute set");
 					}
 
 				}
@@ -307,8 +320,6 @@ public class UserDataBuilder implements ObjectTranslator{
 		return json;
 	}
 
-	
-	// TODO method to define user schema if generic methods can not be applied
 	public static ObjectClassInfo getUserSchema() {
 
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
@@ -324,36 +335,30 @@ public class UserDataBuilder implements ObjectTranslator{
 		builder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificSuffix").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("nickName").build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("userType").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("locale").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("preferredLanguage").build());
-		
-		
-		//
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("id").build());
-		//
-		//builder.addAttributeInfo(AttributeInfoBuilder.define("profileUrl").build());
-		
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.primary").build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.primary").build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.primary").build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements..value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements..primary").build());
-		
-		
+
 		return builder.build();
 	}
 
 	@Override
-	public JSONObject translateSetToJson(Set<Attribute> imattributes, Set<Attribute> connattributes,
+	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes,
 			Map<String, Map<String, Object>> attributeMap) {
 		// Method not implemented in this class.
 		return null;

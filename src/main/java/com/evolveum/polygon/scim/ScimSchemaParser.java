@@ -10,13 +10,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ScimSchemaParser {
-	
+
 	private Map<String, Map<String, Object>> attributeMap;
 	private Map<String, String> hlAttributeMap;
-	
+
 	private List<Map<String, Map<String, Object>>> attributeMapList = new ArrayList<Map<String, Map<String, Object>>>();
 	private List<Map<String, String>> hlAttributeMapList = new ArrayList<Map<String, String>>();
-	
+
 	private static final Log LOGGER = Log.getLog(ScimSchemaParser.class);
 
 	public void parseSchema(JSONObject schemaJson) {
@@ -49,118 +49,127 @@ public class ScimSchemaParser {
 		Boolean isMultiValued = false;
 		Map<String, Object> attributeObjects = new HashMap<String, Object>();
 		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
-		for (String key : attribute.keySet()) {
-			if (key.intern() == "name") {
-				attributeName = attribute.get(key).toString();
-			} else if (key.intern() == "subAttributes") {
+		for (String attributeNameKeys : attribute.keySet()) {
+			if ("name".equals(attributeNameKeys.intern())) {
+				attributeName = attribute.get(attributeNameKeys).toString();
+			} else if ("subAttributes".equals(attributeNameKeys.intern())) {
 				boolean hasTypeValues = false;
-				JSONArray subAttribtues = new JSONArray();
-				subAttribtues = (JSONArray) attribute.get(key);
+				JSONArray subAttributes = new JSONArray();
+				subAttributes = (JSONArray) attribute.get(attributeNameKeys);
 				if (attributeName == null) {
-					for (String nameKey : attribute.keySet()) {
-						if (nameKey.intern() == "name") {
-							attributeName = attribute.get(nameKey).toString();
+					for (String subAttributeNameKeys : attribute.keySet()) {
+						if ("name".equals(subAttributeNameKeys.intern())) {
+							attributeName = attribute.get(subAttributeNameKeys).toString();
 							break;
 						}
 					}
 				}
-				
 				for (String nameKey : attribute.keySet()) {
-					if (nameKey.intern() == "multiValued") {
-						isMultiValued = (Boolean)attribute.get(nameKey);
+					if ("multiValued".equals(nameKey.intern())) {
+						isMultiValued = (Boolean) attribute.get(nameKey);
 						break;
 					}
-					
+
 				}
-				
-				
-				for (int i = 0; i < subAttribtues.length(); i++) {
+
+				for (int i = 0; i < subAttributes.length(); i++) {
 					JSONObject subAttribute = new JSONObject();
-					subAttribute = subAttribtues.getJSONObject(i);
+					subAttribute = subAttributes.getJSONObject(i);
 					subAttributeMap = parseSubAttribute(subAttribute, subAttributeMap);
 				}
 				for (String typeKey : subAttributeMap.keySet()) {
-					if (typeKey.intern() == "type") {
+					if ("type".equals(typeKey.intern())) {
 						hasTypeValues = true;
 						break;
 					}
 				}
-					if (hasTypeValues){
-						Map<String, Object> typeObject = new HashMap<String, Object>();
-						typeObject = (Map<String, Object>) subAttributeMap.get("type");
-						if (typeObject.containsKey("canonicalValues")|| typeObject.containsKey("referenceTypes")) {
-							JSONArray referenceValues = new JSONArray();
-							if (typeObject.containsKey("canonicalValues")){
-								referenceValues = (JSONArray) typeObject.get("canonicalValues");
-								}else {
-									referenceValues = (JSONArray) typeObject.get("referenceTypes");
-								}
-							
-							for (int j = 0; j < referenceValues.length(); j++) {
-								JSONObject referenceValue = new JSONObject();
-								referenceValue = ((JSONArray) referenceValues).getJSONObject(j);
-								for (String k : subAttributeMap.keySet()) {
-									if (k.intern() != "type") { // TODO some other complex attribute names may be used
-										StringBuilder complexAttrName = new StringBuilder(attributeName);
-										attributeMap.put(
-												complexAttrName.append(".").append(referenceValue.get("value"))
-												.append(".").append(k).toString(),
-												(HashMap<String, Object>) subAttributeMap.get(k));
-										isComplex=true;
-										
-									}
+				if (hasTypeValues) {
+					Map<String, Object> typeObject = new HashMap<String, Object>();
+					typeObject = (Map<String, Object>) subAttributeMap.get("type");
+					if (typeObject.containsKey("canonicalValues") || typeObject.containsKey("referenceTypes")) {
+						JSONArray referenceValues = new JSONArray();
+						if (typeObject.containsKey("canonicalValues")) {
+							referenceValues = (JSONArray) typeObject.get("canonicalValues");
+						} else {
+							referenceValues = (JSONArray) typeObject.get("referenceTypes");
+						}
+
+						for (int j = 0; j < referenceValues.length(); j++) {
+							JSONObject referenceValue = new JSONObject();
+							referenceValue = ((JSONArray) referenceValues).getJSONObject(j);
+							for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+								if (!"type".equals(subAttributeKeyNames.intern())) { // TODO
+																						// some
+																						// other
+																						// complex
+																						// attribute
+																						// names
+																						// may
+																						// be
+																						// used
+									StringBuilder complexAttrName = new StringBuilder(attributeName);
+									attributeMap.put(
+											complexAttrName.append(".").append(referenceValue.get("value")).append(".")
+													.append(subAttributeKeyNames).toString(),
+											(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+									isComplex = true;
+
 								}
 							}
-						}else {
-							ArrayList<String> defaultReferenceTypeValues = new ArrayList<String>();
-							defaultReferenceTypeValues.add("User");
-							defaultReferenceTypeValues.add("Group");
-							//defaultReferenceValues.add("external");
-							//defaultReferenceValues.add("uri");
-							for (String k : subAttributeMap.keySet()) {
-								if (k.intern() != "type") {
-									for(String defaultTypeReferenceValues: defaultReferenceTypeValues){
-								StringBuilder complexAttrName = new StringBuilder(attributeName);
-								complexAttrName.append(".").append(defaultTypeReferenceValues);
-								attributeMap.put(
-										complexAttrName.append(".").append(k).toString(),
-										(HashMap<String, Object>) subAttributeMap.get(k));
-								isComplex=true;
-								}}
-							
 						}
-							
-							
+					} else {
+						ArrayList<String> defaultReferenceTypeValues = new ArrayList<String>();
+						defaultReferenceTypeValues.add("User");
+						defaultReferenceTypeValues.add("Group");
+						
+						defaultReferenceTypeValues.add("external");
+						defaultReferenceTypeValues.add("uri");
+
+						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+							if (!"type".equals(subAttributeKeyNames.intern())) {
+								for (String defaultTypeReferenceValues : defaultReferenceTypeValues) {
+									StringBuilder complexAttrName = new StringBuilder(attributeName);
+									complexAttrName.append(".").append(defaultTypeReferenceValues);
+									attributeMap.put(
+											complexAttrName.append(".").append(subAttributeKeyNames).toString(),
+											(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+									isComplex = true;
+								}
+							}
+
 						}
 
-					}else{
-						if (!isMultiValued){
-						for (String k : subAttributeMap.keySet()) {
-						StringBuilder complexAttrName = new StringBuilder(attributeName);
-						attributeMap.put(
-								complexAttrName.append(".").append(k).toString(),
-								(HashMap<String, Object>) subAttributeMap.get(k));
-						isComplex=true;
-					}}else {
-						for (String k : subAttributeMap.keySet()) {
+					}
+
+				} else {
+					if (!isMultiValued) {
+						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+							StringBuilder complexAttrName = new StringBuilder(attributeName);
+							attributeMap.put(complexAttrName.append(".").append(subAttributeKeyNames).toString(),
+									(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+							isComplex = true;
+						}
+					} else {
+						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
 							StringBuilder complexAttrName = new StringBuilder(attributeName);
 							attributeMap.put(
-									complexAttrName.append(".").append("default").append(".").append(k).toString(),
-									(HashMap<String, Object>) subAttributeMap.get(k));
-							isComplex=true;
+									complexAttrName.append(".").append("default").append(".")
+											.append(subAttributeKeyNames).toString(),
+									(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+							isComplex = true;
+						}
+
 					}
-						
-						
-					}}
-				
+				}
+
 			} else {
 
-				attributeObjects.put(key, attribute.get(key));
+				attributeObjects.put(attributeNameKeys, attribute.get(attributeNameKeys));
 			}
 
 		}
-		if(!isComplex){
-		attributeMap.put(attributeName, attributeObjects);
+		if (!isComplex) {
+			attributeMap.put(attributeName, attributeObjects);
 		}
 	}
 
@@ -172,16 +181,15 @@ public class ScimSchemaParser {
 	public List<Map<String, String>> gethlAttributeMapList() {
 		return hlAttributeMapList;
 	}
-	
 
 	private Map<String, Object> parseSubAttribute(JSONObject subAttribute, Map<String, Object> subAttributeMap) {
 		HashMap<String, Object> attributeObjects = new HashMap<String, Object>();
 		String subAttributeName = null;
-		for (String key : subAttribute.keySet()) {
-			if (key.intern() == "name") {
-				subAttributeName = subAttribute.get(key).toString();
+		for (String subAttributeKeyNames : subAttribute.keySet()) {
+			if ("name".equals(subAttributeKeyNames.intern())) {
+				subAttributeName = subAttribute.get(subAttributeKeyNames).toString();
 			} else {
-				attributeObjects.put(key, subAttribute.get(key));
+				attributeObjects.put(subAttributeKeyNames, subAttribute.get(subAttributeKeyNames));
 			}
 		}
 		subAttributeMap.put(subAttributeName, attributeObjects);

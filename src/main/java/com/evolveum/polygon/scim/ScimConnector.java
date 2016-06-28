@@ -38,7 +38,6 @@ import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 import org.json.JSONObject;
 
-
 @ConnectorClass(displayNameKey = "ScimConnector.connector.display", configurationClass = ScimConnectorConfiguration.class)
 
 public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp {
@@ -47,10 +46,10 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	private ScimCrudManager crudManager;
 	private ScimSchemaParser schemaParser;
 	private Boolean genericsCanBeApplied = false;
-	
-	private static final String SCHEMAS ="Schemas/";
-	private static final String USERS ="Users";
-	private static final String GROUPS ="Groups";
+
+	private static final String SCHEMAS = "Schemas/";
+	private static final String USERS = "Users";
+	private static final String GROUPS = "Groups";
 
 	private Schema schema = null;
 
@@ -60,7 +59,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	public Schema schema() {
 
 		if (schema == null) {
-// test log delete
+			// test log delete
 			SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
 			if (this.schemaParser != null) {
 				buildSchemas(schemaBuilder);
@@ -77,7 +76,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	}
 
 	@Override
-	public void delete(ObjectClass object, Uid uid, OperationOptions arg2) {
+	public void delete(ObjectClass object, Uid uid, OperationOptions options) {
 
 		if (uid.getUidValue() == null || uid.getUidValue().isEmpty()) {
 			LOGGER.error("Uid not provided or empty: {0} ", uid.getUidValue());
@@ -93,27 +92,26 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			String endpointName = object.getObjectClassValue();
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
-				
+
 				Map<String, String> hlAtrribute;
 				hlAtrribute = fetchHighLevelAttributeMap("/Users");
-					if (hlAtrribute!=null){
+				if (hlAtrribute != null) {
 
-
-								crudManager.deleteEntity(uid, USERS);
-					}
+					crudManager.deleteEntity(uid, USERS);
+				}
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 				Map<String, String> hlAtrribute;
 				hlAtrribute = fetchHighLevelAttributeMap("/Groups");
-					if (hlAtrribute!=null){
-								crudManager.deleteEntity(uid, GROUPS);
-					}
+				if (hlAtrribute != null) {
+					crudManager.deleteEntity(uid, GROUPS);
+				}
 			} else {
-				
+
 				Map<String, String> hlAtrribute;
 				hlAtrribute = fetchHighLevelAttributeMap(endpointName);
-					if (hlAtrribute!=null){
-								crudManager.deleteEntity(uid, endpointName);
-					}
+				if (hlAtrribute != null) {
+					crudManager.deleteEntity(uid, endpointName);
+				}
 			}
 
 		} else {
@@ -145,43 +143,41 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 				Map<String, String> hlAtrribute;
 				hlAtrribute = fetchHighLevelAttributeMap("/Users");
-					if (hlAtrribute!=null){
-			
-						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
-						attributeMap=fetchAttributeMap(hlAtrribute,attributeMap);
-						
-								uid = crudManager.createEntity(USERS, jsonDataBuilder, attr, attributeMap);
-					}
-					
-			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
-					Map<String, String> hlAtrribute;
-					hlAtrribute = fetchHighLevelAttributeMap("/Groups");
-						if (hlAtrribute!=null){
-				
-								
-							Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
-							attributeMap=fetchAttributeMap(hlAtrribute,attributeMap);
-							
-								uid = crudManager.createEntity(GROUPS, jsonDataBuilder, attr, attributeMap);
+				if (hlAtrribute != null) {
 
-						}
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+
+					uid = crudManager.createEntity(USERS, jsonDataBuilder, attr, attributeMap);
+				}
+
+			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
+				Map<String, String> hlAtrribute;
+				hlAtrribute = fetchHighLevelAttributeMap("/Groups");
+				if (hlAtrribute != null) {
+
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+
+					uid = crudManager.createEntity(GROUPS, jsonDataBuilder, attr, attributeMap);
+
+				}
 
 			} else {
 
 				Map<String, String> hlAtrribute;
 				hlAtrribute = fetchHighLevelAttributeMap(endpointName);
-					if (hlAtrribute!=null){
-			
-						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
-						attributeMap=fetchAttributeMap(hlAtrribute,attributeMap);
+				if (hlAtrribute != null) {
 
-								String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements										
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
 
-								String endpointNamePart = endpointNameParts[1];
+					String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements
 
-								uid = crudManager.createEntity(endpointNamePart, jsonDataBuilder, attr, attributeMap);
+					String endpointNamePart = endpointNameParts[1];
 
-					}
+					uid = crudManager.createEntity(endpointNamePart, jsonDataBuilder, attr, attributeMap);
+				}
 			}
 
 			return uid;
@@ -221,8 +217,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	@Override
 	public void dispose() {
 		configuration = null;
-		crudManager= null;
-		schemaParser= null;
+		crudManager = null;
+		schemaParser = null;
 	}
 
 	@Override
@@ -240,14 +236,14 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		if (this.schemaParser != null) {
 			genericsCanBeApplied = true;
 		}
-		
+
 	}
 
 	@Override
-	public Uid update(ObjectClass object, Uid id, Set<Attribute> attr, OperationOptions arg3) {
+	public Uid update(ObjectClass object, Uid id, Set<Attribute> attributes, OperationOptions options) {
 
-		if (attr == null || attr.isEmpty()) {
-			LOGGER.error("Set of Attributes can not be null or empty: {}", attr);
+		if (attributes == null || attributes.isEmpty()) {
+			LOGGER.error("Set of Attributes can not be null or empty: {}", attributes);
 			throw new IllegalArgumentException("Set of Attributes value is null or empty");
 		}
 		if (genericsCanBeApplied) {
@@ -259,55 +255,52 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 				Map<String, String> hlAtrribute;
 				hlAtrribute = fetchHighLevelAttributeMap("/Users");
-					if (hlAtrribute!=null){
-						
-						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
-						attributeMap=fetchAttributeMap(hlAtrribute,attributeMap);
+				if (hlAtrribute != null) {
 
-								uid = crudManager.updateEntity(id, USERS,
-										genericDataBuilder.translateSetToJson(attr, null, attributeMap));
-					}
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+
+					uid = crudManager.updateEntity(id, USERS,
+							genericDataBuilder.translateSetToJson(attributes, null, attributeMap));
+				}
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
-				
+
 				Map<String, String> hlAtrribute;
 				hlAtrribute = fetchHighLevelAttributeMap("/Groups");
-					if (hlAtrribute!=null){
-		
+				if (hlAtrribute != null) {
 
-						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
-						attributeMap=fetchAttributeMap(hlAtrribute,attributeMap);
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
 
-								uid = crudManager.updateEntity(id, GROUPS,
-										genericDataBuilder.translateSetToJson(attr, null, attributeMap));
-					}
+					uid = crudManager.updateEntity(id, GROUPS,
+							genericDataBuilder.translateSetToJson(attributes, null, attributeMap));
+				}
 
 			} else {
 				Map<String, String> hlAtrribute;
 				hlAtrribute = fetchHighLevelAttributeMap(endpointName);
-					if (hlAtrribute!=null){
-				
-								
-						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
-						attributeMap=fetchAttributeMap(hlAtrribute,attributeMap);
+				if (hlAtrribute != null) {
 
-								String[] endpointNameParts = endpointName.split("\\/"); // eg.
-																						// /Entitlements
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
 
-								String endpointNamePart = endpointNameParts[1];
+					String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements
 
-								uid = crudManager.updateEntity(id, endpointNamePart,
-										genericDataBuilder.translateSetToJson(attr, null, attributeMap));
-					}
-					}
-					
+					String endpointNamePart = endpointNameParts[1];
+
+					uid = crudManager.updateEntity(id, endpointNamePart,
+							genericDataBuilder.translateSetToJson(attributes, null, attributeMap));
+				}
+			}
+
 			return uid;
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				UserDataBuilder userJson = new UserDataBuilder();
 				JSONObject userJsonObject = new JSONObject();
-				
-				userJsonObject = userJson.translateSetToJson(attr, null);
+
+				userJsonObject = userJson.translateSetToJson(attributes, null);
 
 				Uid uid = crudManager.updateEntity(id, USERS, userJsonObject);
 
@@ -323,8 +316,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				GroupDataBuilder groupJson = new GroupDataBuilder();
 				JSONObject groupJsonObject = new JSONObject();
-				
-				groupJsonObject = groupJson.translateSetToJson(attr, null);
+
+				groupJsonObject = groupJson.translateSetToJson(attributes, null);
 
 				Uid uid = crudManager.updateEntity(id, GROUPS, groupJsonObject);
 
@@ -344,8 +337,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	@Override
 	public void test() {
-		
-		
+
 	}
 
 	@Override
@@ -362,11 +354,11 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
 		StringBuilder queryUriSnippet = new StringBuilder("");
-		
-		if(options != null){
-			queryUriSnippet=processOptions(options);
+
+		if (options != null) {
+			queryUriSnippet = processOptions(options);
 		}
-		
+
 		LOGGER.info("The operation options: {0}", options);
 		LOGGER.info("The filter which is beaing processed: {0}", query);
 
@@ -383,7 +375,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				String endpointName = objectClass.getObjectClassValue();
 				if (endpointName.intern() == ObjectClass.ACCOUNT.getObjectClassValue().intern()) {
 					if (query == null) {
-						
+
 						crudManager.qeueryEntity(queryUriSnippet.toString(), USERS, handler);
 
 					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
@@ -392,8 +384,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 						Map<String, String> hlAtrribute;
 						hlAtrribute = fetchHighLevelAttributeMap("/Users");
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
-						attributeMap=fetchAttributeMap(hlAtrribute, attributeMap);
-						
+						attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+
 						qIsFilter("Users", query, handler, attributeMap, queryUriSnippet);
 					}
 				} else if (endpointName.intern() == ObjectClass.GROUP.getObjectClassValue().intern()) {
@@ -406,26 +398,25 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 						Map<String, String> hlAtrribute;
 						hlAtrribute = fetchHighLevelAttributeMap("/Users");
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
-						attributeMap=fetchAttributeMap(hlAtrribute, attributeMap);
-						
-						qIsFilter("Groups", query, handler, attributeMap,queryUriSnippet);
+						attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+
+						qIsFilter("Groups", query, handler, attributeMap, queryUriSnippet);
 					}
 				} else {
-					String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements										
+					String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements
 					String endpointNamePart = endpointNameParts[1];
 					if (query == null) {
 						crudManager.qeueryEntity(queryUriSnippet.toString(), endpointNamePart, handler);
-					} else if (query instanceof EqualsFilter
-							&& qIsUid(endpointNamePart, query, handler)) {
+					} else if (query instanceof EqualsFilter && qIsUid(endpointNamePart, query, handler)) {
 
 					} else {
 						Map<String, String> hlAtrribute;
 						hlAtrribute = fetchHighLevelAttributeMap(endpointName);
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
-						attributeMap=fetchAttributeMap(hlAtrribute, attributeMap);
+						attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
 						StringBuilder setEndpointFormat = new StringBuilder(endpointNamePart);
-						
-						qIsFilter(setEndpointFormat.toString(), query, handler,attributeMap,queryUriSnippet);
+
+						qIsFilter(setEndpointFormat.toString(), query, handler, attributeMap, queryUriSnippet);
 					}
 				}
 			} else {
@@ -437,7 +428,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
 					} else {
-						qIsFilter("Users", query, handler, null,queryUriSnippet);
+						qIsFilter("Users", query, handler, null, queryUriSnippet);
 					}
 				} else if (ObjectClass.GROUP.equals(objectClass)) {
 					if (query == null) {
@@ -463,7 +454,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			return true;
 		} else {
-			 LOGGER.error("Provided filter is not supported: {0}", filter);
+			LOGGER.error("Provided filter is not supported: {0}", filter);
 			throw new IllegalArgumentException("Provided filter is not supported");
 		}
 	}
@@ -478,10 +469,11 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			return false;
 	}
 
-	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler,Map<String,Map<String,Object>> schemaMap, StringBuilder queryUriSnippet) {
+	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler,
+			Map<String, Map<String, Object>> schemaMap, StringBuilder queryUriSnippet) {
 
 		queryUriSnippet.append("&filter=").append(query.accept(new FilterHandler(schemaMap), endPoint));
-		
+
 		crudManager.qeueryEntity(queryUriSnippet.toString(), endPoint, resultHandler);
 	}
 
@@ -494,7 +486,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			hlAtrribute = schemaParser.gethlAttributeMapList().get(iterator);
 
 			for (String key : hlAtrribute.keySet()) {
-				if (key.intern() == "endpoint") {
+				if ("endpoint".equals(key.intern())) {
 					String schemaName = hlAtrribute.get(key);
 					ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap, schemaName);
 					schemaBuilder.defineObjectClass(oclassInfo);
@@ -505,50 +497,49 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 		return schemaBuilder;
 	}
-	
-	private Map<String,String> fetchHighLevelAttributeMap(String endpointValue){
-		
+
+	private Map<String, String> fetchHighLevelAttributeMap(String endpointValue) {
+
 		for (Map<String, String> hlAtrribute : schemaParser.gethlAttributeMapList()) {
 			for (String attributeKeys : hlAtrribute.keySet()) {
 				if ("endpoint".equals(attributeKeys)) {
 					if (hlAtrribute.containsValue(endpointValue)) {
-						
+
 						return hlAtrribute;
-					}
-					else{
-						LOGGER.error("The endpoind name value does not correspond to the schema deffinition, endpoint value : [0]", endpointValue);
-						throw new ConnectorException("The endpoind name value does not correspond to the schema deffinition");
-					}
 					}
 				}
 			}
-	
-		return null;
+		}
+		LOGGER.error("The endpoind name value does not correspond to the schema deffinition, endpoint value : {0}",
+				endpointValue);
+		throw new ConnectorException("The endpoind name value does not correspond to the schema deffinition");
 	}
-	
-	private StringBuilder processOptions(OperationOptions options){
-		
+
+	private StringBuilder processOptions(OperationOptions options) {
+
 		Integer pageSize = options.getPageSize();
 		Integer PagedResultsOffset = options.getPagedResultsOffset();
-		if(pageSize != null && PagedResultsOffset != null){
-			StringBuilder queryBuilder = new StringBuilder("?startIndex=").append(PagedResultsOffset).append("&").append("count=").append(pageSize);
-			
-			
+		if (pageSize != null && PagedResultsOffset != null) {
+			StringBuilder queryBuilder = new StringBuilder("?startIndex=").append(PagedResultsOffset).append("&")
+					.append("count=").append(pageSize);
+
 			return queryBuilder;
 		}
 		return null;
 	}
-	
-	private Map<String,Map<String, Object>> fetchAttributeMap(Map<String,String> hlAtrribute, Map<String, Map<String, Object>> attributeMap ){
-		
-		if (hlAtrribute!=null){
+
+	private Map<String, Map<String, Object>> fetchAttributeMap(Map<String, String> hlAtrribute,
+			Map<String, Map<String, Object>> attributeMap) {
+
+		if (hlAtrribute != null) {
 			int position = schemaParser.gethlAttributeMapList().indexOf(hlAtrribute);
 			attributeMap = schemaParser.getAttributeMapList().get(position);
 			return attributeMap;
-	} else {
-		LOGGER.error("No high level attribute map for schema attribute endpoint definition present");
-		throw new ConnectorException("No high level attribute map for schema attribute endpoint definition present");
-	}
+		} else {
+			LOGGER.error("No high level attribute map for schema attribute endpoint definition present");
+			throw new ConnectorException(
+					"No high level attribute map for schema attribute endpoint definition present");
+		}
 	}
 
 }

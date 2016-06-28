@@ -20,113 +20,125 @@ import org.json.JSONObject;
 
 public class GroupDataBuilder implements ObjectTranslator {
 
-
 	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
 
-		// TODO define new defaut dictionary
 	static {
-		objectNameDictionary.put("displayName","displayName");
-
-		objectNameDictionary.put("members..value","value");
-		objectNameDictionary.put("members..display","display");
+		objectNameDictionary.put("displayName", "displayName");
+		objectNameDictionary.put("members.User.value", "value");
+		objectNameDictionary.put("members.User.display", "display");
+		objectNameDictionary.put("members.Group.value", "value");
+		objectNameDictionary.put("members.Group.display", "display");
 	}
 
-	public JSONObject translateSetToJson(Set<Attribute> imattributes,Set<Attribute> connattributes ){
+	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
 		LOGGER.info("Building Json data from group attributes");
 
-
-		JSONObject groupObj = new JSONObject();
+		JSONObject groupJsonObj = new JSONObject();
 
 		Set<Attribute> multiLayerAttribute = new HashSet<Attribute>();
 
-		for(Attribute at: imattributes){
+		for (Attribute attribute : imsAttributes) {
 
-			String attributeName = at.getName();
+			String attributeName = attribute.getName();
 
-			if(objectNameDictionary.containsKey(attributeName)){
-				if(attributeName.contains(".")){
-					
-					multiLayerAttribute.add(at);
-				}else{
+			if (objectNameDictionary.containsKey(attributeName)) {
+				if (attributeName.contains(".")) {
 
-					groupObj.put(attributeName, AttributeUtil.getSingleValue(at));
+					String[] keyParts = attributeName.split("\\."); // e.g.
+																	// emails.work.value
+					if (keyParts.length == 3) {
+						multiLayerAttribute.add(attribute);
+					} else {
+						LOGGER.warn(
+								"Attribute name not defined in group dictionary: {0}. Error ocourance while translating attribute set.",
+								attributeName);
+					}
+
+				} else {
+
+					groupJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 				}
 
-			}else{
-				LOGGER.error("Attribute name not defined in group dictionary: {0}. Error ocourance while translating attribute set. ", attributeName);
-				throw new InvalidAttributeValueException("Attribute in create query not defined for translation");
+			} else {
+				LOGGER.warn(
+						"Attribute name not defined in group dictionary: {0}. Error ocourance while translating attribute set.",
+						attributeName);
 			}
 		}
-		if(multiLayerAttribute != null){
-
-			buildLayeredAtrribute(multiLayerAttribute, groupObj);
+		if (multiLayerAttribute != null) {
+			buildLayeredAtrribute(multiLayerAttribute, groupJsonObj);
 		}
-		return groupObj;
+		return groupJsonObj;
 	}
-	private JSONObject buildLayeredAtrribute(Set<Attribute> attr, JSONObject json){
 
-		String layeredObjectName="";
-		ArrayList<String> checkedLObjectNames= new ArrayList<String>();
-		for(Attribute i: attr){
+	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
+		String mainAttributeName = "";
+		ArrayList<String> checkedNames = new ArrayList<String>();
+		for (Attribute i : multiLayerAttribute) {
 
 			String attributeName = i.getName();
-			String[] keyParts = attributeName.split("\\.");
+			String[] attributeNameParts = attributeName.split("\\."); // e.q.
+																		// email.work.value
 
-			if(checkedLObjectNames.contains(keyParts[0])){
+			if (checkedNames.contains(attributeNameParts[0])) {
 
-			}else{
-				Set<Attribute> innerLayer = new HashSet<Attribute>();
-				layeredObjectName=keyParts[0].intern();
-				checkedLObjectNames.add(layeredObjectName);
-				for(Attribute j: attr){
+			} else {
+				Set<Attribute> subAttributeLayerSet = new HashSet<Attribute>();
+				mainAttributeName = attributeNameParts[0].intern();
+				checkedNames.add(mainAttributeName);
+				for (Attribute j : multiLayerAttribute) {
 
-					String innerName = j.getName();
-					String[] innerKeyParts = innerName.split("\\.");
-
-					if(innerKeyParts[0].equals(layeredObjectName)){
-						innerLayer.add(j); 
+					String secondLoopAttributeName = j.getName();
+					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.q.
+																									// email.work.value
+					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)) {
+						subAttributeLayerSet.add(j);
 					}
 				}
 
-				String typeName = "";
-				JSONArray jArray = new JSONArray();	
+				String canonicaltypeName = "";
+				JSONArray jArray = new JSONArray();
 
-				ArrayList<String> checkedTypeNames= new ArrayList<String>();
-				for(Attribute k: innerLayer){
+				ArrayList<String> checkedTypeNames = new ArrayList<String>();
+				for (Attribute k : subAttributeLayerSet) {
 
-					String secondName = k.getName();
-					String[] secondKeyPart = secondName.split("\\.");
+					String nameFromSubSet = k.getName();
+					String[] nameFromSubSetParts = nameFromSubSet.split("\\."); // e.q.
+																				// email.work.value
 
-					if(checkedTypeNames.contains(secondKeyPart[1].intern())){
-					}
-					else{
+					if (checkedTypeNames.contains(nameFromSubSetParts[1].intern())) {
+					} else {
 						JSONObject multivalueObject = new JSONObject();
-						typeName=secondKeyPart[1].intern();
+						canonicaltypeName = nameFromSubSetParts[1].intern();
 
-						checkedTypeNames.add(typeName);
-						for( Attribute l: innerLayer){
+						checkedTypeNames.add(canonicaltypeName);
+						for (Attribute l : subAttributeLayerSet) {
 
-							String innerTypeName = l.getName();
-							String[] finalKey = innerTypeName.split("\\.");
+							String secondLoopNameFromSubSetParts = l.getName();
+							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
+																												// email.work.value
 
-							if(finalKey[1].intern().equals(typeName)){
-								multivalueObject.put(finalKey[2].intern(), AttributeUtil.getSingleValue(l));
-							}	
-						}if (!secondKeyPart[1].intern().equals("")&&!secondKeyPart[1].intern().equals("default") ) {
-							multivalueObject.put("type", secondKeyPart[1].intern());
+							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
+								multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+										AttributeUtil.getSingleValue(l));
+							}
+						}
+
+						if (!nameFromSubSetParts[1].intern().equals("")
+								&& !nameFromSubSetParts[1].intern().equals("default")) {
+							multivalueObject.put("type", nameFromSubSetParts[1].intern());
 						}
 						jArray.put(multivalueObject);
 					}
-					json.put(secondKeyPart[0], jArray);
+					json.put(nameFromSubSetParts[0], jArray);
 				}
 
-			}			
+			}
 		}
-
 		return json;
 	}
-	
+
 	public static ObjectClassInfo getGroupSchema() {
 
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
@@ -135,11 +147,13 @@ public class GroupDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(Name.INFO);
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").setRequired(true).build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.display").setRequired(false).build());
-	
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.Group.default.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.Group.default.display").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.default.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.default.display").build());
 		return builder.build();
 	}
+
 	@Override
 	public JSONObject translateSetToJson(Set<Attribute> imattributes, Set<Attribute> connattributes,
 			Map<String, Map<String, Object>> attributeMap) {

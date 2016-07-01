@@ -61,10 +61,13 @@ public class GenericDataBuilder implements ObjectTranslator {
 					}
 
 				} else {
-
-					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
+					
+					
+						completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 				}
 
+			} else if("__ENABLE__".equals(attributeName)){
+				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
 			} else {
 				LOGGER.warn("Attribute name not defined in dictionary {0}", attributeName);
 			}

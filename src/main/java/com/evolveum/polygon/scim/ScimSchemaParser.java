@@ -9,6 +9,7 @@ import org.identityconnectors.common.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+
 public class ScimSchemaParser {
 
 	private Map<String, Map<String, Object>> attributeMap;
@@ -36,9 +37,7 @@ public class ScimSchemaParser {
 			} else {
 				hlAttributeMap.put(key, hlAttribute.toString());
 			}
-
 		}
-
 		hlAttributeMapList.add(hlAttributeMap);
 		attributeMapList.add(attributeMap);
 	}
@@ -142,6 +141,7 @@ public class ScimSchemaParser {
 					}
 
 				} else {
+					
 					if (!isMultiValued) {
 						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
 							StringBuilder complexAttrName = new StringBuilder(attributeName);

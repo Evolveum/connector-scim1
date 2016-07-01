@@ -2,12 +2,12 @@
 <testng-results skipped="0" failed="0" total="1" passed="1">
   <reporter-output>
   </reporter-output>
-  <suite name="Command line suite" duration-ms="14" started-at="2016-06-27T08:08:23Z" finished-at="2016-06-27T08:08:23Z">
+  <suite name="Command line suite" duration-ms="9" started-at="2016-07-01T12:22:52Z" finished-at="2016-07-01T12:22:52Z">
     <groups>
     </groups>
-    <test name="Command line test" duration-ms="14" started-at="2016-06-27T08:08:23Z" finished-at="2016-06-27T08:08:23Z">
+    <test name="Command line test" duration-ms="9" started-at="2016-07-01T12:22:52Z" finished-at="2016-07-01T12:22:52Z">
       <class name="com.evolveum.polygon.test.slsfrc.AppTest">
-        <test-method status="PASS" signature="testApp()[pri:0, instance:testApp(com.evolveum.polygon.test.slsfrc.AppTest)]" name="testApp" duration-ms="2" started-at="2016-06-27T10:08:23Z" finished-at="2016-06-27T10:08:23Z">
+        <test-method status="PASS" signature="testApp()[pri:0, instance:testApp(com.evolveum.polygon.test.slsfrc.AppTest)]" name="testApp" duration-ms="2" started-at="2016-07-01T14:22:52Z" finished-at="2016-07-01T14:22:52Z">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testApp -->

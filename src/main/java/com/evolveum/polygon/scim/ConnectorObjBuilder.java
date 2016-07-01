@@ -1,20 +1,19 @@
 package com.evolveum.polygon.scim;
 
-import java.awt.List;
-import java.awt.font.MultipleMaster;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
-import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -120,8 +119,7 @@ public class ConnectorObjBuilder {
 
 					} else {
 						objectKeyName = objectNameBilder.append(".").append(o.toString()).toString();
-						cob.addAttribute(objectKeyName, o.toString());
-
+						cob.addAttribute(objectKeyName, o);
 					}
 				}
 
@@ -138,13 +136,16 @@ public class ConnectorObjBuilder {
 					StringBuilder objectNameBilder = new StringBuilder(key.intern());
 					cob.addAttribute(objectNameBilder.append(".").append(s).toString(),
 							((JSONObject) attribute).get(s));
-
 				}
 
 			} else {
+				
+				if("active".equals(key)){
+					cob.addAttribute("__ENABLE__",resourceJsonObject.get(key));
+				}else{
 
 				cob.addAttribute(key.intern(), resourceJsonObject.get(key));
-
+				}
 			}
 		}
 		ConnectorObject finalConnectorObject = cob.build();

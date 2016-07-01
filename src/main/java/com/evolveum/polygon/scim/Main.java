@@ -18,6 +18,7 @@ import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
+import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AndFilter;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
@@ -29,6 +30,7 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.common.objects.filter.NotFilter;
 import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
+import org.identityconnectors.framework.spi.SearchResultsHandler;
 
 //import com.evolveum.polygon.test.slsfrc.JsonDataProvider;
 
@@ -41,7 +43,7 @@ public class Main {
 
 	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
 	private static final ObjectClass groupClass = ObjectClass.GROUP;
-	private static final ObjectClass entitlementClass = new ObjectClass("/Entitlements");
+	private static final ObjectClass entitlementClass = new ObjectClass("Entitlements");
 
 	public static void main(String[] args) {
 
@@ -53,14 +55,16 @@ public class Main {
 
 		operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
 		operationOptions.put("PAGED_RESULTS_OFFSET", 1);
-		operationOptions.put("PAGE_SIZE", 6);
+		operationOptions.put("PAGE_SIZE", 1);
 
 		OperationOptions options = new OperationOptions(operationOptions);
 
-		createResourceTest();
-		// listAllfromResourcesTest(options);
+		// createResourceTest();
+	// listAllfromResourcesTest(options);
 		// filterMethodsTest(options);
-
+		updateResourceTest();
+		
+		
 		// newObject = conn.create(entitlement, classicBuilderTestUser(), null);
 
 		// conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
@@ -183,6 +187,7 @@ public class Main {
 		attr.add(AttributeBuilder.build("name.formatted", "TestThree Johnsson"));
 		attr.add(AttributeBuilder.build("name.familyName", "Johnsson"));
 		attr.add(AttributeBuilder.build("name.givenName", "TestThree"));
+		//attr.add(AttributeBuilder.build("active", true));
 
 		// attr.add(AttributeBuilder.build("groups.value","aaa"));
 		// attr.add(AttributeBuilder.build("groups.display","bbb"));
@@ -195,13 +200,14 @@ public class Main {
 		 */
 
 		attr.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
+		attr.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhpAAA"));
 
 		// attr.add(AttributeBuilder.build("schemaExtension.type",
 		// "urn:scim:schemas:extension:enterprise:1.0"));
 		// attr.add(AttributeBuilder.build("schemaExtension.organization",
 		// "00D58000000YfgfEAC"));
 
-		// attr.add(AttributeBuilder.build("schema.organiazation", "TestOrg"));
+		attr.add(AttributeBuilder.build("__ENABLE__", true));
 
 		attr.add(AttributeBuilder.build("addresses.home.locality", "snina"));
 		attr.add(AttributeBuilder.build("addresses.home.region", "Presov"));
@@ -225,12 +231,18 @@ public class Main {
 		return attr;
 	}
 
-	public static ResultsHandler handler = new ResultsHandler() {
+	public static SearchResultsHandler handler = new SearchResultsHandler() {
 
 		@Override
 		public boolean handle(ConnectorObject connectorObject) {
 			result.add(connectorObject);
 			return true;
+		}
+
+		@Override
+		public void handleResult(SearchResult result) {
+			LOGGER.info("im handling {0}", result.getRemainingPagedResults());
+			
 		}
 	};
 
@@ -239,9 +251,9 @@ public class Main {
 
 		initConnector(conn);
 
-		conn.executeQuery(userClass, null, handler, options);
-		// conn.executeQuery(groupClass, null, handler, null);
-		// conn.executeQuery(entitlementClass, null, handler, null);
+		//conn.executeQuery(userClass, null, handler, options);
+		 //conn.executeQuery(groupClass, null, handler, null);
+	 conn.executeQuery(entitlementClass, null, handler, options);
 	}
 
 	private static void deleteResourceTest() {
@@ -271,8 +283,8 @@ public class Main {
 
 		initConnector(conn);
 
-		conn.update(userClass, BLANC_TEST_UID, BuilderTestUser(), null);
-		conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
+		conn.update(userClass, TEST_UID, BuilderTestUser(), null);
+		//conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
 		// conn.update(entitlementClass, ,attr, null);
 
 	}

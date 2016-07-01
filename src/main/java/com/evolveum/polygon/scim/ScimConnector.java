@@ -403,18 +403,17 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 						qIsFilter("Groups", query, handler, attributeMap, queryUriSnippet);
 					}
 				} else {
-					String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements
-					String endpointNamePart = endpointNameParts[1];
+
 					if (query == null) {
-						crudManager.qeueryEntity(queryUriSnippet.toString(), endpointNamePart, handler);
-					} else if (query instanceof EqualsFilter && qIsUid(endpointNamePart, query, handler)) {
+						crudManager.qeueryEntity(queryUriSnippet.toString(), endpointName, handler);
+					} else if (query instanceof EqualsFilter && qIsUid(endpointName, query, handler)) {
 
 					} else {
 						Map<String, String> hlAtrribute;
 						hlAtrribute = fetchHighLevelAttributeMap(endpointName);
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 						attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
-						StringBuilder setEndpointFormat = new StringBuilder(endpointNamePart);
+						StringBuilder setEndpointFormat = new StringBuilder(endpointName);
 
 						qIsFilter(setEndpointFormat.toString(), query, handler, attributeMap, queryUriSnippet);
 					}

@@ -5,11 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
+import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -22,13 +25,18 @@ public class GenericSchemaObjectBuilder {
 
 	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName) {
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
-
 		builder.addAttributeInfo(Name.INFO);
 
+	
+		
+		
+		
 		for (String attributeName : attributeMap.keySet()) {
-
+			//System.out.println(attributeName);
+			
 			AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 
+			if(!attributeName.equals("active")){
 			Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
 			schemaSubPropertiesMap = attributeMap.get(attributeName);
 			for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
@@ -49,7 +57,10 @@ public class GenericSchemaObjectBuilder {
 
 			}
 			builder.addAttributeInfo(infoBuilder.build());
-
+		}else {
+			builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+			
+		}
 		}
 
 		if ("/Users".equals(objectTypeName.intern())) {
@@ -119,7 +130,6 @@ public class GenericSchemaObjectBuilder {
 		} else if ("multiValued".equals(mapAttributeKey.intern())) {
 			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(mapAttributeKey)));
 		}
-
 		// TODO test delete
 		if ("members.User.value".equals(key) || "members.Group.value".equals(key)) {
 

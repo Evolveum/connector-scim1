@@ -166,17 +166,14 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			} else {
 
 				Map<String, String> hlAtrribute;
-				hlAtrribute = fetchHighLevelAttributeMap(endpointName);
+				StringBuilder endpointNameFormat = new StringBuilder("/").append(endpointName);
+				hlAtrribute = fetchHighLevelAttributeMap(endpointNameFormat.toString());
 				if (hlAtrribute != null) {
 
 					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
 
-					String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements
-
-					String endpointNamePart = endpointNameParts[1];
-
-					uid = crudManager.createEntity(endpointNamePart, jsonDataBuilder, attr, attributeMap);
+					uid = crudManager.createEntity(endpointName, jsonDataBuilder, attr, attributeMap);
 				}
 			}
 
@@ -396,7 +393,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 					} else {
 						Map<String, String> hlAtrribute;
-						hlAtrribute = fetchHighLevelAttributeMap("/Users");
+						hlAtrribute = fetchHighLevelAttributeMap("/Groups");
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 						attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
 
@@ -410,12 +407,11 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 					} else {
 						Map<String, String> hlAtrribute;
-						hlAtrribute = fetchHighLevelAttributeMap(endpointName);
+						StringBuilder setEndpointFormat = new StringBuilder("/").append(endpointName);
+						hlAtrribute = fetchHighLevelAttributeMap(setEndpointFormat.toString());
 						Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 						attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
-						StringBuilder setEndpointFormat = new StringBuilder(endpointName);
-
-						qIsFilter(setEndpointFormat.toString(), query, handler, attributeMap, queryUriSnippet);
+						qIsFilter(endpointName, query, handler, attributeMap, queryUriSnippet);
 					}
 				}
 			} else {

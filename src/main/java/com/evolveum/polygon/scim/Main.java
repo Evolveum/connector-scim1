@@ -36,7 +36,7 @@ import org.identityconnectors.framework.spi.SearchResultsHandler;
 
 public class Main {
 
-	private static final Uid TEST_UID = new Uid("00558000001ImIRAA0");
+	private static final Uid TEST_UID = new Uid("00e58000000cqxLAAQ");
 	private static final Uid BLANC_TEST_UID = null;
 	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	private static final Log LOGGER = Log.getLog(Main.class);
@@ -60,9 +60,10 @@ public class Main {
 		OperationOptions options = new OperationOptions(operationOptions);
 
 		// createResourceTest();
-	// listAllfromResourcesTest(options);
+		//listAllfromResourcesTest(options);
 		// filterMethodsTest(options);
-		updateResourceTest();
+		//updateResourceTest();
+		
 		
 		
 		// newObject = conn.create(entitlement, classicBuilderTestUser(), null);
@@ -230,7 +231,16 @@ public class Main {
 		// "teest@eastcubattor1.com"));
 		return attr;
 	}
-
+	
+	private static Set<Attribute> BuilderTestResource() {
+		Set<Attribute> attr = new HashSet<Attribute>();
+		
+		attr.add(AttributeBuilder.build("displayName", "My Custom Test1 Entitlement"));
+		
+		
+		return attr;
+	}
+		
 	public static SearchResultsHandler handler = new SearchResultsHandler() {
 
 		@Override
@@ -268,13 +278,16 @@ public class Main {
 	}
 
 	private static void createResourceTest() {
+		
+		// TODO OID while in create not in all resources !
+		
 		ScimConnector conn = new ScimConnector();
 
 		initConnector(conn);
 
 		// conn.create(userClass, BuilderTestUser(), null);
-		conn.create(groupClass, BuilderTestGroup(), null);
-		// conn.create(entitlementClass, attr, null);
+		//conn.create(groupClass, BuilderTestGroup(), null);
+		//conn.create(entitlementClass, BuilderTestResource(), null);
 
 	}
 
@@ -313,10 +326,11 @@ public class Main {
 		// EndsWithFilter endsWithFilter =
 		// (EndsWithFilter)FilterBuilder.endsWith(AttributeBuilder.build(""));
 
-		// initConnector(conn);
+		initConnector(conn);
 
 		// conn.executeQuery(userClass, equalsFilterTest, handler, options);
 		// conn.executeQuery(groupClass, equalsFilterTest, handler, null);
+		conn.executeQuery(entitlementClass, uidEqualsFilterTest, handler, null);
 	}
 
 	private static ScimConnector initConnector(ScimConnector conn) {

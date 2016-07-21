@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -52,8 +53,9 @@ public class ConnectorObjBuilder {
 
 			// Salesforce workaround
 			if ("meta".equals(key.intern()) || "alias".equals(key.intern()) || "schemas".equals(key.intern())) {
-				// TODO
-				// do nothing -> some inconsistencies found in meta attribute in
+				
+				LOGGER.warn("Processing trought salesforce \"schema inconsistencies\" workaround. Because of the {0} resoure attribute ", key.intern());
+				// some inconsistencies found in meta attribute in
 				// the schema definition present.
 				// In the Schemas/ resource and the actual attributes in an
 				// resource representation (salesForce) (meta.location)

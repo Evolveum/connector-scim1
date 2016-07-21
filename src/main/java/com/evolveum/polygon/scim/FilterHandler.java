@@ -185,29 +185,24 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	// TODO filter modified to support the salesforce scim endpoint functionality 
 	@Override
 	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
-
-		StringBuilder preprocessedFilter = null;//processArrayQ(filter, p);
-
+		StringBuilder preprocessedFilter = null;
+		if (!"salesforce".equals(p)){
+		 preprocessedFilter = processArrayQ(filter, p);
+		}
 		if(null != preprocessedFilter){
 			return preprocessedFilter;
 		}else{
 
 			Collection<Filter> filterList= buildValueList(filter,"members");
-			//TODO
 			for(Filter f: filterList){
 
 				if(f instanceof EqualsFilter){
 					objectNameDictionary.put("members", "members");
 					return f.accept(this,p);
-
 				}
-
 			}
-			//
-
 			objectNameDictionary.put("members", "members");
 			AndFilter andFilterTest = (AndFilter) FilterBuilder.and(filterList);
-
 
 			return andFilterTest.accept(this,p);
 
@@ -548,13 +543,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 						.contains(AttributeBuilder.build(filter.getName(), o));
 				filterList.add(containsSingleAtribute);
 			}else{
-				// ContainsFilter containsSingleAtribute = (ContainsFilter) FilterBuilder
-				//			.contains(AttributeBuilder.build(attributeName, o));
-
-				//TODO
 				EqualsFilter containsSingleAtribute = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(attributeName,o));
 				filterList.add(containsSingleAtribute); 
-
 			}
 
 		}

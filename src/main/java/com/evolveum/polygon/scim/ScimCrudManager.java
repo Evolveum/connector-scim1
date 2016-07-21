@@ -357,12 +357,8 @@ public class ScimCrudManager {
 
 				} else {
 
-					//TODO exception changed to unknUIDex because of midpoint test 
 					loginInstance.releaseConnection();
-					LOGGER.error("Service provider response is empty, responce returned on queuery: {0}", queuery);
-					//throw new UnknownUidException(
-					//"No resources returned for the selected criteria. Please change list or search criteria.");
-
+					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", queuery);
 				}
 			} else {
 				loginInstance.releaseConnection();
@@ -649,14 +645,14 @@ public class ScimCrudManager {
 
 
 			}else if (statusCode == 500 && "Groups".equals(resourceEndPoint)){
-
+				
 				// Salesforce group/members workaround 
 				String[] uriParts = scimBaseUri.split("\\."); // e.g. https://eu6.salesforce.com/services/scim/v1
 
 				if(uriParts.length >=2){
 
 					if("salesforce".equals(uriParts[1])){
-
+			LOGGER.warn("Status code from first update query: {0}. Processing trought Salesforce \"group/member update\" workaround. ", statusCode);
 						HttpGet httpGet = new HttpGet(uri);
 						httpGet.addHeader(oauthHeader);
 						httpGet.addHeader(prettyPrintHeader);

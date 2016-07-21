@@ -74,7 +74,7 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 		 
 	      return new Object[][] {{configurationParameters,true}};
 	   }
-	 @Test (dataProvider = "providerTesConfig")
+	 //@Test (dataProvider = "providerTesConfig")
 	 public void configurationTest(HashMap <String,String> configurationParameters, Boolean assertionVariable){
 		 
 		 TestConfiguration testConfiguration = new TestConfiguration(configurationParameters);

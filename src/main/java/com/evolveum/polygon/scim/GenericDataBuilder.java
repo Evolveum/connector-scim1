@@ -130,10 +130,10 @@ public class GenericDataBuilder implements ObjectTranslator {
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
 							// email.work.value
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
-								int attribtueListSize= subSetAttribute.getValue().size();
-								LOGGER.error("The attribute list size: {0}", attribtueListSize);
-
-								if (attribtueListSize>1){
+								
+								if (subSetAttribute.getValue()!=null){
+									
+									if (subSetAttribute.getValue().size()>1){
 									List<Object> valueList = subSetAttribute.getValue();
 
 									for(Object attributeValue: valueList){
@@ -149,7 +149,8 @@ public class GenericDataBuilder implements ObjectTranslator {
 										jArray.put(multivalueObject);
 									}
 
-								}else{
+								} 
+									}else{
 
 									multivalueObject = new JSONObject();
 									multivalueObject.put(finalSubAttributeNameParts[2].intern(),

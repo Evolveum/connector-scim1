@@ -46,14 +46,14 @@ public class Main {
 
 
 
-		listAllfromResources();
+		//listAllfromResources();
 		//for (int i =0; i<10; i++ ){
 		//createResourceTest();
 		/*
 		}
 		 */
-		//filterMethodsTest();
-		updateResourceTest();
+		filterMethodsTest();
+		//updateResourceTest();
 
 
 		//
@@ -212,7 +212,7 @@ public class Main {
 
 		Set<Attribute> attr = new HashSet<Attribute>();
 
-		attr.add(AttributeBuilder.build("displayName", "tenthTestGroup@eacubattor1.com"));
+		//attr.add(AttributeBuilder.build("displayName", "tenthTestGroup@eacubattor1.com"));
 		attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZAA0"));
 		attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZ4A0"));
 		attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZ8A0"));
@@ -318,7 +318,7 @@ public class Main {
 
 		ContainsAllValuesFilter containsAllValuesFilter = (ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.User.value","00558000001JLTlAAO"));
 
-		ContainsFilter conrainsFilterTest = (ContainsFilter) FilterBuilder
+		ContainsFilter containsFilterTest = (ContainsFilter) FilterBuilder
 				.contains(AttributeBuilder.build("members", "00558000000VcXnAAK"));
 		EqualsFilter equalsFilterTest = (EqualsFilter) FilterBuilder
 				.equalTo(AttributeBuilder.build("members", "00558000000VcXnAAK"));
@@ -342,7 +342,7 @@ public class Main {
 		initConnector(conn);
 
 		// conn.executeQuery(userClass, uidEqualsFilterTest, handler, options);
-		conn.executeQuery(groupClass, uidEqualsFilterTest, handler, null);
+		conn.executeQuery(groupClass, containsAllValuesFilter, handler, null);
 		//conn.executeQuery(entitlementClass, uidEqualsFilterTest, handler, null);
 	}
 

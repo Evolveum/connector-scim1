@@ -19,14 +19,12 @@ import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
-import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
 
 import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
-	//import com.evolveum.polygon.test.slsfrc.JsonDataProvider;
 
 	public class TestConfiguration {
 

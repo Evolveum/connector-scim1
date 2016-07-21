@@ -17,10 +17,8 @@ public class GenericSchemaObjectBuilder {
 
 	private String providerName = "";
 
-	// TODO SOME attributes not defined in the Schemas/ endpoint and present in
-	// resources (salesForce)
 
-	// constructor for salesforce workaround purposes
+	// Constructor for Salesforce workaround purposes
 	public GenericSchemaObjectBuilder(String providerName){
 		this.providerName = providerName;
 
@@ -36,7 +34,6 @@ public class GenericSchemaObjectBuilder {
 
 
 		for (String attributeName : attributeMap.keySet()) {
-			//System.out.println(attributeName);
 
 			AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 
@@ -57,6 +54,15 @@ public class GenericSchemaObjectBuilder {
 						break;
 					} else {
 						subPropertiesChecker(infoBuilder, schemaSubPropertiesMap, subPropertieName, attributeName);
+						// Salesforce workaround
+
+						if("salesforce".equals(providerName)){
+							
+							if ("members.User.value".equals(attributeName) || "members.Group.value".equals(attributeName)|| "members.default.value".equals(attributeName)|| "members.default.display".equals(attributeName)) {
+								infoBuilder.setMultiValued(true);
+							}
+						}
+						
 					}
 
 				}
@@ -134,14 +140,7 @@ public class GenericSchemaObjectBuilder {
 		} else if ("multiValued".equals(mapAttributeKey.intern())) {
 			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(mapAttributeKey)));
 		}
-		// Salesforce workaround
-
-		if("salesforce".equals(providerName)){
-			if ("members.User.value".equals(key) || "members.Group.value".equals(key)|| "members.default.value".equals(key)|| "members.default.display".equals(key)) {
-
-				infoBuilder.setMultiValued(true);
-			}
-		}
+		
 		return infoBuilder;
 	}
 }

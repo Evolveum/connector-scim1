@@ -52,7 +52,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	private static final String GROUPS = "Groups";
 
 	private Schema schema = null;
-
+	private String providerName = "";
+	
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 
 	@Override
@@ -238,6 +239,15 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		if (this.schemaParser != null) {
 			genericsCanBeApplied = true;
 		}
+		// For Salesforce workaround purposes 
+
+		String[] loginUrlParts = this.configuration.getLoginURL().split("\\."); //e.g.
+																				//https://login.salesforce.com
+		if (loginUrlParts.length >=2){
+
+			providerName = loginUrlParts[1];
+		}
+		
 
 	}
 
@@ -466,31 +476,25 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		} else
 			return false;
 	}
-
+	// TODO  Groups/&filter=members .. Q should start with "?"  
 	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler,
 			Map<String, Map<String, Object>> schemaMap, StringBuilder queryUriSnippet) {
-
-		if(!"".equals(queryUriSnippet.toString())){
-			queryUriSnippet.append("&filter=").append(query.accept(new FilterHandler(schemaMap), endPoint));
-		}else {
-			queryUriSnippet.append("?filter=").append(query.accept(new FilterHandler(schemaMap), endPoint));
-
+	
+	
+		if ("salesforce".equals(providerName)){
+			
+			queryUriSnippet.append("&filter=").append(query.accept(new FilterHandler(schemaMap), providerName));
+			
+		}else{
+			queryUriSnippet.append("&filter=").append(query.accept(new FilterHandler(schemaMap), ""));
 		}
+		
 		crudManager.qeueryEntity(queryUriSnippet.toString(), endPoint, resultHandler);
 	}
 
 	private SchemaBuilder buildSchemas(SchemaBuilder schemaBuilder) {
 		LOGGER.info("Building schemas from provided data");
 
-
-		// Salesforce schema misconfiguration workaround
-
-		String[] loginUrlParts = configuration.getLoginURL().split("\\."); // https://login.salesforce.com
-		String providerName = "";
-		if (loginUrlParts.length >=2){
-
-			providerName = loginUrlParts[1];
-		}
 
 		GenericSchemaObjectBuilder schemaObjectBuilder = new GenericSchemaObjectBuilder(providerName);
 		int iterator = 0;
@@ -530,7 +534,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	private StringBuilder processOptions(OperationOptions options) {
 		StringBuilder queryBuilder = new StringBuilder();
-
+			
 
 		Integer pageSize = options.getPageSize();
 		Integer PagedResultsOffset = options.getPagedResultsOffset();

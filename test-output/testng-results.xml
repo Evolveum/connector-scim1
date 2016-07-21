@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="1" passed="1">
+  <reporter-output>
+  </reporter-output>
+  <suite name="Default suite" duration-ms="3961" started-at="2016-07-21T09:38:28Z" finished-at="2016-07-21T09:38:32Z">
+    <groups>
+    </groups>
+    <test name="Default test" duration-ms="3961" started-at="2016-07-21T09:38:28Z" finished-at="2016-07-21T09:38:32Z">
+      <class name="com.evolveum.polygon.test.slsfrc.Testclass">
+        <test-method status="PASS" signature="configurationTest(java.util.HashMap, java.lang.Boolean)[pri:0, instance:com.evolveum.polygon.test.slsfrc.Testclass@1efbd816]" name="configurationTest" duration-ms="3941" started-at="2016-07-21T11:38:28Z" data-provider="providerTesConfig" finished-at="2016-07-21T11:38:32Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[{endpoint=/services/scim, password=mm5ecr3tTMj9SlJ62ePwynASRoNJUouOl, clientID=3MVG98_Psg5cppyZ.wx3xXhdg46KDzaNSwpQFRqKfsBdDnyHrNSTodpJ5il8ZAdSB4eIjlF3RagOYYXWz8vTB, loginUrl=https://login.salesforce.com, service=/services/oauth2/token?grant_type=password, clientSecret=8826126769332672628, userName=matus.macik@gmail.com, version=/v1}]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[true]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- configurationTest -->
+      </class> <!-- com.evolveum.polygon.test.slsfrc.Testclass -->
+    </test> <!-- Default test -->
+  </suite> <!-- Default suite -->
+</testng-results>

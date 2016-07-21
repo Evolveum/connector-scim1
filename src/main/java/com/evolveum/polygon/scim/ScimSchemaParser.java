@@ -98,18 +98,18 @@ public class ScimSchemaParser {
 							referenceValue = ((JSONArray) referenceValues).getJSONObject(j);
 							for (String subAttributeKeyNames : subAttributeMap.keySet()) {
 								if (!"type".equals(subAttributeKeyNames.intern())) { // TODO
-																						// some
-																						// other
-																						// complex
-																						// attribute
-																						// names
-																						// may
-																						// be
-																						// used
+									// some
+									// other
+									// complex
+									// attribute
+									// names
+									// may
+									// be
+									// used
 									StringBuilder complexAttrName = new StringBuilder(attributeName);
 									attributeMap.put(
 											complexAttrName.append(".").append(referenceValue.get("value")).append(".")
-													.append(subAttributeKeyNames).toString(),
+											.append(subAttributeKeyNames).toString(),
 											(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
 									isComplex = true;
 
@@ -120,7 +120,7 @@ public class ScimSchemaParser {
 						ArrayList<String> defaultReferenceTypeValues = new ArrayList<String>();
 						defaultReferenceTypeValues.add("User");
 						defaultReferenceTypeValues.add("Group");
-						
+
 						defaultReferenceTypeValues.add("external");
 						defaultReferenceTypeValues.add("uri");
 
@@ -141,7 +141,7 @@ public class ScimSchemaParser {
 					}
 
 				} else {
-					
+
 					if (!isMultiValued) {
 						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
 							StringBuilder complexAttrName = new StringBuilder(attributeName);
@@ -154,7 +154,7 @@ public class ScimSchemaParser {
 							StringBuilder complexAttrName = new StringBuilder(attributeName);
 							attributeMap.put(
 									complexAttrName.append(".").append("default").append(".")
-											.append(subAttributeKeyNames).toString(),
+									.append(subAttributeKeyNames).toString(),
 									(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
 							isComplex = true;
 						}

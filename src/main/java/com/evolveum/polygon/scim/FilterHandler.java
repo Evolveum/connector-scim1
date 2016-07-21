@@ -1,16 +1,17 @@
 package com.evolveum.polygon.scim;
 
-import java.util.HashMap;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
-import org.apache.http.conn.scheme.Scheme;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
-import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.filter.AndFilter;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
@@ -107,25 +108,37 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 		objectNameDictionary.put("displayName", "displayName");
 	}
-
+	//TODO modify for containsAllValues filter
 	@Override
 	public StringBuilder visitAndFilter(String p, AndFilter filter) {
 		LOGGER.info("Processing request trought AND filter");
 
 		StringBuilder completeQuery = new StringBuilder();
-
+		int i =0;
+		int size =filter.getFilters().size();
 		boolean isFirst = true;
 
 		for (Filter f : filter.getFilters()) {
+			i++;
 
 			if (isFirst) {
-				completeQuery = f.accept(this, p);
+				if("default".equals(p) ){
+					completeQuery.append(p);
+					completeQuery.append("[");
+					completeQuery.append(f.accept(this, p));
+					isFirst = false;
+					if (i==size){
+						completeQuery.append("]");
+						isFirst = false;
+					}
+				}else{
+
+					completeQuery = f.accept(this, p);
+					isFirst = false;
+				}
+			} else {
 				completeQuery.append(SPACE);
 				completeQuery.append(AND);
-				isFirst = false;
-
-			} else {
-
 				completeQuery.append(SPACE);
 				if (f instanceof OrFilter || f instanceof AndFilter) {
 					completeQuery.append("(");
@@ -133,6 +146,11 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 					completeQuery.append(")");
 				} else {
 					completeQuery.append(f.accept(this, p).toString());
+				}
+				if(i==size){
+					if ("default".equals(p)){
+						completeQuery.append("]");
+					}
 				}
 			}
 
@@ -144,7 +162,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	@Override
 	public StringBuilder visitContainsFilter(String p, ContainsFilter filter) {
 		LOGGER.info("Processing request trought CONTAINS filter");
-
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -165,11 +182,38 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			throw new InvalidAttributeValueException("No atribute key name provided");
 		}
 	}
-
+	// TODO filter modified to support the salesforce scim endpoint functionality 
 	@Override
 	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
-		LOGGER.error("Filter method not implemented: ContainsAllValuesFilter ");
-		return null;
+
+		StringBuilder preprocessedFilter = null;//processArrayQ(filter, p);
+
+		if(null != preprocessedFilter){
+			return preprocessedFilter;
+		}else{
+
+			Collection<Filter> filterList= buildValueList(filter,"members");
+			//TODO
+			for(Filter f: filterList){
+
+				if(f instanceof EqualsFilter){
+					objectNameDictionary.put("members", "members");
+					return f.accept(this,p);
+
+				}
+
+			}
+			//
+
+			objectNameDictionary.put("members", "members");
+			AndFilter andFilterTest = (AndFilter) FilterBuilder.and(filterList);
+
+
+			return andFilterTest.accept(this,p);
+
+		}
+
+
 	}
 
 	@Override
@@ -407,36 +451,58 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			throw new InvalidAttributeValueException("No atribute value provided while building filter queuery");
 		} else {
 			resultString.append(name).append(SPACE).append(operator).append(SPACE).append(QUOTATION)
-					.append(AttributeUtil.getAsStringValue(atr)).append(QUOTATION);
+			.append(AttributeUtil.getAsStringValue(atr)).append(QUOTATION);
 		}
 
 		return resultString;
 	}
-
+	// TODO modifi to support contains all values filter 
 	private StringBuilder processArrayQ(AttributeFilter filter, String p) {
-
-		StringBuilder processedString = new StringBuilder();
-
 		if (filter.getName().contains(".")) {
 
 			String[] keyParts = filter.getName().split("\\."); // eq.
-																// email.work.value
+			// email.work.value
 			if (keyParts.length == 3) {
 
-				AttributeFilter variableFilter = null;
-
+				StringBuilder processedString = new StringBuilder();
+				Collection<Filter> filterList =new ArrayList<Filter>();
 				if (filter instanceof EqualsFilter) {
 
 					StringBuilder keyName = new StringBuilder(keyParts[0]).append(".").append(keyParts[2]);
 					EqualsFilter eqfilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder
 							.build(keyName.toString(), AttributeUtil.getAsStringValue(filter.getAttribute())));
-					variableFilter = eqfilter;
-				}
-				StringBuilder type = new StringBuilder(keyParts[0]).append(".").append("type");
 
-				EqualsFilter eq = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build(type.toString(), keyParts[1]));
-				AndFilter and = (AndFilter) FilterBuilder.and(eq, variableFilter);
+
+					StringBuilder type = new StringBuilder(keyParts[0]).append(".").append("type");
+					objectNameDictionary.put(type.toString(), type.toString());
+
+					EqualsFilter eq = (EqualsFilter) FilterBuilder
+							.equalTo(AttributeBuilder.build(type.toString(), keyParts[1]));
+					filterList.add(eqfilter);
+					filterList.add(eq);
+
+					objectNameDictionary.put(type.toString(), type.toString());
+					objectNameDictionary.put(keyName.toString(), keyName.toString());
+				}
+				else if (filter instanceof ContainsAllValuesFilter){
+					p =keyParts[0];
+
+					StringBuilder keyName = new StringBuilder(keyParts[0]).append(".").append(keyParts[2]);
+					filterList= buildValueList((ContainsAllValuesFilter)filter,keyParts[2]);
+
+					StringBuilder type = new StringBuilder(keyParts[0]).append(".").append("type");
+
+
+					EqualsFilter eq = (EqualsFilter) FilterBuilder
+							.equalTo(AttributeBuilder.build("type", keyParts[1]));
+					filterList.add(eq);
+
+					objectNameDictionary.put("type", "type");
+					objectNameDictionary.put(keyParts[2], keyParts[2]);
+				}else {
+					return null;
+				}
+				AndFilter and = (AndFilter) FilterBuilder.and(filterList);
 
 				processedString = and.accept(this, p);
 				return processedString;
@@ -451,7 +517,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		if (schemaMap != null) {
 			for (String attributeNameKey : schemaMap.keySet()) {
 				String[] attributeNameKeyParts = attributeNameKey.split("\\."); // eg.
-																				// emails.work.value
+				// emails.work.value
 				if (attributeNameKeyParts.length == 3) {
 					StringBuilder buildAttributeDictionaryValue = new StringBuilder(attributeNameKeyParts[0])
 							.append(".").append(attributeNameKeyParts[2]);
@@ -468,6 +534,32 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		} else {
 			LOGGER.warn("No schema provided, switching to default filter dictionary ");
 		}
+	}
+
+	private Collection<Filter> buildValueList(ContainsAllValuesFilter filter, String attributeName){
+
+		List<Object> valueList = filter.getAttribute().getValue();
+		Collection<Filter> filterList= new ArrayList<Filter>();
+
+		for(Object o:valueList){		
+			if(attributeName.isEmpty()){
+
+				ContainsFilter containsSingleAtribute = (ContainsFilter) FilterBuilder
+						.contains(AttributeBuilder.build(filter.getName(), o));
+				filterList.add(containsSingleAtribute);
+			}else{
+				// ContainsFilter containsSingleAtribute = (ContainsFilter) FilterBuilder
+				//			.contains(AttributeBuilder.build(attributeName, o));
+
+				//TODO
+				EqualsFilter containsSingleAtribute = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(attributeName,o));
+				filterList.add(containsSingleAtribute); 
+
+			}
+
+		}
+
+		return filterList;
 	}
 
 }

@@ -7,13 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -54,99 +50,100 @@ public class ConnectorObjBuilder {
 		for (String key : resourceJsonObject.keySet()) {
 			Object attribute = resourceJsonObject.get(key);
 
+			// Salesforce workaround
 			if ("meta".equals(key.intern()) || "alias".equals(key.intern()) || "schemas".equals(key.intern())) {
-				//TODO
+				// TODO
 				// do nothing -> some inconsistencies found in meta attribute in
-				// the schema definition present
-				// in the Schemas/ resource and the actual atrributes in an
+				// the schema definition present.
+				// In the Schemas/ resource and the actual attributes in an
 				// resource representation (salesForce) (meta.location)
 
 			} else
 
-			if (attribute instanceof JSONArray) {
+				if (attribute instanceof JSONArray) {
 
-				JSONArray jArray = (JSONArray) attribute;
+					JSONArray jArray = (JSONArray) attribute;
 
-				Map<String, Collection<Object>> multivaluedAttributeMap = new HashMap<String, Collection<Object>>();
-				Collection<Object> attributeValues = new ArrayList<Object>();
+					Map<String, Collection<Object>> multivaluedAttributeMap = new HashMap<String, Collection<Object>>();
+					Collection<Object> attributeValues = new ArrayList<Object>();
 
-				for (Object o : jArray) {
-					StringBuilder objectNameBilder = new StringBuilder(key.intern());
-					String objectKeyName = "";
-					if (o instanceof JSONObject) {
-						for (String s : ((JSONObject) o).keySet()) {
+					for (Object o : jArray) {
+						StringBuilder objectNameBilder = new StringBuilder(key.intern());
+						String objectKeyName = "";
+						if (o instanceof JSONObject) {
+							for (String s : ((JSONObject) o).keySet()) {
 
-							if ("type".equals(s.intern())) {
-								objectKeyName = objectNameBilder.append(".").append(((JSONObject) o).get(s)).toString();
-								objectNameBilder.delete(0, objectNameBilder.length());
-								break;
-							}
-						}
-
-						for (String s : ((JSONObject) o).keySet()) {
-
-							if ("type".equals(s.intern())) {
-							} else {
-
-								if (!"".equals(objectKeyName)) {
-									objectNameBilder = objectNameBilder.append(objectKeyName).append(".")
-											.append(s.intern());
-								} else {
-									objectKeyName = objectNameBilder.append(".").append("default").toString();
-									objectNameBilder = objectNameBilder.append(".").append(s.intern());
+								if ("type".equals(s.intern())) {
+									objectKeyName = objectNameBilder.append(".").append(((JSONObject) o).get(s)).toString();
+									objectNameBilder.delete(0, objectNameBilder.length());
+									break;
 								}
+							}
 
-								if (attributeValues.isEmpty()) {
-									attributeValues.add(((JSONObject) o).get(s));
-									multivaluedAttributeMap.put(objectNameBilder.toString(), attributeValues);
+							for (String s : ((JSONObject) o).keySet()) {
+
+								if ("type".equals(s.intern())) {
 								} else {
-									if (multivaluedAttributeMap.containsKey(objectNameBilder.toString())) {
-										attributeValues = multivaluedAttributeMap.get(objectNameBilder.toString());
-										attributeValues.add(((JSONObject) o).get(s));
+
+									if (!"".equals(objectKeyName)) {
+										objectNameBilder = objectNameBilder.append(objectKeyName).append(".")
+												.append(s.intern());
 									} else {
-										Collection<Object> newAttributeValues = new ArrayList<Object>();
-										newAttributeValues.add(((JSONObject) o).get(s));
-										multivaluedAttributeMap.put(objectNameBilder.toString(), newAttributeValues);
+										objectKeyName = objectNameBilder.append(".").append("default").toString();
+										objectNameBilder = objectNameBilder.append(".").append(s.intern());
 									}
 
-								}
-								objectNameBilder.delete(0, objectNameBilder.length());
+									if (attributeValues.isEmpty()) {
+										attributeValues.add(((JSONObject) o).get(s));
+										multivaluedAttributeMap.put(objectNameBilder.toString(), attributeValues);
+									} else {
+										if (multivaluedAttributeMap.containsKey(objectNameBilder.toString())) {
+											attributeValues = multivaluedAttributeMap.get(objectNameBilder.toString());
+											attributeValues.add(((JSONObject) o).get(s));
+										} else {
+											Collection<Object> newAttributeValues = new ArrayList<Object>();
+											newAttributeValues.add(((JSONObject) o).get(s));
+											multivaluedAttributeMap.put(objectNameBilder.toString(), newAttributeValues);
+										}
 
+									}
+									objectNameBilder.delete(0, objectNameBilder.length());
+
+								}
 							}
+
+							//
+
+						} else {
+							objectKeyName = objectNameBilder.append(".").append(o.toString()).toString();
+							cob.addAttribute(objectKeyName, o);
+						}
+					}
+
+					if (!multivaluedAttributeMap.isEmpty()) {
+						for (String attributeName : multivaluedAttributeMap.keySet()) {
+							cob.addAttribute(attributeName, multivaluedAttributeMap.get(attributeName));
 						}
 
-						//
+					}
 
+				} else if (attribute instanceof JSONObject) {
+					for (String s : ((JSONObject) attribute).keySet()) {
+
+						StringBuilder objectNameBilder = new StringBuilder(key.intern());
+						cob.addAttribute(objectNameBilder.append(".").append(s).toString(),
+								((JSONObject) attribute).get(s));
+					}
+
+				} else {
+
+					if ("active".equals(key)) {
+						cob.addAttribute("__ENABLE__", resourceJsonObject.get(key));
 					} else {
-						objectKeyName = objectNameBilder.append(".").append(o.toString()).toString();
-						cob.addAttribute(objectKeyName, o);
+
+						cob.addAttribute(key.intern(), resourceJsonObject.get(key));
 					}
 				}
-
-				if (!multivaluedAttributeMap.isEmpty()) {
-					for (String attributeName : multivaluedAttributeMap.keySet()) {
-						cob.addAttribute(attributeName, multivaluedAttributeMap.get(attributeName));
-					}
-
-				}
-
-			} else if (attribute instanceof JSONObject) {
-				for (String s : ((JSONObject) attribute).keySet()) {
-
-					StringBuilder objectNameBilder = new StringBuilder(key.intern());
-					cob.addAttribute(objectNameBilder.append(".").append(s).toString(),
-							((JSONObject) attribute).get(s));
-				}
-
-			} else {
-				
-				if("active".equals(key)){
-					cob.addAttribute("__ENABLE__",resourceJsonObject.get(key));
-				}else{
-
-				cob.addAttribute(key.intern(), resourceJsonObject.get(key));
-				}
-			}
 		}
 		ConnectorObject finalConnectorObject = cob.build();
 		LOGGER.info("The connector object returned for the processed json: {0}", finalConnectorObject);

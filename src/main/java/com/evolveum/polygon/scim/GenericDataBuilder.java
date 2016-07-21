@@ -1,20 +1,15 @@
 package com.evolveum.polygon.scim;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
-import org.identityconnectors.framework.common.objects.Name;
-import org.identityconnectors.framework.common.objects.ObjectClassInfo;
-import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -30,9 +25,9 @@ public class GenericDataBuilder implements ObjectTranslator {
 		JSONObject completeJsonObj = new JSONObject();
 
 		Set<Attribute> multiValueAttribute = new HashSet<Attribute>(); // e.g.
-																		// name.givenName
+		// name.givenName
 		Set<Attribute> multiLayerAttribute = new HashSet<Attribute>(); // e.g.
-																		// emails.work.value
+		// emails.work.value
 
 		if (injectedAttributes != null) {
 			for (Attribute at : injectedAttributes) {
@@ -46,13 +41,15 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 		for (Attribute attribute : imsAttributes) {
 
+			LOGGER.info("Update or create set attribute: {0}", attribute);
+
 			String attributeName = attribute.getName();
 
 			if (attributeMap.containsKey(attributeName)) {
 				if (attributeName.contains(".")) {
 
 					String[] keyParts = attributeName.split("\\."); // e.g.
-																	// emails.work.value
+					// emails.work.value
 					if (keyParts.length == 2) {
 
 						multiValueAttribute.add(attribute);
@@ -61,15 +58,15 @@ public class GenericDataBuilder implements ObjectTranslator {
 					}
 
 				} else {
-					
-					
-						completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
+
+
+					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 				}
 
 			} else if("__ENABLE__".equals(attributeName)){
 				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
 			} else {
-				LOGGER.warn("Attribute name not defined in dictionary {0}", attributeName);
+				LOGGER.warn("Attribute name not defined in dictionary: {0}", attributeName);
 			}
 		}
 
@@ -92,7 +89,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 			String attributeName = i.getName();
 			String[] attributeNameParts = attributeName.split("\\."); // e.q.
-																		// email.work.value
+			// email.work.value
 
 			if (checkedNames.contains(attributeNameParts[0])) {
 
@@ -104,7 +101,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 					String secondLoopAttributeName = j.getName();
 					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.q.
-																									// email.work.value
+					// email.work.value
 
 					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)) {
 						subAttributeLayerSet.add(j);
@@ -119,7 +116,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 					String nameFromSubSet = k.getName();
 					String[] nameFromSubSetParts = nameFromSubSet.split("\\."); // e.q.
-																				// email.work.value
+					// email.work.value
 
 					if (checkedTypeNames.contains(nameFromSubSetParts[1].intern())) {
 					} else {
@@ -127,22 +124,46 @@ public class GenericDataBuilder implements ObjectTranslator {
 						canonicaltypeName = nameFromSubSetParts[1].intern();
 
 						checkedTypeNames.add(canonicaltypeName);
-						for (Attribute l : subAttributeLayerSet) {
+						for (Attribute subSetAttribute : subAttributeLayerSet) {
 
-							String secondLoopNameFromSubSetParts = l.getName();
+							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
-																												// email.work.value
-
+							// email.work.value
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
-								multivalueObject.put(finalSubAttributeNameParts[2].intern(),
-										AttributeUtil.getSingleValue(l));
+								int attribtueListSize= subSetAttribute.getValue().size();
+								LOGGER.error("The attribute list size: {0}", attribtueListSize);
+
+								if (attribtueListSize>1){
+									List<Object> valueList = subSetAttribute.getValue();
+
+									for(Object attributeValue: valueList){
+										multivalueObject = new JSONObject();
+										multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+												attributeValue);
+
+										if (!nameFromSubSetParts[1].intern().equals("")
+												&& !nameFromSubSetParts[1].intern().equals("default")) {
+											multivalueObject.put("type", nameFromSubSetParts[1].intern());
+										}
+
+										jArray.put(multivalueObject);
+									}
+
+								}else{
+
+									multivalueObject = new JSONObject();
+									multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+											AttributeUtil.getSingleValue(subSetAttribute));
+
+									if (!nameFromSubSetParts[1].intern().equals("")
+											&& !nameFromSubSetParts[1].intern().equals("default")) {
+										multivalueObject.put("type", nameFromSubSetParts[1].intern());
+									}
+
+									jArray.put(multivalueObject);
+								}
 							}
 						}
-						if (!nameFromSubSetParts[1].intern().equals("")
-								&& !nameFromSubSetParts[1].intern().equals("default")) {
-							multivalueObject.put("type", nameFromSubSetParts[1].intern());
-						}
-						jArray.put(multivalueObject);
 					}
 					json.put(nameFromSubSetParts[0], jArray);
 				}
@@ -162,7 +183,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 		for (Attribute i : multiValueAttribute) {
 			String attributeName = i.getName();
 			String[] attributeNameParts = attributeName.split("\\."); // e.g.
-																		// name.givenName
+			// name.givenName
 
 			if (checkedNames.contains(attributeNameParts[0].intern())) {
 			} else {
@@ -172,7 +193,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 				for (Attribute j : multiValueAttribute) {
 					String secondLoopAttributeName = j.getName();
 					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.g.
-																									// name.givenName
+					// name.givenName
 					if (secondLoopAttributeNameParts[0].intern().equals(mainAttributeName)
 							&& !mainAttributeName.equals("schema")) {
 						jObject.put(secondLoopAttributeNameParts[1], AttributeUtil.getSingleValue(j));
@@ -193,7 +214,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 					for (Attribute specialAtribute : specialMlAttributes) {
 						String innerName = specialAtribute.getName();
 						String[] innerKeyParts = innerName.split("\\."); // e.g.
-																			// name.givenName
+						// name.givenName
 						if (innerKeyParts[1].intern().equals("type") && !nameWasSet) {
 							sMlAttributeName = AttributeUtil.getAsStringValue(specialAtribute);
 							nameWasSet = true;
@@ -223,8 +244,9 @@ public class GenericDataBuilder implements ObjectTranslator {
 	}
 
 	@Override
+	// Method not implemented in this class
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
-		// // method not implemented in this class
+
 		return null;
 	}
 }

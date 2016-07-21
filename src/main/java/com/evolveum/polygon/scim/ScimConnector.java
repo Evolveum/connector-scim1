@@ -58,6 +58,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	@Override
 	public Schema schema() {
 
+		LOGGER.info("Building schema definition");
+
 		if (schema == null) {
 			// test log delete
 			SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
@@ -77,7 +79,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	@Override
 	public void delete(ObjectClass object, Uid uid, OperationOptions options) {
-
+		LOGGER.info("Resource object delete");
 		if (uid.getUidValue() == null || uid.getUidValue().isEmpty()) {
 			LOGGER.error("Uid not provided or empty: {0} ", uid.getUidValue());
 			throw new IllegalArgumentException("Uid value not provided or empty");
@@ -108,7 +110,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			} else {
 
 				Map<String, String> hlAtrribute;
-				hlAtrribute = fetchHighLevelAttributeMap(endpointName);
+				StringBuilder setEndpointFormat = new StringBuilder("/").append(endpointName);
+				hlAtrribute = fetchHighLevelAttributeMap(setEndpointFormat.toString());
 				if (hlAtrribute != null) {
 					crudManager.deleteEntity(uid, endpointName);
 				}
@@ -129,7 +132,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	@Override
 	public Uid create(ObjectClass object, Set<Attribute> attr, OperationOptions arg2) {
-
+		LOGGER.info("Resource object create");
 		if (attr == null || attr.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty", attr);
 			throw new IllegalArgumentException("Set of Attributes value is null or empty");
@@ -213,6 +216,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	@Override
 	public void dispose() {
+		LOGGER.info("Configuration cleanup");
 		configuration = null;
 		crudManager = null;
 		schemaParser = null;
@@ -220,12 +224,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	@Override
 	public Configuration getConfiguration() {
-
+		LOGGER.info("Fetch configuration");
 		return this.configuration;
 	}
 
 	@Override
 	public void init(Configuration configuration) {
+		LOGGER.info("Initiation");
 		this.configuration = (ScimConnectorConfiguration) configuration;
 		this.configuration.validate();
 		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration) configuration);
@@ -238,7 +243,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	@Override
 	public Uid update(ObjectClass object, Uid id, Set<Attribute> attributes, OperationOptions options) {
-
+		LOGGER.info("Resource object update");
 		if (attributes == null || attributes.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty: {}", attributes);
 			throw new IllegalArgumentException("Set of Attributes value is null or empty");
@@ -276,17 +281,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			} else {
 				Map<String, String> hlAtrribute;
-				hlAtrribute = fetchHighLevelAttributeMap(endpointName);
+				StringBuilder setEndpointFormat = new StringBuilder("/").append(endpointName);
+				hlAtrribute = fetchHighLevelAttributeMap(setEndpointFormat.toString());
 				if (hlAtrribute != null) {
 
 					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
-
-					String[] endpointNameParts = endpointName.split("\\/"); // eg./Entitlements
-
-					String endpointNamePart = endpointNameParts[1];
-
-					uid = crudManager.updateEntity(id, endpointNamePart,
+					uid = crudManager.updateEntity(id, endpointName,
 							genericDataBuilder.translateSetToJson(attributes, null, attributeMap));
 				}
 			}
@@ -334,7 +335,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	@Override
 	public void test() {
-
+		LOGGER.info("Test");
 	}
 
 	@Override
@@ -349,6 +350,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	@Override
 	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
+		LOGGER.info("Connector object execute query");
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
 		StringBuilder queryUriSnippet = new StringBuilder("");
 
@@ -402,6 +404,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				} else {
 
 					if (query == null) {
+
 						crudManager.qeueryEntity(queryUriSnippet.toString(), endpointName, handler);
 					} else if (query instanceof EqualsFilter && qIsUid(endpointName, query, handler)) {
 
@@ -445,7 +448,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	protected boolean isSupportedQuery(ObjectClass objectClass, Filter filter) {
 
-		if ((filter instanceof AttributeFilter && !(filter instanceof ContainsAllValuesFilter)) || filter == null) {
+		if (filter instanceof AttributeFilter || /*!(filter instanceof ContainsAllValuesFilter)) &&*/filter == null) {
 
 			return true;
 		} else {
@@ -467,14 +470,29 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler,
 			Map<String, Map<String, Object>> schemaMap, StringBuilder queryUriSnippet) {
 
-		queryUriSnippet.append("&filter=").append(query.accept(new FilterHandler(schemaMap), endPoint));
+		if(!"".equals(queryUriSnippet.toString())){
+			queryUriSnippet.append("&filter=").append(query.accept(new FilterHandler(schemaMap), endPoint));
+		}else {
+			queryUriSnippet.append("?filter=").append(query.accept(new FilterHandler(schemaMap), endPoint));
 
+		}
 		crudManager.qeueryEntity(queryUriSnippet.toString(), endPoint, resultHandler);
 	}
 
 	private SchemaBuilder buildSchemas(SchemaBuilder schemaBuilder) {
+		LOGGER.info("Building schemas from provided data");
 
-		GenericSchemaObjectBuilder schemaObjectBuilder = new GenericSchemaObjectBuilder();
+
+		// Salesforce schema misconfiguration workaround
+
+		String[] loginUrlParts = configuration.getLoginURL().split("\\."); // https://login.salesforce.com
+		String providerName = "";
+		if (loginUrlParts.length >=2){
+
+			providerName = loginUrlParts[1];
+		}
+
+		GenericSchemaObjectBuilder schemaObjectBuilder = new GenericSchemaObjectBuilder(providerName);
 		int iterator = 0;
 		Map<String, String> hlAtrribute = new HashMap<String, String>();
 		for (Map<String, Map<String, Object>> attributeMap : schemaParser.getAttributeMapList()) {
@@ -511,16 +529,18 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	}
 
 	private StringBuilder processOptions(OperationOptions options) {
+		StringBuilder queryBuilder = new StringBuilder();
+
 
 		Integer pageSize = options.getPageSize();
 		Integer PagedResultsOffset = options.getPagedResultsOffset();
 		if (pageSize != null && PagedResultsOffset != null) {
-			StringBuilder queryBuilder = new StringBuilder("?startIndex=").append(PagedResultsOffset).append("&")
-					.append("count=").append(pageSize);
+			queryBuilder.append("?startIndex=").append(PagedResultsOffset).append("&")
+			.append("count=").append(pageSize);
 
 			return queryBuilder;
 		}
-		return null;
+		return queryBuilder.append("");
 	}
 
 	private Map<String, Map<String, Object>> fetchAttributeMap(Map<String, String> hlAtrribute,

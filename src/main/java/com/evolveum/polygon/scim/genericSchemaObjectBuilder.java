@@ -1,12 +1,9 @@
 package com.evolveum.polygon.scim;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -18,59 +15,66 @@ import org.json.JSONObject;
 
 public class GenericSchemaObjectBuilder {
 
+	private String providerName = "";
+
 	// TODO SOME attributes not defined in the Schemas/ endpoint and present in
 	// resources (salesForce)
 
+	// constructor for salesforce workaround purposes
+	public GenericSchemaObjectBuilder(String providerName){
+		this.providerName = providerName;
+
+	}
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 
 	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName) {
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
 		builder.addAttributeInfo(Name.INFO);
 
-	
-		
-		
-		
+
+
+
+
 		for (String attributeName : attributeMap.keySet()) {
 			//System.out.println(attributeName);
-			
+
 			AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 
 			if(!attributeName.equals("active")){
-			Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
-			schemaSubPropertiesMap = attributeMap.get(attributeName);
-			for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
-				if ("subAttributes".equals(subPropertieName.intern())) {
-					// TODO dead weight / check cases when this is true
-					infoBuilder = new AttributeInfoBuilder(attributeName.intern());
-					JSONArray jsonArray = new JSONArray();
-					
-					jsonArray = ((JSONArray) schemaSubPropertiesMap.get(subPropertieName));
-					for (int i = 0; i < jsonArray.length(); i++) {
-						JSONObject attribute = new JSONObject();
-						attribute = jsonArray.getJSONObject(i);
+				Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
+				schemaSubPropertiesMap = attributeMap.get(attributeName);
+				for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
+					if ("subAttributes".equals(subPropertieName.intern())) {
+						// TODO  check positive cases
+						infoBuilder = new AttributeInfoBuilder(attributeName.intern());
+						JSONArray jsonArray = new JSONArray();
+
+						jsonArray = ((JSONArray) schemaSubPropertiesMap.get(subPropertieName));
+						for (int i = 0; i < jsonArray.length(); i++) {
+							JSONObject attribute = new JSONObject();
+							attribute = jsonArray.getJSONObject(i);
+						}
+						break;
+					} else {
+						subPropertiesChecker(infoBuilder, schemaSubPropertiesMap, subPropertieName, attributeName);
 					}
-					break;
-				} else {
-					subPropertiesChecker(infoBuilder, schemaSubPropertiesMap, subPropertieName, attributeName);
+
 				}
+				builder.addAttributeInfo(infoBuilder.build());
+			}else {
+				builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
 
 			}
-			builder.addAttributeInfo(infoBuilder.build());
-		}else {
-			builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-			
-		}
 		}
 
 		if ("/Users".equals(objectTypeName.intern())) {
 			builder.setType(ObjectClass.ACCOUNT_NAME);
 
 		} else if ("/Groups".equals(objectTypeName.intern())) {
-			builder.setType(ObjectClass.GROUP_NAME);
+			builder.setType(ObjectClass.GROUP_NAME); 
 		} else {
 			String[] splitTypeMame = objectTypeName.split("\\/"); // e.q.
-																	// /Entitlements
+			// /Entitlements
 			ObjectClass objectClass = new ObjectClass(splitTypeMame[1]);
 			builder.setType(objectClass.getObjectClassValue());
 		}
@@ -130,12 +134,14 @@ public class GenericSchemaObjectBuilder {
 		} else if ("multiValued".equals(mapAttributeKey.intern())) {
 			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(mapAttributeKey)));
 		}
-		// TODO test delete
-		if ("members.User.value".equals(key) || "members.Group.value".equals(key)) {
+		// Salesforce workaround
 
-			infoBuilder.setMultiValued(true);
+		if("salesforce".equals(providerName)){
+			if ("members.User.value".equals(key) || "members.Group.value".equals(key)|| "members.default.value".equals(key)|| "members.default.display".equals(key)) {
+
+				infoBuilder.setMultiValued(true);
+			}
 		}
-
 		return infoBuilder;
 	}
 }

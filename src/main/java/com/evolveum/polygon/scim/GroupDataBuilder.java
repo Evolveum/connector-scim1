@@ -7,7 +7,6 @@ import java.util.Set;
 
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
@@ -46,7 +45,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 				if (attributeName.contains(".")) {
 
 					String[] keyParts = attributeName.split("\\."); // e.g.
-																	// emails.work.value
+					// emails.work.value
 					if (keyParts.length == 3) {
 						multiLayerAttribute.add(attribute);
 					} else {
@@ -79,7 +78,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 			String attributeName = i.getName();
 			String[] attributeNameParts = attributeName.split("\\."); // e.q.
-																		// email.work.value
+			// email.work.value
 
 			if (checkedNames.contains(attributeNameParts[0])) {
 
@@ -91,7 +90,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 					String secondLoopAttributeName = j.getName();
 					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.q.
-																									// email.work.value
+					// email.work.value
 					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)) {
 						subAttributeLayerSet.add(j);
 					}
@@ -105,7 +104,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 					String nameFromSubSet = k.getName();
 					String[] nameFromSubSetParts = nameFromSubSet.split("\\."); // e.q.
-																				// email.work.value
+					// email.work.value
 
 					if (checkedTypeNames.contains(nameFromSubSetParts[1].intern())) {
 					} else {
@@ -117,7 +116,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 							String secondLoopNameFromSubSetParts = l.getName();
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
-																												// email.work.value
+							// email.work.value
 
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
 								multivalueObject.put(finalSubAttributeNameParts[2].intern(),

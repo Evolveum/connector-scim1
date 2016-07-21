@@ -190,7 +190,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 			String attributeName = i.getName();
 			String[] attributeNameParts = attributeName.split("\\."); // e.q.
-																		// email.work.value
+			// email.work.value
 
 			if (checkedNames.contains(attributeNameParts[0])) {
 
@@ -202,7 +202,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 					String secondLoopAttributeName = j.getName();
 					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.q.
-																									// email.work.value
+					// email.work.value
 
 					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)) {
 						subAttributeLayerSet.add(j);
@@ -217,7 +217,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 					String nameFromSubSet = k.getName();
 					String[] nameFromSubSetParts = nameFromSubSet.split("\\."); // e.q.
-																				// email.work.value
+					// email.work.value
 
 					if (checkedTypeNames.contains(nameFromSubSetParts[1].intern())) {
 					} else {
@@ -229,7 +229,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 							String secondLoopNameFromSubSetParts = l.getName();
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
-																												// email.work.value
+							// email.work.value
 
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
 								multivalueObject.put(finalSubAttributeNameParts[2].intern(),
@@ -260,7 +260,7 @@ public class UserDataBuilder implements ObjectTranslator {
 		for (Attribute i : multiValueAttribute) {
 			String attributeName = i.getName();
 			String[] attributeNameParts = attributeName.split("\\."); // e.g.
-																		// name.givenName
+			// name.givenName
 
 			if (checkedNames.contains(attributeNameParts[0].intern())) {
 			} else {
@@ -270,7 +270,7 @@ public class UserDataBuilder implements ObjectTranslator {
 				for (Attribute j : multiValueAttribute) {
 					String secondLoopAttributeName = j.getName();
 					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.g.
-																									// name.givenName
+					// name.givenName
 					if (secondLoopAttributeNameParts[0].intern().equals(mainAttributeName)
 							&& !mainAttributeName.equals("schema")) {
 						jObject.put(secondLoopAttributeNameParts[1], AttributeUtil.getSingleValue(j));
@@ -291,7 +291,7 @@ public class UserDataBuilder implements ObjectTranslator {
 					for (Attribute specialAtribute : specialMlAttributes) {
 						String innerName = specialAtribute.getName();
 						String[] innerKeyParts = innerName.split("\\."); // e.g.
-																			// name.givenName
+						// name.givenName
 						if (innerKeyParts[1].intern().equals("type") && !nameWasSet) {
 							sMlAttributeName = AttributeUtil.getAsStringValue(specialAtribute);
 							nameWasSet = true;

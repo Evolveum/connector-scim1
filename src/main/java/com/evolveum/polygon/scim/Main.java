@@ -1,5 +1,6 @@
 package com.evolveum.polygon.scim;
 
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -7,36 +8,25 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.filefilter.NotFileFilter;
-import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
-import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.framework.common.objects.filter.AndFilter;
-import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
+import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
-import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
-import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
-import org.identityconnectors.framework.common.objects.filter.NotFilter;
-import org.identityconnectors.framework.common.objects.filter.OrFilter;
-import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
 
 //import com.evolveum.polygon.test.slsfrc.JsonDataProvider;
 
 public class Main {
 
-	private static final Uid TEST_UID = new Uid("00e58000000cqxLAAQ");
+	private static final Uid TEST_UID = new Uid("00G58000000e4VDEAY");
 	private static final Uid BLANC_TEST_UID = null;
 	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	private static final Log LOGGER = Log.getLog(Main.class);
@@ -45,27 +35,28 @@ public class Main {
 	private static final ObjectClass groupClass = ObjectClass.GROUP;
 	private static final ObjectClass entitlementClass = new ObjectClass("Entitlements");
 
+	private static OperationOptions options = getOptions();
+
 	public static void main(String[] args) {
 
 		ObjectClass userC = ObjectClass.ACCOUNT;
 		ObjectClass groupC = ObjectClass.GROUP;
 		ObjectClass entitlement = new ObjectClass("/Entitlements");
 
-		Map<String, Object> operationOptions = new HashMap<String, Object>();
 
-		operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
-		operationOptions.put("PAGED_RESULTS_OFFSET", 1);
-		operationOptions.put("PAGE_SIZE", 1);
 
-		OperationOptions options = new OperationOptions(operationOptions);
 
-		// createResourceTest();
-		//listAllfromResourcesTest(options);
-		// filterMethodsTest(options);
-		//updateResourceTest();
-		
-		
-		
+		listAllfromResources();
+		//for (int i =0; i<10; i++ ){
+		//createResourceTest();
+		/*
+		}
+		 */
+		//filterMethodsTest();
+		updateResourceTest();
+
+
+		//
 		// newObject = conn.create(entitlement, classicBuilderTestUser(), null);
 
 		// conn.update(userC, TEST_UID,classicBuilderTestUser(), null);
@@ -176,18 +167,18 @@ public class Main {
 
 		Set<Attribute> attr = new HashSet<Attribute>();
 
-		attr.add(AttributeBuilder.build("userName", "newTest3@eastcubattor1.com"));
+		//attr.add(AttributeBuilder.build("userName", "fourthtestuser@ectestdomain.com"));
 
-		attr.add(AttributeBuilder.build("nickName", "TestUserThree"));
+		//attr.add(AttributeBuilder.build("nickName", "fourthtestuser@ectestdomain.com"));
 
-		attr.add(AttributeBuilder.build("emails.work.value", "newTest3@eastcubattor1.com"));
-		attr.add(AttributeBuilder.build("emails.work.primary", true));
+		//attr.add(AttributeBuilder.build("emails.work.value", "fourthtestuser@ectestdomain.com"));
+		//attr.add(AttributeBuilder.build("emails.work.primary", true));
 		// attr.add(AttributeBuilder.build("emails.home.value",
 		// "teeawsst@eastcubattor1.com"));
 
-		attr.add(AttributeBuilder.build("name.formatted", "TestThree Johnsson"));
-		attr.add(AttributeBuilder.build("name.familyName", "Johnsson"));
-		attr.add(AttributeBuilder.build("name.givenName", "TestThree"));
+		//attr.add(AttributeBuilder.build("name.formatted", "Test Fourth"));
+		//attr.add(AttributeBuilder.build("name.familyName", "Fourth"));
+		//attr.add(AttributeBuilder.build("name.givenName", "Test"));
 		//attr.add(AttributeBuilder.build("active", true));
 
 		// attr.add(AttributeBuilder.build("groups.value","aaa"));
@@ -200,20 +191,20 @@ public class Main {
 		 * "SR"));
 		 */
 
-		attr.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
-		attr.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhpAAA"));
+		//attr.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
+		attr.add(AttributeBuilder.build("groups.default.value", "00G58000000aq3ZEAQ"));
 
 		// attr.add(AttributeBuilder.build("schemaExtension.type",
 		// "urn:scim:schemas:extension:enterprise:1.0"));
 		// attr.add(AttributeBuilder.build("schemaExtension.organization",
 		// "00D58000000YfgfEAC"));
 
-		attr.add(AttributeBuilder.build("__ENABLE__", true));
+		//attr.add(AttributeBuilder.build("__ENABLE__", true));
 
-		attr.add(AttributeBuilder.build("addresses.home.locality", "snina"));
-		attr.add(AttributeBuilder.build("addresses.home.region", "Presov"));
-		attr.add(AttributeBuilder.build("addresses.home.postalCode", "06901"));
-		attr.add(AttributeBuilder.build("addresses.home.country", "SR"));
+		//attr.add(AttributeBuilder.build("addresses.home.locality", "snina"));
+		//attr.add(AttributeBuilder.build("addresses.home.region", "Presov"));
+		//attr.add(AttributeBuilder.build("addresses.home.postalCode", "06901"));
+		//attr.add(AttributeBuilder.build("addresses.home.country", "SR"));
 		return attr;
 	}
 
@@ -221,9 +212,14 @@ public class Main {
 
 		Set<Attribute> attr = new HashSet<Attribute>();
 
-		attr.add(AttributeBuilder.build("displayName", "newTest4@eastcubattor1.com"));
-		attr.add(AttributeBuilder.build("members.User.value", "teest@eastcubattor1.com"));
-		attr.add(AttributeBuilder.build("members.User.display", "teest@eastcubattor1.com"));
+		attr.add(AttributeBuilder.build("displayName", "tenthTestGroup@eacubattor1.com"));
+		attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZAA0"));
+		attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZ4A0"));
+		attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZ8A0"));
+		attr.add(AttributeBuilder.build("members.User.value"));
+
+		//attr.add(AttributeBuilder.build("members.User.value", "0051111001K3NZ8A0","00533331K3NZ6A0","00523440001K3NZ4A0","233248000001K3NZ2A0"));
+		//attr.add(AttributeBuilder.build("members.User.display", "insightssecurity@00d58000000yfgfeac.com"));
 
 		// attr.add(AttributeBuilder.build("members.Group.value",
 		// "teest@eastcubattor1.com"));
@@ -231,16 +227,16 @@ public class Main {
 		// "teest@eastcubattor1.com"));
 		return attr;
 	}
-	
+
 	private static Set<Attribute> BuilderTestResource() {
 		Set<Attribute> attr = new HashSet<Attribute>();
-		
-		attr.add(AttributeBuilder.build("displayName", "My Custom Test1 Entitlement"));
-		
-		
+
+		attr.add(AttributeBuilder.build("displayName", "Custom: Marketing Profile"));
+		attr.add(AttributeBuilder.build("members.default.value", "00558000000rRkwAAE"));
+
 		return attr;
 	}
-		
+
 	public static SearchResultsHandler handler = new SearchResultsHandler() {
 
 		@Override
@@ -252,18 +248,33 @@ public class Main {
 		@Override
 		public void handleResult(SearchResult result) {
 			LOGGER.info("im handling {0}", result.getRemainingPagedResults());
-			
+
 		}
 	};
 
-	private static void listAllfromResourcesTest(OperationOptions options) {
+	private static void listAllfromResources() {
 		ScimConnector conn = new ScimConnector();
 
 		initConnector(conn);
 
-		//conn.executeQuery(userClass, null, handler, options);
-		 //conn.executeQuery(groupClass, null, handler, null);
-	 conn.executeQuery(entitlementClass, null, handler, options);
+		conn.executeQuery(userClass, null, handler, options);
+		conn.executeQuery(groupClass, null, handler, options);
+		conn.executeQuery(entitlementClass, null, handler, options);
+	}
+
+
+
+	public static OperationOptions getOptions(){
+
+		Map<String, Object> operationOptions = new HashMap<String, Object>();
+
+		operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
+		operationOptions.put("PAGED_RESULTS_OFFSET", 1);
+		operationOptions.put("PAGE_SIZE", 50);
+
+		OperationOptions options = new OperationOptions(operationOptions);
+
+		return options;
 	}
 
 	private static void deleteResourceTest() {
@@ -278,16 +289,16 @@ public class Main {
 	}
 
 	private static void createResourceTest() {
-		
+
 		// TODO OID while in create not in all resources !
-		
+
 		ScimConnector conn = new ScimConnector();
 
 		initConnector(conn);
 
 		// conn.create(userClass, BuilderTestUser(), null);
-		//conn.create(groupClass, BuilderTestGroup(), null);
-		//conn.create(entitlementClass, BuilderTestResource(), null);
+		conn.create(groupClass, BuilderTestGroup(), null);
+		// conn.create(entitlementClass, BuilderTestResource(), null);
 
 	}
 
@@ -296,19 +307,21 @@ public class Main {
 
 		initConnector(conn);
 
-		conn.update(userClass, TEST_UID, BuilderTestUser(), null);
-		//conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
-		// conn.update(entitlementClass, ,attr, null);
+		//conn.update(userClass, TEST_UID, BuilderTestUser(), null);
+		conn.update(groupClass, TEST_UID, BuilderTestGroup(), null);
+		//conn.update(entitlementClass,TEST_UID,BuilderTestResource(), null);
 
 	}
 
-	private static void filterMethodsTest(OperationOptions options) {
+	private static void filterMethodsTest() {
 		ScimConnector conn = new ScimConnector();
 
+		ContainsAllValuesFilter containsAllValuesFilter = (ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.User.value","00558000001JLTlAAO"));
+
 		ContainsFilter conrainsFilterTest = (ContainsFilter) FilterBuilder
-				.contains(AttributeBuilder.build("userName", "harryp0234"));
+				.contains(AttributeBuilder.build("members", "00558000000VcXnAAK"));
 		EqualsFilter equalsFilterTest = (EqualsFilter) FilterBuilder
-				.equalTo(AttributeBuilder.build("userName", "newTest3@eastcubattor1.com"));
+				.equalTo(AttributeBuilder.build("members", "00558000000VcXnAAK"));
 		EqualsFilter uidEqualsFilterTest = (EqualsFilter) FilterBuilder.equalTo(TEST_UID);
 
 		// OrFilter orFilterTest = (OrFilter) FilterBuilder.or(eq, ct);
@@ -328,14 +341,15 @@ public class Main {
 
 		initConnector(conn);
 
-		// conn.executeQuery(userClass, equalsFilterTest, handler, options);
-		// conn.executeQuery(groupClass, equalsFilterTest, handler, null);
-		conn.executeQuery(entitlementClass, uidEqualsFilterTest, handler, null);
+		// conn.executeQuery(userClass, uidEqualsFilterTest, handler, options);
+		conn.executeQuery(groupClass, uidEqualsFilterTest, handler, null);
+		//conn.executeQuery(entitlementClass, uidEqualsFilterTest, handler, null);
 	}
 
 	private static ScimConnector initConnector(ScimConnector conn) {
 
 		ScimConnectorConfiguration conf = new ScimConnectorConfiguration();
+
 		conn.init(conf);
 		conn.schema();
 

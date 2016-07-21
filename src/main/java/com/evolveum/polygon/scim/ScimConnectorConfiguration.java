@@ -8,14 +8,14 @@ import org.identityconnectors.framework.spi.StatefulConfiguration;
 
 public class ScimConnectorConfiguration extends AbstractConfiguration implements StatefulConfiguration {
 
-	private String SCIM_ENDPOINT = "/services/scim";
-	private String SCIM_VERSION = "/v1";
-	private String USERNAME = "matus.macik@gmail.com";
-	private String PASSWORD = "Iujm31hnPTlaN8tHPMgn3nn3lDS1fVZI";
-	private String LOGINURL = "https://login.salesforce.com";
-	private String SERVICEGRANT = "/services/oauth2/token?grant_type=password";
-	private String CLIENTID = "3MVG98_Psg5cppyZ.wx3xXhdg46KDzaNSwpQFRqKfsBdDnyHrNSTodpJ5il8ZAdSB4eIjlF3RagOYYXWz8vTB";
-	private String CLIENTSECRET = "8826126769332672628";
+	private String SCIM_ENDPOINT;
+	private String SCIM_VERSION;
+	private String USERNAME;
+	private String PASSWORD;
+	private String LOGINURL;
+	private String SERVICEGRANT;
+	private String CLIENTID;
+	private String CLIENTSECRET;
 
 	private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
 

@@ -20,7 +20,9 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.filter.AndFilter;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
+import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
@@ -237,6 +239,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration) configuration);
 		this.schemaParser = crudManager.qeueryEntity("", SCHEMAS);
 		if (this.schemaParser != null) {
+			//TODO switch to true, just for test purposess
 			genericsCanBeApplied = true;
 		}
 		// For Salesforce workaround purposes 
@@ -458,7 +461,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	protected boolean isSupportedQuery(ObjectClass objectClass, Filter filter) {
 
-		if (filter instanceof AttributeFilter || /*!(filter instanceof ContainsAllValuesFilter)) &&*/filter == null) {
+		if (filter instanceof AttributeFilter || /*!(filter instanceof ContainsAllValuesFilter)) &&*/filter == null || filter instanceof CompositeFilter) {
 
 			return true;
 		} else {
@@ -480,13 +483,22 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler,
 			Map<String, Map<String, Object>> schemaMap, StringBuilder queryUriSnippet) {
 	
-	
-		if ("salesforce".equals(providerName)){
-			
-			queryUriSnippet.append("&filter=").append(query.accept(new FilterHandler(schemaMap), providerName));
+		String prefixChar;
+		
+		if(queryUriSnippet.toString().isEmpty()){
+			prefixChar="?";
 			
 		}else{
-			queryUriSnippet.append("&filter=").append(query.accept(new FilterHandler(schemaMap), ""));
+			
+			prefixChar="&";
+		}
+	
+		if ("salessforce".equals(providerName)){
+			
+			queryUriSnippet.append(prefixChar).append("filter=").append(query.accept(new FilterHandler(schemaMap), providerName));
+			
+		}else{
+			queryUriSnippet.append(prefixChar).append("filter=").append(query.accept(new FilterHandler(schemaMap), ""));
 		}
 		
 		crudManager.qeueryEntity(queryUriSnippet.toString(), endPoint, resultHandler);

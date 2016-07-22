@@ -1,4 +1,4 @@
-package com.evolveum.polygon.test.slsfrc;
+package com.evolveum.polygon.test.scim;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,7 +28,7 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 	public class TestConfiguration {
 
-		private static final Uid TEST_UID = new Uid("00e58000000cqxLAAQ");
+		private static final Uid TEST_UID = new Uid("00558000001K3NZAA0");
 		private static final Uid BLANC_TEST_UID = null;
 		private static final ArrayList<ConnectorObject> result = new ArrayList<>();
 		private static final Log LOGGER = Log.getLog(TestConfiguration.class);
@@ -200,15 +200,32 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 			attributeSet.add(AttributeBuilder.build("nickName", "sixthTestUser"));
 
-			attributeSet.add(AttributeBuilder.build("emails.work.value", "sixthTestUser@ectestdomain.com"));
-			attributeSet.add(AttributeBuilder.build("emails.work.primary", true));
-			
-
 			attributeSet.add(AttributeBuilder.build("name.formatted", "Test Sixth"));
 			attributeSet.add(AttributeBuilder.build("name.familyName", "Sixth"));
 			attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 		
 			
+
+			attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000cqxLAAQ"));
+			
+
+			attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
+
+			return attributeSet;
+		}
+		
+		private static Set<Attribute> updateTestUser() {
+
+			Set<Attribute> attributeSet = new HashSet<Attribute>();
+
+			attributeSet.add(AttributeBuilder.build("nickName", "fourthtestuserUpdate"));
+
+		//	attributeSet.add(AttributeBuilder.build("emails.work.value", "fourthtestuser@ectestdomain.com"));
+		//	attributeSet.add(AttributeBuilder.build("emails.work.primary", true));
+			
+
+			//attributeSet.add(AttributeBuilder.build("name.formatted", "Test SixthUpdate"));
+			attributeSet.add(AttributeBuilder.build("name.familyName", "FourthUpdate"));
 
 			attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000cqxLAAQ"));
 			
@@ -316,9 +333,20 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 			return uid;
 		}
 
-		private static void updateResourceTest() {
-
-			conn.update(userClass, TEST_UID, BuilderTestUser(), null);
+		public static Uid updateResourceTest(String resourceName) {
+			Uid uid= null;
+			
+			if("users".equals(resourceName)) {
+				uid =conn.update(userClass, TEST_UID, updateTestUser(), null);
+				}else if("groups".equals(resourceName)) {
+				uid= conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
+				}
+				else {
+					LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
+				}
+			return uid;
+			
+			//conn.update(userClass, TEST_UID, updateTestUser(), null);
 			//conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
 			// conn.update(entitlementClass, ,attr, null);
 

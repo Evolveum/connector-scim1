@@ -1,4 +1,4 @@
-package com.evolveum.polygon.test.slsfrc;
+package com.evolveum.polygon.test.scim;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,6 +8,7 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.testng.Assert;
+import org.testng.Reporter;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -36,6 +37,12 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 	      return new Object[][] {{"users",filtermap}};
 	   }
 	 
+	 @DataProvider(name = "providerUpdateResourceObjecttest")
+	   public static Object[][] resourceProviderUpdateResourceObjecttest() {
+		 Uid uid = new Uid("00558000001K3NZAA0");
+		 
+	      return new Object[][] {{"users", uid}};
+	   }
 	 
 
 	 @DataProvider(name = "provider#2")
@@ -74,7 +81,11 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 		 
 	      return new Object[][] {{configurationParameters,true}};
 	   }
-	 //@Test (dataProvider = "providerTesConfig")
+	 
+	 
+	 ///////////////////////////TestSuite///////////////
+	 
+	// @Test (dataProvider = "providerTesConfig")
 	 public void configurationTest(HashMap <String,String> configurationParameters, Boolean assertionVariable){
 		 
 		 TestConfiguration testConfiguration = new TestConfiguration(configurationParameters);
@@ -132,6 +143,20 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 		
 	}
 	
+	// @Test (dataProvider = "providerUpdateResourceObjecttest")
+		private void testUpdateResourceObject(String resourceName, Uid uid){
+		 
+			if(testConfiguration == null){
+				 resourcesProviderTesConfig();
+			 }
+			
+			Uid returnedUid = testConfiguration.updateResourceTest(resourceName);
+			
+			Assert.assertEquals(uid,returnedUid );
+			
+			
+		}
+	
 	//@Test (dataProvider = "provider#3")
 	private void testDeletetObjectfromResources(String resourceName, Uid uid){
 		
@@ -141,7 +166,7 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 		
 		 
 		
-		Assert.assertTrue(testConfiguration.getHandlerResult().isEmpty());;
+		Assert.assertTrue(testConfiguration.getHandlerResult().isEmpty());
 		
 	}
 	

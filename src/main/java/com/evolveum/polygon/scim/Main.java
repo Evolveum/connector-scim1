@@ -16,6 +16,7 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.filter.AndFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
@@ -26,7 +27,7 @@ import org.identityconnectors.framework.spi.SearchResultsHandler;
 
 public class Main {
 
-	private static final Uid TEST_UID = new Uid("00G58000000e4VDEAY");
+	private static final Uid TEST_UID = new Uid("00G58000000aq3AEAQ");
 	private static final Uid BLANC_TEST_UID = null;
 	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	private static final Log LOGGER = Log.getLog(Main.class);
@@ -52,8 +53,8 @@ public class Main {
 		/*
 		}
 		 */
-		filterMethodsTest();
-		//updateResourceTest();
+		//filterMethodsTest();
+		updateResourceTest();
 
 
 		//
@@ -169,15 +170,15 @@ public class Main {
 
 		//attr.add(AttributeBuilder.build("userName", "fourthtestuser@ectestdomain.com"));
 
-		//attr.add(AttributeBuilder.build("nickName", "fourthtestuser@ectestdomain.com"));
+		attr.add(AttributeBuilder.build("nickName", "JD3321tg"));
 
-		//attr.add(AttributeBuilder.build("emails.work.value", "fourthtestuser@ectestdomain.com"));
+		attr.add(AttributeBuilder.build("emails.work.value", "fourthtestuserUpdate@ectestdomain.com"));
 		//attr.add(AttributeBuilder.build("emails.work.primary", true));
 		// attr.add(AttributeBuilder.build("emails.home.value",
 		// "teeawsst@eastcubattor1.com"));
 
 		//attr.add(AttributeBuilder.build("name.formatted", "Test Fourth"));
-		//attr.add(AttributeBuilder.build("name.familyName", "Fourth"));
+		attr.add(AttributeBuilder.build("name.familyName", "FourthUpdate"));
 		//attr.add(AttributeBuilder.build("name.givenName", "Test"));
 		//attr.add(AttributeBuilder.build("active", true));
 
@@ -192,7 +193,7 @@ public class Main {
 		 */
 
 		//attr.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
-		attr.add(AttributeBuilder.build("groups.default.value", "00G58000000aq3ZEAQ"));
+		//attr.add(AttributeBuilder.build("groups.default.value", "00G58000000aq3ZEAQ"));
 
 		// attr.add(AttributeBuilder.build("schemaExtension.type",
 		// "urn:scim:schemas:extension:enterprise:1.0"));
@@ -213,10 +214,10 @@ public class Main {
 		Set<Attribute> attr = new HashSet<Attribute>();
 
 		//attr.add(AttributeBuilder.build("displayName", "tenthTestGroup@eacubattor1.com"));
-		attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZAA0"));
-		attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZ4A0"));
-		attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZ8A0"));
-		attr.add(AttributeBuilder.build("members.User.value"));
+		//attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZAA0"));
+		//attr.add(AttributeBuilder.build("members.User.value", "hello", "hello", "hello", "hello"));
+		//attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZ8A0"));
+		attr.add(AttributeBuilder.build("members.User.value", "00558000000rRl0AAE"));
 
 		//attr.add(AttributeBuilder.build("members.User.value", "0051111001K3NZ8A0","00533331K3NZ6A0","00523440001K3NZ4A0","233248000001K3NZ2A0"));
 		//attr.add(AttributeBuilder.build("members.User.display", "insightssecurity@00d58000000yfgfeac.com"));
@@ -316,17 +317,17 @@ public class Main {
 	private static void filterMethodsTest() {
 		ScimConnector conn = new ScimConnector();
 
-		ContainsAllValuesFilter containsAllValuesFilter = (ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.User.value","00558000001JLTlAAO"));
+		ContainsAllValuesFilter containsAllValuesFilter = (ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.User.value","0045866001JLTlAggO","0054355001JLTldfgfO","00558000001JLTlsdfO","0055344001JLTlAbdd"));
 
 		ContainsFilter containsFilterTest = (ContainsFilter) FilterBuilder
-				.contains(AttributeBuilder.build("members", "00558000000VcXnAAK"));
+				.contains(AttributeBuilder.build("members.User.value", "00558000000VcXnAAK"));
 		EqualsFilter equalsFilterTest = (EqualsFilter) FilterBuilder
-				.equalTo(AttributeBuilder.build("members", "00558000000VcXnAAK"));
+				.equalTo(AttributeBuilder.build("members.Group.value", "00558000000VcXnAAK"));
 		EqualsFilter uidEqualsFilterTest = (EqualsFilter) FilterBuilder.equalTo(TEST_UID);
 
 		// OrFilter orFilterTest = (OrFilter) FilterBuilder.or(eq, ct);
 
-		// AndFilter andFilterTest = (AndFilter) FilterBuilder.and(con, con);
+		 AndFilter andFilterTest = (AndFilter) FilterBuilder.and(containsFilterTest, equalsFilterTest);
 
 		// NotFilter notFilterTest= (NotFilter)FilterBuilder.not(eq);
 
@@ -342,7 +343,7 @@ public class Main {
 		initConnector(conn);
 
 		// conn.executeQuery(userClass, uidEqualsFilterTest, handler, options);
-		conn.executeQuery(groupClass, containsAllValuesFilter, handler, null);
+		//conn.executeQuery(groupClass, containsAllValuesFilter, handler, options);
 		//conn.executeQuery(entitlementClass, uidEqualsFilterTest, handler, null);
 	}
 

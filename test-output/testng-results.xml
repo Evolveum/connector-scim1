@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testng-results skipped="0" failed="0" total="1" passed="1">
+<testng-results skipped="0" failed="0" total="2" passed="2">
   <reporter-output>
   </reporter-output>
-  <suite name="Default suite" duration-ms="3961" started-at="2016-07-21T09:38:28Z" finished-at="2016-07-21T09:38:32Z">
+  <suite name="Default suite" duration-ms="6984" started-at="2016-07-22T10:57:29Z" finished-at="2016-07-22T10:57:36Z">
     <groups>
     </groups>
-    <test name="Default test" duration-ms="3961" started-at="2016-07-21T09:38:28Z" finished-at="2016-07-21T09:38:32Z">
+    <test name="Default test" duration-ms="6984" started-at="2016-07-22T10:57:29Z" finished-at="2016-07-22T10:57:36Z">
       <class name="com.evolveum.polygon.test.slsfrc.Testclass">
-        <test-method status="PASS" signature="configurationTest(java.util.HashMap, java.lang.Boolean)[pri:0, instance:com.evolveum.polygon.test.slsfrc.Testclass@1efbd816]" name="configurationTest" duration-ms="3941" started-at="2016-07-21T11:38:28Z" data-provider="providerTesConfig" finished-at="2016-07-21T11:38:32Z">
+        <test-method status="PASS" signature="configurationTest(java.util.HashMap, java.lang.Boolean)[pri:0, instance:com.evolveum.polygon.test.slsfrc.Testclass@1efbd816]" name="configurationTest" duration-ms="3885" started-at="2016-07-22T12:57:29Z" data-provider="providerTesConfig" finished-at="2016-07-22T12:57:33Z">
           <params>
             <param index="0">
               <value>
@@ -23,6 +23,22 @@
           <reporter-output>
           </reporter-output>
         </test-method> <!-- configurationTest -->
+        <test-method status="PASS" signature="testUpdateResourceObject(java.lang.String, org.identityconnectors.framework.common.objects.Uid)[pri:0, instance:com.evolveum.polygon.test.slsfrc.Testclass@1efbd816]" name="testUpdateResourceObject" duration-ms="3073" started-at="2016-07-22T12:57:33Z" data-provider="providerUpdateResourceObjecttest" finished-at="2016-07-22T12:57:36Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[users]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[Attribute: {Name=__UID__, Value=[00558000001K3NZAA0]}]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testUpdateResourceObject -->
       </class> <!-- com.evolveum.polygon.test.slsfrc.Testclass -->
     </test> <!-- Default test -->
   </suite> <!-- Default suite -->

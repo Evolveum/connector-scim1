@@ -697,7 +697,7 @@ public class ScimCrudManager {
 
 								statusCode = response.getStatusLine().getStatusCode();
 								LOGGER.info("status code: {0}", statusCode);
-
+		
 								loginInstance.releaseConnection();
 								if (statusCode == 200 || statusCode == 201) {
 									LOGGER.info("Update of resource was succesfull");

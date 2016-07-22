@@ -5,9 +5,7 @@
     <classes>
       <class name="com.evolveum.polygon.test.slsfrc.Testclass">
         <methods>
-          <include name="testDeletetObjectfromResources" invocation-numbers="0"/>
-          <include name="filterMethodTest" invocation-numbers="0"/>
-          <include name="testListAllfromResources" invocation-numbers="0 1 2"/>
+          <include name="testUpdateResourceObject" invocation-numbers="0"/>
         </methods>
       </class> <!-- com.evolveum.polygon.test.slsfrc.Testclass -->
     </classes>

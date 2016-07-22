@@ -12,6 +12,7 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.omg.CORBA.OMGVMCID;
 
 public class GenericDataBuilder implements ObjectTranslator {
 
@@ -19,6 +20,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes,
 			Map<String, Map<String, Object>> attributeMap) {
+		
 
 		LOGGER.info("Building account JsonObject");
 
@@ -77,7 +79,11 @@ public class GenericDataBuilder implements ObjectTranslator {
 		if (multiLayerAttribute != null) {
 			buildLayeredAtrribute(multiLayerAttribute, completeJsonObj);
 		}
+		LOGGER.info("Json object returned from json data builder: {0}",completeJsonObj);
+		
 		return completeJsonObj;
+		
+		
 
 	}
 
@@ -131,9 +137,9 @@ public class GenericDataBuilder implements ObjectTranslator {
 							// email.work.value
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
 								
-								if (subSetAttribute.getValue()!=null){
+								if (subSetAttribute.getValue()!=null && subSetAttribute.getValue().size()>1){
 									
-									if (subSetAttribute.getValue().size()>1){
+								
 									List<Object> valueList = subSetAttribute.getValue();
 
 									for(Object attributeValue: valueList){
@@ -145,11 +151,10 @@ public class GenericDataBuilder implements ObjectTranslator {
 												&& !nameFromSubSetParts[1].intern().equals("default")) {
 											multivalueObject.put("type", nameFromSubSetParts[1].intern());
 										}
-
 										jArray.put(multivalueObject);
 									}
 
-								} 
+								
 									}else{
 
 									multivalueObject = new JSONObject();
@@ -160,7 +165,6 @@ public class GenericDataBuilder implements ObjectTranslator {
 											&& !nameFromSubSetParts[1].intern().equals("default")) {
 										multivalueObject.put("type", nameFromSubSetParts[1].intern());
 									}
-
 									jArray.put(multivalueObject);
 								}
 							}
@@ -171,6 +175,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 			}
 		}
+		
 		return json;
 	}
 

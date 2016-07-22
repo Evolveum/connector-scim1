@@ -54,7 +54,7 @@ public class ConnectorObjBuilder {
 			// Salesforce workaround
 			if ("meta".equals(key.intern()) || "alias".equals(key.intern()) || "schemas".equals(key.intern())) {
 				
-				LOGGER.warn("Processing trought salesforce \"schema inconsistencies\" workaround. Because of the {0} resoure attribute ", key.intern());
+				LOGGER.warn("Processing trought salesforce \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.", key.intern());
 				// some inconsistencies found in meta attribute in
 				// the schema definition present.
 				// In the Schemas/ resource and the actual attributes in an

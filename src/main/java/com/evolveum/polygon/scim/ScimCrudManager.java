@@ -844,14 +844,18 @@ public class ScimCrudManager {
 			throws ParseException, IOException {
 		responseString = EntityUtils.toString(response.getEntity());
 
+		StringBuilder exceptionStringBuilder = new StringBuilder("Query for ").append(message).append(" was unsuccessful. Status code returned: ").append(statusCode);
+		String exceptionString = exceptionStringBuilder.toString();
+		
+		
 		if (message == null) {
 			message = "the full resource representation";
 		}
-		LOGGER.error("Query for {1} was unsuccessful. Status code returned is {0}", statusCode, message);
+		LOGGER.error(exceptionString);
 		LOGGER.info("An error has occured. Http status: {0}", responseString);
-		LOGGER.info("Query for {1} was unsuccessful. Status code returned is {0}", statusCode, message);
-
-		throw new ConnectorIOException("Query was unsuccessful");
+		LOGGER.info(exceptionString);
+		
+		throw new ConnectorIOException(exceptionString);
 	}
 
 }

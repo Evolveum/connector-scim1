@@ -18,10 +18,19 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
 
+	private static final String DELETE ="delete";
+	
+	private String operation;
+	
+	public GenericDataBuilder(String operation){
+		this.operation = operation;
+		
+	}
+
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes,
 			Map<String, Map<String, Object>> attributeMap) {
 		
-
+		
 		LOGGER.info("Building account JsonObject");
 
 		JSONObject completeJsonObj = new JSONObject();
@@ -151,6 +160,12 @@ public class GenericDataBuilder implements ObjectTranslator {
 												&& !nameFromSubSetParts[1].intern().equals("default")) {
 											multivalueObject.put("type", nameFromSubSetParts[1].intern());
 										}
+										if(operation!=null){
+										if (DELETE.equals(operation)){
+											multivalueObject.put("operation",
+													DELETE);
+										}
+										}
 										jArray.put(multivalueObject);
 									}
 
@@ -165,6 +180,12 @@ public class GenericDataBuilder implements ObjectTranslator {
 											&& !nameFromSubSetParts[1].intern().equals("default")) {
 										multivalueObject.put("type", nameFromSubSetParts[1].intern());
 									}
+									if(operation!=null){
+										if (DELETE.equals(operation)){
+											multivalueObject.put("operation",
+													DELETE);
+										}
+										}
 									jArray.put(multivalueObject);
 								}
 							}

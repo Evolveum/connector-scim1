@@ -120,7 +120,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		if(samePathIdParts.length >1){
 		 p = samePathIdParts[1];
 		}
-		System.out.println(p + " lenght " + samePathIdParts.length);
 		
 		StringBuilder completeQuery = new StringBuilder();
 		int i =0;

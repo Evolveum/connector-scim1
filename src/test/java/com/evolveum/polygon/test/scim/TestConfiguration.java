@@ -196,12 +196,12 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 			Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-			attributeSet.add(AttributeBuilder.build("userName", "sixthTestUser@ectestdomain.com"));
+			attributeSet.add(AttributeBuilder.build("userName", "seventhTestUser@ectestdomain.com"));
+			attributeSet.add(AttributeBuilder.build("emails.work.value", "seventhTestUser@ectestdomain.com"));
+			attributeSet.add(AttributeBuilder.build("nickName", "seventhTestUser"));
 
-			attributeSet.add(AttributeBuilder.build("nickName", "sixthTestUser"));
-
-			attributeSet.add(AttributeBuilder.build("name.formatted", "Test Sixth"));
-			attributeSet.add(AttributeBuilder.build("name.familyName", "Sixth"));
+			attributeSet.add(AttributeBuilder.build("name.formatted", "Test Seven"));
+			attributeSet.add(AttributeBuilder.build("name.familyName", "Seven"));
 			attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 		
 			
@@ -355,12 +355,16 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 		public static void filterMethodsTest(AttributeFilter filter, String resourceName) {
 			result.clear();
 
-			if("users".equalsIgnoreCase(resourceName)){
-		 conn.executeQuery(userClass, filter, handler, options);
-			}else if("groups".equalsIgnoreCase(resourceName)){
-		 conn.executeQuery(groupClass, filter, handler, options);
-			}if("entitlements".equalsIgnoreCase(resourceName)){
-			conn.executeQuery(entitlementClass, filter, handler, options);
+			try {
+				if("users".equalsIgnoreCase(resourceName)){
+ conn.executeQuery(userClass, filter, handler, options);
+				}else if("groups".equalsIgnoreCase(resourceName)){
+ conn.executeQuery(groupClass, filter, handler, options);
+				}if("entitlements".equalsIgnoreCase(resourceName)){
+				conn.executeQuery(entitlementClass, filter, handler, options);
+				}
+			} catch (Exception e) {
+				LOGGER.warn("An exception has ocoured while processing the filter method test: {0}", e.getMessage());;
 			}
 		}
 

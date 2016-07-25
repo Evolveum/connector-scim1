@@ -37,12 +37,13 @@ import org.identityconnectors.framework.spi.operations.DeleteOp;
 import org.identityconnectors.framework.spi.operations.SchemaOp;
 import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
+import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 import org.json.JSONObject;
 
 @ConnectorClass(displayNameKey = "ScimConnector.connector.display", configurationClass = ScimConnectorConfiguration.class)
 
-public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp {
+public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp, UpdateAttributeValuesOp {
 
 	private ScimConnectorConfiguration configuration;
 	private ScimCrudManager crudManager;
@@ -143,7 +144,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 		if (genericsCanBeApplied) {
 			Uid uid = new Uid("default");
-			GenericDataBuilder jsonDataBuilder = new GenericDataBuilder();
+			GenericDataBuilder jsonDataBuilder = new GenericDataBuilder("");
 			String endpointName = object.getObjectClassValue();
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
@@ -263,7 +264,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		}
 		if (genericsCanBeApplied) {
 			Uid uid = new Uid("default");
-			GenericDataBuilder genericDataBuilder = new GenericDataBuilder();
+			GenericDataBuilder genericDataBuilder = new GenericDataBuilder("");
 
 			String endpointName = object.getObjectClassValue();
 
@@ -479,7 +480,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		} else
 			return false;
 	}
-	// TODO  Groups/&filter=members .. Q should start with "?"  
 	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler,
 			Map<String, Map<String, Object>> schemaMap, StringBuilder queryUriSnippet) {
 	
@@ -493,7 +493,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			prefixChar="&";
 		}
 	
-		if ("salessforce".equals(providerName)){
+		if ("salesforce".equals(providerName)){
 			
 			queryUriSnippet.append(prefixChar).append("filter=").append(query.accept(new FilterHandler(schemaMap), providerName));
 			
@@ -571,6 +571,197 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			throw new ConnectorException(
 					"No high level attribute map for schema attribute endpoint definition present");
 		}
+	}
+
+	@Override
+	public Uid addAttributeValues(ObjectClass object, Uid id, Set<Attribute> attributes, OperationOptions options) {
+
+		LOGGER.info("Resource object update for addition of values");
+		if (attributes == null || attributes.isEmpty()) {
+			LOGGER.error("Set of Attributes can not be null or empty: {}", attributes);
+			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+		}
+		if (genericsCanBeApplied) {
+			Uid uid = new Uid("default");
+			GenericDataBuilder genericDataBuilder = new GenericDataBuilder("");
+
+			String endpointName = object.getObjectClassValue();
+
+			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
+				Map<String, String> hlAtrribute;
+				hlAtrribute = fetchHighLevelAttributeMap("/Users");
+				if (hlAtrribute != null) {
+
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+
+					uid = crudManager.updateEntity(id, USERS,
+							genericDataBuilder.translateSetToJson(attributes, null, attributeMap));
+				}
+
+			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
+
+				Map<String, String> hlAtrribute;
+				hlAtrribute = fetchHighLevelAttributeMap("/Groups");
+				if (hlAtrribute != null) {
+
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+
+					uid = crudManager.updateEntity(id, GROUPS,
+							genericDataBuilder.translateSetToJson(attributes, null, attributeMap));
+				}
+
+			} else {
+				Map<String, String> hlAtrribute;
+				StringBuilder setEndpointFormat = new StringBuilder("/").append(endpointName);
+				hlAtrribute = fetchHighLevelAttributeMap(setEndpointFormat.toString());
+				if (hlAtrribute != null) {
+
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+					uid = crudManager.updateEntity(id, endpointName,
+							genericDataBuilder.translateSetToJson(attributes, null, attributeMap));
+				}
+			}
+
+			return uid;
+		} else {
+			if (ObjectClass.ACCOUNT.equals(object)) {
+				UserDataBuilder userJson = new UserDataBuilder();
+				JSONObject userJsonObject = new JSONObject();
+
+				userJsonObject = userJson.translateSetToJson(attributes, null);
+
+				Uid uid = crudManager.updateEntity(id, USERS, userJsonObject);
+
+				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
+
+				if (uid == null) {
+					LOGGER.error("No uid returned by the create method: {0} ", uid);
+					throw new IllegalArgumentException("No uid returned by the create method");
+				}
+				return uid;
+
+			} else if (ObjectClass.GROUP.equals(object)) {
+
+				GroupDataBuilder groupJson = new GroupDataBuilder();
+				JSONObject groupJsonObject = new JSONObject();
+
+				groupJsonObject = groupJson.translateSetToJson(attributes, null);
+
+				Uid uid = crudManager.updateEntity(id, GROUPS, groupJsonObject);
+
+				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
+
+				if (uid == null) {
+					LOGGER.error("No uid returned by the create method: {0} ", uid);
+					throw new IllegalArgumentException("No uid returned by the create method");
+				}
+				return uid;
+			} else {
+				LOGGER.error("Provided object value is not valid: {0}", object);
+				throw new IllegalArgumentException("Object value not valid");
+			}
+		}
+	
+	}
+
+	@Override
+	public Uid removeAttributeValues(ObjectClass object, Uid id, Set<Attribute> attributes,
+			OperationOptions options) {
+		
+	
+
+		LOGGER.info("Resource object update for removal of attribute values");
+		if (attributes == null || attributes.isEmpty()) {
+			LOGGER.error("Set of Attributes can not be null or empty: {}", attributes);
+			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+		}
+		if (genericsCanBeApplied) {
+			Uid uid = new Uid("default");
+			GenericDataBuilder genericDataBuilder = new GenericDataBuilder("delete");
+
+			String endpointName = object.getObjectClassValue();
+
+			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
+				Map<String, String> hlAtrribute;
+				hlAtrribute = fetchHighLevelAttributeMap("/Users");
+				if (hlAtrribute != null) {
+
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+
+					uid = crudManager.updateEntity(id, USERS,
+							genericDataBuilder.translateSetToJson(attributes, null, attributeMap));
+				}
+
+			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
+
+				Map<String, String> hlAtrribute;
+				hlAtrribute = fetchHighLevelAttributeMap("/Groups");
+				if (hlAtrribute != null) {
+
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+
+					uid = crudManager.updateEntity(id, GROUPS,
+							genericDataBuilder.translateSetToJson(attributes, null, attributeMap));
+				}
+
+			} else {
+				Map<String, String> hlAtrribute;
+				StringBuilder setEndpointFormat = new StringBuilder("/").append(endpointName);
+				hlAtrribute = fetchHighLevelAttributeMap(setEndpointFormat.toString());
+				if (hlAtrribute != null) {
+
+					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
+					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+					uid = crudManager.updateEntity(id, endpointName,
+							genericDataBuilder.translateSetToJson(attributes, null, attributeMap));
+				}
+			}
+
+			return uid;
+		} else {
+			if (ObjectClass.ACCOUNT.equals(object)) {
+				UserDataBuilder userJson = new UserDataBuilder();
+				JSONObject userJsonObject = new JSONObject();
+
+				userJsonObject = userJson.translateSetToJson(attributes, null);
+
+				Uid uid = crudManager.updateEntity(id, USERS, userJsonObject);
+
+				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
+
+				if (uid == null) {
+					LOGGER.error("No uid returned by the create method: {0} ", uid);
+					throw new IllegalArgumentException("No uid returned by the create method");
+				}
+				return uid;
+
+			} else if (ObjectClass.GROUP.equals(object)) {
+
+				GroupDataBuilder groupJson = new GroupDataBuilder();
+				JSONObject groupJsonObject = new JSONObject();
+
+				groupJsonObject = groupJson.translateSetToJson(attributes, null);
+
+				Uid uid = crudManager.updateEntity(id, GROUPS, groupJsonObject);
+
+				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
+
+				if (uid == null) {
+					LOGGER.error("No uid returned by the create method: {0} ", uid);
+					throw new IllegalArgumentException("No uid returned by the create method");
+				}
+				return uid;
+			} else {
+				LOGGER.error("Provided object value is not valid: {0}", object);
+				throw new IllegalArgumentException("Object value not valid");
+			}
+		}
+	
 	}
 
 }

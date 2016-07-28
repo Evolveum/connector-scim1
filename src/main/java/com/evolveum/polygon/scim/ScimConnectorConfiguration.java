@@ -8,6 +8,7 @@ import org.identityconnectors.framework.spi.StatefulConfiguration;
 
 public class ScimConnectorConfiguration extends AbstractConfiguration implements StatefulConfiguration {
 
+	
 	private String SCIM_ENDPOINT;
 	private String SCIM_VERSION;
 	private String USERNAME;

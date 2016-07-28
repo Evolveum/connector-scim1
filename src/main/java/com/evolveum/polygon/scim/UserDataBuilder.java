@@ -16,6 +16,7 @@ import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
+import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -36,7 +37,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		objectNameDictionaryUser.put("displayName", "displayName");
 		objectNameDictionaryUser.put("nickName", "nickName");
-		// nameDictionaryUser.put("profileUrl","profileUrl");
+		
 
 		objectNameDictionaryUser.put("emails.work.value", "value");
 		objectNameDictionaryUser.put("emails.work.primary", "primary");
@@ -72,36 +73,57 @@ public class UserDataBuilder implements ObjectTranslator {
 		objectNameDictionaryUser.put("addresses.other.primary", "primary");
 
 		objectNameDictionaryUser.put("phoneNumbers.work.value", "value");
+		objectNameDictionaryUser.put("phoneNumbers.work.primary", "primary");
 
 		objectNameDictionaryUser.put("phoneNumbers.home.value", "value");
+		objectNameDictionaryUser.put("phoneNumbers.home.primary", "primary");
 
 		objectNameDictionaryUser.put("phoneNumbers.mobile.value", "value");
+		objectNameDictionaryUser.put("phoneNumbers.mobile.primary", "primary");
 
 		objectNameDictionaryUser.put("phoneNumbers.fax.value", "value");
+		objectNameDictionaryUser.put("phoneNumbers.fax.primary", "primary");
 
 		objectNameDictionaryUser.put("phoneNumbers.pager.value", "value");
+		objectNameDictionaryUser.put("phoneNumbers.pager.primary", "primary");
+		
+		objectNameDictionaryUser.put("phoneNumbers.other.value", "value");
+		objectNameDictionaryUser.put("phoneNumbers.other.primary", "primary");
+		
+		
 
 		objectNameDictionaryUser.put("photos.photo.value", "value");
+		objectNameDictionaryUser.put("photos.photo.primary", "primary");
 
 		objectNameDictionaryUser.put("photos.thumbnail.value", "value");
+		objectNameDictionaryUser.put("photos.thumbnail.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.aim.value", "type");
+		objectNameDictionaryUser.put("ims.aim.value", "value");
+		objectNameDictionaryUser.put("ims.aim.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.gtalk.value", "type");
+		objectNameDictionaryUser.put("ims.gtalk.value", "value");
+		objectNameDictionaryUser.put("ims.gtalk.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.icq.value", "type");
+		objectNameDictionaryUser.put("ims.icq.value", "value");
+		objectNameDictionaryUser.put("ims.icq.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.msn.value", "type");
+		objectNameDictionaryUser.put("ims.msn.value", "value");
+		objectNameDictionaryUser.put("ims.msn.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.xmpp.value", "type");
+		objectNameDictionaryUser.put("ims.xmpp.value", "value");
+		objectNameDictionaryUser.put("ims.xmpp.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.skype.value", "type");
+		objectNameDictionaryUser.put("ims.skype.value", "value");
+		objectNameDictionaryUser.put("ims.skype.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.qq.value", "type");
+		objectNameDictionaryUser.put("ims.qq.value", "value");
+		objectNameDictionaryUser.put("ims.qq.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.yahoo.value", "type");
+		objectNameDictionaryUser.put("ims.yahoo.value", "value");
+		objectNameDictionaryUser.put("ims.yahoo.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.other.value", "type");
+		objectNameDictionaryUser.put("ims.other.value", "value");
+		objectNameDictionaryUser.put("ims.other.primary", "primary");
 
 		objectNameDictionaryUser.put("userType", "userType");
 		objectNameDictionaryUser.put("title", "title");
@@ -114,9 +136,7 @@ public class UserDataBuilder implements ObjectTranslator {
 		objectNameDictionaryUser.put("active", "active");
 		objectNameDictionaryUser.put("password", "password");
 
-		// nameDictionaryUser.put("groups.value","value");
-		// nameDictionaryUser.put("groups.display","display");
-
+		
 		objectNameDictionaryUser.put("x509Certificates", "x509Certificates");
 		objectNameDictionaryUser.put("x509Certificates.value", "value");
 
@@ -125,6 +145,9 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		objectNameDictionaryUser.put("schema.type", "type");
 		objectNameDictionaryUser.put("schema.organization", "organization");
+		
+		objectNameDictionaryUser.put("roles.default.value", "value");
+		objectNameDictionaryUser.put("roles.default.display", "value");
 	}
 
 	public UserDataBuilder() {
@@ -328,11 +351,16 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("userName").setRequired(true).build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("name.formatted").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("name.familyName").setRequired(false).build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("name.givenName").setRequired(false).build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("name.familyName").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("name.givenName").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("name.middleName").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificPrefix").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificSuffix").build());
+		
+		builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("password").setUpdateable(true).build());
+		
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("nickName").build());
 
@@ -343,17 +371,101 @@ public class UserDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(AttributeInfoBuilder.define("id").build());
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.primary").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.primary").setType(Boolean.class).build());
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.primary").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.primary").setType(Boolean.class).build());
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.primary").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.primary").setType(Boolean.class).build());
 
-		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements..value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements..primary").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.primary").setType(Boolean.class).build());
 
+		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.work.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.work.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.other.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.other.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.pager.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.pager.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.fax.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.fax.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.mobile.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.mobile.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.aim.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.aim.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.xmpp.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.xmpp.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.skype.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.skype.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.qq.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.qq.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.yahoo.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.yahoo.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.other.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.other.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.msn.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.msn.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.icq.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.icq.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.gtalk.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.gtalk.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("photos.photo.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("photos.photo.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("photos.thumbnail.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("photos.thumbnail.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.streetAddress").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.locality").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.region").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.postalCode").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.country").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.formatted").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.streetAddress").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.locality").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.region").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.postalCode").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.country").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.formatted").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.streetAddress").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.locality").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.region").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.postalCode").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.country").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.formatted").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.primary").setType(Boolean.class).build());
+		
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("groups.default.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("groups.default.display").build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.display").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.primary").setType(Boolean.class).build());
+		
+		builder.addAttributeInfo(AttributeInfoBuilder.define("roles.default.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("roles.default.display").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("roles.default.primary").setType(Boolean.class).build());
+		
 		return builder.build();
 	}
 

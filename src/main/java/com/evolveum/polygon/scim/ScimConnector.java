@@ -231,6 +231,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Fetch configuration");
 		return this.configuration;
 	}
+	
+	
 
 	@Override
 	public void init(Configuration configuration) {
@@ -238,11 +240,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		this.configuration = (ScimConnectorConfiguration) configuration;
 		this.configuration.validate();
 		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration) configuration);
-		this.schemaParser = crudManager.qeueryEntity("", SCHEMAS);
-		if (this.schemaParser != null) {
-			//TODO switch to true, just for test purposess
-			genericsCanBeApplied = true;
-		}
+		
 		// For Salesforce workaround purposes 
 
 		String[] loginUrlParts = this.configuration.getLoginURL().split("\\."); //e.g.
@@ -251,7 +249,15 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			providerName = loginUrlParts[1];
 		}
+		//
 		
+		this.schemaParser = crudManager.qeueryEntity(providerName, SCHEMAS);
+		
+		if (this.schemaParser != null) {
+			
+			//TODO switch to true, just for test purposess
+			genericsCanBeApplied = true;
+		}
 
 	}
 

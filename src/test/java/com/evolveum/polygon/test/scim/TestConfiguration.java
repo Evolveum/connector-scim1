@@ -192,7 +192,7 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 			return attr;
 		}
 
-		private static Set<Attribute> BuilderTestUser() {
+		private static Set<Attribute> userCreateBuilder() {
 
 			Set<Attribute> attributeSet = new HashSet<Attribute>();
 
@@ -214,7 +214,7 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 			return attributeSet;
 		}
 		
-		private static Set<Attribute> updateTestUser() {
+		private static Set<Attribute> userUpdateBuilder() {
 
 			Set<Attribute> attributeSet = new HashSet<Attribute>();
 
@@ -235,7 +235,7 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 			return attributeSet;
 		}
 
-		private static Set<Attribute> BuilderTestGroup() {
+		private static Set<Attribute> groupCreateBuilder() {
 
 			Set<Attribute> attributeSet = new HashSet<Attribute>();
 
@@ -245,7 +245,7 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 			return attributeSet;
 		}
 		
-		private static Set<Attribute> BuilderTestResource() {
+		private static Set<Attribute> resourceCreateBuilder() {
 			Set<Attribute> attr = new HashSet<Attribute>();
 			
 			attr.add(AttributeBuilder.build("displayName", "My Custom Test1 Entitlement"));
@@ -269,7 +269,7 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 			}
 		};
 
-		public static void listAllfromResources(String resourceName) {
+		public static void listAllfromResourcesTestHelper(String resourceName) {
 			result.clear();
 			
 			
@@ -300,7 +300,7 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 			return options;
 		}
 
-		public static void deleteResourceTest(Uid uid, String resourceName) {
+		public static void deleteResourceTestHelper(Uid uid, String resourceName) {
 			
 			if("users".equalsIgnoreCase(resourceName)){
 				conn.delete(userClass, uid, null);
@@ -315,13 +315,13 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 		}
 
-		public static Uid createResourceTest(String resourceName) {
+		public static Uid createResourceTestHelper(String resourceName) {
 			Uid uid= null;
 			
 			if("users".equals(resourceName)) {
-			uid= conn.create(userClass, BuilderTestUser(), null);
+			uid= conn.create(userClass, userCreateBuilder(), null);
 			}else if("groups".equals(resourceName)) {
-				uid= conn.create(groupClass, BuilderTestGroup(), null);
+				uid= conn.create(groupClass, groupCreateBuilder(), null);
 			}
 			else {
 				LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
@@ -333,14 +333,52 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 			return uid;
 		}
 
-		public static Uid updateResourceTest(String resourceName) {
+		public static Uid updateResourceTestHelper(String resourceName) {
 			Uid uid= null;
 			
 			if("users".equals(resourceName)) {
-				uid =conn.update(userClass, TEST_UID, updateTestUser(), null);
+				uid =conn.update(userClass, TEST_UID, userUpdateBuilder(), null);
 				}else if("groups".equals(resourceName)) {
-				uid= conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
+				uid= conn.update(groupClass, BLANC_TEST_UID, groupCreateBuilder(), null);
 				}
+				else {
+					LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
+				}
+			return uid;
+			
+			//conn.update(userClass, TEST_UID, updateTestUser(), null);
+			//conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
+			// conn.update(entitlementClass, ,attr, null);
+
+		}
+		
+		public static Uid addAttributeValuesTestHelper(String resourceName) {
+			Uid uid= null;
+			
+			if("users".equals(resourceName)) {
+				uid =conn.update(userClass, TEST_UID, userUpdateBuilder(), null);
+				}else if("groups".equals(resourceName)) {
+				uid= conn.update(groupClass, BLANC_TEST_UID, groupCreateBuilder(), null);
+				} 
+				else {
+					LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
+				}
+			return uid;
+			
+			//conn.update(userClass, TEST_UID, updateTestUser(), null);
+			//conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
+			// conn.update(entitlementClass, ,attr, null);
+
+		}
+		
+		public static Uid removeAttributeValuesTestHelper(String resourceName) {
+			Uid uid= null;
+			
+			if("users".equals(resourceName)) {
+				uid =conn.update(userClass, TEST_UID, userUpdateBuilder(), null);
+				}else if("groups".equals(resourceName)) {
+				uid= conn.update(groupClass, BLANC_TEST_UID, groupCreateBuilder(), null);
+				} 
 				else {
 					LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 				}
@@ -432,11 +470,11 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 			Set<Attribute> attributeSet= new HashSet<>();
 			
 			if ("users".equals(resourceName)){
-				attributeSet = BuilderTestUser();
+				attributeSet = userCreateBuilder();
 				
 			}else if ("groups".equals(resourceName)){
 				
-				attributeSet = BuilderTestGroup();
+				attributeSet = groupCreateBuilder();
 			}
 			
 			

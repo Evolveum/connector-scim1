@@ -70,15 +70,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 
 	static {
+		
 		objectNameDictionary.put("userName", "userName");
-		objectNameDictionary.put("name", "formatted");
-		objectNameDictionary.put("displayName", "displayName");
-		objectNameDictionary.put("nickName", "nickName");
-		objectNameDictionary.put("profileUrl", "profileUrl");
-		objectNameDictionary.put("title", "title");
-		objectNameDictionary.put("userType", "userType");
-		objectNameDictionary.put("id", "id");
-		objectNameDictionary.put("externalId", "externalId");
 
 		objectNameDictionary.put("name.formatted", "name.formatted");
 		objectNameDictionary.put("name.familyName", "name.familyName");
@@ -87,30 +80,125 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		objectNameDictionary.put("name.honorificPrefix", "name.honorificPrefix");
 		objectNameDictionary.put("name.honorificSuffix", "name.honorificSuffix");
 
+		objectNameDictionary.put("displayName", "displayName");
+		objectNameDictionary.put("nickName", "nickName");
+		
+
+		objectNameDictionary.put("emails.work.value", "emails.work.value");
+
+
+		objectNameDictionary.put("emails.home.value", "emails.home.value");
+
+
+		objectNameDictionary.put("emails.other.value", "emails.other.value");
+		
+
+		objectNameDictionary.put("addresses.work.streetAddress", "addresses.work.streetAddress");
+		objectNameDictionary.put("addresses.work.locality", "addresses.work.locality");
+		objectNameDictionary.put("addresses.work.region", "addresses.work.region");
+		objectNameDictionary.put("addresses.work.postalCode", "addresses.work.postalCode");
+		objectNameDictionary.put("addresses.work.country", "addresses.work.country");
+		objectNameDictionary.put("addresses.work.formatted", "addresses.work.formatted");
+
+		objectNameDictionary.put("addresses.home.streetAddress", "addresses.work.streetAddress");
+		objectNameDictionary.put("addresses.home.locality", "addresses.work.locality");
+		objectNameDictionary.put("addresses.home.region", "addresses.work.region");
+		objectNameDictionary.put("addresses.home.postalCode", "addresses.work.postalCode");
+		objectNameDictionary.put("addresses.home.country", "addresses.work.country");
+		objectNameDictionary.put("addresses.home.formatted", "addresses.work.formatted");
+
+		objectNameDictionary.put("addresses.other.streetAddress", "addresses.work.streetAddress");
+		objectNameDictionary.put("addresses.other.locality", "addresses.work.locality");
+		objectNameDictionary.put("addresses.other.region", "addresses.work.region");
+		objectNameDictionary.put("addresses.other.postalCode", "addresses.work.postalCode");
+		objectNameDictionary.put("addresses.other.country", "addresses.work.country");
+		objectNameDictionary.put("addresses.other.formatted", "addresses.work.formatted");
+
+		objectNameDictionary.put("phoneNumbers.work.value", "phoneNumbers.work.value");
+	
+
+		objectNameDictionary.put("phoneNumbers.home.value", "phoneNumbers.home.value");
+
+
+		objectNameDictionary.put("phoneNumbers.mobile.value", "phoneNumbers.mobile.value");
+
+
+		objectNameDictionary.put("phoneNumbers.fax.value", "phoneNumbers.fax.value");
+	
+
+		objectNameDictionary.put("phoneNumbers.pager.value", "phoneNumbers.pager.value");
+
+		objectNameDictionary.put("phoneNumbers.other.value", "phoneNumbers.other.value");
+
+		
+		
+
+		objectNameDictionary.put("photos.photo.value", "photos.photo.value");
+
+
+		objectNameDictionary.put("photos.thumbnail.value", "photos.thumbnail.value");
+
+		objectNameDictionary.put("ims.aim.value", "ims.aim.value");
+
+
+		objectNameDictionary.put("ims.gtalk.value", "ims.gtalk.value");
+
+
+		objectNameDictionary.put("ims.icq.value", "ims.icq.value");
+
+
+		objectNameDictionary.put("ims.msn.value", "ims.msn.value");
+
+		objectNameDictionary.put("ims.xmpp.value", "ims.xmpp.value");
+
+
+		objectNameDictionary.put("ims.skype.value", "ims.skype.value");
+
+
+		objectNameDictionary.put("ims.qq.value", "ims.qq.value");
+
+		objectNameDictionary.put("ims.yahoo.value", "ims.yahoo.value");
+
+
+		objectNameDictionary.put("ims.other.value", "ims.other.value");
+
+		objectNameDictionary.put("userType", "userType");
+		objectNameDictionary.put("title", "title");
 		objectNameDictionary.put("preferredLanguage", "preferredLanguage");
 		objectNameDictionary.put("locale", "locale");
-		objectNameDictionary.put("timezone", "timezone");
-		objectNameDictionary.put("active", "active");
-
-		objectNameDictionary.put("emails.work.value", "emails.value");
-		objectNameDictionary.put("emails.work.primary", "emails.primary");
-
-		objectNameDictionary.put("emails.home.value", "emails.value");
-		objectNameDictionary.put("emails.home.primary", "emails.primary");
-
-		objectNameDictionary.put("emails.value", "emails.value");
-		objectNameDictionary.put("emails.type", "emails.type");
-
-		objectNameDictionary.put("emails.other.primary", "emails.primary");
-
-		/// Group dictionary
 
 		objectNameDictionary.put("id", "id");
 		objectNameDictionary.put("externalId", "externalId");
+		objectNameDictionary.put("timezone", "timezone");
+		objectNameDictionary.put("active", "active");
+		objectNameDictionary.put("password", "password");
 
-		objectNameDictionary.put("displayName", "displayName");
+		
+		objectNameDictionary.put("x509Certificates", "x509Certificates");
+		objectNameDictionary.put("x509Certificates.value", "value");
+
+		objectNameDictionary.put("entitlements.default.value", "value");
+
+		objectNameDictionary.put("schema.type", "type");
+		objectNameDictionary.put("schema.organization", "organization");
+		
+		objectNameDictionary.put("roles.default.value", "value");
+		objectNameDictionary.put("roles.default.display", "value");
+		
+			objectNameDictionary.put("displayName", "displayName");
+			
+			
+		/*	objectNameDictionary.put("members.User.value", "value");
+			objectNameDictionary.put("members.User.display", "display");
+			objectNameDictionary.put("members.Group.value", "value");
+			objectNameDictionary.put("members.Group.display", "display");
+		*/
+			objectNameDictionary.put("members.default.value", "value");
+			objectNameDictionary.put("members.default.display", "display");
+	
 	}
-	//TODO modify for containsAllValues filter
+
+	
 	@Override
 	public StringBuilder visitAndFilter(String p, AndFilter filter) {
 		LOGGER.info("Processing request trought AND filter");

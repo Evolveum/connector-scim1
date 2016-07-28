@@ -2,14 +2,11 @@ package com.evolveum.polygon.scim;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
-import org.identityconnectors.framework.common.objects.SearchResult;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -30,12 +27,9 @@ import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
-import org.identityconnectors.framework.common.objects.ObjectClassInfo;
-import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
+import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
 import org.json.JSONException;
@@ -331,11 +325,7 @@ public class ScimCrudManager {
 							LOGGER.info("Builder error. Error while building connId object. The excetion message: {0}",
 									e);
 							throw new ConnectorException(e);
-						} finally {
-							loginInstance.releaseConnection();
-							LOGGER.info("Connection released");
 						}
-
 						LOGGER.info("Json response: {0}", jsonObject.toString(1));
 
 					} catch (JSONException jsonException) {
@@ -350,9 +340,6 @@ public class ScimCrudManager {
 								jsonException, q);
 						throw new ConnectorException(
 								"An exception has ocoured while setting the variable \"jsonObject\".", jsonException);
-					} finally {
-						loginInstance.releaseConnection();
-						LOGGER.info("Connection released");
 					}
 
 				} else {
@@ -388,13 +375,11 @@ public class ScimCrudManager {
 		LOGGER.info("Connection released");
 	}
 
-	public ScimSchemaParser qeueryEntity(Object queuery, String resourceEndPoint) {
+	public ScimSchemaParser qeueryEntity(String providerName, String resourceEndPoint) {
 		logIntoService();
 		HttpClient httpClient = HttpClientBuilder.create().build();
-		String q;
-		q = (String) queuery;
-
-		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append(q).toString();
+		
+		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).toString();
 		LOGGER.info("Qeury url: {0}", uri);
 		HttpGet httpGet = new HttpGet(uri);
 		httpGet.addHeader(oauthHeader);
@@ -422,7 +407,7 @@ public class ScimCrudManager {
 
 					JSONObject jsonObject = new JSONObject(responseString);
 					LOGGER.info("Json object returned from service provider: {0}", jsonObject);
-					ScimSchemaParser scimParser = new ScimSchemaParser();
+					ScimSchemaParser scimParser = new ScimSchemaParser(providerName);
 					for (int i = 0; i < jsonObject.getJSONArray("Resources").length(); i++) {
 						JSONObject minResourceJson = new JSONObject();
 						minResourceJson = jsonObject.getJSONArray("Resources").getJSONObject(i);

@@ -29,7 +29,7 @@ public class Testclass {
 	
 	TestConfiguration testConfiguration = null;
 	public static Uid userUId;
-	public Uid groupUid;
+	public static Uid groupUid;
 	public Uid etitlementUid= null;
 	
 	
@@ -49,11 +49,11 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 	      return new Object[][] {{"users",filtermap}};
 	   }
 	 
-	 @DataProvider(name = "providerUpdateResourceObjecttest")
-	   public static Object[][] updateResourceObjectTestResourceProvider() {
-		// Uid uid = new Uid("00558000001K3NZAA0");
+	 @DataProvider(name = "updateUserResourceObjectTestProvider")
+	   public static Object[][] updateUserResourceObjectTestResourceProvider() throws Exception {
+		 Uid uid = getUid("user");
 		 
-	      return new Object[][] {{"users", userUId}};
+	      return new Object[][] {{"single", userUId},{"multi", userUId},{"enabled", userUId}};
 	   }
 	 
 
@@ -72,10 +72,10 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 	      return new Object[][] {{"users",uid}};
 	   }
 	 
-	 @DataProvider(name = "providerTestCreate")
-	   public static Object[][] resourcesProviderTestCreate() {
+	 @DataProvider(name = "createTestProvider")
+	   public static Object[][] createTestResourceProvider() {
 		 
-	      return new Object[][] {{"users",true}};
+	      return new Object[][] {{"users",true},{"groups",true}};
 	   }
 	 
 	 @DataProvider(name = "providerTesConfig")
@@ -84,7 +84,7 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 	HashMap<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("clientID","");
 		configurationParameters.put("clientSecret", "");
-		configurationParameters.put("endpoint", "");
+		configurationParameters.put("endpoint", "/services/scim");
 		configurationParameters.put("loginUrl", "https://login.salesforce.com");
 		configurationParameters.put("password", "");
 		configurationParameters.put("service", "");
@@ -95,7 +95,7 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 	   }
 	 
 	 
-	 ///////////////////////////TestSuite///////////////
+	 ///////////////////////////TestSuite////////////////////////////
 	 
 	//@Test (priority=1, dataProvider = "providerTesConfig")
 	 public void configurationTest(HashMap <String,String> configurationParameters, Boolean assertionVariable){
@@ -109,21 +109,29 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 	 }
 	 
 	 
-    //@Test (dataProvider = "providerTestCreate")
+    //@Test (priority=2, dataProvider = "createTestProvider")
 	 private void createObjectOnResourcesTest(String resourceName, Boolean assertParameter){
+		 
+		groupUid = null;
 		userUId = null;	
-		 Boolean notNull = false;
+		 Boolean resourceWasCreated = false;
 		 
 		 if(testConfiguration == null){
 			 resourcesProviderTesConfig();
 		 }
-		 userUId= testConfiguration.createResourceTest(resourceName);
+		 
+		 if("groups".equals(resourceName)){
+		userUId= testConfiguration.createResourceTestHelper(resourceName);
+		 }else{
+			 
+		groupUid= testConfiguration.createResourceTestHelper(resourceName);
+		 }
 			
-			if(userUId !=null){
-				notNull = true;
+			if(userUId !=null||groupUid !=null){
+				resourceWasCreated = true;
 			}
 			
-			Assert.assertEquals(notNull, assertParameter);
+			Assert.assertEquals(resourceWasCreated, assertParameter);
 			
 		}
 	
@@ -149,21 +157,17 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 		
 	}
 	// @Test (dataProvider = "listAllfromResourcesProvider")
-	private void ListAllfromResourcesTest(int numberOfResources, String resourceName){
+	private void listAllfromResourcesTest(int numberOfResources, String resourceName){
 		
-		testConfiguration.listAllfromResources(resourceName);
+		testConfiguration.listAllfromResourcesTestHelper(resourceName);
 		Assert.assertEquals(testConfiguration.getHandlerResult().size(), numberOfResources);
 		
 	}
-	
-	 //@Test (priority=3, dataProvider = "providerUpdateResourceObjecttest")
-		private void testUpdateResourceObject(String resourceName, Uid uid){
-		 
-			if(testConfiguration == null){
-				 resourcesProviderTesConfig();
-			 }
-			
-			Uid returnedUid = testConfiguration.updateResourceTest(resourceName);
+	// TODO mod to test different types of updates e.q. single value attribute, multi value attribute, activation/deactivation
+	 //@Test (dependsOnMethods = { "createObjectOnResourcesTest", "configurationTest" }, priority=3, dataProvider = "updateUserResourceObjectTestProvider")
+		private void updateUserResourceObjectTest(String updateType, Uid uid){
+		
+			Uid returnedUid = testConfiguration.updateResourceTestHelper("users");
 			
 			Assert.assertEquals(uid,returnedUid );
 			
@@ -173,7 +177,7 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 	//@Test (priority=9, dataProvider = "deletetObjectfromResourcesProvider")
 	private void deletetObjectfromResourcesTest(String resourceName, Uid uid){
 		
-		testConfiguration.deleteResourceTest(uid, resourceName);
+		testConfiguration.deleteResourceTestHelper(uid, resourceName);
 		AttributeFilter filter=  testConfiguration.getFilter("uid", null, uid);
 		 testConfiguration.filterMethodsTest(filter, resourceName);
 		
@@ -183,6 +187,27 @@ HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<
 		
 	}
 	
+	
+	public static Uid getUid(String resourceName) throws Exception{
+		Uid uid =null;
+		
+		
+		if("user".equals(resourceName)){
+			uid = userUId;
+			
+		}else if ("group".equals(resourceName)){
+			
+			uid = groupUid;	
+		}
+		
+		if (uid == null){
+			
+			throw new Exception("Uid not set");
+			
+		}
+		
+		return uid;
+	}
 
 	
 	

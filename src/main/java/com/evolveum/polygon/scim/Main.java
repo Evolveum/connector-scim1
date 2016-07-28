@@ -27,7 +27,7 @@ import org.identityconnectors.framework.spi.SearchResultsHandler;
 
 public class Main {
 
-	private static final Uid TEST_UID = new Uid("00G58000000aq3AEAQ");
+	private static final Uid TEST_UID = new Uid("00558000000VcXnAAK");
 	private static final Uid BLANC_TEST_UID = null;
 	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	private static final Log LOGGER = Log.getLog(Main.class);
@@ -321,12 +321,12 @@ public class Main {
 	private static void filterMethodsTest() {
 		ScimConnector conn = new ScimConnector();
 
-		ContainsAllValuesFilter containsAllValuesFilter = (ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.User.value","0045866001JLTlAggO","0054355001JLTldfgfO","00558000001JLTlsdfO","0055344001JLTlAbdd"));
+		ContainsAllValuesFilter containsAllValuesFilter = (ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.default.value","00558000000W2vRAAS"));
 
 		ContainsFilter containsFilterTest = (ContainsFilter) FilterBuilder
 				.contains(AttributeBuilder.build("members.User.value", "00558000000VcXnAAK"));
 		EqualsFilter equalsFilterTest = (EqualsFilter) FilterBuilder
-				.equalTo(AttributeBuilder.build("userName", "seventhtestuser@ectestdomain.com"));
+				.equalTo(AttributeBuilder.build("userName", "johnsnow@winterfell.com"));
 		EqualsFilter uidEqualsFilterTest = (EqualsFilter) FilterBuilder.equalTo(TEST_UID);
 
 		// OrFilter orFilterTest = (OrFilter) FilterBuilder.or(eq, ct);
@@ -346,9 +346,9 @@ public class Main {
 
 		initConnector(conn);
 
-	//	 conn.executeQuery(userClass, equalsFilterTest, handler, options);
-		conn.executeQuery(groupClass, containsAllValuesFilter, handler, options);
-		//conn.executeQuery(entitlementClass, uidEqualsFilterTest, handler, null);
+		// conn.executeQuery(userClass, uidEqualsFilterTest, handler, options);
+		//conn.executeQuery(groupClass, containsAllValuesFilter, handler, options);
+		conn.executeQuery(entitlementClass, containsAllValuesFilter, handler, null);
 	}
 
 	private static ScimConnector initConnector(ScimConnector conn) {

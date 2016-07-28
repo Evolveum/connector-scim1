@@ -24,10 +24,14 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 	static {
 		objectNameDictionary.put("displayName", "displayName");
-		objectNameDictionary.put("members.User.value", "value");
+	/*	objectNameDictionary.put("members.User.value", "value");
 		objectNameDictionary.put("members.User.display", "display");
 		objectNameDictionary.put("members.Group.value", "value");
 		objectNameDictionary.put("members.Group.display", "display");
+	*/
+		objectNameDictionary.put("members.default.value", "value");
+		objectNameDictionary.put("members.default.display", "display");
+		
 	}
 
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
@@ -146,10 +150,15 @@ public class GroupDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(Name.INFO);
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").setRequired(true).build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.Group.default.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.Group.default.display").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.default.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.default.display").build());
+		/*
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.Group.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.Group.display").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.display").build());
+		*/
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.display").build());
+		
 		return builder.build();
 	}
 

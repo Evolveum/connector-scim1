@@ -19,12 +19,12 @@ public class ScimSchemaParser {
 	private List<Map<String, String>> hlAttributeMapList = new ArrayList<Map<String, String>>();
 
 	private static final Log LOGGER = Log.getLog(ScimSchemaParser.class);
-	
+
 	private String providerName;
-	
+
 	public ScimSchemaParser(String providerName){
 		this.providerName = providerName;
-		
+
 	}
 
 	public void parseSchema(JSONObject schemaJson) {
@@ -70,8 +70,8 @@ public class ScimSchemaParser {
 						}
 					}
 				}
-			
-				
+
+
 				for (String nameKey : attribute.keySet()) {
 					if ("multiValued".equals(nameKey.intern())) {
 						isMultiValued = (Boolean) attribute.get(nameKey);
@@ -150,13 +150,13 @@ public class ScimSchemaParser {
 					}
 
 				} else {
-					
+
 					// For Salesforce workaround purposes 
 					if("salesforce".equals(providerName)&&"roles".equals(attributeName)){
-						
+
 						LOGGER.warn("Processing trought salesforce \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.", attributeName);
-						
-						
+
+
 						isMultiValued = true;
 					}
 

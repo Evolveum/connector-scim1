@@ -31,10 +31,115 @@ div.shootout {padding:2em;border:3px #4854A8 solid}
 <body>
 <table cellspacing="0" cellpadding="0" class="result">
 <tr><th>Test</th><th class="numi">Methods<br/>Passed</th><th class="numi">Scenarios<br/>Passed</th><th class="numi"># skipped</th><th class="numi"># failed</th><th class="numi">Total<br/>Time</th><th class="numi">Included<br/>Groups</th><th class="numi">Excluded<br/>Groups</th></tr>
-<tr><td style="text-align:left;padding-right:2em">Default test</td><td class="numi">0</td><td class="numi">0</td><td class="numi">0</td><td class="numi">0</td><td class="numi">0.0 seconds</td><td class="numi"></td><td class="numi"></td></tr>
+<tr><td style="text-align:left;padding-right:2em">Default test</td><td class="numi">11</td><td class="numi">10</td><td class="numi_attn">2</td><td class="numi_attn">4</td><td class="numi">14.0 seconds</td><td class="numi"></td><td class="numi"></td></tr>
 </table>
 <table cellspacing="0" cellpadding="0" class="passed" id="summary">
 <tr><th>Class</th><th>Method</th><th># of<br/>Scenarios</th><th>Start</th><th>Time<br/>(ms)</th></tr>
+<tr><th colspan="4">Default test &#8212; failed</th></tr>
+<tr class="failedodd"><td rowspan="4">com.evolveum.polygon.test.scim.Testclass</td><td><a href="#m1"><b>updateUserResourceObjectTest</b>  </a></td><td class="numi">1</td><td>1470226649669</td><td class="numi">778</td></tr><tr class="failedodd"><td><a href="#m2"><b>updateUserResourceObjectTest</b>  </a></td><td class="numi">1</td><td>1470226649669</td><td class="numi">778</td></tr><tr class="failedodd"><td><a href="#m3"><b>updateUserResourceObjectTest</b>  </a></td><td class="numi">1</td><td>1470226649669</td><td class="numi">778</td></tr><tr class="failedodd"><td><a href="#m4"><b>updateUserResourceObjectTest</b>  </a></td><td class="numi">1</td><td>1470226649669</td><td class="numi">778</td></tr>
+<tr><th colspan="4">Default test &#8212; skipped</th></tr>
+<tr class="skippedodd"><td rowspan="2">com.evolveum.polygon.test.scim.Testclass</td><td><a href="#m5"><b>filterMethodTest</b>  </a></td><td class="numi">1</td><td>1470226657839</td><td class="numi">1</td></tr><tr class="skippedodd"><td><a href="#m6"><b>updateGroupResourceObjectTest</b>  </a></td><td class="numi">1</td><td>1470226657838</td><td class="numi">0</td></tr>
+<tr><th colspan="4">Default test &#8212; passed</th></tr>
+<tr class="passedodd"><td rowspan="11">com.evolveum.polygon.test.scim.Testclass</td><td><a href="#m7"><b>configurationTest</b>  </a></td><td class="numi">1</td><td>1470226643836</td><td class="numi">2052</td></tr><tr class="passedodd"><td><a href="#m8"><b>createObjectOnResourcesTest</b>  </a></td><td class="numi">2</td><td>1470226645893</td><td class="numi">2793</td></tr><tr class="passedodd"><td><a href="#m9"><b>createObjectOnResourcesTest</b>  </a></td><td class="numi">2</td><td>1470226645893</td><td class="numi">2793</td></tr><tr class="passedodd"><td><a href="#m10"><b>updateUserResourceObjectTest</b>  </a></td><td class="numi">3</td><td>1470226648688</td><td class="numi">4256</td></tr><tr class="passedodd"><td><a href="#m11"><b>updateUserResourceObjectTest</b>  </a></td><td class="numi">3</td><td>1470226648688</td><td class="numi">4256</td></tr><tr class="passedodd"><td><a href="#m12"><b>updateUserResourceObjectTest</b>  </a></td><td class="numi">3</td><td>1470226648688</td><td class="numi">4256</td></tr><tr class="passedodd"><td><a href="#m13"><b>updateUserResourceObjectTest</b>  </a></td><td class="numi">3</td><td>1470226648688</td><td class="numi">4256</td></tr><tr class="passedodd"><td><a href="#m14"><b>listAllfromResourcesTest</b>  </a></td><td class="numi">2</td><td>1470226652945</td><td class="numi">1547</td></tr><tr class="passedodd"><td><a href="#m15"><b>listAllfromResourcesTest</b>  </a></td><td class="numi">2</td><td>1470226652945</td><td class="numi">1547</td></tr><tr class="passedodd"><td><a href="#m16"><b>deleteObjectfromResourcesTest</b>  </a></td><td class="numi">2</td><td>1470226654493</td><td class="numi">3344</td></tr><tr class="passedodd"><td><a href="#m17"><b>deleteObjectfromResourcesTest</b>  </a></td><td class="numi">2</td><td>1470226654493</td><td class="numi">3344</td></tr>
 </table>
 <h1>Default test</h1>
+<h2 id="m1">com.evolveum.polygon.test.scim.Testclass:updateUserResourceObjectTest</h2>
+<table cellspacing="0" cellpadding="0" class="result">
+<tr class="param"><th>Parameter #1</th><th>Parameter #2</th></tr>
+<tr class="param stripe"><td>multi</td>
+<td>Attribute: {Name=__UID__, Value=[00558000001KbZ6AAK]}</td>
+</tr>
+<tr><td style="padding-left:3em" colspan="2">
+<p>Query for updating object was unsuccessful. Status code returned: 409</p>
+com.evolveum.polygon.scim.ScimCrudManager.onNoSuccess(ScimCrudManager.java:985)
+<br/>at com.evolveum.polygon.scim.ScimCrudManager.updateEntity(ScimCrudManager.java:822)
+<br/>at com.evolveum.polygon.scim.ScimConnector.update(ScimConnector.java:302)
+<br/>at com.evolveum.polygon.test.scim.TestConfiguration.updateResourceTestHelper(TestConfiguration.java:303)
+<br/>at com.evolveum.polygon.test.scim.Testclass.updateUserResourceObjectTest(Testclass.java:168)
+<br/>25 lines not shown
+</td></tr>
+</table>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m2">com.evolveum.polygon.test.scim.Testclass:filterMethodTest</h2>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m3">com.evolveum.polygon.test.scim.Testclass:updateGroupResourceObjectTest</h2>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m4">com.evolveum.polygon.test.scim.Testclass:configurationTest</h2>
+<table cellspacing="0" cellpadding="0" class="result">
+<tr class="param"><th>Parameter #1</th><th>Parameter #2</th></tr>
+<tr class="param stripe"><td>{endpoint=/services/scim, password=mm5ecr3tTMj9SlJ62ePwynASRoNJUouOl, clientID=3MVG98_Psg5cppyZ.wx3xXhdg46KDzaNSwpQFRqKfsBdDnyHrNSTodpJ5il8ZAdSB4eIjlF3RagOYYXWz8vTB, loginUrl=https://login.salesforce.com, service=/services/oauth2/token?grant_type=password, clientSecret=8826126769332672628, userName=matus.macik@gmail.com, version=/v1}</td>
+<td>true</td>
+</tr>
+</table>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m5">com.evolveum.polygon.test.scim.Testclass:createObjectOnResourcesTest</h2>
+<table cellspacing="0" cellpadding="0" class="result">
+<tr class="param"><th>Parameter #1</th><th>Parameter #2</th></tr>
+<tr class="param stripe"><td>users</td>
+<td>true</td>
+</tr>
+</table>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m6">com.evolveum.polygon.test.scim.Testclass:deleteObjectfromResourcesTest</h2>
+<table cellspacing="0" cellpadding="0" class="result">
+<tr class="param"><th>Parameter #1</th></tr>
+<tr class="param stripe"><td>users</td>
+</tr>
+</table>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m7">com.evolveum.polygon.test.scim.Testclass:updateUserResourceObjectTest</h2>
+<table cellspacing="0" cellpadding="0" class="result">
+<tr class="param"><th>Parameter #1</th><th>Parameter #2</th></tr>
+<tr class="param stripe"><td>enabled</td>
+<td>Attribute: {Name=__UID__, Value=[00558000001KbZ6AAK]}</td>
+</tr>
+</table>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m8">com.evolveum.polygon.test.scim.Testclass:deleteObjectfromResourcesTest</h2>
+<table cellspacing="0" cellpadding="0" class="result">
+<tr class="param"><th>Parameter #1</th></tr>
+<tr class="param stripe"><td>groups</td>
+</tr>
+</table>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m9">com.evolveum.polygon.test.scim.Testclass:listAllfromResourcesTest</h2>
+<table cellspacing="0" cellpadding="0" class="result">
+<tr class="param"><th>Parameter #1</th><th>Parameter #2</th></tr>
+<tr class="param stripe"><td>1</td>
+<td>groups</td>
+</tr>
+</table>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m10">com.evolveum.polygon.test.scim.Testclass:updateUserResourceObjectTest</h2>
+<table cellspacing="0" cellpadding="0" class="result">
+<tr class="param"><th>Parameter #1</th><th>Parameter #2</th></tr>
+<tr class="param stripe"><td>single</td>
+<td>Attribute: {Name=__UID__, Value=[00558000001KbZ6AAK]}</td>
+</tr>
+</table>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m11">com.evolveum.polygon.test.scim.Testclass:listAllfromResourcesTest</h2>
+<table cellspacing="0" cellpadding="0" class="result">
+<tr class="param"><th>Parameter #1</th><th>Parameter #2</th></tr>
+<tr class="param stripe"><td>1</td>
+<td>users</td>
+</tr>
+</table>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m12">com.evolveum.polygon.test.scim.Testclass:createObjectOnResourcesTest</h2>
+<table cellspacing="0" cellpadding="0" class="result">
+<tr class="param"><th>Parameter #1</th><th>Parameter #2</th></tr>
+<tr class="param stripe"><td>groups</td>
+<td>true</td>
+</tr>
+</table>
+<p class="totop"><a href="#summary">back to summary</a></p>
+<h2 id="m13">com.evolveum.polygon.test.scim.Testclass:updateUserResourceObjectTest</h2>
+<table cellspacing="0" cellpadding="0" class="result">
+<tr class="param"><th>Parameter #1</th><th>Parameter #2</th></tr>
+<tr class="param stripe"><td>disabled</td>
+<td>Attribute: {Name=__UID__, Value=[00558000001KbZ6AAK]}</td>
+</tr>
+</table>
+<p class="totop"><a href="#summary">back to summary</a></p>
 </body></html>

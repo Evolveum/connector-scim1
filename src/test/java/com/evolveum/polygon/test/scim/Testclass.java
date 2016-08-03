@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
@@ -23,193 +24,203 @@ public void f2() {}
 @Test(dependsOnGroups = "a")
 public void g() {}
  * */
+import com.evolveum.polygon.scim.ScimCrudManager;
 
 
 public class Testclass {
-	
+
+	//TODO bug to be fixed
+	// The update JSON object wich is beaing send: {"addresses":[{"region":"region","type":"work"},{"postalCode":"postalCode","type":"work"},{"streetAddress":"streetAddress","type":"work"},{"locality":"locality","type":"work"},{"country":"country","type":"work"}]}
+
 	TestConfiguration testConfiguration = null;
-	public static Uid userUId;
+	public static Uid userUid;
 	public static Uid groupUid;
 	public Uid etitlementUid= null;
-	
-	
-	 
-	 @DataProvider(name = "filterMethodTestProvider")
-	   public static Object[][] filterMethodTestResourcesProvider() {
-		 
-HashMap<String, HashMap<String,Object>> filtermap = new HashMap<String, HashMap<String,Object>>(); 
-	HashMap<String, Object> equalsAttributeMap = new HashMap<String, Object>();
-	
-	 Uid uid  = new Uid("00558000001JLTlAAO");
-	
-	equalsAttributeMap.put("userName", "seventhtestuser@ectestdomain.com");
 
-	filtermap.put("equals", equalsAttributeMap);
-		 
-	      return new Object[][] {{"users",filtermap}};
-	   }
-	 
-	 @DataProvider(name = "updateUserResourceObjectTestProvider")
-	   public static Object[][] updateUserResourceObjectTestResourceProvider() throws Exception {
-		 Uid uid = getUid("user");
-		 
-	      return new Object[][] {{"single", userUId},{"multi", userUId},{"enabled", userUId}};
-	   }
-	 
+	private static final Log LOGGER = Log.getLog(Testclass.class);
 
-	 @DataProvider(name = "listAllfromResourcesProvider")
-	   public static Object[][] listAllfromResourcesProvider() {
-	      return new Object[][] {{1, "users"}, {1, "groups"}, {1, "entitlements"}};
-	   }
-	 
-	 
-	 @DataProvider(name = "deletetObjectfromResourcesProvider")
-	   public static Object[][] deletetObjectfromResourcesResourceProvider() {
-		 
-		 Uid uid  = new Uid("00558000001KJBCAA4");
-		 
-		 
-	      return new Object[][] {{"users",uid}};
-	   }
-	 
-	 @DataProvider(name = "createTestProvider")
-	   public static Object[][] createTestResourceProvider() {
-		 
-	      return new Object[][] {{"users",true},{"groups",true}};
-	   }
-	 
-	 @DataProvider(name = "providerTesConfig")
-	   public static Object[][] resourcesProviderTesConfig() {
-		 
-	HashMap<String, String> configurationParameters = new HashMap<String, String>();
+	@DataProvider(name = "filterMethodTestProvider")
+	public static Object[][] filterMethodTestResourcesProvider() {
+
+		return new Object[][] {{"users",""}};
+	}
+
+	@DataProvider(name = "updateUserResourceObjectTestProvider")
+	public static Object[][] updateUserResourceObjectTestResourceProvider() throws Exception {
+		Uid uid = getUid("user");
+
+		return new Object[][] {{"single", uid},{"multi", uid},{"disabled", uid},{"enabled", uid}};
+	}
+	@DataProvider(name = "updateGroupResourceObjectTestProvider")
+	public static Object[][] updateGroupResourceObjectTestResourceProvider() throws Exception {
+		Uid uid = getUid("group");
+
+		return new Object[][] {{"single", uid},{"multi", uid}};
+	}
+
+
+	@DataProvider(name = "listAllfromResourcesProvider")
+	public static Object[][] listAllfromResourcesProvider() {
+		return new Object[][] {{1, "users"}, {1, "groups"}};
+	}
+
+
+	@DataProvider(name = "deletetObjectfromResourcesProvider")
+	public static Object[][] deletetObjectfromResourcesResourceProvider() {
+
+
+		return new Object[][] {{"users"},{"groups"}};
+	}
+
+	@DataProvider(name = "createTestProvider")
+	public static Object[][] createTestResourceProvider() {
+
+		return new Object[][] {{"users",true},{"groups",true}};
+	}
+
+	@DataProvider(name = "tesConfigProvider")
+	public static Object[][] tesConfigResourcesProvider() {
+
+		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("clientID","");
 		configurationParameters.put("clientSecret", "");
-		configurationParameters.put("endpoint", "/services/scim");
-		configurationParameters.put("loginUrl", "https://login.salesforce.com");
+		configurationParameters.put("endpoint", "");
+		configurationParameters.put("loginUrl", "");
 		configurationParameters.put("password", "");
 		configurationParameters.put("service", "");
 		configurationParameters.put("userName", "");
-		configurationParameters.put("version", "/v1");
-		 
-	      return new Object[][] {{configurationParameters,true}};
-	   }
-	 
-	 
-	 ///////////////////////////TestSuite////////////////////////////
-	 
-	//@Test (priority=1, dataProvider = "providerTesConfig")
-	 public void configurationTest(HashMap <String,String> configurationParameters, Boolean assertionVariable){
-		 
-		 testConfiguration = new TestConfiguration(configurationParameters);
-		  
-		 Boolean isValid= testConfiguration.isConfigurationValid();
-		 
-		 Assert.assertEquals(isValid, assertionVariable);
-		 
-	 }
-	 
-	 
-    //@Test (priority=2, dataProvider = "createTestProvider")
-	 private void createObjectOnResourcesTest(String resourceName, Boolean assertParameter){
-		 
+		configurationParameters.put("version", "");
+
+		return new Object[][] {{configurationParameters,true}};
+	}
+
+
+	///////////////////////////TestSuite////////////////////////////
+
+	@Test (priority=1, dataProvider = "tesConfigProvider")
+	public void configurationTest(HashMap <String,String> configurationParameters, Boolean assertionVariable){
+
 		groupUid = null;
-		userUId = null;	
-		 Boolean resourceWasCreated = false;
-		 
-		 if(testConfiguration == null){
-			 resourcesProviderTesConfig();
-		 }
-		 
-		 if("groups".equals(resourceName)){
-		userUId= testConfiguration.createResourceTestHelper(resourceName);
-		 }else{
-			 
-		groupUid= testConfiguration.createResourceTestHelper(resourceName);
-		 }
-			
-			if(userUId !=null||groupUid !=null){
+		userUid = null;	
+
+		testConfiguration = new TestConfiguration(configurationParameters);
+
+		Boolean isValid= testConfiguration.isConfigurationValid();
+
+		Assert.assertEquals(isValid, assertionVariable);
+
+	}
+
+
+	@Test (dependsOnMethods = {"configurationTest"} , priority=2, dataProvider = "createTestProvider")
+	private void createObjectOnResourcesTest(String resourceName, Boolean assertParameter){
+
+		Boolean resourceWasCreated = false;
+
+		if(testConfiguration == null){
+			tesConfigResourcesProvider();
+		}
+
+		if("users".equals(resourceName)){
+			userUid= testConfiguration.createResourceTestHelper(resourceName);
+			testConfiguration.setUserTestUid(userUid);
+			if(userUid !=null){
 				resourceWasCreated = true;
 			}
-			
-			Assert.assertEquals(resourceWasCreated, assertParameter);
-			
-		}
-	
-	//@Test (priority=2, dataProvider = "filterMethodTestProvider")
-	public void filterMethodTest(String resourceName,HashMap<String, HashMap<String,Object>> filtermap ){
+		}else if ("groups".equals(resourceName)){
 
-		
-		 for (String filterName: filtermap.keySet()){
-			 
-			 HashMap<String, Object> attributeMap = filtermap.get(filterName);
-			
-			 for (String leftAttribute: attributeMap.keySet()){
-			 Object rigthAttribute = attributeMap.get(leftAttribute);
-			 
-			 
-			 AttributeFilter filter=  testConfiguration.getFilter(filterName, leftAttribute, rigthAttribute);
-			 
-			 testConfiguration.filterMethodsTest(filter, resourceName);
-			 
-			 Assert.assertFalse(testConfiguration.getHandlerResult().isEmpty());
-			 }
-		 }
-		
+			groupUid= testConfiguration.createResourceTestHelper(resourceName);
+			testConfiguration.setGroupTestUid(groupUid);
+			if(groupUid !=null){
+				resourceWasCreated = true;
+			}
+		}
+
+		if(userUid !=null){
+			resourceWasCreated = true;
+		}
+
+		Assert.assertEquals(resourceWasCreated, assertParameter);
+
 	}
-	// @Test (dataProvider = "listAllfromResourcesProvider")
+
+	@Test (dependsOnMethods = {"updateUserResourceObjectTest","updateGroupResourceObjectTest"},priority=6, dataProvider = "filterMethodTestProvider")
+	public void filterMethodTest(String resourceName,String filterType ){
+
+		testConfiguration.filterMethodsTest(filterType, resourceName);
+
+		Assert.assertFalse(testConfiguration.getHandlerResult().isEmpty());
+
+
+
+	}
+	@Test (dependsOnMethods = {"createObjectOnResourcesTest"}, priority=5, dataProvider = "listAllfromResourcesProvider")
 	private void listAllfromResourcesTest(int numberOfResources, String resourceName){
-		
+
 		testConfiguration.listAllfromResourcesTestHelper(resourceName);
 		Assert.assertEquals(testConfiguration.getHandlerResult().size(), numberOfResources);
-		
+
 	}
-	// TODO mod to test different types of updates e.q. single value attribute, multi value attribute, activation/deactivation
-	 //@Test (dependsOnMethods = { "createObjectOnResourcesTest", "configurationTest" }, priority=3, dataProvider = "updateUserResourceObjectTestProvider")
-		private void updateUserResourceObjectTest(String updateType, Uid uid){
-		
-			Uid returnedUid = testConfiguration.updateResourceTestHelper("users");
-			
-			Assert.assertEquals(uid,returnedUid );
-			
-			
-		}
-	
-	//@Test (priority=9, dataProvider = "deletetObjectfromResourcesProvider")
-	private void deletetObjectfromResourcesTest(String resourceName, Uid uid){
-		
-		testConfiguration.deleteResourceTestHelper(uid, resourceName);
-		AttributeFilter filter=  testConfiguration.getFilter("uid", null, uid);
-		 testConfiguration.filterMethodsTest(filter, resourceName);
-		
-		
-		
+
+	@Test (dependsOnMethods = { "createObjectOnResourcesTest"}, priority=3, dataProvider = "updateUserResourceObjectTestProvider")
+	private void updateUserResourceObjectTest(String updateType, Uid uid){
+
+		Uid returnedUid = testConfiguration.updateResourceTestHelper("users", updateType);
+
+		Assert.assertEquals(uid,returnedUid );
+
+
+	}
+	@Test (dependsOnMethods = { "updateUserResourceObjectTest"}, priority=4, dataProvider = "updateGroupResourceObjectTestProvider")
+	private void updateGroupResourceObjectTest(String updateType, Uid uid){
+
+
+
+		Uid returnedUid = testConfiguration.updateResourceTestHelper("users", updateType);
+
+		Assert.assertEquals(uid,returnedUid );
+
+
+	}
+
+	@Test (dependsOnMethods = { "createObjectOnResourcesTest"},priority=9, dataProvider = "deletetObjectfromResourcesProvider")
+	private void deleteObjectfromResourcesTest(String resourceName){
+
+		testConfiguration.deleteResourceTestHelper(resourceName);
+		testConfiguration.filterMethodsTest("uid", resourceName);
+
 		Assert.assertTrue(testConfiguration.getHandlerResult().isEmpty());
-		
+
 	}
-	
-	
+
+
 	public static Uid getUid(String resourceName) throws Exception{
 		Uid uid =null;
-		
-		
+
+		System.out.println("##resourceName "+resourceName.toString());
+		System.out.println("##group "+groupUid.toString());
+		System.out.println("##user "+userUid.toString());
 		if("user".equals(resourceName)){
-			uid = userUId;
-			
+			uid = userUid;
+
 		}else if ("group".equals(resourceName)){
-			
+
 			uid = groupUid;	
-		}
-		
+		} else {
+			LOGGER.warn("Resource name not defined: {0}", resourceName);
+
+		} 
+
 		if (uid == null){
-			
+
 			throw new Exception("Uid not set");
-			
+
 		}
-		
+
 		return uid;
 	}
 
-	
-	
+
+
 }
 

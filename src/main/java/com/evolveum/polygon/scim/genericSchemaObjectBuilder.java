@@ -13,36 +13,56 @@ import org.identityconnectors.framework.common.objects.OperationalAttributeInfos
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * A class containing the methods used for building a schema representation
+ * which will be published by the connector. The schema representation is
+ * generated out of a Map object containing the attributes present in the schema
+ * described by the service provider.
+ **/
 public class GenericSchemaObjectBuilder {
 
 	private String providerName = "";
 
-
 	// Constructor for Salesforce workaround purposes
-	public GenericSchemaObjectBuilder(String providerName){
+
+	/**
+	 * Used to populate the variable "providerName" with the name of the service
+	 * provider. Used mainly for workaround purposes.
+	 **/
+	public GenericSchemaObjectBuilder(String providerName) {
 		this.providerName = providerName;
 
 	}
+
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 
+	/**
+	 * Builds the "ObjectClassInfo" object which carries the schema information
+	 * for a single resource.
+	 * 
+	 * @param attributeMap
+	 *            The map which carries the attribute present in the schema
+	 *            described by the service provider.
+	 * @param objectTypeName
+	 *            The name of the resource which is used to match the resource
+	 *            to a "objectType".
+	 * @return An instance of ObjectClassInfo with the constructed schema
+	 *         information.
+	 **/
 	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName) {
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
 		builder.addAttributeInfo(Name.INFO);
-
-
-
-
 
 		for (String attributeName : attributeMap.keySet()) {
 
 			AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 
-			if(!attributeName.equals("active")){
+			if (!attributeName.equals("active")) {
 				Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
 				schemaSubPropertiesMap = attributeMap.get(attributeName);
 				for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
 					if ("subAttributes".equals(subPropertieName.intern())) {
-						// TODO  check positive cases
+						// TODO check positive cases
 						infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 						JSONArray jsonArray = new JSONArray();
 
@@ -53,21 +73,24 @@ public class GenericSchemaObjectBuilder {
 						}
 						break;
 					} else {
-						subPropertiesChecker(infoBuilder, schemaSubPropertiesMap, subPropertieName, attributeName);
+						subPropertiesChecker(infoBuilder, schemaSubPropertiesMap, subPropertieName);
 						// Salesforce workaround
 
-						if("salesforce".equals(providerName)){
-							
-							if ("members.User.value".equals(attributeName) || "members.Group.value".equals(attributeName)|| "members.default.value".equals(attributeName)|| "members.default.display".equals(attributeName)) {
+						if ("salesforce".equals(providerName)) {
+
+							if ("members.User.value".equals(attributeName)
+									|| "members.Group.value".equals(attributeName)
+									|| "members.default.value".equals(attributeName)
+									|| "members.default.display".equals(attributeName)) {
 								infoBuilder.setMultiValued(true);
 							}
 						}
-						
+
 					}
 
 				}
 				builder.addAttributeInfo(infoBuilder.build());
-			}else {
+			} else {
 				builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
 
 			}
@@ -77,7 +100,7 @@ public class GenericSchemaObjectBuilder {
 			builder.setType(ObjectClass.ACCOUNT_NAME);
 
 		} else if ("/Groups".equals(objectTypeName.intern())) {
-			builder.setType(ObjectClass.GROUP_NAME); 
+			builder.setType(ObjectClass.GROUP_NAME);
 		} else {
 			String[] splitTypeMame = objectTypeName.split("\\/"); // e.q.
 			// /Entitlements
@@ -88,16 +111,32 @@ public class GenericSchemaObjectBuilder {
 		return builder.build();
 	}
 
+	/**
+	 * Checks the attributes present in the evaluated Map object for predefined
+	 * sub-properties. The method sets the matching schema object properties
+	 * accordingly to the attribute values.
+	 * 
+	 * @param infoBuilder
+	 *            "AttributeInfoBuilder" type object instance which defines the
+	 *            properties of the attribute.
+	 * @param schemaAttributeMap
+	 *            A map containing the sub properties of the evaluated
+	 *            attribute.
+	 * @param subPropertieName
+	 *            String which represents the name of the sub-propertie.
+	 * @return The "AttributeInfoBuilder" object populated with the
+	 *         sub-propertie values set.
+	 **/
 	private AttributeInfoBuilder subPropertiesChecker(AttributeInfoBuilder infoBuilder,
-			Map<String, Object> schemaAttributeMap, String mapAttributeKey, String key) {
+			Map<String, Object> schemaAttributeMap, String subPropertieName) {
 
-		if ("readOnly".equals(mapAttributeKey.intern())) {
+		if ("readOnly".equals(subPropertieName.intern())) {
 
-			infoBuilder.setUpdateable((!(Boolean) schemaAttributeMap.get(mapAttributeKey)));
-			infoBuilder.setCreateable((!(Boolean) schemaAttributeMap.get(mapAttributeKey)));
+			infoBuilder.setUpdateable((!(Boolean) schemaAttributeMap.get(subPropertieName)));
+			infoBuilder.setCreateable((!(Boolean) schemaAttributeMap.get(subPropertieName)));
 
-		} else if ("mutability".equals(mapAttributeKey.intern())) {
-			String value = schemaAttributeMap.get(mapAttributeKey).toString();
+		} else if ("mutability".equals(subPropertieName.intern())) {
+			String value = schemaAttributeMap.get(subPropertieName).toString();
 			if ("readWrite".equals(value)) {
 				infoBuilder.setUpdateable(true);
 				infoBuilder.setCreateable(true);
@@ -125,22 +164,22 @@ public class GenericSchemaObjectBuilder {
 				}
 			}
 
-		} else if ("type".equals(mapAttributeKey.intern())) {
+		} else if ("type".equals(subPropertieName.intern())) {
 
-			if ("string".equals(schemaAttributeMap.get(mapAttributeKey).toString().intern())) {
+			if ("string".equals(schemaAttributeMap.get(subPropertieName).toString().intern())) {
 
 				infoBuilder.setType(String.class);
-			} else if ("boolean".equals(schemaAttributeMap.get(mapAttributeKey).toString().intern())) {
+			} else if ("boolean".equals(schemaAttributeMap.get(subPropertieName).toString().intern())) {
 
 				infoBuilder.setType(Boolean.class);
 			}
 
-		} else if ("required".equals(mapAttributeKey.intern())) {
-			infoBuilder.setRequired(((Boolean) schemaAttributeMap.get(mapAttributeKey)));
-		} else if ("multiValued".equals(mapAttributeKey.intern())) {
-			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(mapAttributeKey)));
+		} else if ("required".equals(subPropertieName.intern())) {
+			infoBuilder.setRequired(((Boolean) schemaAttributeMap.get(subPropertieName)));
+		} else if ("multiValued".equals(subPropertieName.intern())) {
+			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(subPropertieName)));
 		}
-		
+
 		return infoBuilder;
 	}
 }

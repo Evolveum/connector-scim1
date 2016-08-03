@@ -1,34 +1,48 @@
 package com.evolveum.polygon.scim;
 
-import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-// Class containing methods needed for building connector objects from json objects
-
+/**
+ * Contains methods needed for building "ConnectorObject" objects from json
+ * objects which represent the queried resource.
+ */
 public class ConnectorObjBuilder {
 
 	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
 
+	/**
+	 * Builds the connector object from the provided json object.
+	 * 
+	 * @param resourceJsonObject
+	 *            The json object which is returned from the resource provider.
+	 * @param resourceEndPoint
+	 *            Name of the resource endpoint which will be used for the
+	 *            correct object class assigment.
+	 * @return The connector object which was build.
+	 * @throws ConnectorException
+	 *             In case of no data present in provided json object.
+	 */
+
 	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint)
-			throws ConnectException {
+			throws ConnectorException {
 
 		LOGGER.info("Building the connector object from provided json");
 
 		if (resourceJsonObject == null) {
 			LOGGER.error(
 					"Empty json object was passed from data provider. Error ocourance while building connector object");
-			throw new ConnectException(
+			throw new ConnectorException(
 					"Empty json object was passed from data provider. Error ocourance while building connector object");
 		}
 
@@ -53,8 +67,10 @@ public class ConnectorObjBuilder {
 
 			// Salesforce workaround
 			if ("meta".equals(key.intern()) || "alias".equals(key.intern()) || "schemas".equals(key.intern())) {
-				
-				LOGGER.warn("Processing trought salesforce \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.", key.intern());
+
+				LOGGER.warn(
+						"Processing trought salesforce \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.",
+						key.intern());
 				// some inconsistencies found in meta attribute in
 				// the schema definition present.
 				// In the Schemas/ resource and the actual attributes in an

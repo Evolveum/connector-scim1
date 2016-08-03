@@ -17,6 +17,13 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * A class that contains the methods needed for construction of json object
+ * representations of provided data sets. Attributes are translated to json
+ * objects and arrays of json objects depending on the attributes and
+ * dictionary. The dictionary is set to translate the attributes to correspond
+ * to the SCIM group core schema representation
+ */
 public class GroupDataBuilder implements ObjectTranslator {
 
 	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
@@ -24,16 +31,30 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 	static {
 		objectNameDictionary.put("displayName", "displayName");
-	/*	objectNameDictionary.put("members.User.value", "value");
-		objectNameDictionary.put("members.User.display", "display");
-		objectNameDictionary.put("members.Group.value", "value");
-		objectNameDictionary.put("members.Group.display", "display");
-	*/
+		/*
+		 * objectNameDictionary.put("members.User.value", "value");
+		 * objectNameDictionary.put("members.User.display", "display");
+		 * objectNameDictionary.put("members.Group.value", "value");
+		 * objectNameDictionary.put("members.Group.display", "display");
+		 */
 		objectNameDictionary.put("members.default.value", "value");
 		objectNameDictionary.put("members.default.display", "display");
-		
+
 	}
 
+	/**
+	 * Constructs a json object representation out of the provided data set and
+	 * schema dictionary. The json object representation will contain only
+	 * attributes which comply to the provided schema and operation attributes
+	 * as defined in the SCIM patch specification.
+	 * 
+	 * @param imsAttributes
+	 *            A set of attributes provided by the identity management
+	 *            system.
+	 * @param injectedAttributes
+	 *            A set of attributes which are injected into the provided set.
+	 * @return The complete json representation of the provided data set.
+	 */
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
 		LOGGER.info("Building Json data from group attributes");
 
@@ -74,6 +95,19 @@ public class GroupDataBuilder implements ObjectTranslator {
 		}
 		return groupJsonObj;
 	}
+
+	/**
+	 * Builds a json object representation out of a provided set of
+	 * "multi layered attributes". This type of attributes represent an array of
+	 * simple or complex json objects.
+	 * 
+	 * @param multiLayerAttribute
+	 *            A provided set of attributes.
+	 * @param json
+	 *            A json object which may already contain data added in previous
+	 *            methods.
+	 * @return A json representation of the provided data set.
+	 */
 
 	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
 		String mainAttributeName = "";
@@ -142,6 +176,13 @@ public class GroupDataBuilder implements ObjectTranslator {
 		return json;
 	}
 
+	/**
+	 * Builds the "ObjectClassInfo" object which carries the schema information
+	 * for a single resource.
+	 * 
+	 * @return An instance of ObjectClassInfo with the constructed schema
+	 *         information.
+	 **/
 	public static ObjectClassInfo getGroupSchema() {
 
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
@@ -151,21 +192,29 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").setRequired(true).build());
 		/*
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.Group.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.Group.display").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.display").build());
-		*/
+		 * builder.addAttributeInfo(AttributeInfoBuilder.define(
+		 * "members.Group.value").build());
+		 * builder.addAttributeInfo(AttributeInfoBuilder.define(
+		 * "members.Group.display").build());
+		 * builder.addAttributeInfo(AttributeInfoBuilder.define(
+		 * "members.User.value").build());
+		 * builder.addAttributeInfo(AttributeInfoBuilder.define(
+		 * "members.User.display").build());
+		 */
 		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.display").build());
-		
+
 		return builder.build();
 	}
 
+	/**
+	 * Method not implemented in this class.
+	 * 
+	 * @return null
+	 **/
 	@Override
 	public JSONObject translateSetToJson(Set<Attribute> imattributes, Set<Attribute> connattributes,
 			Map<String, Map<String, Object>> attributeMap) {
-		// Method not implemented in this class.
 		return null;
 	}
 

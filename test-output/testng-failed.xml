@@ -5,7 +5,11 @@
     <classes>
       <class name="com.evolveum.polygon.test.scim.Testclass">
         <methods>
-          <include name="deletetObjectfromResourcesTest" invocation-numbers="0"/>
+          <include name="configurationTest"/>
+          <include name="createObjectOnResourcesTest"/>
+          <include name="updateUserResourceObjectTest" invocation-numbers="1"/>
+          <include name="updateGroupResourceObjectTest"/>
+          <include name="filterMethodTest"/>
         </methods>
       </class> <!-- com.evolveum.polygon.test.scim.Testclass -->
     </classes>

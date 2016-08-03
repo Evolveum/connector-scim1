@@ -38,6 +38,9 @@ import org.json.JSONTokener;
 
 import com.evolveum.polygon.scim.common.HttpPatch;
 
+/**
+ * Holds the CRUD+L methods needed for interaction with the service provider.
+ */
 public class ScimCrudManager {
 
 	private String scimBaseUri;
@@ -53,18 +56,32 @@ public class ScimCrudManager {
 	long operationEndTime;
 	long operationDuration;
 
-
 	HttpPost loginInstance;
 
 	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
 
+	/**
+	 * Constructor which populates a variable with the provided configuration.
+	 * 
+	 * @param conf
+	 *            The provided configuration.
+	 */
 	public ScimCrudManager(ScimConnectorConfiguration conf) {
 		this.conf = (ScimConnectorConfiguration) conf;
 	}
 
-	private String logIntoService() {
+	/**
+	 * Used for loging to the service. The data needed for this operation is
+	 * provided by the configuration.
+	 * 
+	 * @return a json object carrying meta information about the login session.
+	 * @throws ConnectorException
+	 * @throws ClientProtocolException
+	 * @throws ConnectionFailedException
+	 * @throws ConnectorIOException
+	 */
+	public JSONObject logIntoService() {
 
-		String orgID = null;
 		HttpClient httpclient = HttpClientBuilder.create().build();
 
 		String loginURL = new StringBuilder(conf.getLoginURL()).append(conf.getService()).toString();
@@ -94,8 +111,10 @@ public class ScimCrudManager {
 			providerStartTime = System.nanoTime();
 			response = httpclient.execute(loginInstance);
 			providerEndTime = System.nanoTime();
-			providerDuration = (providerEndTime - providerStartTime)/1000000;
-			LOGGER.info("The amouth of time it took to get the response to the login query from the provider : {0} milliseconds", providerDuration);
+			providerDuration = (providerEndTime - providerStartTime) / 1000000;
+			LOGGER.info(
+					"The amouth of time it took to get the response to the login query from the provider : {0} milliseconds",
+					providerDuration);
 			providerDuration = 0;
 
 		} catch (ClientProtocolException e) {
@@ -154,11 +173,7 @@ public class ScimCrudManager {
 		try {
 
 			jsonObject = (JSONObject) new JSONTokener(getResult).nextValue();
-			if (jsonObject.has("id")) {
-				orgID = jsonObject.getString("id");
-				String idParts[] = orgID.split("\\/");
-				orgID = idParts[4];
-			}
+
 			loginAccessToken = jsonObject.getString("access_token");
 			loginInstanceUrl = jsonObject.getString("instance_url");
 		} catch (JSONException jsonException) {
@@ -171,14 +186,32 @@ public class ScimCrudManager {
 					jsonException);
 			throw new ConnectorException("An exception has ocoured while setting the \"jsonObject\".", jsonException);
 		}
+
 		scimBaseUri = new StringBuilder(loginInstanceUrl).append(conf.getEndpoint()).append(conf.getVersion())
 				.toString();
+
 		oauthHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
+		oauthHeader = new BasicHeader("Authorization", "Bearer " + loginAccessToken);
 		LOGGER.info("Login Successful");
 
-		return orgID;
+		return jsonObject;
 	}
 
+	/**
+	 * Sends queries to the service provider endpoints to retrieve the queried
+	 * information and processes responses which are handed over to the provided
+	 * result handler.
+	 * 
+	 * @param queuery
+	 *            The query object which can be a string or an Uid type object.
+	 * @param resourceEndPoint
+	 *            The resource endpoint name.
+	 * @param resultHandler
+	 *            The provided result handler which handles results.
+	 *
+	 * @throws ConnectorException
+	 * @throws ConnectorIOException
+	 */
 	public void qeueryEntity(Object queuery, String resourceEndPoint, ResultsHandler resultHandler) {
 		logIntoService();
 		HttpClient httpClient = HttpClientBuilder.create().build();
@@ -203,10 +236,12 @@ public class ScimCrudManager {
 		try {
 			providerStartTime = System.nanoTime();
 			response = httpClient.execute(httpGet);
-			providerEndTime= System.nanoTime();
-			providerDuration =(providerEndTime - providerStartTime)/1000000;
+			providerEndTime = System.nanoTime();
+			providerDuration = (providerEndTime - providerStartTime) / 1000000;
 
-			LOGGER.info("The amouth of time it took to get the response to the query from the provider : {0} milliseconds ", providerDuration);
+			LOGGER.info(
+					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+					providerDuration);
 
 			providerDuration = 0;
 
@@ -226,17 +261,18 @@ public class ScimCrudManager {
 								ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 								resultHandler.handle(objBuilder.buildConnectorObject(jsonObject, resourceEndPoint));
 
-							} else { 
-								if (jsonObject.has("Resources")){
+							} else {
+								if (jsonObject.has("Resources")) {
 									int amountOfResources = jsonObject.getJSONArray("Resources").length();
 									int totalResults = 0;
 									int startIndex = 0;
 									int itemsPerPage = 0;
 
-									if (jsonObject.has("startIndex") && jsonObject.has("totalResults")&& jsonObject.has("itemsPerPage")){
-										totalResults = (int)jsonObject.get("totalResults");
-										startIndex = (int)jsonObject.get("startIndex");
-										itemsPerPage = (int)jsonObject.get("itemsPerPage");
+									if (jsonObject.has("startIndex") && jsonObject.has("totalResults")
+											&& jsonObject.has("itemsPerPage")) {
+										totalResults = (int) jsonObject.get("totalResults");
+										startIndex = (int) jsonObject.get("startIndex");
+										itemsPerPage = (int) jsonObject.get("itemsPerPage");
 									}
 
 									for (int i = 0; i < amountOfResources; i++) {
@@ -254,11 +290,12 @@ public class ScimCrudManager {
 
 												providerStartTime = System.nanoTime();
 												HttpResponse resourceResponse = httpClient.execute(httpGetR);
-												providerEndTime= System.nanoTime();
-												providerDuration =(providerEndTime - providerStartTime )/1000000;
+												providerEndTime = System.nanoTime();
+												providerDuration = (providerEndTime - providerStartTime) / 1000000;
 
-												LOGGER.info("The amouth of time it took to get the response to the query from the provider : {0} milliseconds ", providerDuration);
-
+												LOGGER.info(
+														"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+														providerDuration);
 
 												statusCode = resourceResponse.getStatusLine().getStatusCode();
 
@@ -277,11 +314,11 @@ public class ScimCrudManager {
 
 													resultHandler.handle(conOb);
 
-
 												} else {
 													loginInstance.releaseConnection();
 													LOGGER.info("Connection released");
-													onNoSuccess(resourceResponse, statusCode, responseString, resourceUri);
+													onNoSuccess(resourceResponse, statusCode, responseString,
+															resourceUri);
 												}
 
 											}
@@ -293,22 +330,22 @@ public class ScimCrudManager {
 
 										}
 									}
-									if (resultHandler instanceof SearchResultsHandler){
+									if (resultHandler instanceof SearchResultsHandler) {
 										Boolean allResultsReturned = false;
-										int remainingResult = totalResults - (startIndex-1+itemsPerPage);
+										int remainingResult = totalResults - (startIndex - 1 + itemsPerPage);
 
-										if (remainingResult == 0){
+										if (remainingResult == 0) {
 											allResultsReturned = true;
 
 										}
 
 										LOGGER.info("The number of remaining results: {0}", remainingResult);
-										SearchResult searchResult = new SearchResult("default", remainingResult, allResultsReturned);
-										((SearchResultsHandler)resultHandler).handleResult(searchResult);
+										SearchResult searchResult = new SearchResult("default", remainingResult,
+												allResultsReturned);
+										((SearchResultsHandler) resultHandler).handleResult(searchResult);
 									}
 
-
-								}else {
+								} else {
 
 									LOGGER.error("Resource object not present in provider response to the query");
 
@@ -375,10 +412,26 @@ public class ScimCrudManager {
 		LOGGER.info("Connection released");
 	}
 
+	/**
+	 * Sends queries to the service provider endpoints to retrieve the queried
+	 * information and processes responses which are handed over to the provided
+	 * result handler. This method send queries only to the endpoints containing
+	 * the schema information of the services resources.
+	 * 
+	 * @param providerName
+	 *            The name of the provider.
+	 * @param resourceEndPoint
+	 *            The resource endpoint name.
+	 *
+	 * @throws ConnectorException
+	 * @throws ConnectorIOException
+	 *
+	 * @return an instance of "ScimSchemaParser" containing the schema
+	 *         information of all endpoint.
+	 */
 	public ScimSchemaParser qeueryEntity(String providerName, String resourceEndPoint) {
 		logIntoService();
 		HttpClient httpClient = HttpClientBuilder.create().build();
-		
 		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).toString();
 		LOGGER.info("Qeury url: {0}", uri);
 		HttpGet httpGet = new HttpGet(uri);
@@ -392,11 +445,13 @@ public class ScimCrudManager {
 
 			providerStartTime = System.nanoTime();
 			response = httpClient.execute(httpGet);
-			providerEndTime= System.nanoTime();
+			providerEndTime = System.nanoTime();
 
-			providerDuration =(providerEndTime - providerStartTime)/1000000;
+			providerDuration = (providerEndTime - providerStartTime) / 1000000;
 
-			LOGGER.info("The amouth of time it took to get the response to the query from the provider : {0} milliseconds ", providerDuration);
+			LOGGER.info(
+					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+					providerDuration);
 			providerDuration = 0;
 
 			int statusCode = response.getStatusLine().getStatusCode();
@@ -406,7 +461,7 @@ public class ScimCrudManager {
 				if (!responseString.isEmpty()) {
 
 					JSONObject jsonObject = new JSONObject(responseString);
-					LOGGER.info("Json object returned from service provider: {0}", jsonObject);
+					LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 					ScimSchemaParser scimParser = new ScimSchemaParser(providerName);
 					for (int i = 0; i < jsonObject.getJSONArray("Resources").length(); i++) {
 						JSONObject minResourceJson = new JSONObject();
@@ -464,19 +519,51 @@ public class ScimCrudManager {
 		return null;
 	}
 
+	/**
+	 * Sends queries for object creation to the service providers endpoints.
+	 * After successful object creation the service provider returns the uid of
+	 * the created object.
+	 * 
+	 * @param objectTranslator
+	 *            An instance of object translator containing methods for the
+	 *            creation of an json object out of an provided set of
+	 *            attributes.
+	 * @param resourceEndPoint
+	 *            The resource endpoint name.
+	 * @param attributes
+	 *            The provided attributes set containing information for object
+	 *            creation.
+	 * @param attributeMap
+	 *            A Map containing the dictionary which represents the resource
+	 *            schema.
+	 * @throws ConnectorException
+	 * @throws ConnectorIOException
+	 * @throws ConnectionFailedException
+	 * @throws UnknownUidException
+	 *
+	 * @return the uid of the created object.
+	 */
+
 	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
 			Object attributeMap) {
+		String orgID = null;
 		Set<Attribute> orgIdAttributeset = new HashSet<Attribute>();
-		String oID = logIntoService();
+		JSONObject loginObject = logIntoService();
+
+		if (loginObject.has("id")) {
+			orgID = loginObject.getString("id");
+			String idParts[] = orgID.split("\\/");
+			orgID = idParts[4];
+		}
 
 		// injection of organization ID into the set of attributes
-		if (oID != null) {
-			LOGGER.info("The organization ID is: {0}", oID);
+		if (orgID != null) {
+			LOGGER.info("The organization ID is: {0}", orgID);
 
-			//TODO schema version might change
-			orgIdAttributeset.add(AttributeBuilder.build("schema.type", "urn:scim:schemas:extension:enterprise:1.0")); 
+			// TODO schema version might change
+			orgIdAttributeset.add(AttributeBuilder.build("schema.type", "urn:scim:schemas:extension:enterprise:1.0"));
 
-			orgIdAttributeset.add(AttributeBuilder.build("schema.organization", oID));
+			orgIdAttributeset.add(AttributeBuilder.build("schema.organization", orgID));
 		} else {
 			orgIdAttributeset = null;
 			LOGGER.warn("No organization ID specified in instance URL");
@@ -511,12 +598,13 @@ public class ScimCrudManager {
 
 				providerStartTime = System.nanoTime();
 				HttpResponse response = httpClient.execute(httpPost);
-				providerEndTime= System.nanoTime();
-				providerDuration =(providerEndTime - providerStartTime)/1000000;
+				providerEndTime = System.nanoTime();
+				providerDuration = (providerEndTime - providerStartTime) / 1000000;
 
-				LOGGER.info("The amouth of time it took to get the response to the query from the provider : {0} milliseconds ", providerDuration);
+				LOGGER.info(
+						"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+						providerDuration);
 				providerDuration = 0;
-
 
 				loginInstance.releaseConnection();
 				LOGGER.info("Connection released");
@@ -587,6 +675,26 @@ public class ScimCrudManager {
 		throw new UnknownUidException("No uid returned in the process of resource creation");
 	}
 
+	/**
+	 * Sends queries for object update to the service providers endpoints. After
+	 * successful object update the service provider returns the uid of the
+	 * updated object.
+	 * 
+	 * @param uid
+	 *            The uid of the resource object which should be updated.
+	 * @param resourceEndPoint
+	 *            The name of the resource endpoint.
+	 * @param jsonObject
+	 *            The json object which carries the information which should be
+	 *            updated.
+	 * 
+	 * @throws ConnectorException
+	 * @throws UnknownUidException
+	 * @throws ConnectorIOException
+	 * @throws ConnectionFailedException
+	 *
+	 * @return the uid of the created object.
+	 */
 	public Uid updateEntity(Uid uid, String resourceEndPoint, JSONObject jsonObject) {
 
 		logIntoService();
@@ -610,10 +718,12 @@ public class ScimCrudManager {
 
 			providerStartTime = System.nanoTime();
 			HttpResponse response = httpClient.execute(httpPatch);
-			providerEndTime= System.nanoTime();
-			providerDuration =(providerEndTime - providerStartTime)/1000000;
+			providerEndTime = System.nanoTime();
+			providerDuration = (providerEndTime - providerStartTime) / 1000000;
 
-			LOGGER.info("The amouth of time it took to get the response to the query from the provider : {0} milliseconds ", providerDuration);
+			LOGGER.info(
+					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+					providerDuration);
 			providerDuration = 0;
 
 			loginInstance.releaseConnection();
@@ -628,28 +738,30 @@ public class ScimCrudManager {
 				LOGGER.ok("Json response: {0}", json.toString(1));
 				return id;
 
+			} else if (statusCode == 500 && "Groups".equals(resourceEndPoint)) {
 
-			}else if (statusCode == 500 && "Groups".equals(resourceEndPoint)){
-				
-				// Salesforce group/members workaround 
-				String[] uriParts = scimBaseUri.split("\\."); // e.g. https://eu6.salesforce.com/services/scim/v1
+				// Salesforce group/members workaround
+				String[] uriParts = scimBaseUri.split("\\."); // e.g.
+																// https://eu6.salesforce.com/services/scim/v1
 
-				if(uriParts.length >=2){
+				if (uriParts.length >= 2) {
 
-					if("salesforce".equals(uriParts[1])){
-			LOGGER.warn("Status code from first update query: {0}. Processing trought Salesforce \"group/member update\" workaround. ", statusCode);
+					if ("salesforce".equals(uriParts[1])) {
+						LOGGER.warn(
+								"Status code from first update query: {0}. Processing trought Salesforce \"group/member update\" workaround. ",
+								statusCode);
 						HttpGet httpGet = new HttpGet(uri);
 						httpGet.addHeader(oauthHeader);
 						httpGet.addHeader(prettyPrintHeader);
 
-
-
 						providerStartTime = System.nanoTime();
 						response = httpClient.execute(httpGet);
-						providerEndTime= System.nanoTime();
-						providerDuration =(providerEndTime - providerStartTime)/1000000;
+						providerEndTime = System.nanoTime();
+						providerDuration = (providerEndTime - providerStartTime) / 1000000;
 
-						LOGGER.info("The amouth of time it took to get the response to the query from the provider : {0} milliseconds ", providerDuration);
+						LOGGER.info(
+								"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+								providerDuration);
 
 						providerDuration = 0;
 
@@ -662,7 +774,7 @@ public class ScimCrudManager {
 
 								JSONObject json = new JSONObject(responseString);
 								LOGGER.info("Json object returned from service provider: {0}", json);
-								for(String attributeName: jsonObject.keySet()){
+								for (String attributeName : jsonObject.keySet()) {
 
 									json.put(attributeName, jsonObject.get(attributeName));
 
@@ -674,15 +786,17 @@ public class ScimCrudManager {
 								providerStartTime = System.nanoTime();
 								response = httpClient.execute(httpPatch);
 
-								providerEndTime= System.nanoTime();
-								providerDuration =(providerEndTime - providerStartTime)/1000000;
+								providerEndTime = System.nanoTime();
+								providerDuration = (providerEndTime - providerStartTime) / 1000000;
 
-								LOGGER.info("The amouth of time it took to get the response to the query from the provider : {0} milliseconds ", providerDuration);
+								LOGGER.info(
+										"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+										providerDuration);
 								providerDuration = 0;
 
 								statusCode = response.getStatusLine().getStatusCode();
 								LOGGER.info("status code: {0}", statusCode);
-		
+
 								loginInstance.releaseConnection();
 								if (statusCode == 200 || statusCode == 201) {
 									LOGGER.info("Update of resource was succesfull");
@@ -691,15 +805,13 @@ public class ScimCrudManager {
 									Uid id = new Uid(json.getString("id"));
 									LOGGER.ok("Json response: {0}", json.toString(1));
 									return id;
-								}else {
+								} else {
 
 									onNoSuccess(response, statusCode, responseString, "updating object");
 								}
 
-
 							}
 						}
-
 
 					}
 				}
@@ -758,9 +870,20 @@ public class ScimCrudManager {
 		loginInstance.releaseConnection();
 		throw new UnknownUidException("No uid returned in the process of resource update");
 
-
 	}
 
+	/**
+	 * Sends queries for object deletion to the service providers endpoints.
+	 * 
+	 * @param uid
+	 *            The uid of the resource object which should be deleted.
+	 * @param resourceEndPoint
+	 *            The name of the resource endpoint.
+	 * 
+	 * @throws ConnectorIOException
+	 * @throws ConnectionFailedException
+	 *
+	 */
 	public void deleteEntity(Uid uid, String resourceEndPoint) {
 
 		logIntoService();
@@ -780,10 +903,12 @@ public class ScimCrudManager {
 		try {
 			providerStartTime = System.nanoTime();
 			HttpResponse response = httpClient.execute(httpDelete);
-			providerEndTime= System.nanoTime();
-			providerDuration =(providerEndTime - providerStartTime)/1000000;
+			providerEndTime = System.nanoTime();
+			providerDuration = (providerEndTime - providerStartTime) / 1000000;
 
-			LOGGER.info("The amouth of time it took to get the response to the query from the provider : {0} milliseconds ", providerDuration);
+			LOGGER.info(
+					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+					providerDuration);
 			providerDuration = 0;
 
 			loginInstance.releaseConnection();
@@ -825,22 +950,46 @@ public class ScimCrudManager {
 		}
 	}
 
+	/**
+	 * Error handling method called in case of an exception situation. The
+	 * method returns log messages and throws exceptions.
+	 * 
+	 * @param response
+	 *            The http response from the service provider.
+	 * @param statusCode
+	 *            The status code returned from the service provider.
+	 * @param responseString
+	 *            The response from the service provider.
+	 * @param message
+	 *            The generated message tailored for the thrown exception.
+	 * 
+	 * @throws ParseException
+	 * @throws IOException
+	 * @throws ConnectorIOException
+	 */
 	private void onNoSuccess(HttpResponse response, int statusCode, String responseString, String message)
 			throws ParseException, IOException {
 		responseString = EntityUtils.toString(response.getEntity());
 
-		StringBuilder exceptionStringBuilder = new StringBuilder("Query for ").append(message).append(" was unsuccessful. Status code returned: ").append(statusCode);
+		StringBuilder exceptionStringBuilder = new StringBuilder("Query for ").append(message)
+				.append(" was unsuccessful. Status code returned: ").append(statusCode);
 		String exceptionString = exceptionStringBuilder.toString();
-		
-		
+
 		if (message == null) {
 			message = "the full resource representation";
 		}
 		LOGGER.error(exceptionString);
 		LOGGER.info("An error has occured. Http status: {0}", responseString);
 		LOGGER.info(exceptionString);
-		
+
 		throw new ConnectorIOException(exceptionString);
 	}
 
+	/**
+	 * Method used to log out of the service.
+	 */
+	public void logOut() {
+		loginInstance.releaseConnection();
+		LOGGER.info("The connecion was released");
+	}
 }

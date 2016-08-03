@@ -1,8 +1,6 @@
 package com.evolveum.polygon.scim;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +17,14 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+/**
+ * A class that contains the methods needed for construction of json object
+ * representations of provided data sets. Attributes are translated to json
+ * objects and arrays of json objects depending on the attributes and
+ * dictionary. The dictionary is set to translate the attributes to correspond
+ * to the SCIM user core schema representation
+ */
 
 public class UserDataBuilder implements ObjectTranslator {
 
@@ -37,7 +43,6 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		objectNameDictionaryUser.put("displayName", "displayName");
 		objectNameDictionaryUser.put("nickName", "nickName");
-		
 
 		objectNameDictionaryUser.put("emails.work.value", "value");
 		objectNameDictionaryUser.put("emails.work.primary", "primary");
@@ -86,11 +91,9 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		objectNameDictionaryUser.put("phoneNumbers.pager.value", "value");
 		objectNameDictionaryUser.put("phoneNumbers.pager.primary", "primary");
-		
+
 		objectNameDictionaryUser.put("phoneNumbers.other.value", "value");
 		objectNameDictionaryUser.put("phoneNumbers.other.primary", "primary");
-		
-		
 
 		objectNameDictionaryUser.put("photos.photo.value", "value");
 		objectNameDictionaryUser.put("photos.photo.primary", "primary");
@@ -133,10 +136,9 @@ public class UserDataBuilder implements ObjectTranslator {
 		objectNameDictionaryUser.put("id", "id");
 		objectNameDictionaryUser.put("externalId", "externalId");
 		objectNameDictionaryUser.put("timezone", "timezone");
-		objectNameDictionaryUser.put("active", "active");
+		objectNameDictionaryUser.put("__ENABLE__", "__ENABLE__");
 		objectNameDictionaryUser.put("password", "password");
 
-		
 		objectNameDictionaryUser.put("x509Certificates", "x509Certificates");
 		objectNameDictionaryUser.put("x509Certificates.value", "value");
 
@@ -145,13 +147,27 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		objectNameDictionaryUser.put("schema.type", "type");
 		objectNameDictionaryUser.put("schema.organization", "organization");
-		
+
 		objectNameDictionaryUser.put("roles.default.value", "value");
 		objectNameDictionaryUser.put("roles.default.display", "value");
 	}
 
 	public UserDataBuilder() {
 	}
+
+	/**
+	 * Constructs a json object representation out of the provided data set and
+	 * schema dictionary. The json object representation will contain only
+	 * attributes which comply to the provided schema and operation attributes
+	 * as defined in the SCIM patch specification.
+	 * 
+	 * @param imsAttributes
+	 *            A set of attributes provided by the identity management
+	 *            system.
+	 * @param injectedAttributes
+	 *            A set of attributes which are injected into the provided set.
+	 * @return The complete json representation of the provided data set.
+	 */
 
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
 
@@ -189,6 +205,8 @@ public class UserDataBuilder implements ObjectTranslator {
 					userObj.put(attributeName, AttributeUtil.getSingleValue(at));
 				}
 
+			} else if ("__ENABLE__".equals(attributeName)) {
+				userObj.put("active", AttributeUtil.getSingleValue(at));
 			} else {
 				LOGGER.warn("Attribute name not defined in dictionary {0}", attributeName);
 			}
@@ -204,6 +222,19 @@ public class UserDataBuilder implements ObjectTranslator {
 		return userObj;
 
 	}
+
+	/**
+	 * Builds a json object representation out of a provided set of
+	 * "multi layered attributes". This type of attributes represent an array of
+	 * simple or complex json objects.
+	 * 
+	 * @param multiLayerAttribute
+	 *            A provided set of attributes.
+	 * @param json
+	 *            A json object which may already contain data added in previous
+	 *            methods.
+	 * @return A json representation of the provided data set.
+	 */
 
 	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
 
@@ -273,6 +304,18 @@ public class UserDataBuilder implements ObjectTranslator {
 		return json;
 	}
 
+	/**
+	 * Builds a json object representation out of a provided set of
+	 * "multi value attributes". This type of attributes represent a complex
+	 * json object containing other key value pairs.
+	 * 
+	 * @param multiValueAttribute
+	 *            A provided set of attributes.
+	 * @param json
+	 *            A json representation of the provided data set.
+	 * 
+	 * @return A json representation of the provided data set.
+	 */
 	public JSONObject buildMultivalueAttribute(Set<Attribute> multiValueAttribute, JSONObject json) {
 
 		String mainAttributeName = "";
@@ -343,6 +386,13 @@ public class UserDataBuilder implements ObjectTranslator {
 		return json;
 	}
 
+	/**
+	 * Builds the "ObjectClassInfo" object which carries the schema information
+	 * for a single resource.
+	 * 
+	 * @return An instance of ObjectClassInfo with the constructed schema
+	 *         information.
+	 **/
 	public static ObjectClassInfo getUserSchema() {
 
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
@@ -356,11 +406,11 @@ public class UserDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(AttributeInfoBuilder.define("name.middleName").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificPrefix").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificSuffix").build());
-		
+
 		builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("password").setUpdateable(true).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("nickName").build());
 
@@ -380,56 +430,63 @@ public class UserDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.primary").setType(Boolean.class).build());
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.primary").setType(Boolean.class).build());
+		builder.addAttributeInfo(
+				AttributeInfoBuilder.define("entitlements.default.primary").setType(Boolean.class).build());
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.work.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.work.primary").setType(Boolean.class).build());
-		
+		builder.addAttributeInfo(
+				AttributeInfoBuilder.define("phoneNumbers.work.primary").setType(Boolean.class).build());
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.other.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.other.primary").setType(Boolean.class).build());
-		
+		builder.addAttributeInfo(
+				AttributeInfoBuilder.define("phoneNumbers.other.primary").setType(Boolean.class).build());
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.pager.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.pager.primary").setType(Boolean.class).build());
-		
+		builder.addAttributeInfo(
+				AttributeInfoBuilder.define("phoneNumbers.pager.primary").setType(Boolean.class).build());
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.fax.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.fax.primary").setType(Boolean.class).build());
-		
+		builder.addAttributeInfo(
+				AttributeInfoBuilder.define("phoneNumbers.fax.primary").setType(Boolean.class).build());
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.mobile.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.mobile.primary").setType(Boolean.class).build());
-		
+		builder.addAttributeInfo(
+				AttributeInfoBuilder.define("phoneNumbers.mobile.primary").setType(Boolean.class).build());
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.aim.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.aim.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.xmpp.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.xmpp.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.skype.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.skype.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.qq.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.qq.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.yahoo.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.yahoo.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.other.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.other.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.msn.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.msn.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.icq.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.icq.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.gtalk.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("ims.gtalk.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("photos.photo.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("photos.photo.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("photos.thumbnail.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("photos.thumbnail.primary").setType(Boolean.class).build());
-		
+		builder.addAttributeInfo(
+				AttributeInfoBuilder.define("photos.thumbnail.primary").setType(Boolean.class).build());
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.streetAddress").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.locality").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.region").build());
@@ -437,7 +494,7 @@ public class UserDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.country").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.formatted").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.streetAddress").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.locality").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.region").build());
@@ -445,7 +502,7 @@ public class UserDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.country").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.formatted").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.primary").setType(Boolean.class).build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.streetAddress").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.locality").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.region").build());
@@ -453,22 +510,27 @@ public class UserDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.country").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.formatted").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.primary").setType(Boolean.class).build());
-		
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("groups.default.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("groups.default.display").build());
-		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.display").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.primary").setType(Boolean.class).build());
-		
+		builder.addAttributeInfo(
+				AttributeInfoBuilder.define("entitlements.default.primary").setType(Boolean.class).build());
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("roles.default.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("roles.default.display").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("roles.default.primary").setType(Boolean.class).build());
-		
+
 		return builder.build();
 	}
 
+	/**
+	 * Method not implemented in this class.
+	 * 
+	 * @return null
+	 **/
 	@Override
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes,
 			Map<String, Map<String, Object>> attributeMap) {

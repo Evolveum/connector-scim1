@@ -12,25 +12,54 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.omg.CORBA.OMGVMCID;
 
+/**
+ * A class that contains the methods needed for construction of json object
+ * representations of provided data sets. Attributes are translated to json
+ * objects and arrays of json objects depending on the attributes and
+ * dictionary.
+ */
 public class GenericDataBuilder implements ObjectTranslator {
 
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
 
-	private static final String DELETE ="delete";
-	
+	private static final String DELETE = "delete";
+
 	private String operation;
-	
-	public GenericDataBuilder(String operation){
+
+	/**
+	 * Costructor used to populate the local variable "operation".
+	 * 
+	 * @param operation
+	 *            String variable indicating that the "delete" operation
+	 *            parameter should be added in the constructed json object.
+	 **/
+	public GenericDataBuilder(String operation) {
 		this.operation = operation;
-		
+
 	}
 
+	/**
+	 * Constructs a json object representation out of the provided data set and
+	 * schema dictionary. The json object representation will contain only
+	 * attributes which comply to the provided schema and operation attributes
+	 * as defined in the SCIM patch specification.
+	 * 
+	 * @param imsAttributes
+	 *            A set of attributes provided by the identity management
+	 *            system.
+	 * @param injectedAttributes
+	 *            A set of attributes which are injected into the provided set.
+	 * @param attributeMap
+	 *            A dictionary containing the attributes translated from the
+	 *            provided schema. This dictionary is cross checked with the
+	 *            processed attribute set and non matching attributes are
+	 *            discarded.
+	 * @return The complete json representation of the provided data set.
+	 */
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes,
 			Map<String, Map<String, Object>> attributeMap) {
-		
-		
+
 		LOGGER.info("Building account JsonObject");
 
 		JSONObject completeJsonObj = new JSONObject();
@@ -70,11 +99,10 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 				} else {
 
-
 					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 				}
 
-			} else if("__ENABLE__".equals(attributeName)){
+			} else if ("__ENABLE__".equals(attributeName)) {
 				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
 			} else {
 				LOGGER.warn("Attribute name not defined in dictionary: {0}", attributeName);
@@ -88,14 +116,24 @@ public class GenericDataBuilder implements ObjectTranslator {
 		if (multiLayerAttribute != null) {
 			buildLayeredAtrribute(multiLayerAttribute, completeJsonObj);
 		}
-		LOGGER.info("Json object returned from json data builder: {0}",completeJsonObj);
-		
+		LOGGER.info("Json object returned from json data builder: {0}", completeJsonObj);
+
 		return completeJsonObj;
-		
-		
 
 	}
 
+	/**
+	 * Builds a json object representation out of a provided set of
+	 * "multi layered attributes". This type of attributes represent an array of
+	 * simple or complex json objects.
+	 * 
+	 * @param multiLayerAttribute
+	 *            A provided set of attributes.
+	 * @param json
+	 *            A json object which may already contain data added in previous
+	 *            methods.
+	 * @return A json representation of the provided data set.
+	 */
 	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
 
 		String mainAttributeName = "";
@@ -145,32 +183,28 @@ public class GenericDataBuilder implements ObjectTranslator {
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
 							// email.work.value
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
-								
-								if (subSetAttribute.getValue()!=null && subSetAttribute.getValue().size()>1){
-									
-								
+
+								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
+
 									List<Object> valueList = subSetAttribute.getValue();
 
-									for(Object attributeValue: valueList){
+									for (Object attributeValue : valueList) {
 										multivalueObject = new JSONObject();
-										multivalueObject.put(finalSubAttributeNameParts[2].intern(),
-												attributeValue);
+										multivalueObject.put(finalSubAttributeNameParts[2].intern(), attributeValue);
 
 										if (!nameFromSubSetParts[1].intern().equals("")
 												&& !nameFromSubSetParts[1].intern().equals("default")) {
 											multivalueObject.put("type", nameFromSubSetParts[1].intern());
 										}
-										if(operation!=null){
-										if (DELETE.equals(operation)){
-											multivalueObject.put("operation",
-													DELETE);
-										}
+										if (operation != null) {
+											if (DELETE.equals(operation)) {
+												multivalueObject.put("operation", DELETE);
+											}
 										}
 										jArray.put(multivalueObject);
 									}
 
-								
-									}else{
+								} else {
 
 									multivalueObject = new JSONObject();
 									multivalueObject.put(finalSubAttributeNameParts[2].intern(),
@@ -180,12 +214,11 @@ public class GenericDataBuilder implements ObjectTranslator {
 											&& !nameFromSubSetParts[1].intern().equals("default")) {
 										multivalueObject.put("type", nameFromSubSetParts[1].intern());
 									}
-									if(operation!=null){
-										if (DELETE.equals(operation)){
-											multivalueObject.put("operation",
-													DELETE);
+									if (operation != null) {
+										if (DELETE.equals(operation)) {
+											multivalueObject.put("operation", DELETE);
 										}
-										}
+									}
 									jArray.put(multivalueObject);
 								}
 							}
@@ -196,10 +229,22 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 			}
 		}
-		
+
 		return json;
 	}
 
+	/**
+	 * Builds a json object representation out of a provided set of
+	 * "multi value attributes". This type of attributes represent a complex
+	 * json object containing other key value pairs.
+	 * 
+	 * @param multiValueAttribute
+	 *            A provided set of attributes.
+	 * @param json
+	 *            A json representation of the provided data set.
+	 * 
+	 * @return A json representation of the provided data set.
+	 */
 	public JSONObject buildMultivalueAttribute(Set<Attribute> multiValueAttribute, JSONObject json) {
 
 		String mainAttributeName = "";
@@ -270,8 +315,12 @@ public class GenericDataBuilder implements ObjectTranslator {
 		return json;
 	}
 
+	/**
+	 * Method not implemented in this class.
+	 * 
+	 * @return null
+	 **/
 	@Override
-	// Method not implemented in this class
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
 
 		return null;

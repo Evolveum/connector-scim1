@@ -1,11 +1,225 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testng-results skipped="0" failed="0" total="0" passed="0">
+<testng-results skipped="2" failed="1" total="13" passed="10">
   <reporter-output>
   </reporter-output>
-  <suite name="Default suite" duration-ms="8" started-at="2016-07-25T10:17:36Z" finished-at="2016-07-25T10:17:36Z">
+  <suite name="Default suite" duration-ms="14025" started-at="2016-08-03T12:17:23Z" finished-at="2016-08-03T12:17:37Z">
     <groups>
     </groups>
-    <test name="Default test" duration-ms="8" started-at="2016-07-25T10:17:36Z" finished-at="2016-07-25T10:17:36Z">
+    <test name="Default test" duration-ms="14025" started-at="2016-08-03T12:17:23Z" finished-at="2016-08-03T12:17:37Z">
+      <class name="com.evolveum.polygon.test.scim.Testclass">
+        <test-method status="PASS" signature="configurationTest(java.util.HashMap, java.lang.Boolean)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="configurationTest" duration-ms="2052" started-at="2016-08-03T14:17:23Z" data-provider="tesConfigProvider" finished-at="2016-08-03T14:17:25Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[{endpoint=/services/scim, password=mm5ecr3tTMj9SlJ62ePwynASRoNJUouOl, clientID=3MVG98_Psg5cppyZ.wx3xXhdg46KDzaNSwpQFRqKfsBdDnyHrNSTodpJ5il8ZAdSB4eIjlF3RagOYYXWz8vTB, loginUrl=https://login.salesforce.com, service=/services/oauth2/token?grant_type=password, clientSecret=8826126769332672628, userName=matus.macik@gmail.com, version=/v1}]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[true]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- configurationTest -->
+        <test-method status="PASS" signature="createObjectOnResourcesTest(java.lang.String, java.lang.Boolean)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="createObjectOnResourcesTest" duration-ms="1997" started-at="2016-08-03T14:17:25Z" data-provider="createTestProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.configurationTest" finished-at="2016-08-03T14:17:27Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[users]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[true]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- createObjectOnResourcesTest -->
+        <test-method status="PASS" signature="createObjectOnResourcesTest(java.lang.String, java.lang.Boolean)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="createObjectOnResourcesTest" duration-ms="795" started-at="2016-08-03T14:17:27Z" data-provider="createTestProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.configurationTest" finished-at="2016-08-03T14:17:28Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[groups]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[true]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- createObjectOnResourcesTest -->
+        <test-method status="PASS" signature="updateUserResourceObjectTest(java.lang.String, org.identityconnectors.framework.common.objects.Uid)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="updateUserResourceObjectTest" duration-ms="980" started-at="2016-08-03T14:17:28Z" data-provider="updateUserResourceObjectTestProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.createObjectOnResourcesTest" finished-at="2016-08-03T14:17:29Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[single]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[Attribute: {Name=__UID__, Value=[00558000001KbZ6AAK]}]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- updateUserResourceObjectTest -->
+        <test-method status="FAIL" signature="updateUserResourceObjectTest(java.lang.String, org.identityconnectors.framework.common.objects.Uid)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="updateUserResourceObjectTest" duration-ms="778" started-at="2016-08-03T14:17:29Z" data-provider="updateUserResourceObjectTestProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.createObjectOnResourcesTest" finished-at="2016-08-03T14:17:30Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[multi]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[Attribute: {Name=__UID__, Value=[00558000001KbZ6AAK]}]]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.identityconnectors.framework.common.exceptions.ConnectorIOException">
+            <message>
+              <![CDATA[Query for updating object was unsuccessful. Status code returned: 409]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.identityconnectors.framework.common.exceptions.ConnectorIOException: Query for updating object was unsuccessful. Status code returned: 409
+	at com.evolveum.polygon.scim.ScimCrudManager.onNoSuccess(ScimCrudManager.java:985)
+	at com.evolveum.polygon.scim.ScimCrudManager.updateEntity(ScimCrudManager.java:822)
+	at com.evolveum.polygon.scim.ScimConnector.update(ScimConnector.java:302)
+	at com.evolveum.polygon.test.scim.TestConfiguration.updateResourceTestHelper(TestConfiguration.java:303)
+	at com.evolveum.polygon.test.scim.Testclass.updateUserResourceObjectTest(Testclass.java:168)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:80)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:714)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:901)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:1231)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:127)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:111)
+	at org.testng.TestRunner.privateRun(TestRunner.java:767)
+	at org.testng.TestRunner.run(TestRunner.java:617)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:334)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:240)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1198)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1123)
+	at org.testng.TestNG.run(TestNG.java:1031)
+	at org.testng.remote.AbstractRemoteTestNG.run(AbstractRemoteTestNG.java:126)
+	at org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:137)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:58)
+]]>
+            </full-stacktrace>
+          </exception> <!-- org.identityconnectors.framework.common.exceptions.ConnectorIOException -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- updateUserResourceObjectTest -->
+        <test-method status="PASS" signature="updateUserResourceObjectTest(java.lang.String, org.identityconnectors.framework.common.objects.Uid)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="updateUserResourceObjectTest" duration-ms="1501" started-at="2016-08-03T14:17:30Z" data-provider="updateUserResourceObjectTestProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.createObjectOnResourcesTest" finished-at="2016-08-03T14:17:31Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[disabled]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[Attribute: {Name=__UID__, Value=[00558000001KbZ6AAK]}]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- updateUserResourceObjectTest -->
+        <test-method status="PASS" signature="updateUserResourceObjectTest(java.lang.String, org.identityconnectors.framework.common.objects.Uid)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="updateUserResourceObjectTest" duration-ms="986" started-at="2016-08-03T14:17:31Z" data-provider="updateUserResourceObjectTestProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.createObjectOnResourcesTest" finished-at="2016-08-03T14:17:32Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[enabled]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[Attribute: {Name=__UID__, Value=[00558000001KbZ6AAK]}]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- updateUserResourceObjectTest -->
+        <test-method status="PASS" signature="listAllfromResourcesTest(int, java.lang.String)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="listAllfromResourcesTest" duration-ms="852" started-at="2016-08-03T14:17:32Z" data-provider="listAllfromResourcesProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.createObjectOnResourcesTest" finished-at="2016-08-03T14:17:33Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[1]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[users]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- listAllfromResourcesTest -->
+        <test-method status="PASS" signature="listAllfromResourcesTest(int, java.lang.String)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="listAllfromResourcesTest" duration-ms="694" started-at="2016-08-03T14:17:33Z" data-provider="listAllfromResourcesProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.createObjectOnResourcesTest" finished-at="2016-08-03T14:17:34Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[1]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[groups]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- listAllfromResourcesTest -->
+        <test-method status="PASS" signature="deleteObjectfromResourcesTest(java.lang.String)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="deleteObjectfromResourcesTest" duration-ms="1713" started-at="2016-08-03T14:17:34Z" data-provider="deletetObjectfromResourcesProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.createObjectOnResourcesTest" finished-at="2016-08-03T14:17:36Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[users]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- deleteObjectfromResourcesTest -->
+        <test-method status="PASS" signature="deleteObjectfromResourcesTest(java.lang.String)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="deleteObjectfromResourcesTest" duration-ms="1630" started-at="2016-08-03T14:17:36Z" data-provider="deletetObjectfromResourcesProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.createObjectOnResourcesTest" finished-at="2016-08-03T14:17:37Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[groups]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- deleteObjectfromResourcesTest -->
+        <test-method status="SKIP" signature="updateGroupResourceObjectTest(java.lang.String, org.identityconnectors.framework.common.objects.Uid)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="updateGroupResourceObjectTest" duration-ms="0" started-at="2016-08-03T14:17:37Z" data-provider="updateGroupResourceObjectTestProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.updateUserResourceObjectTest" finished-at="2016-08-03T14:17:37Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- updateGroupResourceObjectTest -->
+        <test-method status="SKIP" signature="filterMethodTest(java.lang.String, java.lang.String)[pri:0, instance:com.evolveum.polygon.test.scim.Testclass@56f4468b]" name="filterMethodTest" duration-ms="1" started-at="2016-08-03T14:17:37Z" data-provider="filterMethodTestProvider" depends-on-methods="com.evolveum.polygon.test.scim.Testclass.updateUserResourceObjectTest, com.evolveum.polygon.test.scim.Testclass.updateGroupResourceObjectTest" finished-at="2016-08-03T14:17:37Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- filterMethodTest -->
+      </class> <!-- com.evolveum.polygon.test.scim.Testclass -->
     </test> <!-- Default test -->
   </suite> <!-- Default suite -->
 </testng-results>

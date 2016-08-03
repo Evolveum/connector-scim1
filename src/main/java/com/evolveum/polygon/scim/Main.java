@@ -23,11 +23,10 @@ import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
 
-//import com.evolveum.polygon.test.slsfrc.JsonDataProvider;
 
 public class Main {
 
-	private static final Uid TEST_UID = new Uid("00558000000VcXnAAK");
+	private static final Uid TEST_UID = new Uid("00G58000000b2f6EAA");
 	private static final Uid BLANC_TEST_UID = null;
 	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	private static final Log LOGGER = Log.getLog(Main.class);
@@ -56,7 +55,6 @@ public class Main {
 		
 		
 		filterMethodsTest();
-		//TODO operation delete http://www.simplecloud.info/specs/draft-scim-api-01.html
 		//updateResourceTest();
 
 
@@ -262,8 +260,8 @@ public class Main {
 		initConnector(conn);
 
 		conn.executeQuery(userClass, null, handler, options);
-		conn.executeQuery(groupClass, null, handler, options);
-		conn.executeQuery(entitlementClass, null, handler, options);
+		//conn.executeQuery(groupClass, null, handler, options);
+		//conn.executeQuery(entitlementClass, null, handler, options);
 	}
 
 
@@ -348,7 +346,7 @@ public class Main {
 
 		// conn.executeQuery(userClass, uidEqualsFilterTest, handler, options);
 		//conn.executeQuery(groupClass, containsAllValuesFilter, handler, options);
-		conn.executeQuery(entitlementClass, containsAllValuesFilter, handler, null);
+		//conn.executeQuery(entitlementClass, containsAllValuesFilter, handler, null);
 	}
 
 	private static ScimConnector initConnector(ScimConnector conn) {

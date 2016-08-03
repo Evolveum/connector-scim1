@@ -1,4 +1,5 @@
 package com.evolveum.polygon.test.scim;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -6,7 +7,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -15,9 +18,11 @@ import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
+import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
+import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
@@ -26,54 +31,56 @@ import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 
-	public class TestConfiguration {
+public class TestConfiguration {
 
-		private static final Uid TEST_UID = new Uid("00558000001K3NZAA0");
-		private static final Uid BLANC_TEST_UID = null;
-		private static final ArrayList<ConnectorObject> result = new ArrayList<>();
-		private static final Log LOGGER = Log.getLog(TestConfiguration.class);
+	//private static final Uid s = new Uid("00558000001K3NZAA0");
+	private static Integer testNumber = 12;
+	private  Uid userTestUid = null;
+	private  Uid groupTestUid = null;
+	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
+	private static final Log LOGGER = Log.getLog(TestConfiguration.class);
 
-		private static final ObjectClass userClass = ObjectClass.ACCOUNT;
-		private static final ObjectClass groupClass = ObjectClass.GROUP;
-		private static final ObjectClass entitlementClass = new ObjectClass("Entitlements");
-		private static Collection <String> mandatoriParameters = new ArrayList<String>();
-		
-		static {
-			
-			mandatoriParameters.add("clientID");
-			mandatoriParameters.add("clientSecret");
-			mandatoriParameters.add("endpoint");
-			mandatoriParameters.add("loginUrl");
-			mandatoriParameters.add("password");
-			mandatoriParameters.add("service");
-			mandatoriParameters.add("userName");
-			mandatoriParameters.add("version");
-			
-		}
-		
-		
-		private static OperationOptions options ;
-		
-		
-		ScimConnectorConfiguration scimConnectorConfiguration;
-		private static ScimConnector conn;
+	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
+	private static final ObjectClass groupClass = ObjectClass.GROUP;
+	private static final ObjectClass entitlementClass = new ObjectClass("Entitlements");
+	private static Collection <String> mandatoriParameters = new ArrayList<String>();
 
-		
-		public TestConfiguration(HashMap configuration) {
+	static {
+
+		mandatoriParameters.add("clientID");
+		mandatoriParameters.add("clientSecret");
+		mandatoriParameters.add("endpoint");
+		mandatoriParameters.add("loginUrl");
+		mandatoriParameters.add("password");
+		mandatoriParameters.add("service");
+		mandatoriParameters.add("userName");
+		mandatoriParameters.add("version");
+
+	}
+
+
+	private static OperationOptions options ;
+
+
+	ScimConnectorConfiguration scimConnectorConfiguration;
+	private static ScimConnector conn;
+
+
+	public TestConfiguration(HashMap configuration) {
 		this.scimConnectorConfiguration= buildConfiguration(configuration);
 		this.conn= initConnector(scimConnectorConfiguration);
 		this.options =getOptions();
-		}
-		
-		private static ScimConnectorConfiguration buildConfiguration(HashMap<String,String> configuration){
-			ScimConnectorConfiguration scimConnectorConfiguration = new ScimConnectorConfiguration();
+	}
 
-			
-			for(String configurationParameter: configuration.keySet()){
-				
+	private static ScimConnectorConfiguration buildConfiguration(HashMap<String,String> configuration){
+		ScimConnectorConfiguration scimConnectorConfiguration = new ScimConnectorConfiguration();
+
+
+		for(String configurationParameter: configuration.keySet()){
+
 			if("clientID".equals(configurationParameter)){
 				scimConnectorConfiguration.setClientID(configuration.get(configurationParameter));
-				
+
 			}else if("clientSecret".equals(configurationParameter)){
 				scimConnectorConfiguration.setClientSecret(configuration.get(configurationParameter));
 			}else if("endpoint".equals(configurationParameter)){
@@ -90,397 +97,404 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 				scimConnectorConfiguration.setVersion(configuration.get(configurationParameter));
 			}
 			else{
-				
+
 				LOGGER.warn("Ocourance of an non defined parameter");
 			}
-			}
-			return scimConnectorConfiguration;
-			
-		
 		}
+		return scimConnectorConfiguration;
 
-		private static Set<Attribute> GenericBuilderTest() {
 
-			// Setting up attribute
-			Set<Attribute> attr = new HashSet<Attribute>();
+	}
 
-			// Map for Maultivalue attribute name
+	private static Set<Attribute> userCreateBuilder() {
 
-			Map<String, Map<String, Object>> nameMap = new HashMap<String, Map<String, Object>>();
-			Map<String, Object> names = new HashMap<String, Object>();
+		StringBuilder testAttributeString= new StringBuilder();
 
-			// Map for Maultivalue attribute schema extension
 
-			Map<String, Map<String, Object>> extensionMap = new HashMap<String, Map<String, Object>>();
-			Map<String, Object> extensionAtributes = new HashMap<String, Object>();
+		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-			// Map for multilayered attribute Email
-			Map<String, Collection<Map<String, Object>>> emailMap = new HashMap<String, Collection<Map<String, Object>>>();
-			Map<String, Object> emailAttribute1 = new HashMap<String, Object>();
-			Map<String, Object> emailAttribute2 = new HashMap<String, Object>();
+		testAttributeString.append(testNumber.toString()).append("TestUser@testdomain.com");
 
-			// Map for multilayered attribute phoneNumbers
-			Map<String, Collection<Map<String, Object>>> phoneMap = new HashMap<String, Collection<Map<String, Object>>>();
-			Map<String, Object> phoneAttribute1 = new HashMap<String, Object>();
-			Map<String, Object> phoneAttribute2 = new HashMap<String, Object>();
+		attributeSet.add(AttributeBuilder.build("userName", testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build("emails.work.value", testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
 
-			// Map for multilayered attribute entitlements
-			Map<String, Collection<Map<String, Object>>> entitlementMap = new HashMap<String, Collection<Map<String, Object>>>();
-			Map<String, Object> entitlementAttribute1 = new HashMap<String, Object>();
-			Map<String, Object> entitlementAttribute2 = new HashMap<String, Object>();
+		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
+		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 
-			// Name
-			names.put("formatted", "Harry Potter");
-			names.put("familyName", "Potter");
-			names.put("givenName", "Harry");
 
-			nameMap.put("name", names);
 
-			// extension ########## Enterprise extension
-			extensionAtributes.put("organization", "00D58000000YfgfEAC");
+		attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
 
-			extensionMap.put("urn:scim:schemas:extension:enterprise:1.0", extensionAtributes);
 
-			// Email
-			emailMap.put("emails", new ArrayList<Map<String, Object>>());
-			emailMap.get("emails").add(emailAttribute1);
+		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
 
-			emailAttribute1.put("type", "home");
+		return attributeSet;
+	}
 
-			emailAttribute1.put("value", "someone@hometest554xz.com");
+	private static Set<Attribute> userSingleValUpdateBuilder() {
 
-			emailAttribute2.put("primary", true);
+		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-			emailAttribute2.put("type", "work");
+		attributeSet.add(AttributeBuilder.build("nickName", testNumber.toString()));
 
-			emailAttribute2.put("value", "someone@hometest554xz.com");
+		attributeSet.add(AttributeBuilder.build("name.familyName", "TestUpdate"));
 
-			// Entitlements
 
-			entitlementMap.put("entitlements", new ArrayList<Map<String, Object>>());
-			entitlementMap.get("entitlements").add(entitlementAttribute1);
+		return attributeSet;
 
-			entitlementAttribute1.put("display", "Custom: Support Profile");
+	}private static Set<Attribute> userMultiValUpdateBuilder() {
 
-			entitlementAttribute1.put("value", "00e58000000qvhqAAA");
+		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-			entitlementAttribute1.put("primary", true);
+		attributeSet.add(AttributeBuilder.build("addresses.work.streetAddress", "streetAddress"));
+		attributeSet.add(AttributeBuilder.build("addresses.work.locality", "locality"));
+		attributeSet.add(AttributeBuilder.build("addresses.work.region", "region"));
+		attributeSet.add(AttributeBuilder.build("addresses.work.postalCode", "postalCode"));
+		attributeSet.add(AttributeBuilder.build("addresses.work.country", "country"));
 
-			// Phone
+		return attributeSet;
+	}
 
-			phoneMap.put("phoneNumbers", new ArrayList<Map<String, Object>>());
-			phoneMap.get("phoneNumbers").add(phoneAttribute1);
-			phoneMap.get("phoneNumbers").add(phoneAttribute2);
+	private static Set<Attribute> userEnableUpdate() {
 
-			phoneAttribute1.put("type", "mobile");
+		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-			phoneAttribute1.put("value", "+421 910039218");
+		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
 
-			phoneAttribute2.put("type", "work");
+		return attributeSet;
+	}private static Set<Attribute> userDisableUpdate() {
 
-			phoneAttribute2.put("value", "+421 915039218");
+		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-			// Attribute
-			attr.add(AttributeBuilder.build("layeredAttrribute", emailMap));
-			attr.add(AttributeBuilder.build("layeredAttrribute", phoneMap));
-			attr.add(AttributeBuilder.build("layeredAttrribute", entitlementMap));
-			attr.add(AttributeBuilder.build("multiValueAttrribute", nameMap));
-			attr.add(AttributeBuilder.build("multiValueAttrribute", extensionMap));
-			attr.add(AttributeBuilder.build("nickName", "HP"));
-			attr.add(AttributeBuilder.build("userName", "harryp0234@hogwarts.com"));
+		attributeSet.add(AttributeBuilder.build("__ENABLE__", false));
 
-			return attr;
-		}
+		return attributeSet;
+	}
 
-		private static Set<Attribute> userCreateBuilder() {
+	private static Set<Attribute> groupCreateBuilder() {
 
-			Set<Attribute> attributeSet = new HashSet<Attribute>();
+		StringBuilder testAttributeString = new StringBuilder();
 
-			attributeSet.add(AttributeBuilder.build("userName", "seventhTestUser@ectestdomain.com"));
-			attributeSet.add(AttributeBuilder.build("emails.work.value", "seventhTestUser@ectestdomain.com"));
-			attributeSet.add(AttributeBuilder.build("nickName", "seventhTestUser"));
-
-			attributeSet.add(AttributeBuilder.build("name.formatted", "Test Seven"));
-			attributeSet.add(AttributeBuilder.build("name.familyName", "Seven"));
-			attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
-		
-			
-
-			attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000cqxLAAQ"));
-			
-
-			attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
-
-			return attributeSet;
-		}
-		
-		private static Set<Attribute> userUpdateBuilder() {
-
-			Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-			attributeSet.add(AttributeBuilder.build("nickName", "fourthtestuserUpdate"));
-
-		//	attributeSet.add(AttributeBuilder.build("emails.work.value", "fourthtestuser@ectestdomain.com"));
-		//	attributeSet.add(AttributeBuilder.build("emails.work.primary", true));
-			
-
-			//attributeSet.add(AttributeBuilder.build("name.formatted", "Test SixthUpdate"));
-			attributeSet.add(AttributeBuilder.build("name.familyName", "FourthUpdate"));
-
-			attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000cqxLAAQ"));
-			
-
-			attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
-
-			return attributeSet;
-		}
-
-		private static Set<Attribute> groupCreateBuilder() {
-
-			Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-			attributeSet.add(AttributeBuilder.build("displayName", "firstTestGroup"));
-			attributeSet.add(AttributeBuilder.build("members.User.value", "firstTestUser@ectestdomain.com"));
-			//attributeSet.add(AttributeBuilder.build("members.User.display", "teest@eastcubattor1.com"));
-			return attributeSet;
-		}
-		
-		private static Set<Attribute> resourceCreateBuilder() {
-			Set<Attribute> attr = new HashSet<Attribute>();
-			
-			attr.add(AttributeBuilder.build("displayName", "My Custom Test1 Entitlement"));
-			
-			
-			return attr;
-		}
-			
-		public static SearchResultsHandler handler = new SearchResultsHandler() {
-
-			@Override
-			public boolean handle(ConnectorObject connectorObject) {
-				result.add(connectorObject);
-				return true;
-			}
-
-			@Override
-			public void handleResult(SearchResult result) {
-				LOGGER.info("im handling {0}", result.getRemainingPagedResults());
-				
-			}
-		};
-
-		public static void listAllfromResourcesTestHelper(String resourceName) {
-			result.clear();
-			
-			
-			if("users".equalsIgnoreCase(resourceName)){
-				conn.executeQuery(userClass, null, handler, options);
-				
-			}else if("groups".equalsIgnoreCase(resourceName)){
-				conn.executeQuery(groupClass, null, handler, options);
-				
-			}else if("entitlements".equalsIgnoreCase(resourceName)){
-				
-				conn.executeQuery(entitlementClass, null, handler, options);
-			}
-		}
-		
-		
-		
-		public static OperationOptions getOptions(){
-			
-			Map<String, Object> operationOptions = new HashMap<String, Object>();
-
-			operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
-			operationOptions.put("PAGED_RESULTS_OFFSET", 1);
-			operationOptions.put("PAGE_SIZE", 1);
-
-			OperationOptions options = new OperationOptions(operationOptions);
-			
-			return options;
-		}
-
-		public static void deleteResourceTestHelper(Uid uid, String resourceName) {
-			
-			if("users".equalsIgnoreCase(resourceName)){
-				conn.delete(userClass, uid, null);
-				
-			}else if("groups".equalsIgnoreCase(resourceName)){
-				conn.delete(groupClass, uid, null);
-				
-			}else if("entitlements".equalsIgnoreCase(resourceName)){
-				conn.delete(entitlementClass, uid, null);
-				
-			}
-
-		}
-
-		public static Uid createResourceTestHelper(String resourceName) {
-			Uid uid= null;
-			
-			if("users".equals(resourceName)) {
-			uid= conn.create(userClass, userCreateBuilder(), null);
-			}else if("groups".equals(resourceName)) {
-				uid= conn.create(groupClass, groupCreateBuilder(), null);
-			}
-			else {
-				LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
-			}
-			
-		
-			//TODO test negative in salesforce/ free-plan 
-			// conn.create(entitlementClass, BuilderTestResource(), null);
-			return uid;
-		}
-
-		public static Uid updateResourceTestHelper(String resourceName) {
-			Uid uid= null;
-			
-			if("users".equals(resourceName)) {
-				uid =conn.update(userClass, TEST_UID, userUpdateBuilder(), null);
-				}else if("groups".equals(resourceName)) {
-				uid= conn.update(groupClass, BLANC_TEST_UID, groupCreateBuilder(), null);
-				}
-				else {
-					LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
-				}
-			return uid;
-			
-			//conn.update(userClass, TEST_UID, updateTestUser(), null);
-			//conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
-			// conn.update(entitlementClass, ,attr, null);
-
-		}
-		
-		public static Uid addAttributeValuesTestHelper(String resourceName) {
-			Uid uid= null;
-			
-			if("users".equals(resourceName)) {
-				uid =conn.update(userClass, TEST_UID, userUpdateBuilder(), null);
-				}else if("groups".equals(resourceName)) {
-				uid= conn.update(groupClass, BLANC_TEST_UID, groupCreateBuilder(), null);
-				} 
-				else {
-					LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
-				}
-			return uid;
-			
-			//conn.update(userClass, TEST_UID, updateTestUser(), null);
-			//conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
-			// conn.update(entitlementClass, ,attr, null);
-
-		}
-		
-		public static Uid removeAttributeValuesTestHelper(String resourceName) {
-			Uid uid= null;
-			
-			if("users".equals(resourceName)) {
-				uid =conn.update(userClass, TEST_UID, userUpdateBuilder(), null);
-				}else if("groups".equals(resourceName)) {
-				uid= conn.update(groupClass, BLANC_TEST_UID, groupCreateBuilder(), null);
-				} 
-				else {
-					LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
-				}
-			return uid;
-			
-			//conn.update(userClass, TEST_UID, updateTestUser(), null);
-			//conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
-			// conn.update(entitlementClass, ,attr, null);
-
-		}
-
-		public static void filterMethodsTest(AttributeFilter filter, String resourceName) {
-			result.clear();
-
-			try {
-				if("users".equalsIgnoreCase(resourceName)){
- conn.executeQuery(userClass, filter, handler, options);
-				}else if("groups".equalsIgnoreCase(resourceName)){
- conn.executeQuery(groupClass, filter, handler, options);
-				}if("entitlements".equalsIgnoreCase(resourceName)){
-				conn.executeQuery(entitlementClass, filter, handler, options);
-				}
-			} catch (Exception e) {
-				LOGGER.warn("An exception has ocoured while processing the filter method test: {0}", e.getMessage());;
-			}
-		}
-
-		private static ScimConnector initConnector(ScimConnectorConfiguration conf) {
-			ScimConnector conn = new ScimConnector();
-
-			conn.init(conf);
-			conn.schema();
-
-			return conn;
-		}
-		
-		public AttributeFilter getFilter(String filterName, String leftAttribute, Object rigthAttribute){
-			AttributeFilter filter = null ;
-			
-			
-			
-			if ("contains".equalsIgnoreCase(filterName)){
-			 filter = (ContainsFilter) FilterBuilder
-					.contains(AttributeBuilder.build((String)leftAttribute, rigthAttribute));
-			}else if ("equals".equalsIgnoreCase(filterName)){
-				 filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build((String)leftAttribute, rigthAttribute));
-			}else if ("uid".equalsIgnoreCase(filterName)){
-				 filter = (EqualsFilter) FilterBuilder.equalTo((Uid)rigthAttribute);
-			}else if ("startswith".equalsIgnoreCase(filterName)){
-				 filter = (StartsWithFilter)
-						FilterBuilder.startsWith(AttributeBuilder.build((String)leftAttribute));
-			}else if ("endswith".equalsIgnoreCase(filterName)){
-				
-				 filter =
-						(EndsWithFilter)FilterBuilder.endsWith(AttributeBuilder.build((String)leftAttribute));
-			}
-			
-			
-
-			//OrFilter orFilterTest = (OrFilter) FilterBuilder.or(eq, ct);
-
-			//AndFilter andFilterTest = (AndFilter) FilterBuilder.and(con, con);
-
-			//NotFilter notFilterTest= (NotFilter)FilterBuilder.not(eq);
-
-			
-			return filter;
-		}
-		
-		public ArrayList<ConnectorObject> getHandlerResult(){
-			
-			return this.result;
-		}
-		
-		public boolean isConfigurationValid(){
-			
-			
-			try {
-				scimConnectorConfiguration.validate();
-			} catch (Exception e) {
-				return false; 
-			}
+		testAttributeString.append(testNumber.toString()).append("TestGroup");			
+
+		Set<Attribute> attributeSet = new HashSet<Attribute>();
+
+		attributeSet.add(AttributeBuilder.build("displayName", testAttributeString.toString()));
+
+		return attributeSet;
+	}
+
+	private  Set<Attribute> groupSingleValUpdateBuilder() {
+
+		Set<Attribute> attributeSet = new HashSet<Attribute>();
+
+		attributeSet.add(AttributeBuilder.build("displayName",testNumber.toString()));
+
+		return attributeSet;
+	}
+	private  Set<Attribute> groupMultiValUpdateBuilder() {
+
+		Set<Attribute> attributeSet = new HashSet<Attribute>();
+
+
+		attributeSet.add(AttributeBuilder.build("members.User.value", userTestUid.toString()));
+		return attributeSet;
+	}
+
+	private static Set<Attribute> resourceCreateBuilder() {
+		Set<Attribute> attr = new HashSet<Attribute>();
+
+		attr.add(AttributeBuilder.build("displayName", "My Custom Test1 Entitlement"));
+
+
+		return attr;
+	}
+
+	public static SearchResultsHandler handler = new SearchResultsHandler() {
+
+		@Override
+		public boolean handle(ConnectorObject connectorObject) {
+			result.add(connectorObject);
 			return true;
 		}
-		
-		public Set<Attribute> getAttributeSet(String resourceName){
-			
-			Set<Attribute> attributeSet= new HashSet<>();
-			
-			if ("users".equals(resourceName)){
-				attributeSet = userCreateBuilder();
-				
-			}else if ("groups".equals(resourceName)){
-				
-				attributeSet = groupCreateBuilder();
-			}
-			
-			
-			return attributeSet;
+
+		@Override
+		public void handleResult(SearchResult result) {
+			LOGGER.info("im handling {0}", result.getRemainingPagedResults());
+
+		}
+	};
+
+	public static void listAllfromResourcesTestHelper(String resourceName) {
+		result.clear();
+
+
+		if("users".equalsIgnoreCase(resourceName)){
+			conn.executeQuery(userClass, null, handler, options);
+
+		}else if("groups".equalsIgnoreCase(resourceName)){
+			conn.executeQuery(groupClass, null, handler, options);
+
+		}else if("entitlements".equalsIgnoreCase(resourceName)){
+
+			conn.executeQuery(entitlementClass, null, handler, options);
+		}
+	}
+
+
+
+	public static OperationOptions getOptions(){
+
+		Map<String, Object> operationOptions = new HashMap<String, Object>();
+
+		operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
+		operationOptions.put("PAGED_RESULTS_OFFSET", 1);
+		operationOptions.put("PAGE_SIZE", 1);
+
+		OperationOptions options = new OperationOptions(operationOptions);
+
+		return options;
+	}
+
+	public  void deleteResourceTestHelper(String resourceName) {
+
+		if("users".equalsIgnoreCase(resourceName)){
+			conn.delete(userClass, userTestUid, null);
+
+		}else if("groups".equalsIgnoreCase(resourceName)){
+			conn.delete(groupClass, groupTestUid, null);
+
+		}else {
+
+			LOGGER.warn("Resource not supported", resourceName);
+			throw new ConnectorException("Resource not supported");
 		}
 
 	}
+
+	public static Uid createResourceTestHelper(String resourceName) {
+		Uid uid= null;
+
+		if("users".equals(resourceName)) {
+			uid= conn.create(userClass, userCreateBuilder(), null);
+		}else if("groups".equals(resourceName)) {
+			uid= conn.create(groupClass, groupCreateBuilder(), null);
+		}
+		else {
+			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
+		}
+
+
+		//TODO test negative in salesforce/ free-plan 
+		// conn.create(entitlementClass, BuilderTestResource(), null);
+		return uid;
+	}
+
+	public  Uid updateResourceTestHelper(String resourceName, String updateType) {
+		Uid uid= null;
+
+		if("users".equals(resourceName)) {
+			if("single".equals(updateType)){
+
+				uid =conn.update(userClass, userTestUid, userSingleValUpdateBuilder(), null);
+			}else if("multi".equals(updateType)){
+
+				uid =conn.update(userClass, userTestUid, userMultiValUpdateBuilder(), null);
+
+			}else if("enabled".equals(updateType)){
+
+				uid =conn.update(userClass, userTestUid, userEnableUpdate(), null);
+
+			}
+			else if("disabled".equals(updateType)){
+
+				uid =conn.update(userClass, userTestUid, userDisableUpdate(), null);
+
+			}
+
+		}else if("groups".equals(resourceName)) {
+			if("single".equals(updateType)){
+
+				uid= conn.update(groupClass, groupTestUid, groupSingleValUpdateBuilder(), null);
+			}else if("multi".equals(updateType)){
+				uid= conn.update(groupClass, groupTestUid, groupMultiValUpdateBuilder(), null);
+
+			}
+		}
+		else {
+			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
+		}
+		return uid;
+
+		//conn.update(userClass, TEST_UID, updateTestUser(), null);
+		//conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
+		// conn.update(entitlementClass, ,attr, null);
+
+	}
+
+	public  Uid addAttributeValuesTestHelper(String resourceName) {
+		Uid uid= null;
+
+		if("users".equals(resourceName)) {
+			uid =conn.update(userClass, userTestUid, userSingleValUpdateBuilder(), null);
+		}else if("groups".equals(resourceName)) {
+			uid= conn.update(groupClass, groupTestUid, groupCreateBuilder(), null);
+		} 
+		else {
+			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
+		}
+		return uid;
+
+		//conn.update(userClass, TEST_UID, updateTestUser(), null);
+		//conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
+		// conn.update(entitlementClass, ,attr, null);
+
+	}
+
+	public  Uid removeAttributeValuesTestHelper(String resourceName) {
+		Uid uid= null;
+
+		if("users".equals(resourceName)) {
+			uid =conn.update(userClass, userTestUid, userSingleValUpdateBuilder(), null);
+		}else if("groups".equals(resourceName)) {
+			uid= conn.update(groupClass, groupTestUid, groupCreateBuilder(), null);
+		} 
+		else {
+			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
+		}
+		return uid;
+
+		//conn.update(userClass, TEST_UID, updateTestUser(), null);
+		//conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
+		// conn.update(entitlementClass, ,attr, null);
+
+	}
+
+	public  void filterMethodsTest(String filterType, String resourceName) {
+		result.clear();
+
+		Filter filter = getFilter(filterType,resourceName);
+
+		try {
+			if("users".equalsIgnoreCase(resourceName)){
+				conn.executeQuery(userClass, filter, handler, options);
+			}else if("groups".equalsIgnoreCase(resourceName)){
+				conn.executeQuery(groupClass, filter, handler, options);
+			}else if("entitlements".equalsIgnoreCase(resourceName)){
+				conn.executeQuery(entitlementClass, filter, handler, options);
+			}
+		} catch (Exception e) {
+			LOGGER.warn("An exception has ocoured while processing the filter method test: {0}", e.getMessage());;
+		}
+	}
+
+	private static ScimConnector initConnector(ScimConnectorConfiguration conf) {
+		ScimConnector conn = new ScimConnector();
+
+		conn.init(conf);
+		conn.schema();
+
+		return conn;
+	}
+
+	private  AttributeFilter getFilter(String filterType, String resourceName){
+		AttributeFilter filter = null ;
+
+		if ("contains".equalsIgnoreCase(filterType)){
+			if ("users".equals(resourceName)){
+				filter = (ContainsFilter) FilterBuilder
+						.contains(AttributeBuilder.build("userName", testNumber.toString()));
+			}else if("groups".equals(resourceName)){
+
+				filter = (ContainsFilter) FilterBuilder
+						.contains(AttributeBuilder.build("displayName", testNumber.toString()));
+			}
+		}else if ("equals".equalsIgnoreCase(filterType)){
+			if ("users".equals(resourceName)){
+
+				filter = (EqualsFilter) FilterBuilder
+						.equalTo(AttributeBuilder.build("nickName", testNumber.toString()));
+			}
+			else if("groups".equals(resourceName)){
+
+				filter = (EqualsFilter) FilterBuilder
+						.equalTo(AttributeBuilder.build("displayName", testNumber.toString()));
+			}
+		}else if ("uid".equalsIgnoreCase(filterType)){
+			if ("users".equals(resourceName)){
+				filter = (EqualsFilter) FilterBuilder.equalTo(userTestUid);
+			}else if("groups".equals(resourceName)){
+				filter = (EqualsFilter) FilterBuilder.equalTo(groupTestUid); 
+			}
+		}else if ("startswith".equalsIgnoreCase(filterType)){
+			if ("users".equals(resourceName)){
+				filter = (StartsWithFilter)
+						FilterBuilder.startsWith(AttributeBuilder.build("userName",testNumber.toString()));
+			}else if("groups".equals(resourceName)){
+				filter = (StartsWithFilter)
+						FilterBuilder.startsWith(AttributeBuilder.build("displayName",testNumber.toString()));
+			}
+		}else if ("endswith".equalsIgnoreCase(filterType)){
+			if ("users".equals(resourceName)){
+				filter =
+						(EndsWithFilter)FilterBuilder.endsWith(AttributeBuilder.build("userName","testdomain.com")); 
+			}else if("groups".equals(resourceName)){
+				filter =
+						(EndsWithFilter)FilterBuilder.endsWith(AttributeBuilder.build("displayName",testNumber.toString())); 
+			}
+		}else if ("containsall".equalsIgnoreCase(filterType)){
+			if("groups".equals(resourceName)){
+				filter =
+						(ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.User.value", userTestUid.toString()));
+			}
+		}
+
+		return filter;
+	}
+
+	public ArrayList<ConnectorObject> getHandlerResult(){
+
+		return this.result;
+	}
+
+	public boolean isConfigurationValid(){
+
+
+		try {
+			scimConnectorConfiguration.validate();
+		} catch (Exception e) {
+			return false; 
+		}
+		return true;
+	}
+
+	public Set<Attribute> getAttributeSet(String resourceName){
+
+		Set<Attribute> attributeSet= new HashSet<>();
+
+		if ("users".equals(resourceName)){
+			attributeSet = userCreateBuilder();
+
+		}else if ("groups".equals(resourceName)){
+
+			attributeSet = groupCreateBuilder();
+		}
+
+
+		return attributeSet;
+	}
+
+	public  void setGroupTestUid(Uid groupUid){
+		groupTestUid = groupUid;
+
+	}
+
+	public  void setUserTestUid(Uid userUid){
+
+		userTestUid = userUid;
+	}
+
+}
 
 

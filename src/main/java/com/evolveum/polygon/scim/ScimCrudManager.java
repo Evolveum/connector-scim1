@@ -76,7 +76,6 @@ public class ScimCrudManager {
 	 * 
 	 * @return a json object carrying meta information about the login session.
 	 * @throws ConnectorException
-	 * @throws ClientProtocolException
 	 * @throws ConnectionFailedException
 	 * @throws ConnectorIOException
 	 */

@@ -13,10 +13,10 @@ public interface ObjectTranslator {
 	 * attributes which comply to the provided schema and operation attributes
 	 * as defined in the SCIM patch specification.
 	 * 
-	 * @param imsAttributes
+	 * @param passedAttributeSet
 	 *            A set of attributes provided by the identity management
 	 *            system.
-	 * @param injectedAttributes
+	 * @param orgIdAttributeset
 	 *            A set of attributes which are injected into the provided set.
 	 * @return The complete json representation of the provided data set.
 	 */
@@ -28,10 +28,10 @@ public interface ObjectTranslator {
 	 * attributes which comply to the provided schema and operation attributes
 	 * as defined in the SCIM patch specification.
 	 * 
-	 * @param imsAttributes
+	 * @param passedAttributeSet
 	 *            A set of attributes provided by the identity management
 	 *            system.
-	 * @param injectedAttributes
+	 * @param orgIdAttributeset
 	 *            A set of attributes which are injected into the provided set.
 	 * @param attributeMap
 	 *            A dictionary containing the attributes translated from the

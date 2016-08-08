@@ -134,6 +134,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 	 *            methods.
 	 * @return A json representation of the provided data set.
 	 */
+	// TODO more efficient 
 	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
 
 		String mainAttributeName = "";
@@ -162,6 +163,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 				}
 
 				String canonicaltypeName = "";
+				boolean setOfValues= false;
 				JSONArray jArray = new JSONArray();
 
 				ArrayList<String> checkedTypeNames = new ArrayList<String>();
@@ -177,23 +179,23 @@ public class GenericDataBuilder implements ObjectTranslator {
 						canonicaltypeName = nameFromSubSetParts[1].intern();
 
 						checkedTypeNames.add(canonicaltypeName);
-						for (Attribute subSetAttribute : subAttributeLayerSet) {
-
+						for(Attribute subSetAttribute:subAttributeLayerSet){
 							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
 							// email.work.value
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
+								
+
 
 								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
-
+										setOfValues = true;
 									List<Object> valueList = subSetAttribute.getValue();
 
 									for (Object attributeValue : valueList) {
 										multivalueObject = new JSONObject();
 										multivalueObject.put(finalSubAttributeNameParts[2].intern(), attributeValue);
 
-										if (!nameFromSubSetParts[1].intern().equals("")
-												&& !nameFromSubSetParts[1].intern().equals("default")) {
+										if (!"default".equals(nameFromSubSetParts[1].intern())) {
 											multivalueObject.put("type", nameFromSubSetParts[1].intern());
 										}
 										if (operation != null) {
@@ -202,16 +204,15 @@ public class GenericDataBuilder implements ObjectTranslator {
 											}
 										}
 										jArray.put(multivalueObject);
+										
 									}
 
 								} else {
 
-									multivalueObject = new JSONObject();
 									multivalueObject.put(finalSubAttributeNameParts[2].intern(),
 											AttributeUtil.getSingleValue(subSetAttribute));
 
-									if (!nameFromSubSetParts[1].intern().equals("")
-											&& !nameFromSubSetParts[1].intern().equals("default")) {
+									if (!"default".equals(nameFromSubSetParts[1].intern())) {
 										multivalueObject.put("type", nameFromSubSetParts[1].intern());
 									}
 									if (operation != null) {
@@ -219,9 +220,12 @@ public class GenericDataBuilder implements ObjectTranslator {
 											multivalueObject.put("operation", DELETE);
 										}
 									}
-									jArray.put(multivalueObject);
+									
 								}
 							}
+						} if (!setOfValues){
+							
+							jArray.put(multivalueObject);
 						}
 					}
 					json.put(nameFromSubSetParts[0], jArray);

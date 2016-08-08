@@ -514,10 +514,8 @@ public class UserDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(AttributeInfoBuilder.define("groups.default.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("groups.default.display").build());
 
-		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.value").build());
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.display").build());
-		builder.addAttributeInfo(
-				AttributeInfoBuilder.define("entitlements.default.primary").setType(Boolean.class).build());
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("roles.default.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("roles.default.display").build());

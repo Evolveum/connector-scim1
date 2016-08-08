@@ -11,13 +11,14 @@ import org.identityconnectors.framework.spi.StatefulConfiguration;
  * processing the connector configuration.
  */
 public class ScimConnectorConfiguration extends AbstractConfiguration implements StatefulConfiguration {
-
-	private String SCIM_ENDPOINT;
-	private String SCIM_VERSION;
+	
+	private String AUTHENTICATION = "token";
+	private String SCIM_ENDPOINT = "/scim";
+	private String SCIM_VERSION = "/v1";
 	private String USERNAME;
 	private String PASSWORD;
-	private String LOGINURL;
-	private String SERVICEGRANT;
+	private String LOGINURL = "https://api.slack.com";
+	private String GRANT;
 	private String CLIENTID;
 	private String CLIENTSECRET;
 
@@ -28,6 +29,23 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 * 
 	 * @return the user name.
 	 */
+	
+	
+	public String getAuthentication() {
+		return AUTHENTICATION;
+	}
+
+	/**
+	 * Setter method for the "USERNAME" attribute.
+	 * 
+	 * @param username
+	 *            the user name string value.
+	 */
+	public void setAuthentication(String authentication) {
+		this.AUTHENTICATION = authentication;
+	}
+
+	
 	@ConfigurationProperty(order = 1, displayMessageKey = "Username", groupMessageKey = "basic.group", helpMessageKey = "Please provide the administrator user name for the scim enabled service you are logging into", required = true, confidential = false)
 
 	public String getUserName() {
@@ -175,20 +193,20 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 * 
 	 * @return the service grant.
 	 */
-	@ConfigurationProperty(order = 8, displayMessageKey = "Service Grant", groupMessageKey = "basic.group", helpMessageKey = "Please provide the ulr snippet defining the service and grand type to log into the service (eg. /services/oauth2/token?grant_type=password)", required = true, confidential = false)
+	@ConfigurationProperty(order = 8, displayMessageKey = "Grant type", groupMessageKey = "basic.group", helpMessageKey = "Please provide the ulr snippet defining the service and grand type to log into the service (eg. /services/oauth2/token?grant_type=password)", required = true, confidential = false)
 
 	public String getService() {
-		return SERVICEGRANT;
+		return GRANT;
 	}
 
 	/**
 	 * Setter method for the "SERVICEGRANT" attribute.
 	 * 
 	 * @param service
-	 *            the service grant string value.
+	 *            the grant type string value.
 	 */
 	public void setService(String service) {
-		this.SERVICEGRANT = service;
+		this.GRANT = service;
 	}
 
 	@Override
@@ -209,8 +227,8 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		if (StringUtil.isBlank(LOGINURL)) {
 			throw new IllegalArgumentException("Login url cannot be empty.");
 		}
-		if (StringUtil.isBlank(SERVICEGRANT)) {
-			throw new IllegalArgumentException("Service grant cannot be empty.");
+		if (StringUtil.isBlank(GRANT)) {
+			throw new IllegalArgumentException("Grant type cannot be empty.");
 		}
 		if (StringUtil.isBlank(CLIENTID)) {
 			throw new IllegalArgumentException("Client id cannot be empty.");
@@ -233,7 +251,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		this.CLIENTSECRET = null;
 		this.PASSWORD = null;
 		this.USERNAME = null;
-		this.SERVICEGRANT = null;
+		this.GRANT = null;
 	}
 
 }

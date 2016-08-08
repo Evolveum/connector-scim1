@@ -9,7 +9,9 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.testng.Assert;
+import org.testng.ITestResult;
 import org.testng.Reporter;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -42,7 +44,7 @@ public class Testclass {
 	@DataProvider(name = "filterMethodTestProvider")
 	public static Object[][] filterMethodTestResourcesProvider() {
 
-		return new Object[][] {{"users",""}};
+		return new Object[][] {{"users","contains"},{"groups","contains"},{"users","equals"},{"groups","equals"},{"users","uid"},{"groups","uid"},{"users","startswith"},{"groups","startswith"},{"groups","containsall"}};
 	}
 
 	@DataProvider(name = "updateUserResourceObjectTestProvider")
@@ -84,12 +86,13 @@ public class Testclass {
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("clientID","");
 		configurationParameters.put("clientSecret", "");
-		configurationParameters.put("endpoint", "");
-		configurationParameters.put("loginUrl", "");
+		configurationParameters.put("endpoint", "/scim");
+		configurationParameters.put("loginUrl", "https://api.slack.com");
 		configurationParameters.put("password", "");
 		configurationParameters.put("service", "");
 		configurationParameters.put("userName", "");
-		configurationParameters.put("version", "");
+		configurationParameters.put("version", "/v1");
+		configurationParameters.put("authentication", "token");
 
 		return new Object[][] {{configurationParameters,true}};
 	}
@@ -112,7 +115,7 @@ public class Testclass {
 	}
 
 
-	@Test (dependsOnMethods = {"configurationTest"} , priority=2, dataProvider = "createTestProvider")
+	@Test ( priority=2, dependsOnMethods = {"configurationTest"} , dataProvider = "createTestProvider")
 	private void createObjectOnResourcesTest(String resourceName, Boolean assertParameter){
 
 		Boolean resourceWasCreated = false;
@@ -144,7 +147,7 @@ public class Testclass {
 
 	}
 
-	@Test (dependsOnMethods = {"updateUserResourceObjectTest","updateGroupResourceObjectTest"},priority=6, dataProvider = "filterMethodTestProvider")
+	@Test (priority=6,dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "filterMethodTestProvider")
 	public void filterMethodTest(String resourceName,String filterType ){
 
 		testConfiguration.filterMethodsTest(filterType, resourceName);
@@ -154,7 +157,7 @@ public class Testclass {
 
 
 	}
-	@Test (dependsOnMethods = {"createObjectOnResourcesTest"}, priority=5, dataProvider = "listAllfromResourcesProvider")
+	@Test ( priority=5, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "listAllfromResourcesProvider")
 	private void listAllfromResourcesTest(int numberOfResources, String resourceName){
 
 		testConfiguration.listAllfromResourcesTestHelper(resourceName);
@@ -162,7 +165,7 @@ public class Testclass {
 
 	}
 
-	@Test (dependsOnMethods = { "createObjectOnResourcesTest"}, priority=3, dataProvider = "updateUserResourceObjectTestProvider")
+	@Test ( priority=3, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "updateUserResourceObjectTestProvider")
 	private void updateUserResourceObjectTest(String updateType, Uid uid){
 
 		Uid returnedUid = testConfiguration.updateResourceTestHelper("users", updateType);
@@ -171,19 +174,36 @@ public class Testclass {
 
 
 	}
-	@Test (dependsOnMethods = { "updateUserResourceObjectTest"}, priority=4, dataProvider = "updateGroupResourceObjectTestProvider")
+	@Test (priority=4,dependsOnMethods = {"createObjectOnResourcesTest"},  dataProvider = "updateGroupResourceObjectTestProvider")
 	private void updateGroupResourceObjectTest(String updateType, Uid uid){
 
 
 
-		Uid returnedUid = testConfiguration.updateResourceTestHelper("users", updateType);
+		Uid returnedUid = testConfiguration.updateResourceTestHelper("groups", updateType);
 
 		Assert.assertEquals(uid,returnedUid );
 
 
 	}
+	
+	@AfterMethod
+	private void cleanup(ITestResult result){
+		 if (result.getStatus() == ITestResult.FAILURE) {
+			 if (userUid !=null){
+				 LOGGER.warn("Atempting to delete resource: {0}", "users");
+			 deleteObjectfromResourcesTest("users");
+			 
+			 }else 
+			 if(groupUid !=null){
+				 LOGGER.warn("Atempting to delete resource: {0}", "groups");
+			 deleteObjectfromResourcesTest("groups");
+			 }else{
+			 LOGGER.warn("Test failure, uid values of resource objects are null. No resource deletion operation was atempted");
+			 }}      
+		
+	}
 
-	@Test (dependsOnMethods = { "createObjectOnResourcesTest"},priority=9, dataProvider = "deletetObjectfromResourcesProvider")
+	@Test (priority=7,dependsOnMethods= {"createObjectOnResourcesTest"}, dataProvider = "deletetObjectfromResourcesProvider")
 	private void deleteObjectfromResourcesTest(String resourceName){
 
 		testConfiguration.deleteResourceTestHelper(resourceName);
@@ -197,9 +217,6 @@ public class Testclass {
 	public static Uid getUid(String resourceName) throws Exception{
 		Uid uid =null;
 
-		System.out.println("##resourceName "+resourceName.toString());
-		System.out.println("##group "+groupUid.toString());
-		System.out.println("##user "+userUid.toString());
 		if("user".equals(resourceName)){
 			uid = userUid;
 

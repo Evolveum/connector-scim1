@@ -19,6 +19,7 @@ import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AndFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
+import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
@@ -26,7 +27,7 @@ import org.identityconnectors.framework.spi.SearchResultsHandler;
 
 public class Main {
 
-	private static final Uid TEST_UID = new Uid("00G58000000b2f6EAA");
+	private static final Uid TEST_UID = new Uid("00558000000W2vRAAS");
 	private static final Uid BLANC_TEST_UID = null;
 	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
 	private static final Log LOGGER = Log.getLog(Main.class);
@@ -46,7 +47,7 @@ public class Main {
 
 
 
-		//listAllfromResources();
+		listAllfromResources();
 		//for (int i =0; i<10; i++ ){
 		//createResourceTest();
 		/*
@@ -54,7 +55,7 @@ public class Main {
 		 */
 		
 		
-		filterMethodsTest();
+		//filterMethodsTest();
 		//updateResourceTest();
 
 
@@ -171,27 +172,27 @@ public class Main {
 
 		//attr.add(AttributeBuilder.build("userName", "fourthtestuser@ectestdomain.com"));
 
-		attr.add(AttributeBuilder.build("nickName", "JD3321tg"));
+		//attr.add(AttributeBuilder.build("nickName", "JD3321tg"));
 
-		attr.add(AttributeBuilder.build("emails.work.value", "fourthtestuserUpdate@ectestdomain.com"));
+		//attr.add(AttributeBuilder.build("emails.work.value", "fourthtestuserUpdate@ectestdomain.com"));
 		//attr.add(AttributeBuilder.build("emails.work.primary", true));
 		// attr.add(AttributeBuilder.build("emails.home.value",
 		// "teeawsst@eastcubattor1.com"));
 
 		//attr.add(AttributeBuilder.build("name.formatted", "Test Fourth"));
-		attr.add(AttributeBuilder.build("name.familyName", "FourthUpdate"));
+		//attr.add(AttributeBuilder.build("name.familyName", "FourthUpdate"));
 		//attr.add(AttributeBuilder.build("name.givenName", "Test"));
 		//attr.add(AttributeBuilder.build("active", true));
 
 		// attr.add(AttributeBuilder.build("groups.value","aaa"));
 		// attr.add(AttributeBuilder.build("groups.display","bbb"));
-		/*
-		 * attr.add(AttributeBuilder.build("addresses.home.locality", "snina"));
-		 * attr.add(AttributeBuilder.build("addresses.home.region", "Presov"));
-		 * attr.add(AttributeBuilder.build("addresses.home.postalCode",
-		 * "06901")); attr.add(AttributeBuilder.build("addresses.home.country",
-		 * "SR"));
-		 */
+		
+		  attr.add(AttributeBuilder.build("addresses.work.locality", "snina"));
+		  attr.add(AttributeBuilder.build("addresses.work.region", "Presov"));
+		  attr.add(AttributeBuilder.build("addresses.work.postalCode",
+		  "06901")); attr.add(AttributeBuilder.build("addresses.work.country",
+		 "SR"));
+		 
 
 		//attr.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
 		//attr.add(AttributeBuilder.build("groups.default.value", "00G58000000aq3ZEAQ"));
@@ -309,10 +310,10 @@ public class Main {
 
 		initConnector(conn);
 
-		//conn.update(userClass, TEST_UID, BuilderTestUser(), null);
+		conn.update(userClass, TEST_UID, BuilderTestUser(), null);
 		//conn.update(groupClass, TEST_UID, BuilderTestGroup(), null);
 		//conn.update(entitlementClass,TEST_UID,BuilderTestResource(), null);
-		conn.removeAttributeValues(groupClass, TEST_UID, BuilderTestGroup(), null);
+		//conn.removeAttributeValues(groupClass, TEST_UID, BuilderTestGroup(), null);
 
 	}
 
@@ -336,15 +337,15 @@ public class Main {
 		// StartsWithFilter startsWithFilterTest = (StartsWithFilter)
 		// FilterBuilder.startsWith(AttributeBuilder.build(""));
 
-		// EndsWithFilter endsWithFilter =
-		// (EndsWithFilter)FilterBuilder.endsWith(AttributeBuilder.build(""));
+		 EndsWithFilter endsWithFilter =
+		(EndsWithFilter)FilterBuilder.endsWith(AttributeBuilder.build("userName","m"));
 
 		// EndsWithFilter endsWithFilter =
 		// (EndsWithFilter)FilterBuilder.endsWith(AttributeBuilder.build(""));
 
 		initConnector(conn);
 
-		// conn.executeQuery(userClass, uidEqualsFilterTest, handler, options);
+		//conn.executeQuery(userClass, endsWithFilter, handler, options);
 		//conn.executeQuery(groupClass, containsAllValuesFilter, handler, options);
 		//conn.executeQuery(entitlementClass, containsAllValuesFilter, handler, null);
 	}

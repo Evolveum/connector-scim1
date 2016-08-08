@@ -31,7 +31,7 @@ public class ScimSchemaParser {
 		hlAttributeMap = new HashMap<String, String>();
 		attributeMap = new HashMap<String, Map<String, Object>>();
 		for (String key : schemaJson.keySet()) {
-
+			
 			// Iterating trough higher layer attributes
 			Object hlAttribute = schemaJson.get(key);
 			if (hlAttribute instanceof JSONArray) {
@@ -55,13 +55,17 @@ public class ScimSchemaParser {
 		Boolean isMultiValued = false;
 		Map<String, Object> attributeObjects = new HashMap<String, Object>();
 		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
-		for (String attributeNameKeys : attribute.keySet()) {
-			if ("name".equals(attributeNameKeys.intern())) {
-				attributeName = attribute.get(attributeNameKeys).toString();
-			} else if ("subAttributes".equals(attributeNameKeys.intern())) {
+	
+		//slack attribute "subAttributes" invalid naming workaround ("subattributes")
+			 if (attribute.has("subAttributes")|| attribute.has("subattributes")) {
 				boolean hasTypeValues = false;
 				JSONArray subAttributes = new JSONArray();
-				subAttributes = (JSONArray) attribute.get(attributeNameKeys);
+				if (attribute.has("subAttributes")){
+				subAttributes = (JSONArray) attribute.get("subAttributes");
+				}else {
+					
+					subAttributes = (JSONArray) attribute.get("subattributes");
+				}
 				if (attributeName == null) {
 					for (String subAttributeNameKeys : attribute.keySet()) {
 						if ("name".equals(subAttributeNameKeys.intern())) {
@@ -70,7 +74,6 @@ public class ScimSchemaParser {
 						}
 					}
 				}
-
 
 				for (String nameKey : attribute.keySet()) {
 					if ("multiValued".equals(nameKey.intern())) {
@@ -91,6 +94,9 @@ public class ScimSchemaParser {
 						break;
 					}
 				}
+				
+				
+				
 				if (hasTypeValues) {
 					Map<String, Object> typeObject = new HashMap<String, Object>();
 					typeObject = (Map<String, Object>) subAttributeMap.get("type");
@@ -104,6 +110,12 @@ public class ScimSchemaParser {
 
 						for (int j = 0; j < referenceValues.length(); j++) {
 							JSONObject referenceValue = new JSONObject();
+							
+							/* Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes)
+							defined as array of json objects -> should be defined as array of string values
+							*/ 
+							if("salesforce".equals(providerName)){
+								LOGGER.warn("Processing trought Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes) ");
 							referenceValue = ((JSONArray) referenceValues).getJSONObject(j);
 							for (String subAttributeKeyNames : subAttributeMap.keySet()) {
 								if (!"type".equals(subAttributeKeyNames.intern())) { // TODO
@@ -123,6 +135,31 @@ public class ScimSchemaParser {
 									isComplex = true;
 
 								}
+							}
+							}else {
+
+								String sringReferenceValue = (String) referenceValues.get(j);
+								for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+									if (!"type".equals(subAttributeKeyNames.intern())) { // TODO
+										// some
+										// other
+										// complex
+										// attribute
+										// names
+										// may
+										// be
+										// used
+										StringBuilder complexAttrName = new StringBuilder(attributeName);
+										attributeMap.put(
+												complexAttrName.append(".").append(sringReferenceValue).append(".")
+												.append(subAttributeKeyNames).toString(),
+												(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+										isComplex = true;
+
+									}
+								}
+								
+								
 							}
 						}
 					} else {
@@ -181,11 +218,21 @@ public class ScimSchemaParser {
 				}
 
 			} else {
-
+				
+				for (String attributeNameKeys : attribute.keySet()) {
+					
+				if("name".equals(attributeNameKeys.intern())) {
+				attributeName = attribute.get(attributeNameKeys).toString();
+				if("groups".equals(attributeName)){
+					
+					System.out.println("##groups###");
+				}
+				
+				} else {
 				attributeObjects.put(attributeNameKeys, attribute.get(attributeNameKeys));
 			}
 
-		}
+		}}
 		if (!isComplex) {
 			attributeMap.put(attributeName, attributeObjects);
 		}

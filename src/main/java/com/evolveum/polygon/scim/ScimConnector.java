@@ -263,7 +263,7 @@ UpdateAttributeValuesOp {
 		if (this.schemaParser != null) {
 
 			// TODO switch to true, just for test purposess
-			genericsCanBeApplied = true;
+			genericsCanBeApplied = false;
 		}
 
 	}

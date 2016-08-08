@@ -33,8 +33,8 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 public class TestConfiguration {
 
-	//private static final Uid s = new Uid("00558000001K3NZAA0");
-	private static Integer testNumber = 12;
+
+	private static Integer testNumber = 31;
 	private  Uid userTestUid = null;
 	private  Uid groupTestUid = null;
 	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
@@ -46,7 +46,7 @@ public class TestConfiguration {
 	private static Collection <String> mandatoriParameters = new ArrayList<String>();
 
 	static {
-
+		mandatoriParameters.add("authentication");
 		mandatoriParameters.add("clientID");
 		mandatoriParameters.add("clientSecret");
 		mandatoriParameters.add("endpoint");
@@ -80,7 +80,6 @@ public class TestConfiguration {
 
 			if("clientID".equals(configurationParameter)){
 				scimConnectorConfiguration.setClientID(configuration.get(configurationParameter));
-
 			}else if("clientSecret".equals(configurationParameter)){
 				scimConnectorConfiguration.setClientSecret(configuration.get(configurationParameter));
 			}else if("endpoint".equals(configurationParameter)){
@@ -95,10 +94,12 @@ public class TestConfiguration {
 				scimConnectorConfiguration.setUserName(configuration.get(configurationParameter));
 			}else if("version".equals(configurationParameter)){
 				scimConnectorConfiguration.setVersion(configuration.get(configurationParameter));
+			}else if("authentication".equals(configurationParameter)){
+				scimConnectorConfiguration.setAuthentication(configuration.get(configurationParameter));
 			}
 			else{
 
-				LOGGER.warn("Ocourance of an non defined parameter");
+				LOGGER.warn("Occurrence of an non defined parameter");
 			}
 		}
 		return scimConnectorConfiguration;
@@ -113,21 +114,23 @@ public class TestConfiguration {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		testAttributeString.append(testNumber.toString()).append("TestUser@testdomain.com");
+		testAttributeString.append(testNumber.toString()).append("testuser@testdomain.com");
 
 		attributeSet.add(AttributeBuilder.build("userName", testAttributeString.toString()));
-		attributeSet.add(AttributeBuilder.build("emails.work.value", testAttributeString.toString()));
 		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build("emails.work.value", testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build("emails.work.primary",true));
+		//attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
 
 		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 
 
 
-		attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
+		//attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
 
 
-		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
+		//attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
 
 		return attributeSet;
 	}
@@ -147,11 +150,10 @@ public class TestConfiguration {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("addresses.work.streetAddress", "streetAddress"));
-		attributeSet.add(AttributeBuilder.build("addresses.work.locality", "locality"));
-		attributeSet.add(AttributeBuilder.build("addresses.work.region", "region"));
-		attributeSet.add(AttributeBuilder.build("addresses.work.postalCode", "postalCode"));
-		attributeSet.add(AttributeBuilder.build("addresses.work.country", "country"));
+		attributeSet.add(AttributeBuilder.build("addresses.work.locality", "Kosice"));
+		attributeSet.add(AttributeBuilder.build("addresses.work.region", "Kosice"));
+		attributeSet.add(AttributeBuilder.build("addresses.work.postalCode", "04001"));
+		attributeSet.add(AttributeBuilder.build("addresses.work.country", "SR"));
 
 		return attributeSet;
 	}
@@ -194,11 +196,12 @@ public class TestConfiguration {
 		return attributeSet;
 	}
 	private  Set<Attribute> groupMultiValUpdateBuilder() {
+	
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
 
-		attributeSet.add(AttributeBuilder.build("members.User.value", userTestUid.toString()));
+		attributeSet.add(AttributeBuilder.build("members.User.value", userTestUid.getUidValue()));
 		return attributeSet;
 	}
 
@@ -435,6 +438,7 @@ public class TestConfiguration {
 				filter = (StartsWithFilter)
 						FilterBuilder.startsWith(AttributeBuilder.build("displayName",testNumber.toString()));
 			}
+			// TODO not working with salesforce  {"Errors":[{"description":"Unsupported Operator : ew","code":400}]}
 		}else if ("endswith".equalsIgnoreCase(filterType)){
 			if ("users".equals(resourceName)){
 				filter =
@@ -446,7 +450,7 @@ public class TestConfiguration {
 		}else if ("containsall".equalsIgnoreCase(filterType)){
 			if("groups".equals(resourceName)){
 				filter =
-						(ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.User.value", userTestUid.toString()));
+						(ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.User.value",userTestUid.getUidValue() ));
 			}
 		}
 

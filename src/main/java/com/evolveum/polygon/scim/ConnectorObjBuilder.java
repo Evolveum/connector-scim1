@@ -64,7 +64,6 @@ public class ConnectorObjBuilder {
 		}
 		for (String key : resourceJsonObject.keySet()) {
 			Object attribute = resourceJsonObject.get(key);
-
 			// Salesforce workaround
 			if ("meta".equals(key.intern()) || "alias".equals(key.intern()) || "schemas".equals(key.intern())) {
 
@@ -79,6 +78,7 @@ public class ConnectorObjBuilder {
 			} else
 
 				if (attribute instanceof JSONArray) {
+					
 
 					JSONArray jArray = (JSONArray) attribute;
 
@@ -151,6 +151,7 @@ public class ConnectorObjBuilder {
 						StringBuilder objectNameBilder = new StringBuilder(key.intern());
 						cob.addAttribute(objectNameBilder.append(".").append(s).toString(),
 								((JSONObject) attribute).get(s));
+						
 					}
 
 				} else {
@@ -158,8 +159,14 @@ public class ConnectorObjBuilder {
 					if ("active".equals(key)) {
 						cob.addAttribute("__ENABLE__", resourceJsonObject.get(key));
 					} else {
+						
+					if (!resourceJsonObject.get(key).equals(null)){
 
 						cob.addAttribute(key.intern(), resourceJsonObject.get(key));
+					}else{
+						cob.addAttribute(key.intern(), "");
+						
+					}
 					}
 				}
 		}

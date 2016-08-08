@@ -32,6 +32,7 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -47,6 +48,7 @@ public class ScimCrudManager {
 	private Header oauthHeader;
 	private Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
 	private ScimConnectorConfiguration conf;
+	private boolean tokenAuthentication = false;
 
 	long providerStartTime;
 	long providerEndTime;
@@ -81,19 +83,27 @@ public class ScimCrudManager {
 	 */
 	public JSONObject logIntoService() {
 
+		String loginAccessToken = null;
+		String loginInstanceUrl = null;
+		JSONObject jsonObject = null;
+		
+		if(!"token".equals(conf.getAuthentication())){
+			
 		HttpClient httpclient = HttpClientBuilder.create().build();
 
 		String loginURL = new StringBuilder(conf.getLoginURL()).append(conf.getService()).toString();
-		String uri = new StringBuilder("&client_id=").append(conf.getClientID()).append("&client_secret=")
+		String contentUri = new StringBuilder("&client_id=").append(conf.getClientID()).append("&client_secret=")
 				.append(conf.getClientSecret()).append("&username=").append(conf.getUserName()).append("&password=")
 				.append(conf.getPassword()).toString();
+		
+		
 
 		loginInstance = new HttpPost(loginURL);
 		HttpResponse response = null;
 
 		StringEntity bodyContent;
 		try {
-			bodyContent = new StringEntity(uri);
+			bodyContent = new StringEntity(contentUri);
 			bodyContent.setContentType("application/x-www-form-urlencoded");
 			loginInstance.setEntity(bodyContent);
 
@@ -166,9 +176,8 @@ public class ScimCrudManager {
 			throw new ConnectorIOException(
 					"An exception has ocoured while parsing the http response to the login request", ioException);
 		}
-		JSONObject jsonObject = null;
-		String loginAccessToken = null;
-		String loginInstanceUrl = null;
+		
+		
 		try {
 
 			jsonObject = (JSONObject) new JSONTokener(getResult).nextValue();
@@ -185,14 +194,19 @@ public class ScimCrudManager {
 					jsonException);
 			throw new ConnectorException("An exception has ocoured while setting the \"jsonObject\".", jsonException);
 		}
-
+		oauthHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
+		}else{
+			tokenAuthentication = true;
+			loginInstanceUrl = conf.getLoginURL();
+			loginAccessToken = conf.getClientID();
+			
+			oauthHeader = new BasicHeader("Authorization", "Bearer " + loginAccessToken);
+		}
 		scimBaseUri = new StringBuilder(loginInstanceUrl).append(conf.getEndpoint()).append(conf.getVersion())
 				.toString();
 
-		oauthHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
-		oauthHeader = new BasicHeader("Authorization", "Bearer " + loginAccessToken);
 		LOGGER.info("Login Successful");
-
+		
 		return jsonObject;
 	}
 
@@ -253,10 +267,10 @@ public class ScimCrudManager {
 					try {
 						JSONObject jsonObject = new JSONObject(responseString);
 
-						LOGGER.info("Json object returned from service provider: {0}", jsonObject);
+						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
 							if (queuery instanceof Uid) {
-								loginInstance.releaseConnection();
+								logOut();
 								ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 								resultHandler.handle(objBuilder.buildConnectorObject(jsonObject, resourceEndPoint));
 
@@ -286,7 +300,7 @@ public class ScimCrudManager {
 												HttpGet httpGetR = new HttpGet(resourceUri);
 												httpGetR.addHeader(oauthHeader);
 												httpGetR.addHeader(prettyPrintHeader);
-
+												
 												providerStartTime = System.nanoTime();
 												HttpResponse resourceResponse = httpClient.execute(httpGetR);
 												providerEndTime = System.nanoTime();
@@ -301,7 +315,7 @@ public class ScimCrudManager {
 												if (statusCode == 200) {
 													responseString = EntityUtils.toString(resourceResponse.getEntity());
 													JSONObject fullResourcejson = new JSONObject(responseString);
-
+													
 													LOGGER.info(
 															"The {0}. resource json object which was returned by the service provider: {1}",
 															i + 1, fullResourcejson);
@@ -314,9 +328,8 @@ public class ScimCrudManager {
 													resultHandler.handle(conOb);
 
 												} else {
-													loginInstance.releaseConnection();
-													LOGGER.info("Connection released");
-													onNoSuccess(resourceResponse, statusCode, responseString,
+													logOut();
+													onNoSuccess(resourceResponse, statusCode,
 															resourceUri);
 												}
 
@@ -331,9 +344,11 @@ public class ScimCrudManager {
 									}
 									if (resultHandler instanceof SearchResultsHandler) {
 										Boolean allResultsReturned = false;
-										int remainingResult = totalResults - (startIndex - 1 + itemsPerPage);
+										int remainingResult = totalResults - (startIndex-1)- itemsPerPage;
 
-										if (remainingResult == 0) {
+										
+										if (remainingResult <=0) {
+											remainingResult=0;
 											allResultsReturned = true;
 
 										}
@@ -352,11 +367,11 @@ public class ScimCrudManager {
 											"No uid present in fetchet object while processing queuery result");
 
 								}
-								loginInstance.releaseConnection();
+								logOut();
 							}
 
 						} catch (Exception e) {
-							LOGGER.error("Builder error. Error while building connId object. The excetion message: {0}",
+							LOGGER.error("Builder error. Error while building connId object. The exception message: {0}",
 									e.getLocalizedMessage());
 							LOGGER.info("Builder error. Error while building connId object. The excetion message: {0}",
 									e);
@@ -379,14 +394,12 @@ public class ScimCrudManager {
 					}
 
 				} else {
-
-					loginInstance.releaseConnection();
+					logOut();
 					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", queuery);
 				}
 			} else {
-				loginInstance.releaseConnection();
-				LOGGER.info("Connection released");
-				onNoSuccess(response, statusCode, responseString, uri);
+				logOut();
+				onNoSuccess(response, statusCode, uri);
 			}
 
 		} catch (IOException e) {
@@ -403,12 +416,9 @@ public class ScimCrudManager {
 					e, q);
 			throw new ConnectorIOException("An error ocoured while processing the queuery http response.", e);
 		} finally {
-			loginInstance.releaseConnection();
-			LOGGER.info("Connection released");
+			logOut();
 		}
-
-		loginInstance.releaseConnection();
-		LOGGER.info("Connection released");
+		logOut();
 	}
 
 	/**
@@ -437,7 +447,7 @@ public class ScimCrudManager {
 		httpGet.addHeader(oauthHeader);
 		httpGet.addHeader(prettyPrintHeader);
 
-		String responseString = null;
+	
 
 		HttpResponse response;
 		try {
@@ -454,36 +464,48 @@ public class ScimCrudManager {
 			providerDuration = 0;
 
 			int statusCode = response.getStatusLine().getStatusCode();
+			LOGGER.info("Schema query status code: {0} ", statusCode);
 			if (statusCode == 200) {
 
-				responseString = EntityUtils.toString(response.getEntity());
+				String responseString = EntityUtils.toString(response.getEntity());
 				if (!responseString.isEmpty()) {
-
 					JSONObject jsonObject = new JSONObject(responseString);
-					LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
-					ScimSchemaParser scimParser = new ScimSchemaParser(providerName);
-					for (int i = 0; i < jsonObject.getJSONArray("Resources").length(); i++) {
-						JSONObject minResourceJson = new JSONObject();
-						minResourceJson = jsonObject.getJSONArray("Resources").getJSONObject(i);
-						if (minResourceJson.has("id") && minResourceJson.getString("id") != null) {
-							if (minResourceJson.has("endpoint")) {
-								scimParser.parseSchema(minResourceJson);
+					return processResponse(jsonObject,providerName);
 
-							} else {
-								LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
+					} else {
+						
+					String resources[] = {"Users","Groups"};
+						JSONObject responseObject = new JSONObject();
+						JSONArray responseArray = new JSONArray();
+					for (String resourceName: resources){
+						uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(resourceName).toString();
+						httpGet = new HttpGet(uri);
+						httpGet.addHeader(oauthHeader);
+						httpGet.addHeader(prettyPrintHeader);
+						
+						providerStartTime = System.nanoTime();
+						response = httpClient.execute(httpGet);
+						providerEndTime = System.nanoTime();
 
-								throw new ConnectorException(
-										"No uid present in fetchet object while processing queuery result");
-							}
-
+						providerDuration = (providerEndTime - providerStartTime) / 1000000;
+						statusCode = response.getStatusLine().getStatusCode();
+						
+						if (statusCode == 200) {
+							
+							responseString = EntityUtils.toString(response.getEntity());
+							JSONObject jsonObject = new JSONObject(responseString);	
+							responseArray.put(jsonObject);
+						} else {
+							
+							LOGGER.warn(
+									"No definition for provided shcemas was found, the connector will switch to default core schema configuration!");
+							return null;
 						}
-
 					}
-					return scimParser;
+					responseObject.put("Resources", responseArray);
+					return processResponse(responseObject, providerName);
+					
 
-				} else {
-					LOGGER.warn(
-							"No definition for provided shcemas was found, the connector will switch to default core schema configuration!");
 				}
 
 			} else {
@@ -515,7 +537,6 @@ public class ScimCrudManager {
 					"An error has ocoured while processing the http response. Ocourance in the process of querying the provider Schemas resource object",
 					e);
 		}
-		return null;
 	}
 
 	/**
@@ -548,13 +569,16 @@ public class ScimCrudManager {
 		String orgID = null;
 		Set<Attribute> orgIdAttributeset = new HashSet<Attribute>();
 		JSONObject loginObject = logIntoService();
-
+if (loginObject !=null){
 		if (loginObject.has("id")) {
 			orgID = loginObject.getString("id");
 			String idParts[] = orgID.split("\\/");
 			orgID = idParts[4];
 		}
-
+	}else {
+		
+		LOGGER.info("No json object returned after login");
+	}
 		// injection of organization ID into the set of attributes
 		if (orgID != null) {
 			LOGGER.info("The organization ID is: {0}", orgID);
@@ -582,7 +606,7 @@ public class ScimCrudManager {
 		LOGGER.info("Qeury url: {0}", uri);
 
 		try {
-			LOGGER.info("Json object to be send: {0}", jsonObject);
+			LOGGER.info("Json object to be send: {0}", jsonObject.toString(1));
 
 			HttpPost httpPost = new HttpPost(uri);
 			httpPost.addHeader(oauthHeader);
@@ -604,12 +628,9 @@ public class ScimCrudManager {
 						"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
 						providerDuration);
 				providerDuration = 0;
-
-				loginInstance.releaseConnection();
-				LOGGER.info("Connection released");
-
+				logOut();
 				int statusCode = response.getStatusLine().getStatusCode();
-
+LOGGER.info("Status code: {0}", statusCode);
 				if (statusCode == 201) {
 					LOGGER.info("Creation of resource was succesfull");
 
@@ -621,9 +642,9 @@ public class ScimCrudManager {
 					LOGGER.info("Json response: {0}", json.toString(1));
 					return uid;
 				}
-
 				else {
-					onNoSuccess(response, statusCode, responseString, "creating new object");
+				
+					onNoSuccess(response, statusCode,"creating new object");
 				}
 
 			} catch (ClientProtocolException e) {
@@ -670,7 +691,7 @@ public class ScimCrudManager {
 			throw new ConnectorException(
 					"Unsupported encoding, ocourance in the process of creating a new resource object ", e1);
 		}
-		loginInstance.releaseConnection();
+		logOut();
 		throw new UnknownUidException("No uid returned in the process of resource creation");
 	}
 
@@ -725,16 +746,17 @@ public class ScimCrudManager {
 					providerDuration);
 			providerDuration = 0;
 
-			loginInstance.releaseConnection();
+			logOut();
 			int statusCode = response.getStatusLine().getStatusCode();
 
 			if (statusCode == 200 || statusCode == 201) {
 				LOGGER.info("Update of resource was succesfull");
 
 				responseString = EntityUtils.toString(response.getEntity());
+				System.out.println(responseString);
 				JSONObject json = new JSONObject(responseString);
 				Uid id = new Uid(json.getString("id"));
-				LOGGER.ok("Json response: {0}", json.toString(1));
+				LOGGER.ok("Json response: {0}", json.toString());
 				return id;
 
 			} else if (statusCode == 500 && "Groups".equals(resourceEndPoint)) {
@@ -796,7 +818,7 @@ public class ScimCrudManager {
 								statusCode = response.getStatusLine().getStatusCode();
 								LOGGER.info("status code: {0}", statusCode);
 
-								loginInstance.releaseConnection();
+								logOut();
 								if (statusCode == 200 || statusCode == 201) {
 									LOGGER.info("Update of resource was succesfull");
 									responseString = EntityUtils.toString(response.getEntity());
@@ -806,7 +828,7 @@ public class ScimCrudManager {
 									return id;
 								} else {
 
-									onNoSuccess(response, statusCode, responseString, "updating object");
+									onNoSuccess(response, statusCode, "updating object");
 								}
 
 							}
@@ -818,7 +840,7 @@ public class ScimCrudManager {
 			}
 
 			else {
-				onNoSuccess(response, statusCode, responseString, "updating object");
+				onNoSuccess(response, statusCode, "updating object");
 			}
 
 		} catch (UnsupportedEncodingException e) {
@@ -866,7 +888,7 @@ public class ScimCrudManager {
 					e);
 
 		}
-		loginInstance.releaseConnection();
+		logOut();
 		throw new UnknownUidException("No uid returned in the process of resource update");
 
 	}
@@ -910,8 +932,7 @@ public class ScimCrudManager {
 					providerDuration);
 			providerDuration = 0;
 
-			loginInstance.releaseConnection();
-
+			logOut();
 			int statusCode = response.getStatusLine().getStatusCode();
 
 			if (statusCode == 204 || statusCode == 200) {
@@ -922,7 +943,7 @@ public class ScimCrudManager {
 
 				LOGGER.info("Resource not found or resource was already deleted");
 			} else {
-				onNoSuccess(response, statusCode, responseString, "deleting object");
+				onNoSuccess(response, statusCode, "deleting object");
 			}
 
 		} catch (ClientProtocolException e) {
@@ -957,8 +978,6 @@ public class ScimCrudManager {
 	 *            The http response from the service provider.
 	 * @param statusCode
 	 *            The status code returned from the service provider.
-	 * @param responseString
-	 *            The response from the service provider.
 	 * @param message
 	 *            The generated message tailored for the thrown exception.
 	 * 
@@ -966,19 +985,22 @@ public class ScimCrudManager {
 	 * @throws IOException
 	 * @throws ConnectorIOException
 	 */
-	private void onNoSuccess(HttpResponse response, int statusCode, String responseString, String message)
+	private void onNoSuccess(HttpResponse response, int statusCode, String message)
 			throws ParseException, IOException {
-		responseString = EntityUtils.toString(response.getEntity());
+		String responseString = EntityUtils.toString(response.getEntity());
 
+
+		
 		StringBuilder exceptionStringBuilder = new StringBuilder("Query for ").append(message)
 				.append(" was unsuccessful. Status code returned: ").append(statusCode);
 		String exceptionString = exceptionStringBuilder.toString();
-
+		
 		if (message == null) {
 			message = "the full resource representation";
 		}
 		LOGGER.error(exceptionString);
-		LOGGER.info("An error has occured. Http status: {0}", responseString);
+		LOGGER.error("Error response from provider: {0}" , responseString);
+		LOGGER.info("An error has occured. Http status: {0}", statusCode);
 		LOGGER.info(exceptionString);
 
 		throw new ConnectorIOException(exceptionString);
@@ -987,8 +1009,41 @@ public class ScimCrudManager {
 	/**
 	 * Method used to log out of the service.
 	 */
+	
+	public ScimSchemaParser processResponse (JSONObject responseObject, String providerName){
+
+			
+			LOGGER.info("The resources json representation: {0}", responseObject.toString(1));
+			ScimSchemaParser scimParser = new ScimSchemaParser(providerName);
+			for (int i = 0; i < responseObject.getJSONArray("Resources").length(); i++) {
+				JSONObject minResourceJson = new JSONObject();
+				minResourceJson = responseObject.getJSONArray("Resources").getJSONObject(i);
+				
+				//TODO test if id check neaded
+				//if (minResourceJson.has("id") && minResourceJson.getString("id") != null) {
+					if (minResourceJson.has("endpoint")) {
+						scimParser.parseSchema(minResourceJson);
+
+					} else {
+						LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
+
+						throw new ConnectorException(
+								"No uid present in fetchet object while processing queuery result");
+					}
+
+					//}
+
+			}
+			return scimParser;
+
+		
+	}
+	
 	public void logOut() {
+		if(!tokenAuthentication){
 		loginInstance.releaseConnection();
+		
 		LOGGER.info("The connecion was released");
+		}
 	}
 }

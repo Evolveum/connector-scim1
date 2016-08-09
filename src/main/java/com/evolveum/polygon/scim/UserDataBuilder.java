@@ -2,6 +2,7 @@ package com.evolveum.polygon.scim;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -9,6 +10,7 @@ import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.Name;
@@ -28,131 +30,136 @@ import org.json.JSONObject;
 
 public class UserDataBuilder implements ObjectTranslator {
 
-	private static Map<String, String> objectNameDictionaryUser = CollectionUtil.newCaseInsensitiveMap();
+	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
 
+	private static final String DELETE = "delete";
+
+	private String operation;
+	
 	static {
-		objectNameDictionaryUser.put("userName", "userName");
+		objectNameDictionary.put("userName", "userName");
 
-		objectNameDictionaryUser.put("name.formatted", "formatted");
-		objectNameDictionaryUser.put("name.familyName", "familyName");
-		objectNameDictionaryUser.put("name.givenName", "givenName");
-		objectNameDictionaryUser.put("name.middleName", "middleName");
-		objectNameDictionaryUser.put("name.honorificPrefix", "honorificPrefix");
-		objectNameDictionaryUser.put("name.honorificSuffix", "honorificSuffix");
+		objectNameDictionary.put("name.formatted", "formatted");
+		objectNameDictionary.put("name.familyName", "familyName");
+		objectNameDictionary.put("name.givenName", "givenName");
+		objectNameDictionary.put("name.middleName", "middleName");
+		objectNameDictionary.put("name.honorificPrefix", "honorificPrefix");
+		objectNameDictionary.put("name.honorificSuffix", "honorificSuffix");
 
-		objectNameDictionaryUser.put("displayName", "displayName");
-		objectNameDictionaryUser.put("nickName", "nickName");
+		objectNameDictionary.put("displayName", "displayName");
+		objectNameDictionary.put("nickName", "nickName");
+		objectNameDictionary.put("schemas", "schemas");
 
-		objectNameDictionaryUser.put("emails.work.value", "value");
-		objectNameDictionaryUser.put("emails.work.primary", "primary");
+		objectNameDictionary.put("emails.work.value", "value");
+		objectNameDictionary.put("emails.work.primary", "primary");
 
-		objectNameDictionaryUser.put("emails.home.value", "value");
-		objectNameDictionaryUser.put("emails.home.primary", "primary");
+		objectNameDictionary.put("emails.home.value", "value");
+		objectNameDictionary.put("emails.home.primary", "primary");
 
-		objectNameDictionaryUser.put("emails.other.value", "value");
-		objectNameDictionaryUser.put("emails.other.primary", "primary");
+		objectNameDictionary.put("emails.other.value", "value");
+		objectNameDictionary.put("emails.other.primary", "primary");
 
-		objectNameDictionaryUser.put("addresses.work.streetAddress", "streetAddress");
-		objectNameDictionaryUser.put("addresses.work.locality", "locality");
-		objectNameDictionaryUser.put("addresses.work.region", "region");
-		objectNameDictionaryUser.put("addresses.work.postalCode", "postalCode");
-		objectNameDictionaryUser.put("addresses.work.country", "country");
-		objectNameDictionaryUser.put("addresses.work.formatted", "formatted");
-		objectNameDictionaryUser.put("addresses.work.primary", "primary");
+		objectNameDictionary.put("addresses.work.streetAddress", "streetAddress");
+		objectNameDictionary.put("addresses.work.locality", "locality");
+		objectNameDictionary.put("addresses.work.region", "region");
+		objectNameDictionary.put("addresses.work.postalCode", "postalCode");
+		objectNameDictionary.put("addresses.work.country", "country");
+		objectNameDictionary.put("addresses.work.formatted", "formatted");
+		objectNameDictionary.put("addresses.work.primary", "primary");
 
-		objectNameDictionaryUser.put("addresses.home.streetAddress", "streetAddress");
-		objectNameDictionaryUser.put("addresses.home.locality", "locality");
-		objectNameDictionaryUser.put("addresses.home.region", "region");
-		objectNameDictionaryUser.put("addresses.home.postalCode", "postalCode");
-		objectNameDictionaryUser.put("addresses.home.country", "country");
-		objectNameDictionaryUser.put("addresses.home.formatted", "formatted");
-		objectNameDictionaryUser.put("addresses.home.primary", "primary");
+		objectNameDictionary.put("addresses.home.streetAddress", "streetAddress");
+		objectNameDictionary.put("addresses.home.locality", "locality");
+		objectNameDictionary.put("addresses.home.region", "region");
+		objectNameDictionary.put("addresses.home.postalCode", "postalCode");
+		objectNameDictionary.put("addresses.home.country", "country");
+		objectNameDictionary.put("addresses.home.formatted", "formatted");
+		objectNameDictionary.put("addresses.home.primary", "primary");
 
-		objectNameDictionaryUser.put("addresses.other.streetAddress", "streetAddress");
-		objectNameDictionaryUser.put("addresses.other.locality", "locality");
-		objectNameDictionaryUser.put("addresses.other.region", "region");
-		objectNameDictionaryUser.put("addresses.other.postalCode", "postalCode");
-		objectNameDictionaryUser.put("addresses.other.country", "country");
-		objectNameDictionaryUser.put("addresses.other.formatted", "formatted");
-		objectNameDictionaryUser.put("addresses.other.primary", "primary");
+		objectNameDictionary.put("addresses.other.streetAddress", "streetAddress");
+		objectNameDictionary.put("addresses.other.locality", "locality");
+		objectNameDictionary.put("addresses.other.region", "region");
+		objectNameDictionary.put("addresses.other.postalCode", "postalCode");
+		objectNameDictionary.put("addresses.other.country", "country");
+		objectNameDictionary.put("addresses.other.formatted", "formatted");
+		objectNameDictionary.put("addresses.other.primary", "primary");
 
-		objectNameDictionaryUser.put("phoneNumbers.work.value", "value");
-		objectNameDictionaryUser.put("phoneNumbers.work.primary", "primary");
+		objectNameDictionary.put("phoneNumbers.work.value", "value");
+		objectNameDictionary.put("phoneNumbers.work.primary", "primary");
 
-		objectNameDictionaryUser.put("phoneNumbers.home.value", "value");
-		objectNameDictionaryUser.put("phoneNumbers.home.primary", "primary");
+		objectNameDictionary.put("phoneNumbers.home.value", "value");
+		objectNameDictionary.put("phoneNumbers.home.primary", "primary");
 
-		objectNameDictionaryUser.put("phoneNumbers.mobile.value", "value");
-		objectNameDictionaryUser.put("phoneNumbers.mobile.primary", "primary");
+		objectNameDictionary.put("phoneNumbers.mobile.value", "value");
+		objectNameDictionary.put("phoneNumbers.mobile.primary", "primary");
 
-		objectNameDictionaryUser.put("phoneNumbers.fax.value", "value");
-		objectNameDictionaryUser.put("phoneNumbers.fax.primary", "primary");
+		objectNameDictionary.put("phoneNumbers.fax.value", "value");
+		objectNameDictionary.put("phoneNumbers.fax.primary", "primary");
 
-		objectNameDictionaryUser.put("phoneNumbers.pager.value", "value");
-		objectNameDictionaryUser.put("phoneNumbers.pager.primary", "primary");
+		objectNameDictionary.put("phoneNumbers.pager.value", "value");
+		objectNameDictionary.put("phoneNumbers.pager.primary", "primary");
 
-		objectNameDictionaryUser.put("phoneNumbers.other.value", "value");
-		objectNameDictionaryUser.put("phoneNumbers.other.primary", "primary");
+		objectNameDictionary.put("phoneNumbers.other.value", "value");
+		objectNameDictionary.put("phoneNumbers.other.primary", "primary");
 
-		objectNameDictionaryUser.put("photos.photo.value", "value");
-		objectNameDictionaryUser.put("photos.photo.primary", "primary");
+		objectNameDictionary.put("photos.photo.value", "value");
+		objectNameDictionary.put("photos.photo.primary", "primary");
 
-		objectNameDictionaryUser.put("photos.thumbnail.value", "value");
-		objectNameDictionaryUser.put("photos.thumbnail.primary", "primary");
+		objectNameDictionary.put("photos.thumbnail.value", "value");
+		objectNameDictionary.put("photos.thumbnail.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.aim.value", "value");
-		objectNameDictionaryUser.put("ims.aim.primary", "primary");
+		objectNameDictionary.put("ims.aim.value", "value");
+		objectNameDictionary.put("ims.aim.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.gtalk.value", "value");
-		objectNameDictionaryUser.put("ims.gtalk.primary", "primary");
+		objectNameDictionary.put("ims.gtalk.value", "value");
+		objectNameDictionary.put("ims.gtalk.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.icq.value", "value");
-		objectNameDictionaryUser.put("ims.icq.primary", "primary");
+		objectNameDictionary.put("ims.icq.value", "value");
+		objectNameDictionary.put("ims.icq.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.msn.value", "value");
-		objectNameDictionaryUser.put("ims.msn.primary", "primary");
+		objectNameDictionary.put("ims.msn.value", "value");
+		objectNameDictionary.put("ims.msn.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.xmpp.value", "value");
-		objectNameDictionaryUser.put("ims.xmpp.primary", "primary");
+		objectNameDictionary.put("ims.xmpp.value", "value");
+		objectNameDictionary.put("ims.xmpp.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.skype.value", "value");
-		objectNameDictionaryUser.put("ims.skype.primary", "primary");
+		objectNameDictionary.put("ims.skype.value", "value");
+		objectNameDictionary.put("ims.skype.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.qq.value", "value");
-		objectNameDictionaryUser.put("ims.qq.primary", "primary");
+		objectNameDictionary.put("ims.qq.value", "value");
+		objectNameDictionary.put("ims.qq.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.yahoo.value", "value");
-		objectNameDictionaryUser.put("ims.yahoo.primary", "primary");
+		objectNameDictionary.put("ims.yahoo.value", "value");
+		objectNameDictionary.put("ims.yahoo.primary", "primary");
 
-		objectNameDictionaryUser.put("ims.other.value", "value");
-		objectNameDictionaryUser.put("ims.other.primary", "primary");
+		objectNameDictionary.put("ims.other.value", "value");
+		objectNameDictionary.put("ims.other.primary", "primary");
 
-		objectNameDictionaryUser.put("userType", "userType");
-		objectNameDictionaryUser.put("title", "title");
-		objectNameDictionaryUser.put("preferredLanguage", "preferredLanguage");
-		objectNameDictionaryUser.put("locale", "locale");
+		objectNameDictionary.put("userType", "userType");
+		objectNameDictionary.put("title", "title");
+		objectNameDictionary.put("preferredLanguage", "preferredLanguage");
+		objectNameDictionary.put("locale", "locale");
 
-		objectNameDictionaryUser.put("id", "id");
-		objectNameDictionaryUser.put("externalId", "externalId");
-		objectNameDictionaryUser.put("timezone", "timezone");
-		objectNameDictionaryUser.put("__ENABLE__", "__ENABLE__");
-		objectNameDictionaryUser.put("password", "password");
+		objectNameDictionary.put("id", "id");
+		objectNameDictionary.put("externalId", "externalId");
+		objectNameDictionary.put("timezone", "timezone");
+		objectNameDictionary.put("password", "password");
 
-		objectNameDictionaryUser.put("x509Certificates", "x509Certificates");
-		objectNameDictionaryUser.put("x509Certificates.value", "value");
+		objectNameDictionary.put("x509Certificates", "x509Certificates");
+		objectNameDictionary.put("x509Certificates.value", "value");
 
-		objectNameDictionaryUser.put("entitlements.default.value", "value");
-		objectNameDictionaryUser.put("entitlements.default.primary", "primary");
+		objectNameDictionary.put("entitlements.default.value", "value");
+		objectNameDictionary.put("entitlements.default.primary", "primary");
 
-		objectNameDictionaryUser.put("schema.type", "type");
-		objectNameDictionaryUser.put("schema.organization", "organization");
+		objectNameDictionary.put("schema.type", "type");
+		objectNameDictionary.put("schema.organization", "organization");
 
-		objectNameDictionaryUser.put("roles.default.value", "value");
-		objectNameDictionaryUser.put("roles.default.display", "value");
+		objectNameDictionary.put("roles.default.value", "value");
+		objectNameDictionary.put("roles.default.display", "value");
 	}
 
-	public UserDataBuilder() {
+	public UserDataBuilder(String operation) {
+		this.operation = operation;
 	}
 
 	/**
@@ -185,28 +192,35 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		}
 
-		for (Attribute at : imsAttributes) {
+		for (Attribute attribute : imsAttributes) {
 
-			String attributeName = at.getName();
+			String attributeName = attribute.getName();
+			
+			if ("schemas".equals(attributeName)){
+				
+				attributeName= "schemas";
+				attribute= AttributeBuilder.build("schemas.default.blank",attribute.getValue());
+			}
 
-			if (objectNameDictionaryUser.containsKey(attributeName)) {
+			if (objectNameDictionary.containsKey(attributeName)) {
 				if (attributeName.contains(".")) {
 
 					String[] keyParts = attributeName.split("\\.");
 					if (keyParts.length == 2) {
 
-						multiValueAttribute.add(at);
+						multiValueAttribute.add(attribute);
 					} else {
-						multiLayerAttribute.add(at);
+						multiLayerAttribute.add(attribute);
 					}
 
 				} else {
 
-					userObj.put(attributeName, AttributeUtil.getSingleValue(at));
+					userObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 				}
 
 			} else if ("__ENABLE__".equals(attributeName)) {
-				userObj.put("active", AttributeUtil.getSingleValue(at));
+				userObj.put("active", AttributeUtil.getSingleValue(attribute));
+				
 			} else {
 				LOGGER.warn("Attribute name not defined in dictionary {0}", attributeName);
 			}
@@ -264,6 +278,7 @@ public class UserDataBuilder implements ObjectTranslator {
 				}
 
 				String canonicaltypeName = "";
+				boolean writeToArray= true;
 				JSONArray jArray = new JSONArray();
 
 				ArrayList<String> checkedTypeNames = new ArrayList<String>();
@@ -279,28 +294,67 @@ public class UserDataBuilder implements ObjectTranslator {
 						canonicaltypeName = nameFromSubSetParts[1].intern();
 
 						checkedTypeNames.add(canonicaltypeName);
-						for (Attribute l : subAttributeLayerSet) {
-
-							String secondLoopNameFromSubSetParts = l.getName();
+						for(Attribute subSetAttribute:subAttributeLayerSet){
+							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
 							// email.work.value
-
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
-								multivalueObject.put(finalSubAttributeNameParts[2].intern(),
-										AttributeUtil.getSingleValue(l));
+								
+
+
+								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
+										writeToArray = false;
+									List<Object> valueList = subSetAttribute.getValue();
+
+									for (Object attributeValue : valueList) {
+										multivalueObject = new JSONObject();
+										multivalueObject.put(finalSubAttributeNameParts[2].intern(), attributeValue);
+
+										if (!"default".equals(nameFromSubSetParts[1].intern())) {
+											multivalueObject.put("type", nameFromSubSetParts[1].intern());
+										}
+										if (operation != null) {
+											if (DELETE.equals(operation)) {
+												multivalueObject.put("operation", DELETE);
+											}
+										}
+										jArray.put(multivalueObject);
+										
+									}
+
+								} else {
+
+									if (!"blank".equals(finalSubAttributeNameParts[2].intern())){
+									multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+											AttributeUtil.getSingleValue(subSetAttribute));
+									}else{
+										
+										jArray.put(AttributeUtil.getSingleValue(subSetAttribute));
+										writeToArray =false;
+									}
+
+									if (!"default".equals(nameFromSubSetParts[1].intern())) {
+										multivalueObject.put("type", nameFromSubSetParts[1].intern());
+									}
+									if (operation != null) {
+										if (DELETE.equals(operation)) {
+											multivalueObject.put("operation", DELETE);
+										}
+									}
+									
+								}
 							}
+						} if (writeToArray){
+							
+							jArray.put(multivalueObject);
 						}
-						if (!nameFromSubSetParts[1].intern().equals("")
-								&& !nameFromSubSetParts[1].intern().equals("default")) {
-							multivalueObject.put("type", nameFromSubSetParts[1].intern());
-						}
-						jArray.put(multivalueObject);
 					}
 					json.put(nameFromSubSetParts[0], jArray);
 				}
 
 			}
 		}
+
 		return json;
 	}
 
@@ -413,6 +467,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("nickName").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("title").build());
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("userType").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("locale").build());

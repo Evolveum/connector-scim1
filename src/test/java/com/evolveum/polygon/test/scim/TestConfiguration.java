@@ -34,7 +34,7 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 public class TestConfiguration {
 
 
-	private static Integer testNumber = 31;
+	private static Integer testNumber = 18;
 	private  Uid userTestUid = null;
 	private  Uid groupTestUid = null;
 	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
@@ -122,15 +122,16 @@ public class TestConfiguration {
 		attributeSet.add(AttributeBuilder.build("emails.work.primary",true));
 		//attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
 
+		attributeSet.add(AttributeBuilder.build("title", "Mr."));
 		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
-
+		attributeSet.add(AttributeBuilder.build("schemas", "urn:scim:schemas:core:1.0"));
 
 
 		//attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
 
 
-		//attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
+		attributeSet.add(AttributeBuilder.build("__ENABLE__", false));
 
 		return attributeSet;
 	}
@@ -183,6 +184,8 @@ public class TestConfiguration {
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
 		attributeSet.add(AttributeBuilder.build("displayName", testAttributeString.toString()));
+		
+		attributeSet.add(AttributeBuilder.build("schemas","urn:scim:schemas:core:1.0"));
 
 		return attributeSet;
 	}
@@ -201,7 +204,7 @@ public class TestConfiguration {
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
 
-		attributeSet.add(AttributeBuilder.build("members.User.value", userTestUid.getUidValue()));
+		attributeSet.add(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
 		return attributeSet;
 	}
 
@@ -450,7 +453,7 @@ public class TestConfiguration {
 		}else if ("containsall".equalsIgnoreCase(filterType)){
 			if("groups".equals(resourceName)){
 				filter =
-						(ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.User.value",userTestUid.getUidValue() ));
+						(ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.default.value",userTestUid.getUidValue() ));
 			}
 		}
 

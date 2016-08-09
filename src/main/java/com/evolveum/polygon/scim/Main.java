@@ -47,7 +47,7 @@ public class Main {
 
 
 
-		listAllfromResources();
+		//listAllfromResources();
 		//for (int i =0; i<10; i++ ){
 		//createResourceTest();
 		/*
@@ -56,7 +56,7 @@ public class Main {
 		
 		
 		//filterMethodsTest();
-		//updateResourceTest();
+		updateResourceTest();
 
 
 		//
@@ -310,8 +310,8 @@ public class Main {
 
 		initConnector(conn);
 
-		conn.update(userClass, TEST_UID, BuilderTestUser(), null);
-		//conn.update(groupClass, TEST_UID, BuilderTestGroup(), null);
+		//conn.update(userClass, TEST_UID, BuilderTestUser(), null);
+		conn.update(groupClass, TEST_UID, BuilderTestGroup(), null);
 		//conn.update(entitlementClass,TEST_UID,BuilderTestResource(), null);
 		//conn.removeAttributeValues(groupClass, TEST_UID, BuilderTestGroup(), null);
 

@@ -377,7 +377,6 @@ public class ScimCrudManager {
 									e);
 							throw new ConnectorException(e);
 						}
-						LOGGER.info("Json response: {0}", jsonObject.toString(1));
 
 					} catch (JSONException jsonException) {
 						if (q == null) {
@@ -732,7 +731,7 @@ LOGGER.info("Status code: {0}", statusCode);
 		String responseString = null;
 		try {
 			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
-			LOGGER.info("The update JSON object wich is beaing send: {0}", jsonObject);
+			LOGGER.info("The update JSON object wich is beaing sent: {0}", jsonObject);
 			bodyContent.setContentType("application/json");
 			httpPatch.setEntity(bodyContent);
 
@@ -753,12 +752,17 @@ LOGGER.info("Status code: {0}", statusCode);
 				LOGGER.info("Update of resource was succesfull");
 
 				responseString = EntityUtils.toString(response.getEntity());
-				System.out.println(responseString);
+				
 				JSONObject json = new JSONObject(responseString);
 				Uid id = new Uid(json.getString("id"));
 				LOGGER.ok("Json response: {0}", json.toString());
 				return id;
 
+			}else if(statusCode == 204) {
+				
+				LOGGER.warn("Status code {0}. Response body left intentionally empty, operation may not be successful", statusCode);
+				
+				return uid;
 			} else if (statusCode == 500 && "Groups".equals(resourceEndPoint)) {
 
 				// Salesforce group/members workaround
@@ -987,9 +991,11 @@ LOGGER.info("Status code: {0}", statusCode);
 	 */
 	private void onNoSuccess(HttpResponse response, int statusCode, String message)
 			throws ParseException, IOException {
+		
+		if(response.getEntity() !=null){
 		String responseString = EntityUtils.toString(response.getEntity());
-
-
+		LOGGER.error("Error response from provider: {0}" , responseString);
+		}
 		
 		StringBuilder exceptionStringBuilder = new StringBuilder("Query for ").append(message)
 				.append(" was unsuccessful. Status code returned: ").append(statusCode);
@@ -999,7 +1005,7 @@ LOGGER.info("Status code: {0}", statusCode);
 			message = "the full resource representation";
 		}
 		LOGGER.error(exceptionString);
-		LOGGER.error("Error response from provider: {0}" , responseString);
+		
 		LOGGER.info("An error has occured. Http status: {0}", statusCode);
 		LOGGER.info(exceptionString);
 

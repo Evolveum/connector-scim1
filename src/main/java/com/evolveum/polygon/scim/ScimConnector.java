@@ -197,7 +197,7 @@ UpdateAttributeValuesOp {
 		} else {
 
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				ObjectTranslator userBuild = new UserDataBuilder();
+				ObjectTranslator userBuild = new UserDataBuilder("");
 
 				Uid uid = crudManager.createEntity(USERS, userBuild, attribute, null);
 
@@ -210,7 +210,7 @@ UpdateAttributeValuesOp {
 
 			} else if (ObjectClass.GROUP.equals(object)) {
 
-				GroupDataBuilder groupBuild = new GroupDataBuilder();
+				GroupDataBuilder groupBuild = new GroupDataBuilder("");
 
 				Uid uid = crudManager.createEntity(GROUPS, groupBuild, attribute, null);
 
@@ -332,7 +332,7 @@ UpdateAttributeValuesOp {
 			return uid;
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userJson = new UserDataBuilder();
+				UserDataBuilder userJson = new UserDataBuilder("");
 				JSONObject userJsonObject = new JSONObject();
 
 				userJsonObject = userJson.translateSetToJson(attributes, null);
@@ -349,7 +349,7 @@ UpdateAttributeValuesOp {
 
 			} else if (ObjectClass.GROUP.equals(object)) {
 
-				GroupDataBuilder groupJson = new GroupDataBuilder();
+				GroupDataBuilder groupJson = new GroupDataBuilder("");
 				JSONObject groupJsonObject = new JSONObject();
 
 				groupJsonObject = groupJson.translateSetToJson(attributes, null);
@@ -579,8 +579,10 @@ UpdateAttributeValuesOp {
 			prefixChar = "&";
 		}
 		// For salesforce workaroud purposess=
-		if ("salesforce".equals(providerName)) {
+		if ("salesforce".equals(providerName) || "slack".equals(providerName)) {
 
+			LOGGER.info("The provider name is: {0}", providerName);
+			
 			queryUriSnippet.append(prefixChar).append("filter=")
 			.append(query.accept(new FilterHandler(schemaMap), providerName));
 
@@ -755,7 +757,7 @@ UpdateAttributeValuesOp {
 			return uid;
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userJson = new UserDataBuilder();
+				UserDataBuilder userJson = new UserDataBuilder("");
 				JSONObject userJsonObject = new JSONObject();
 
 				userJsonObject = userJson.translateSetToJson(attributes, null);
@@ -772,7 +774,7 @@ UpdateAttributeValuesOp {
 
 			} else if (ObjectClass.GROUP.equals(object)) {
 
-				GroupDataBuilder groupJson = new GroupDataBuilder();
+				GroupDataBuilder groupJson = new GroupDataBuilder("");
 				JSONObject groupJsonObject = new JSONObject();
 
 				groupJsonObject = groupJson.translateSetToJson(attributes, null);
@@ -861,7 +863,7 @@ UpdateAttributeValuesOp {
 			return uid;
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userJson = new UserDataBuilder();
+				UserDataBuilder userJson = new UserDataBuilder("delete");
 				JSONObject userJsonObject = new JSONObject();
 
 				userJsonObject = userJson.translateSetToJson(attributes, null);
@@ -878,7 +880,7 @@ UpdateAttributeValuesOp {
 
 			} else if (ObjectClass.GROUP.equals(object)) {
 
-				GroupDataBuilder groupJson = new GroupDataBuilder();
+				GroupDataBuilder groupJson = new GroupDataBuilder("delete");
 				JSONObject groupJsonObject = new JSONObject();
 
 				groupJsonObject = groupJson.translateSetToJson(attributes, null);

@@ -2,6 +2,7 @@ package com.evolveum.polygon.scim;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,15 +29,24 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
+	
+	private static final String DELETE = "delete";
+
+	private String operation;
+	
+	public GroupDataBuilder(String operation) {
+		this.operation = operation;
+	}
 
 	static {
 		objectNameDictionary.put("displayName", "displayName");
-		/*
-		 * objectNameDictionary.put("members.User.value", "value");
-		 * objectNameDictionary.put("members.User.display", "display");
-		 * objectNameDictionary.put("members.Group.value", "value");
-		 * objectNameDictionary.put("members.Group.display", "display");
-		 */
+		
+		  objectNameDictionary.put("members.User.value", "value");
+		  objectNameDictionary.put("members.User.display", "display");
+		  objectNameDictionary.put("members.Group.value", "value");
+		  objectNameDictionary.put("members.Group.display", "display");
+		 
+		objectNameDictionary.put("schemas", "schemas");
 		objectNameDictionary.put("members.default.value", "value");
 		objectNameDictionary.put("members.default.display", "display");
 
@@ -110,6 +120,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 	 */
 
 	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
+
 		String mainAttributeName = "";
 		ArrayList<String> checkedNames = new ArrayList<String>();
 		for (Attribute i : multiLayerAttribute) {
@@ -129,12 +140,14 @@ public class GroupDataBuilder implements ObjectTranslator {
 					String secondLoopAttributeName = j.getName();
 					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.q.
 					// email.work.value
+
 					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)) {
 						subAttributeLayerSet.add(j);
 					}
 				}
 
 				String canonicaltypeName = "";
+				boolean writeToArray= true;
 				JSONArray jArray = new JSONArray();
 
 				ArrayList<String> checkedTypeNames = new ArrayList<String>();
@@ -150,29 +163,67 @@ public class GroupDataBuilder implements ObjectTranslator {
 						canonicaltypeName = nameFromSubSetParts[1].intern();
 
 						checkedTypeNames.add(canonicaltypeName);
-						for (Attribute l : subAttributeLayerSet) {
-
-							String secondLoopNameFromSubSetParts = l.getName();
+						for(Attribute subSetAttribute:subAttributeLayerSet){
+							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
 							// email.work.value
-
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
-								multivalueObject.put(finalSubAttributeNameParts[2].intern(),
-										AttributeUtil.getSingleValue(l));
-							}
-						}
+								
 
-						if (!nameFromSubSetParts[1].intern().equals("")
-								&& !nameFromSubSetParts[1].intern().equals("default")) {
-							multivalueObject.put("type", nameFromSubSetParts[1].intern());
+
+								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
+										writeToArray = false;
+									List<Object> valueList = subSetAttribute.getValue();
+
+									for (Object attributeValue : valueList) {
+										multivalueObject = new JSONObject();
+										multivalueObject.put(finalSubAttributeNameParts[2].intern(), attributeValue);
+
+										if (!"default".equals(nameFromSubSetParts[1].intern())) {
+											multivalueObject.put("type", nameFromSubSetParts[1].intern());
+										}
+										if (operation != null) {
+											if (DELETE.equals(operation)) {
+												multivalueObject.put("operation", DELETE);
+											}
+										}
+										jArray.put(multivalueObject);
+										
+									}
+
+								} else {
+
+									if (!"blank".equals(finalSubAttributeNameParts[2].intern())){
+									multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+											AttributeUtil.getSingleValue(subSetAttribute));
+									}else{
+										
+										jArray.put(AttributeUtil.getSingleValue(subSetAttribute));
+										writeToArray =false;
+									}
+
+									if (!"default".equals(nameFromSubSetParts[1].intern())) {
+										multivalueObject.put("type", nameFromSubSetParts[1].intern());
+									}
+									if (operation != null) {
+										if (DELETE.equals(operation)) {
+											multivalueObject.put("operation", DELETE);
+										}
+									}
+									
+								}
+							}
+						} if (writeToArray){
+							
+							jArray.put(multivalueObject);
 						}
-						jArray.put(multivalueObject);
 					}
 					json.put(nameFromSubSetParts[0], jArray);
 				}
 
 			}
 		}
+
 		return json;
 	}
 

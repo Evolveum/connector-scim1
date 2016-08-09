@@ -9,6 +9,7 @@ import java.util.Set;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -84,6 +85,13 @@ public class GenericDataBuilder implements ObjectTranslator {
 			LOGGER.info("Update or create set attribute: {0}", attribute);
 
 			String attributeName = attribute.getName();
+			
+			
+			if ("schemas".equals(attributeName)){
+				
+				attributeName= "schemas..";
+				attribute= AttributeBuilder.build("schemas.default.blank",attribute.getValue());
+			}
 
 			if (attributeMap.containsKey(attributeName)) {
 				if (attributeName.contains(".")) {
@@ -163,7 +171,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 				}
 
 				String canonicaltypeName = "";
-				boolean setOfValues= false;
+				boolean writeToArray= true;
 				JSONArray jArray = new JSONArray();
 
 				ArrayList<String> checkedTypeNames = new ArrayList<String>();
@@ -188,7 +196,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 
 								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
-										setOfValues = true;
+										writeToArray = false;
 									List<Object> valueList = subSetAttribute.getValue();
 
 									for (Object attributeValue : valueList) {
@@ -209,8 +217,14 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 								} else {
 
+									if (!"blank".equals(finalSubAttributeNameParts[2].intern())){
 									multivalueObject.put(finalSubAttributeNameParts[2].intern(),
 											AttributeUtil.getSingleValue(subSetAttribute));
+									}else{
+										
+										jArray.put(AttributeUtil.getSingleValue(subSetAttribute));
+										writeToArray =false;
+									}
 
 									if (!"default".equals(nameFromSubSetParts[1].intern())) {
 										multivalueObject.put("type", nameFromSubSetParts[1].intern());
@@ -223,7 +237,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 									
 								}
 							}
-						} if (!setOfValues){
+						} if (writeToArray){
 							
 							jArray.put(multivalueObject);
 						}

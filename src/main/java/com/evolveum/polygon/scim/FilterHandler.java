@@ -301,7 +301,9 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	@Override
 	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
 		StringBuilder preprocessedFilter = null;
-		if (!"salesforce".equals(p)){
+		
+		
+		if (!"salesforce".equals(p)&&!"slack".equals(p)){
 			preprocessedFilter = processArrayQ(filter, p);
 		}
 		if(null != preprocessedFilter){
@@ -310,8 +312,9 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 			Collection<Filter> filterList= buildValueList(filter,"members");
 			for(Filter f: filterList){
-
+				System.out.println("heeeey : " + p);
 				if(f instanceof EqualsFilter){
+					
 					objectNameDictionary.put("members", "members");
 					return f.accept(this,p);
 				}
@@ -691,7 +694,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			LOGGER.info("The attribute {0} is not a \"complex\" attribute. The filter query will be processed accordingli.",filter.getName());
 			return null;
 		}
-		LOGGER.info("Delimiters not found in the attribute name of {0}, the attribute is non complex. The filter query will be processed accordingli",filter.getName());
+		LOGGER.info("Delimiters not found in the attribute name of {0}, the attribute is non complex. The filter query will be processed accordingly",filter.getName());
 		return null;
 	}
 

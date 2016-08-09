@@ -15,12 +15,12 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	private String AUTHENTICATION = "token";
 	private String SCIM_ENDPOINT = "/scim";
 	private String SCIM_VERSION = "/v1";
-	private String USERNAME;
-	private String PASSWORD;
+	private String USERNAME = "xx";
+	private String PASSWORD = "xx";
 	private String LOGINURL = "https://api.slack.com";
-	private String GRANT;
-	private String CLIENTID;
-	private String CLIENTSECRET;
+	private String GRANT = "xx";
+	private String CLIENTID = "xx";
+	private String CLIENTSECRET = "xx";
 
 	private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
 

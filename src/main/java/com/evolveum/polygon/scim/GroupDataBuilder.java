@@ -68,9 +68,24 @@ public class GroupDataBuilder implements ObjectTranslator {
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
 		LOGGER.info("Building Json data from group attributes");
 
-		JSONObject groupJsonObj = new JSONObject();
+		JSONObject completeJsonObj = new JSONObject();
 
 		Set<Attribute> multiLayerAttribute = new HashSet<Attribute>();
+		
+		if (injectedAttributes != null) {
+			for (Attribute injectedAttribute : injectedAttributes) {
+				String attributeName = injectedAttribute.getName();
+				
+				if (attributeName.contains(".")) {
+
+						multiLayerAttribute.add(injectedAttribute);
+				}else {
+
+					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(injectedAttribute));
+				}
+			}
+
+		}
 
 		for (Attribute attribute : imsAttributes) {
 
@@ -91,7 +106,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 				} else {
 
-					groupJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
+					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 				}
 
 			} else {
@@ -101,9 +116,9 @@ public class GroupDataBuilder implements ObjectTranslator {
 			}
 		}
 		if (multiLayerAttribute != null) {
-			buildLayeredAtrribute(multiLayerAttribute, groupJsonObj);
+			buildLayeredAtrribute(multiLayerAttribute, completeJsonObj);
 		}
-		return groupJsonObj;
+		return completeJsonObj;
 	}
 
 	/**
@@ -242,16 +257,17 @@ public class GroupDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(Name.INFO);
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").setRequired(true).build());
-		/*
-		 * builder.addAttributeInfo(AttributeInfoBuilder.define(
-		 * "members.Group.value").build());
-		 * builder.addAttributeInfo(AttributeInfoBuilder.define(
-		 * "members.Group.display").build());
-		 * builder.addAttributeInfo(AttributeInfoBuilder.define(
-		 * "members.User.value").build());
-		 * builder.addAttributeInfo(AttributeInfoBuilder.define(
-		 * "members.User.display").build());
-		 */
+		
+		  builder.addAttributeInfo(AttributeInfoBuilder.define(
+		  "members.Group.value").build());
+		  builder.addAttributeInfo(AttributeInfoBuilder.define(
+		  "members.Group.display").build());
+		  builder.addAttributeInfo(AttributeInfoBuilder.define(
+		  "members.User.value").build());
+		  builder.addAttributeInfo(AttributeInfoBuilder.define(
+		  "members.User.display").build());
+		
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.display").build());
 

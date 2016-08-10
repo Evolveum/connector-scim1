@@ -312,7 +312,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 			Collection<Filter> filterList= buildValueList(filter,"members");
 			for(Filter f: filterList){
-				System.out.println("heeeey : " + p);
 				if(f instanceof EqualsFilter){
 					
 					objectNameDictionary.put("members", "members");

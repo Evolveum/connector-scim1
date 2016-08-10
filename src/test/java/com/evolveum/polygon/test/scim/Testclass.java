@@ -26,7 +26,7 @@ public void f2() {}
 @Test(dependsOnGroups = "a")
 public void g() {}
  * */
-import com.evolveum.polygon.scim.ScimCrudManager;
+import com.evolveum.polygon.scim.CrudManagerScim;
 
 
 public class Testclass {
@@ -84,7 +84,7 @@ public class Testclass {
 	public static Object[][] tesConfigResourcesProvider() {
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
-		configurationParameters.put("clientID","xx");
+		configurationParameters.put("clientID","");
 		configurationParameters.put("clientSecret", "xx");
 		configurationParameters.put("endpoint", "/scim");
 		configurationParameters.put("loginUrl", "https://api.slack.com");

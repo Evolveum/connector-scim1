@@ -19,7 +19,7 @@ import org.json.JSONObject;
  * generated out of a Map object containing the attributes present in the schema
  * described by the service provider.
  **/
-public class GenericSchemaObjectBuilder {
+public class SchemaObjectBuilderGeneric {
 
 	private String providerName = "";
 
@@ -29,7 +29,7 @@ public class GenericSchemaObjectBuilder {
 	 * Used to populate the variable "providerName" with the name of the service
 	 * provider. Used mainly for workaround purposes.
 	 **/
-	public GenericSchemaObjectBuilder(String providerName) {
+	public SchemaObjectBuilderGeneric(String providerName) {
 		this.providerName = providerName;
 
 	}

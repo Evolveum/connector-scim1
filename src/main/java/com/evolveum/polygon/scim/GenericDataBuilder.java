@@ -71,13 +71,26 @@ public class GenericDataBuilder implements ObjectTranslator {
 		// emails.work.value
 
 		if (injectedAttributes != null) {
-			for (Attribute at : injectedAttributes) {
-				multiValueAttribute.add(at);
+			for (Attribute injectedAttribute : injectedAttributes) {
+				String attributeName = injectedAttribute.getName();
+				multiValueAttribute.add(injectedAttribute);
+				
+				if (attributeName.contains(".")) {
+					
+					String[] keyParts = attributeName.split("\\."); // e.g.
+					// schemas.default.blank
+					if (keyParts.length == 2) {
+
+						multiValueAttribute.add(injectedAttribute);
+					} else {
+						multiLayerAttribute.add(injectedAttribute);
+					}
+				}else {
+
+					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(injectedAttribute));
+				}
 			}
 
-		} else {
-
-			LOGGER.warn("No organization ID found in provider response");
 		}
 
 		for (Attribute attribute : imsAttributes) {
@@ -85,13 +98,6 @@ public class GenericDataBuilder implements ObjectTranslator {
 			LOGGER.info("Update or create set attribute: {0}", attribute);
 
 			String attributeName = attribute.getName();
-			
-			
-			if ("schemas".equals(attributeName)){
-				
-				attributeName= "schemas..";
-				attribute= AttributeBuilder.build("schemas.default.blank",attribute.getValue());
-			}
 
 			if (attributeMap.containsKey(attributeName)) {
 				if (attributeName.contains(".")) {
@@ -192,11 +198,8 @@ public class GenericDataBuilder implements ObjectTranslator {
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
 							// email.work.value
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
-								
-
-
 								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
-										writeToArray = false;
+									writeToArray = false;
 									List<Object> valueList = subSetAttribute.getValue();
 
 									for (Object attributeValue : valueList) {

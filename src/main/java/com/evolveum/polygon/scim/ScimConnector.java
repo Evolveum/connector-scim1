@@ -1,6 +1,7 @@
 package com.evolveum.polygon.scim;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,6 +10,7 @@ import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.OperationOptions;
@@ -39,8 +41,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 UpdateAttributeValuesOp {
 
 	private ScimConnectorConfiguration configuration;
-	private ScimCrudManager crudManager;
-	private ScimSchemaParser schemaParser;
+	private CrudManagerScim crudManager;
+	private ParserSchemaScim schemaParser;
 	private Boolean genericsCanBeApplied = false;
 
 	private static final String SCHEMAS = "Schemas/";
@@ -146,6 +148,9 @@ UpdateAttributeValuesOp {
 	@Override
 	public Uid create(ObjectClass object, Set<Attribute> attribute, OperationOptions options) {
 		LOGGER.info("Resource object create");
+		
+		HashSet<Attribute> injectetAttributeSet = new HashSet<Attribute>();
+		
 		if (attribute == null || attribute.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty", attribute);
 			throw new IllegalArgumentException("Set of Attributes value is null or empty");
@@ -163,8 +168,18 @@ UpdateAttributeValuesOp {
 
 					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+					
+					// TODO improve for other providers 
+					if ("slack".equals(providerName)){
+						if (hlAtrribute.containsKey("schema")){
+						Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",hlAtrribute.get("schema"));
+						
+						injectetAttributeSet.add(schemaAttribute);
+						}
+						
+					}
 
-					uid = crudManager.createEntity(USERS, jsonDataBuilder, attribute, attributeMap);
+					uid = crudManager.createEntity(USERS, jsonDataBuilder, attribute, attributeMap,injectetAttributeSet);
 				}
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
@@ -175,7 +190,16 @@ UpdateAttributeValuesOp {
 					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
 
-					uid = crudManager.createEntity(GROUPS, jsonDataBuilder, attribute, attributeMap);
+					// TODO improve for other providers 
+					if ("slack".equals(providerName)){
+						if (hlAtrribute.containsKey("schema")){
+						Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",hlAtrribute.get("schema"));
+						injectetAttributeSet.add(schemaAttribute);
+						}
+						
+					}
+					
+					uid = crudManager.createEntity(GROUPS, jsonDataBuilder, attribute, attributeMap,injectetAttributeSet);
 
 				}
 
@@ -188,8 +212,18 @@ UpdateAttributeValuesOp {
 
 					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
+					
+					// TODO improve for other providers 
+					if ("slack".equals(providerName)){
+						if (hlAtrribute.containsKey("schema")){
+						Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",hlAtrribute.get("schema"));
+						
+						injectetAttributeSet.add(schemaAttribute);
+						}
+						
+					}
 
-					uid = crudManager.createEntity(endpointName, jsonDataBuilder, attribute, attributeMap);
+					uid = crudManager.createEntity(endpointName, jsonDataBuilder, attribute, attributeMap,injectetAttributeSet);
 				}
 			}
 
@@ -198,8 +232,22 @@ UpdateAttributeValuesOp {
 
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				ObjectTranslator userBuild = new UserDataBuilder("");
+				
+				// TODO improve for other providers 
+				if ("slack".equals(providerName)){
 
-				Uid uid = crudManager.createEntity(USERS, userBuild, attribute, null);
+					Map<String, String> hlAtrribute;
+					hlAtrribute = fetchHighLevelAttributeMap("/Users");
+					if (hlAtrribute != null) {
+						
+					if (hlAtrribute.containsKey("schema")){
+					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",hlAtrribute.get("schema"));
+					injectetAttributeSet.add(schemaAttribute);
+					}}
+					
+				}
+
+				Uid uid = crudManager.createEntity(USERS, userBuild, attribute, null,injectetAttributeSet);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -211,8 +259,23 @@ UpdateAttributeValuesOp {
 			} else if (ObjectClass.GROUP.equals(object)) {
 
 				GroupDataBuilder groupBuild = new GroupDataBuilder("");
+				
+				// TODO improve for other providers 
+				if ("slack".equals(providerName)){
 
-				Uid uid = crudManager.createEntity(GROUPS, groupBuild, attribute, null);
+					Map<String, String> hlAtrribute;
+					hlAtrribute = fetchHighLevelAttributeMap("/Users");
+					if (hlAtrribute != null) {
+
+					if (hlAtrribute.containsKey("schema")){
+					
+					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",hlAtrribute.get("schema"));
+					injectetAttributeSet.add(schemaAttribute);
+					}}
+					
+				}
+
+				Uid uid = crudManager.createEntity(GROUPS, groupBuild, attribute, null, injectetAttributeSet);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -246,7 +309,7 @@ UpdateAttributeValuesOp {
 		LOGGER.info("Initiation");
 		this.configuration = (ScimConnectorConfiguration) configuration;
 		this.configuration.validate();
-		this.crudManager = new ScimCrudManager((ScimConnectorConfiguration) configuration);
+		this.crudManager = new CrudManagerScim((ScimConnectorConfiguration) configuration);
 
 		// For Salesforce workaround purposes
 
@@ -262,8 +325,11 @@ UpdateAttributeValuesOp {
 
 		if (this.schemaParser != null) {
 
-			// TODO switch to true, just for test purposess
-			genericsCanBeApplied = false;
+			// TODO switch to true, just for test purposes
+			genericsCanBeApplied = true;
+		}else{
+			
+			LOGGER.warn("No schema found for processing, the connector will switch to the core SCIM v1. schema definition");
 		}
 
 	}
@@ -606,7 +672,7 @@ UpdateAttributeValuesOp {
 	private SchemaBuilder buildSchemas(SchemaBuilder schemaBuilder) {
 		LOGGER.info("Building schemas from provided data");
 
-		GenericSchemaObjectBuilder schemaObjectBuilder = new GenericSchemaObjectBuilder(providerName);
+		SchemaObjectBuilderGeneric schemaObjectBuilder = new SchemaObjectBuilderGeneric(providerName);
 		int iterator = 0;
 		Map<String, String> hlAtrribute = new HashMap<String, String>();
 		for (Map<String, Map<String, Object>> attributeMap : schemaParser.getAttributeMapList()) {
@@ -673,7 +739,7 @@ UpdateAttributeValuesOp {
 	}
 
 	/**
-	 * Pouplates an instance of Map with the schema definition of attributes of
+	 * Populates an instance of Map with the schema definition of attributes of
 	 * an endpoint. The Map is later used as an dictionary for endpoind object
 	 * update or creation attribute information cross-checks.
 	 */

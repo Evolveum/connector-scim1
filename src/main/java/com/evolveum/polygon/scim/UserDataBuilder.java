@@ -180,14 +180,30 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		LOGGER.info("Building account JsonObject");
 
-		JSONObject userObj = new JSONObject();
+		JSONObject completeJsonObj = new JSONObject();
 
 		Set<Attribute> multiValueAttribute = new HashSet<Attribute>();
 		Set<Attribute> multiLayerAttribute = new HashSet<Attribute>();
 
 		if (injectedAttributes != null) {
-			for (Attribute at : injectedAttributes) {
-				multiValueAttribute.add(at);
+			for (Attribute injectedAttribute : injectedAttributes) {
+				String attributeName = injectedAttribute.getName();
+				multiValueAttribute.add(injectedAttribute);
+				
+				if (attributeName.contains(".")) {
+					
+					String[] keyParts = attributeName.split("\\."); // e.g.
+					// schemas.default.blank
+					if (keyParts.length == 2) {
+
+						multiValueAttribute.add(injectedAttribute);
+					} else {
+						multiLayerAttribute.add(injectedAttribute);
+					}
+				}else {
+
+					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(injectedAttribute));
+				}
 			}
 
 		}
@@ -215,11 +231,11 @@ public class UserDataBuilder implements ObjectTranslator {
 
 				} else {
 
-					userObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
+					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 				}
 
 			} else if ("__ENABLE__".equals(attributeName)) {
-				userObj.put("active", AttributeUtil.getSingleValue(attribute));
+				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
 				
 			} else {
 				LOGGER.warn("Attribute name not defined in dictionary {0}", attributeName);
@@ -227,13 +243,13 @@ public class UserDataBuilder implements ObjectTranslator {
 		}
 
 		if (multiValueAttribute != null) {
-			buildMultivalueAttribute(multiValueAttribute, userObj);
+			buildMultivalueAttribute(multiValueAttribute, completeJsonObj);
 		}
 
 		if (multiLayerAttribute != null) {
-			buildLayeredAtrribute(multiLayerAttribute, userObj);
+			buildLayeredAtrribute(multiLayerAttribute, completeJsonObj);
 		}
-		return userObj;
+		return completeJsonObj;
 
 	}
 

@@ -34,7 +34,7 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 public class TestConfiguration {
 
 
-	private static Integer testNumber = 18;
+	private static Integer testNumber = 30;
 	private  Uid userTestUid = null;
 	private  Uid groupTestUid = null;
 	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
@@ -125,7 +125,6 @@ public class TestConfiguration {
 		attributeSet.add(AttributeBuilder.build("title", "Mr."));
 		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
-		attributeSet.add(AttributeBuilder.build("schemas", "urn:scim:schemas:core:1.0"));
 
 
 		//attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
@@ -149,12 +148,13 @@ public class TestConfiguration {
 
 	}private static Set<Attribute> userMultiValUpdateBuilder() {
 
+		StringBuilder buildUpdateEmailAdress = new StringBuilder(testNumber.toString()).append("testupdateuser@testdomain.com");
+		
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("addresses.work.locality", "Kosice"));
-		attributeSet.add(AttributeBuilder.build("addresses.work.region", "Kosice"));
-		attributeSet.add(AttributeBuilder.build("addresses.work.postalCode", "04001"));
-		attributeSet.add(AttributeBuilder.build("addresses.work.country", "SR"));
+		attributeSet.add(AttributeBuilder.build("emails.work.value", buildUpdateEmailAdress.toString()));
+		attributeSet.add(AttributeBuilder.build("emails.work.primary", false));
+
 
 		return attributeSet;
 	}

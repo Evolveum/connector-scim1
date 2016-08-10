@@ -19,7 +19,7 @@ import org.json.JSONObject;
  */
 public class ConnectorObjBuilder {
 
-	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
+	private static final Log LOGGER = Log.getLog(CrudManagerScim.class);
 
 	/**
 	 * Builds the connector object from the provided json object.

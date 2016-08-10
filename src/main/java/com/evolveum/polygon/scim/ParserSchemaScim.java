@@ -10,7 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 
-public class ScimSchemaParser {
+public class ParserSchemaScim {
 
 	private Map<String, Map<String, Object>> attributeMap;
 	private Map<String, String> hlAttributeMap;
@@ -18,11 +18,11 @@ public class ScimSchemaParser {
 	private List<Map<String, Map<String, Object>>> attributeMapList = new ArrayList<Map<String, Map<String, Object>>>();
 	private List<Map<String, String>> hlAttributeMapList = new ArrayList<Map<String, String>>();
 
-	private static final Log LOGGER = Log.getLog(ScimSchemaParser.class);
+	private static final Log LOGGER = Log.getLog(ParserSchemaScim.class);
 
 	private String providerName;
 
-	public ScimSchemaParser(String providerName){
+	public ParserSchemaScim(String providerName){
 		this.providerName = providerName;
 
 	}
@@ -94,6 +94,7 @@ public class ScimSchemaParser {
 						break;
 					}
 				}
+				
 				
 				
 				
@@ -223,10 +224,6 @@ public class ScimSchemaParser {
 					
 				if("name".equals(attributeNameKeys.intern())) {
 				attributeName = attribute.get(attributeNameKeys).toString();
-				if("groups".equals(attributeName)){
-					
-					System.out.println("##groups###");
-				}
 				
 				} else {
 				attributeObjects.put(attributeNameKeys, attribute.get(attributeNameKeys));

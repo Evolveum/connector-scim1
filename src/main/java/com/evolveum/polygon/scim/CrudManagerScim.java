@@ -2,6 +2,8 @@ package com.evolveum.polygon.scim;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -42,7 +44,7 @@ import com.evolveum.polygon.scim.common.HttpPatch;
 /**
  * Holds the CRUD+L methods needed for interaction with the service provider.
  */
-public class ScimCrudManager {
+public class CrudManagerScim {
 
 	private String scimBaseUri;
 	private Header oauthHeader;
@@ -60,7 +62,7 @@ public class ScimCrudManager {
 
 	HttpPost loginInstance;
 
-	private static final Log LOGGER = Log.getLog(ScimCrudManager.class);
+	private static final Log LOGGER = Log.getLog(CrudManagerScim.class);
 
 	/**
 	 * Constructor which populates a variable with the provided configuration.
@@ -68,7 +70,7 @@ public class ScimCrudManager {
 	 * @param conf
 	 *            The provided configuration.
 	 */
-	public ScimCrudManager(ScimConnectorConfiguration conf) {
+	public CrudManagerScim(ScimConnectorConfiguration conf) {
 		this.conf = (ScimConnectorConfiguration) conf;
 	}
 
@@ -108,11 +110,11 @@ public class ScimCrudManager {
 			loginInstance.setEntity(bodyContent);
 
 		} catch (UnsupportedEncodingException e1) {
-			LOGGER.error("Unsupported encoding: {0}. Ocourance in the process of login into the service",
+			LOGGER.error("Unsupported encoding: {0}. Occurrence in the process of login into the service",
 					e1.getLocalizedMessage());
-			LOGGER.info("Unsupported encoding: {0}. Ocourance in the process of login into the service", e1);
+			LOGGER.info("Unsupported encoding: {0}. Occurrence in the process of login into the service", e1);
 
-			throw new ConnectorException("Unsupported encoding. Ocourance in the process of login into the service",
+			throw new ConnectorException("Unsupported encoding. Occurrence in the process of login into the service",
 					e1);
 		}
 
@@ -187,10 +189,10 @@ public class ScimCrudManager {
 		} catch (JSONException jsonException) {
 
 			LOGGER.error(
-					"An exception has ocoured while setting the \"jsonObject\". Ocourance while processing the http response to the login request: {0}",
+					"An exception has ocoured while setting the \"jsonObject\". Occurrence while processing the http response to the login request: {0}",
 					jsonException.getLocalizedMessage());
 			LOGGER.info(
-					"An exception has ocoured while setting the \"jsonObject\". Ocourance while processing the http response to the login request: {0}",
+					"An exception has ocoured while setting the \"jsonObject\". Occurrence while processing the http response to the login request: {0}",
 					jsonException);
 			throw new ConnectorException("An exception has ocoured while setting the \"jsonObject\".", jsonException);
 		}
@@ -383,10 +385,10 @@ public class ScimCrudManager {
 							q = "the full resource representation";
 						}
 						LOGGER.error(
-								"An exception has ocoured while setting the variable \"jsonObject\". Ocourance while processing the http response to the queuey request for: {1}, exception message: {0}",
+								"An exception has ocoured while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
 								jsonException.getLocalizedMessage(), q);
 						LOGGER.info(
-								"An exception has ocoured while setting the variable \"jsonObject\". Ocourance while processing the http response to the queuey request for: {1}, exception message: {0}",
+								"An exception has ocoured while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
 								jsonException, q);
 						throw new ConnectorException(
 								"An exception has ocoured while setting the variable \"jsonObject\".", jsonException);
@@ -408,10 +410,10 @@ public class ScimCrudManager {
 			}
 
 			LOGGER.error(
-					"An error ocoured while processing the queuery http response. Ocourance while processing the http response to the queuey request for: {1}, exception message: {0}",
+					"An error ocoured while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
 					e.getLocalizedMessage(), q);
 			LOGGER.info(
-					"An error ocoured while processing the queuery http response. Ocourance while processing the http response to the queuey request for: {1}, exception message: {0}",
+					"An error ocoured while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
 					e, q);
 			throw new ConnectorIOException("An error ocoured while processing the queuery http response.", e);
 		} finally {
@@ -437,7 +439,7 @@ public class ScimCrudManager {
 	 * @return an instance of "ScimSchemaParser" containing the schema
 	 *         information of all endpoint.
 	 */
-	public ScimSchemaParser qeueryEntity(String providerName, String resourceEndPoint) {
+	public ParserSchemaScim qeueryEntity(String providerName, String resourceEndPoint) {
 		logIntoService();
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).toString();
@@ -493,6 +495,121 @@ public class ScimCrudManager {
 							
 							responseString = EntityUtils.toString(response.getEntity());
 							JSONObject jsonObject = new JSONObject(responseString);	
+							
+							if ("slack".equals(providerName)){
+								
+								
+							// For workaround purposess. Slack missing attributes workaround.
+							if ("Users".equals(resourceName)){
+								
+								
+								
+								HashMap<String, String> missingAttirbutes= new HashMap<String,String>();
+								missingAttirbutes.put("userName", "userName");
+								missingAttirbutes.put("nickName", "nickName");
+								missingAttirbutes.put("title", "title");
+								missingAttirbutes.put("schemas", "schemas");
+								
+								if(jsonObject.has("attributes")){
+									
+									JSONArray attributesArray = new JSONArray();
+									
+									attributesArray= jsonObject.getJSONArray("attributes");
+									for(int indexValue = 0; indexValue < attributesArray.length();indexValue++){
+										JSONObject iteratedObjects = attributesArray.getJSONObject(indexValue);
+										
+										if(iteratedObjects.has("name")){
+											
+											
+											if("userName".equals(iteratedObjects.get("name"))){
+												
+												missingAttirbutes.remove("userName");
+											} else if ("nickName".equals(iteratedObjects.get("name"))){
+												
+												missingAttirbutes.remove("nickName");
+											}else if ("title".equals(iteratedObjects.get("name"))){
+												
+												missingAttirbutes.remove("title");
+											}else if ("schemas".equals(iteratedObjects.get("name"))){
+												
+												missingAttirbutes.remove("schemas");
+											}
+										}
+									}
+									
+									for (String missingAttributeNames:missingAttirbutes.keySet()){
+										
+										if("userName".equals(missingAttributeNames)){
+											JSONObject userName= new JSONObject();
+											
+											userName.put("schema", "urn:scim:schemas:core:1.0");
+											userName.put("name", "userName");
+											userName.put("readOnly", false);
+											userName.put("type", "string");
+											userName.put("required", true);
+											userName.put("caseExact", false);
+											
+											attributesArray.put(userName);
+											
+										}else if("nickName".equals(missingAttributeNames)){
+											JSONObject nickName= new JSONObject();
+											
+											nickName.put("schema", "urn:scim:schemas:core:1.0");
+											nickName.put("name", "nickName");
+											nickName.put("readOnly", false);
+											nickName.put("type", "string");
+											nickName.put("required", true);
+											nickName.put("caseExact", false);
+											
+											attributesArray.put(nickName);
+											
+										}else if("title".equals(missingAttributeNames)){
+											JSONObject title= new JSONObject();
+											
+											title.put("schema", "urn:scim:schemas:core:1.0");
+											title.put("name", "title");
+											title.put("readOnly", false);
+											title.put("type", "string");
+											title.put("required", false);
+											title.put("caseExact", false);
+											
+											attributesArray.put(title);
+										}else if("schemas".equals(missingAttributeNames)){
+											JSONObject schemas= new JSONObject();
+											JSONArray subattributeArray = new JSONArray();
+											
+											JSONObject valueBlank = new JSONObject();
+											
+											
+											schemas.put("schema", "urn:scim:schemas:core:1.0");
+											schemas.put("name", "schemas");
+											schemas.put("readOnly", false);
+											schemas.put("type", "complex");
+											schemas.put("multiValued", true);
+											schemas.put("required", false);
+											schemas.put("caseExact", false);
+											
+											valueBlank.put("name", "blank");
+											valueBlank.put("readOnly", true);
+											valueBlank.put("required", false);
+											valueBlank.put("multiValued", false);
+											
+											subattributeArray.put(valueBlank);
+											
+											schemas.put("subAttributes", subattributeArray);
+											
+											
+											attributesArray.put(schemas);
+										}
+										
+									}
+									
+									jsonObject.put("attributes", attributesArray);
+								}
+								
+							}
+							}
+							
 							responseArray.put(jsonObject);
 						} else {
 							
@@ -526,14 +643,14 @@ public class ScimCrudManager {
 					e);
 		} catch (IOException e) {
 			LOGGER.error(
-					"An error has ocoured while processing the http response. Ocourance in the process of querying the provider Schemas resource object: {0}",
+					"An error has ocoured while processing the http response. Occurrence in the process of querying the provider Schemas resource object: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An error has ocoured while processing the http response. Ocourance in the process of querying the provider Schemas resource object: {0}",
+					"An error has ocoured while processing the http response. Occurrence in the process of querying the provider Schemas resource object: {0}",
 					e);
 
 			throw new ConnectorIOException(
-					"An error has ocoured while processing the http response. Ocourance in the process of querying the provider Schemas resource object",
+					"An error has ocoured while processing the http response. Occurrence in the process of querying the provider Schemas resource object",
 					e);
 		}
 	}
@@ -564,9 +681,8 @@ public class ScimCrudManager {
 	 */
 
 	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
-			Object attributeMap) {
+			Object attributeMap, HashSet<Attribute> injectedAttributeSet) {
 		String orgID = null;
-		Set<Attribute> orgIdAttributeset = new HashSet<Attribute>();
 		JSONObject loginObject = logIntoService();
 if (loginObject !=null){
 		if (loginObject.has("id")) {
@@ -583,21 +699,20 @@ if (loginObject !=null){
 			LOGGER.info("The organization ID is: {0}", orgID);
 
 			// TODO schema version might change
-			orgIdAttributeset.add(AttributeBuilder.build("schema.type", "urn:scim:schemas:extension:enterprise:1.0"));
+			injectedAttributeSet.add(AttributeBuilder.build("schema.type", "urn:scim:schemas:extension:enterprise:1.0"));
 
-			orgIdAttributeset.add(AttributeBuilder.build("schema.organization", orgID));
+			injectedAttributeSet.add(AttributeBuilder.build("schema.organization", orgID));
 		} else {
-			orgIdAttributeset = null;
 			LOGGER.warn("No organization ID specified in instance URL");
 		}
 
 		JSONObject jsonObject = new JSONObject();
 
 		if (attributeMap != null && attributeMap instanceof HashMap<?, ?>) {
-			jsonObject = objectTranslator.translateSetToJson(attributes, orgIdAttributeset,
+			jsonObject = objectTranslator.translateSetToJson(attributes, injectedAttributeSet,
 					(Map<String, Map<String, Object>>) attributeMap);
 		} else {
-			jsonObject = objectTranslator.translateSetToJson(attributes, orgIdAttributeset);
+			jsonObject = objectTranslator.translateSetToJson(attributes, injectedAttributeSet);
 		}
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").toString();
@@ -659,36 +774,36 @@ LOGGER.info("Status code: {0}", statusCode);
 
 			} catch (IOException e) {
 				LOGGER.error(
-						"An error has ocoured while processing the http response. Ocourance in the process of creating a new resource object: {0}",
+						"An error has ocoured while processing the http response. Occurrence in the process of creating a new resource object: {0}",
 						e.getLocalizedMessage());
 				LOGGER.info(
-						"An error has ocoured while processing the http response. Ocourance in the process of creating a new resource object: {0}",
+						"An error has ocoured while processing the http response. Occurrence in the process of creating a new resource object: {0}",
 						e);
 
 				throw new ConnectorIOException(
-						"An error has ocoured while processing the http response. Ocourance in the process of creating a new resource object",
+						"An error has ocoured while processing the http response. Occurrence in the process of creating a new resource object",
 						e);
 			}
 
 		} catch (JSONException e) {
 
 			LOGGER.error(
-					"An exception has ocoured while processing an json object. Ocourance in the process of creating a new resource object: {0}",
+					"An exception has ocoured while processing an json object. Occurrence in the process of creating a new resource object: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An exception has ocoured while processing an json object. Ocourance in the process of creating a new resource object: {0}",
+					"An exception has ocoured while processing an json object. Occurrence in the process of creating a new resource object: {0}",
 					e);
 
 			throw new ConnectorException(
-					"An exception has ocoured while processing an json object. Ocourance in the process of creating a new resource objec",
+					"An exception has ocoured while processing an json object. Occurrence in the process of creating a new resource objec",
 					e);
 		} catch (UnsupportedEncodingException e1) {
-			LOGGER.error("Unsupported encoding: {0}. Ocourance in the process of creating a new resource object ",
+			LOGGER.error("Unsupported encoding: {0}. Occurrence in the process of creating a new resource object ",
 					e1.getLocalizedMessage());
-			LOGGER.info("Unsupported encoding: {0}. Ocourance in the process of creating a new resource object ", e1);
+			LOGGER.info("Unsupported encoding: {0}. Occurrence in the process of creating a new resource object ", e1);
 
 			throw new ConnectorException(
-					"Unsupported encoding, ocourance in the process of creating a new resource object ", e1);
+					"Unsupported encoding, Occurrence in the process of creating a new resource object ", e1);
 		}
 		logOut();
 		throw new UnknownUidException("No uid returned in the process of resource creation");
@@ -849,24 +964,24 @@ LOGGER.info("Status code: {0}", statusCode);
 
 		} catch (UnsupportedEncodingException e) {
 
-			LOGGER.error("Unsupported encoding: {0}. Ocourance in the process of updating a resource object ",
+			LOGGER.error("Unsupported encoding: {0}. Occurrence in the process of updating a resource object ",
 					e.getMessage());
-			LOGGER.info("Unsupported encoding: {0}. Ocourance in the process of updating a resource object ", e);
+			LOGGER.info("Unsupported encoding: {0}. Occurrence in the process of updating a resource object ", e);
 
 			throw new ConnectorException(
-					"Unsupported encoding, ocourance in the process of updating a resource object ", e);
+					"Unsupported encoding, Occurrence in the process of updating a resource object ", e);
 
 		} catch (JSONException e) {
 
 			LOGGER.error(
-					"An exception has ocoured while processing an json object. Ocourance in the process of updating a resource object: {0}",
+					"An exception has ocoured while processing an json object. Occurrence in the process of updating a resource object: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An exception has ocoured while processing an json object. Ocourance in the process of updating a resource object: {0}",
+					"An exception has ocoured while processing an json object. Occurrence in the process of updating a resource object: {0}",
 					e);
 
 			throw new ConnectorException(
-					"An exception has ocoured while processing an json object,ocourance in the process of updating a resource object",
+					"An exception has ocoured while processing an json object,Occurrence in the process of updating a resource object",
 					e);
 		} catch (ClientProtocolException e) {
 			LOGGER.error(
@@ -881,14 +996,14 @@ LOGGER.info("Status code: {0}", statusCode);
 		} catch (IOException e) {
 
 			LOGGER.error(
-					"An error has ocoured while processing the http response. Ocourance in the process of updating a resource object: {0}",
+					"An error has ocoured while processing the http response. Occurrence in the process of updating a resource object: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An error has ocoured while processing the http response. Ocourance in the process of creating a resource object: {0}",
+					"An error has ocoured while processing the http response. Occurrence in the process of creating a resource object: {0}",
 					e);
 
 			throw new ConnectorIOException(
-					"An error has ocoured while processing the http response. Ocourance in the process of creating a resource object",
+					"An error has ocoured while processing the http response. Occurrence in the process of creating a resource object",
 					e);
 
 		}
@@ -962,14 +1077,14 @@ LOGGER.info("Status code: {0}", statusCode);
 					e);
 		} catch (IOException e) {
 			LOGGER.error(
-					"An error has ocoured while processing the http response. Ocourance in the process of deleting a resource object: : {0}",
+					"An error has ocoured while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An error has ocoured while processing the http response. Ocourance in the process of deleting a resource object: : {0}",
+					"An error has ocoured while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
 					e);
 
 			throw new ConnectorIOException(
-					"An error has ocoured while processing the http response. Ocourance in the process of deleting a resource object.",
+					"An error has ocoured while processing the http response. Occurrence in the process of deleting a resource object.",
 					e);
 		}
 	}
@@ -1016,11 +1131,11 @@ LOGGER.info("Status code: {0}", statusCode);
 	 * Method used to log out of the service.
 	 */
 	
-	public ScimSchemaParser processResponse (JSONObject responseObject, String providerName){
+	public ParserSchemaScim processResponse (JSONObject responseObject, String providerName){
 
 			
 			LOGGER.info("The resources json representation: {0}", responseObject.toString(1));
-			ScimSchemaParser scimParser = new ScimSchemaParser(providerName);
+			ParserSchemaScim scimParser = new ParserSchemaScim(providerName);
 			for (int i = 0; i < responseObject.getJSONArray("Resources").length(); i++) {
 				JSONObject minResourceJson = new JSONObject();
 				minResourceJson = responseObject.getJSONArray("Resources").getJSONObject(i);

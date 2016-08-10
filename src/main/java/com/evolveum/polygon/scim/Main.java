@@ -49,14 +49,14 @@ public class Main {
 
 		//listAllfromResources();
 		//for (int i =0; i<10; i++ ){
-		//createResourceTest();
+		createResourceTest();
 		/*
 		}
 		 */
 		
 		
 		//filterMethodsTest();
-		updateResourceTest();
+		//updateResourceTest();
 
 
 		//
@@ -215,11 +215,11 @@ public class Main {
 
 		Set<Attribute> attr = new HashSet<Attribute>();
 
-		//attr.add(AttributeBuilder.build("displayName", "tenthTestGroup@eacubattor1.com"));
+		attr.add(AttributeBuilder.build("dispslayName", "tenthTestGroup@eacubattor1.com"));
 		//attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZAA0"));
 		//attr.add(AttributeBuilder.build("members.User.value", "hello", "hello", "hello", "hello"));
 		//attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZ8A0"));
-		attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZAA0"));
+		//attr.add(AttributeBuilder.build("members.User.value", "00558000001K3NZAA0"));
 
 		//attr.add(AttributeBuilder.build("members.User.value", "0051111001K3NZ8A0","00533331K3NZ6A0","00523440001K3NZ4A0","233248000001K3NZ2A0"));
 		//attr.add(AttributeBuilder.build("members.User.display", "insightssecurity@00d58000000yfgfeac.com"));
@@ -260,7 +260,7 @@ public class Main {
 
 		initConnector(conn);
 
-		conn.executeQuery(userClass, null, handler, options);
+		//conn.executeQuery(userClass, null, handler, options);
 		//conn.executeQuery(groupClass, null, handler, options);
 		//conn.executeQuery(entitlementClass, null, handler, options);
 	}
@@ -299,7 +299,7 @@ public class Main {
 
 		initConnector(conn);
 
-		// conn.create(userClass, BuilderTestUser(), null);
+		 //conn.create(userClass, BuilderTestUser(), null);
 		conn.create(groupClass, BuilderTestGroup(), null);
 		// conn.create(entitlementClass, BuilderTestResource(), null);
 
@@ -310,8 +310,8 @@ public class Main {
 
 		initConnector(conn);
 
-		//conn.update(userClass, TEST_UID, BuilderTestUser(), null);
-		conn.update(groupClass, TEST_UID, BuilderTestGroup(), null);
+		conn.update(userClass, TEST_UID, BuilderTestUser(), null);
+		//conn.update(groupClass, TEST_UID, BuilderTestGroup(), null);
 		//conn.update(entitlementClass,TEST_UID,BuilderTestResource(), null);
 		//conn.removeAttributeValues(groupClass, TEST_UID, BuilderTestGroup(), null);
 

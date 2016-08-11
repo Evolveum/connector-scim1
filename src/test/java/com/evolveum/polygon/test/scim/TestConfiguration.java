@@ -34,7 +34,7 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 public class TestConfiguration {
 
 
-	private static Integer testNumber = 30;
+	private static Integer testNumber = 43;
 	private  Uid userTestUid = null;
 	private  Uid groupTestUid = null;
 	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
@@ -43,7 +43,7 @@ public class TestConfiguration {
 	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
 	private static final ObjectClass groupClass = ObjectClass.GROUP;
 	private static final ObjectClass entitlementClass = new ObjectClass("Entitlements");
-	private static Collection <String> mandatoriParameters = new ArrayList<String>();
+/*	private static Collection <String> mandatoriParameters = new ArrayList<String>();
 
 	static {
 		mandatoriParameters.add("authentication");
@@ -57,7 +57,7 @@ public class TestConfiguration {
 		mandatoriParameters.add("version");
 
 	}
-
+*/
 
 	private static OperationOptions options ;
 
@@ -96,6 +96,10 @@ public class TestConfiguration {
 				scimConnectorConfiguration.setVersion(configuration.get(configurationParameter));
 			}else if("authentication".equals(configurationParameter)){
 				scimConnectorConfiguration.setAuthentication(configuration.get(configurationParameter));
+			}else if("baseurl".equals(configurationParameter)){
+				scimConnectorConfiguration.setBaseUrl(configuration.get(configurationParameter));
+			}else if("token".equals(configurationParameter)){
+				scimConnectorConfiguration.setToken(configuration.get(configurationParameter));
 			}
 			else{
 
@@ -120,17 +124,17 @@ public class TestConfiguration {
 		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
 		attributeSet.add(AttributeBuilder.build("emails.work.value", testAttributeString.toString()));
 		attributeSet.add(AttributeBuilder.build("emails.work.primary",true));
-		//attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
 
 		attributeSet.add(AttributeBuilder.build("title", "Mr."));
 		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 
 
-		//attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
+		attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
 
 
-		attributeSet.add(AttributeBuilder.build("__ENABLE__", false));
+		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
 
 		return attributeSet;
 	}
@@ -418,12 +422,10 @@ public class TestConfiguration {
 			}
 		}else if ("equals".equalsIgnoreCase(filterType)){
 			if ("users".equals(resourceName)){
-
 				filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build("nickName", testNumber.toString()));
+						.equalTo(AttributeBuilder.build("userName", testNumber.toString()));
 			}
 			else if("groups".equals(resourceName)){
-
 				filter = (EqualsFilter) FilterBuilder
 						.equalTo(AttributeBuilder.build("displayName", testNumber.toString()));
 			}
@@ -435,9 +437,11 @@ public class TestConfiguration {
 			}
 		}else if ("startswith".equalsIgnoreCase(filterType)){
 			if ("users".equals(resourceName)){
+				
 				filter = (StartsWithFilter)
 						FilterBuilder.startsWith(AttributeBuilder.build("userName",testNumber.toString()));
 			}else if("groups".equals(resourceName)){
+				
 				filter = (StartsWithFilter)
 						FilterBuilder.startsWith(AttributeBuilder.build("displayName",testNumber.toString()));
 			}

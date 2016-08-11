@@ -12,24 +12,24 @@ import org.identityconnectors.framework.spi.StatefulConfiguration;
  */
 public class ScimConnectorConfiguration extends AbstractConfiguration implements StatefulConfiguration {
 	
-	private String AUTHENTICATION = "token";
-	private String SCIM_ENDPOINT = "/scim";
+	private String AUTHENTICATION = "pass";
+	private String SCIM_ENDPOINT = "/services/scim";
 	private String SCIM_VERSION = "/v1";
-	private String USERNAME = "xx";
-	private String PASSWORD = "xx";
-	private String LOGINURL = "https://api.slack.com";
+	private String USERNAME = "**";
+	private String PASSWORD = "**";
+	private String LOGINURL = "https://login.salesforce.com";
 	private String BASEURL = "https://api.slack.com";
-	private String GRANT = "xx";
-	private String CLIENTID = "";
+	private String GRANT = "**";
+	private String CLIENTID = "**";
 	private String TOKEN = "";
-	private String CLIENTSECRET = "xx";
+	private String CLIENTSECRET = "**";
 
 	private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
 
 	/**
 	 * Getter method for the "AUTHENTICATION" attribute.
 	 * 
-	 * @return the user name.
+	 * @return the authentication string.
 	 */
 	
 	@ConfigurationProperty(order = 1, displayMessageKey = "Authentication", groupMessageKey = "basic.group", helpMessageKey = "Please provide the type of authentication.", required = true, confidential = false)
@@ -41,7 +41,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 * Setter method for the "AUTHENTICATION" attribute.
 	 * 
 	 * @param username
-	 *            the user name string value.
+	 *            the authentication string value.
 	 */
 	public void setAuthentication(String authentication) {
 		this.AUTHENTICATION = authentication;
@@ -212,7 +212,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	}
 	
 	
-	@ConfigurationProperty(order = 1, displayMessageKey = "Base URL", groupMessageKey = "token.group", helpMessageKey = "Please provide the base url for a token type of authentication.", required = true, confidential = false)
+	@ConfigurationProperty(order = 10, displayMessageKey = "Base URL", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the base url for a token type of authentication.", required = true, confidential = false)
 	public String getBaseUrl() {
 		return BASEURL;
 	}
@@ -227,7 +227,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		this.BASEURL = baseUrl;
 	}
 	
-	@ConfigurationProperty(order = 2, displayMessageKey = "Token", groupMessageKey = "token.group", helpMessageKey = "Please provide the token for a token type of authentication.", required = true, confidential = false)
+	@ConfigurationProperty(order = 11, displayMessageKey = "Token", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the token for a token type of authentication.", required = true, confidential = false)
 	public String getToken() {
 		return TOKEN;
 	}
@@ -244,6 +244,12 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 
 	@Override
 	public void validate() {
+		
+		if (StringUtil.isBlank(AUTHENTICATION)) {
+			throw new IllegalArgumentException("Scim endpoint cannot be empty.");
+		}
+		
+		if (!"token".equals(AUTHENTICATION)){
 
 		if (StringUtil.isBlank(USERNAME)) {
 			throw new IllegalArgumentException("Username cannot be empty");
@@ -266,6 +272,18 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		if (StringUtil.isBlank(CLIENTID)) {
 			throw new IllegalArgumentException("Client id cannot be empty.");
 		}
+		
+		}else {
+			
+			if (StringUtil.isBlank(TOKEN)) {
+				throw new IllegalArgumentException("Scim endpoint cannot be empty.");
+			}
+			if (StringUtil.isBlank(BASEURL)) {
+				throw new IllegalArgumentException("Scim version cannot be empty.");
+			}
+			
+		}
+		
 		if (StringUtil.isBlank(SCIM_ENDPOINT)) {
 			throw new IllegalArgumentException("Scim endpoint cannot be empty.");
 		}

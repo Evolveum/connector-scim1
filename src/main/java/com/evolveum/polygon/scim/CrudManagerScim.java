@@ -46,6 +46,8 @@ import com.evolveum.polygon.scim.common.HttpPatch;
  */
 public class CrudManagerScim {
 
+	//TODO check all cases when logout is called 
+	
 	private String scimBaseUri;
 	private Header oauthHeader;
 	private Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
@@ -119,10 +121,10 @@ public class CrudManagerScim {
 		}
 
 		try {
-			providerStartTime = System.nanoTime();
+			providerStartTime = System.currentTimeMillis();
 			response = httpclient.execute(loginInstance);
-			providerEndTime = System.nanoTime();
-			providerDuration = (providerEndTime - providerStartTime) / 1000000;
+			providerEndTime = System.currentTimeMillis();
+			providerDuration = (providerEndTime - providerStartTime) ;
 			LOGGER.info(
 					"The amouth of time it took to get the response to the login query from the provider : {0} milliseconds",
 					providerDuration);
@@ -131,24 +133,24 @@ public class CrudManagerScim {
 		} catch (ClientProtocolException e) {
 
 			LOGGER.error(
-					"An protocol exception has ocoured while processing the http response to the login request. Possible mismatch in interpretation of the HTTP specification: {0}",
+					"An protocol exception has occurred while processing the http response to the login request. Possible mismatch in interpretation of the HTTP specification: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An protocol exception has ocoured while processing the http response to the login request. Possible mismatch in interpretation of the HTTP specification: {0}",
+					"An protocol exception has occurred while processing the http response to the login request. Possible mismatch in interpretation of the HTTP specification: {0}",
 					e);
 
 			throw new ConnectionFailedException(
-					"An protocol exception has ocoured while processing the http response to the login request. Possible mismatch in interpretation of the HTTP specification",
+					"An protocol exception has occurred while processing the http response to the login request. Possible mismatch in interpretation of the HTTP specification",
 					e);
 
 		} catch (IOException ioException) {
 
-			LOGGER.error("An error ocoured while processing the queuery http response to the login request : {0}",
+			LOGGER.error("An error occurred while processing the queuery http response to the login request : {0}",
 					ioException.getLocalizedMessage());
-			LOGGER.info("An error ocoured while processing the queuery http response to the login request : {0}",
+			LOGGER.info("An error occurred while processing the queuery http response to the login request : {0}",
 					ioException);
 			throw new ConnectorIOException(
-					"An error ocoured while processing the queuery http response to the login request", ioException);
+					"An error occurred while processing the queuery http response to the login request", ioException);
 		}
 
 		final int statusCode = response.getStatusLine().getStatusCode();
@@ -158,11 +160,11 @@ public class CrudManagerScim {
 				LOGGER.error("Error cause: {0}", EntityUtils.toString(response.getEntity()));
 			} catch (ParseException | IOException e) {
 
-				LOGGER.error("An exception has ocoured while parsing the http response to the login request: {0}",
+				LOGGER.error("An exception has occurred while parsing the http response to the login request: {0}",
 						e.getLocalizedMessage());
-				LOGGER.info("An exception has ocoured while parsing the http response to the login request: {0}", e);
+				LOGGER.info("An exception has occurred while parsing the http response to the login request: {0}", e);
 				throw new ConnectorIOException(
-						"An exception has ocoured while parsing the http response to the login request.", e);
+						"An exception has occurred while parsing the http response to the login request.", e);
 			}
 		}
 
@@ -171,12 +173,12 @@ public class CrudManagerScim {
 			getResult = EntityUtils.toString(response.getEntity());
 		} catch (IOException ioException) {
 
-			LOGGER.error("An exception has ocoured while parsing the http response to the login request: {0}",
+			LOGGER.error("An exception has occurred while parsing the http response to the login request: {0}",
 					ioException.getLocalizedMessage());
-			LOGGER.info("An exception has ocoured while parsing the http response to the login request: {0}",
+			LOGGER.info("An exception has occurred while parsing the http response to the login request: {0}",
 					ioException);
 			throw new ConnectorIOException(
-					"An exception has ocoured while parsing the http response to the login request", ioException);
+					"An exception has occurred while parsing the http response to the login request", ioException);
 		}
 		
 		
@@ -189,18 +191,18 @@ public class CrudManagerScim {
 		} catch (JSONException jsonException) {
 
 			LOGGER.error(
-					"An exception has ocoured while setting the \"jsonObject\". Occurrence while processing the http response to the login request: {0}",
+					"An exception has occurred while setting the \"jsonObject\". Occurrence while processing the http response to the login request: {0}",
 					jsonException.getLocalizedMessage());
 			LOGGER.info(
-					"An exception has ocoured while setting the \"jsonObject\". Occurrence while processing the http response to the login request: {0}",
+					"An exception has occurred while setting the \"jsonObject\". Occurrence while processing the http response to the login request: {0}",
 					jsonException);
-			throw new ConnectorException("An exception has ocoured while setting the \"jsonObject\".", jsonException);
+			throw new ConnectorException("An exception has occurred while setting the \"jsonObject\".", jsonException);
 		}
 		oauthHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
 		}else{
 			tokenAuthentication = true;
-			loginInstanceUrl = conf.getLoginURL();
-			loginAccessToken = conf.getClientID();
+			loginInstanceUrl = conf.getBaseUrl();
+			loginAccessToken = conf.getToken();
 			
 			oauthHeader = new BasicHeader("Authorization", "Bearer " + loginAccessToken);
 		}
@@ -249,10 +251,10 @@ public class CrudManagerScim {
 		String responseString = null;
 		HttpResponse response;
 		try {
-			providerStartTime = System.nanoTime();
+			providerStartTime = System.currentTimeMillis();
 			response = httpClient.execute(httpGet);
-			providerEndTime = System.nanoTime();
-			providerDuration = (providerEndTime - providerStartTime) / 1000000;
+			providerEndTime = System.currentTimeMillis();
+			providerDuration = (providerEndTime - providerStartTime) ;
 
 			LOGGER.info(
 					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
@@ -272,7 +274,6 @@ public class CrudManagerScim {
 						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
 							if (queuery instanceof Uid) {
-								logOut();
 								ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 								resultHandler.handle(objBuilder.buildConnectorObject(jsonObject, resourceEndPoint));
 
@@ -303,10 +304,10 @@ public class CrudManagerScim {
 												httpGetR.addHeader(oauthHeader);
 												httpGetR.addHeader(prettyPrintHeader);
 												
-												providerStartTime = System.nanoTime();
+												providerStartTime = System.currentTimeMillis();
 												HttpResponse resourceResponse = httpClient.execute(httpGetR);
-												providerEndTime = System.nanoTime();
-												providerDuration = (providerEndTime - providerStartTime) / 1000000;
+												providerEndTime = System.currentTimeMillis();
+												providerDuration = (providerEndTime - providerStartTime) ;
 
 												LOGGER.info(
 														"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
@@ -322,15 +323,25 @@ public class CrudManagerScim {
 															"The {0}. resource json object which was returned by the service provider: {1}",
 															i + 1, fullResourcejson);
 
+													
 													ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 
+													
+													long startTime = System.currentTimeMillis();
 													ConnectorObject conOb = objBuilder
 															.buildConnectorObject(fullResourcejson, resourceEndPoint);
+													long endTime = System.currentTimeMillis();
+													
+													long time = (endTime- startTime);
+													
+													LOGGER.error("The connector object builder method Time: {0} milliseconds", time);
+													
+													
 
 													resultHandler.handle(conOb);
 
 												} else {
-													logOut();
+													
 													onNoSuccess(resourceResponse, statusCode,
 															resourceUri);
 												}
@@ -369,7 +380,6 @@ public class CrudManagerScim {
 											"No uid present in fetchet object while processing queuery result");
 
 								}
-								logOut();
 							}
 
 						} catch (Exception e) {
@@ -385,21 +395,20 @@ public class CrudManagerScim {
 							q = "the full resource representation";
 						}
 						LOGGER.error(
-								"An exception has ocoured while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+								"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
 								jsonException.getLocalizedMessage(), q);
 						LOGGER.info(
-								"An exception has ocoured while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+								"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
 								jsonException, q);
 						throw new ConnectorException(
-								"An exception has ocoured while setting the variable \"jsonObject\".", jsonException);
+								"An exception has occurred while setting the variable \"jsonObject\".", jsonException);
 					}
 
 				} else {
-					logOut();
+					
 					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", queuery);
 				}
 			} else {
-				logOut();
 				onNoSuccess(response, statusCode, uri);
 			}
 
@@ -410,16 +419,15 @@ public class CrudManagerScim {
 			}
 
 			LOGGER.error(
-					"An error ocoured while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+					"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
 					e.getLocalizedMessage(), q);
 			LOGGER.info(
-					"An error ocoured while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+					"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
 					e, q);
-			throw new ConnectorIOException("An error ocoured while processing the queuery http response.", e);
+			throw new ConnectorIOException("An error occurred while processing the queuery http response.", e);
 		} finally {
 			logOut();
 		}
-		logOut();
 	}
 
 	/**
@@ -453,11 +461,11 @@ public class CrudManagerScim {
 		HttpResponse response;
 		try {
 
-			providerStartTime = System.nanoTime();
+			providerStartTime = System.currentTimeMillis();
 			response = httpClient.execute(httpGet);
-			providerEndTime = System.nanoTime();
+			providerEndTime = System.currentTimeMillis();
 
-			providerDuration = (providerEndTime - providerStartTime) / 1000000;
+			providerDuration = (providerEndTime - providerStartTime) ;
 
 			LOGGER.info(
 					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
@@ -470,25 +478,41 @@ public class CrudManagerScim {
 
 				String responseString = EntityUtils.toString(response.getEntity());
 				if (!responseString.isEmpty()) {
+					
+					LOGGER.warn("The returned response string for the \"schemas/\" endpoint");
+					
 					JSONObject jsonObject = new JSONObject(responseString);
-					return processResponse(jsonObject,providerName);
+					
+					
+					long startTime = System.currentTimeMillis();
+					ParserSchemaScim psc = processResponse(jsonObject,providerName);
+					long endTime = System.currentTimeMillis();
+					
+					long time = (endTime- startTime);
+					
+					LOGGER.error("The process filter method Time: {0} milliseconds", time);
+					return psc;
 
 					} else {
+						
+						LOGGER.warn("Response string for the \"schemas/\" endpoint returned empty ");
 						
 					String resources[] = {"Users","Groups"};
 						JSONObject responseObject = new JSONObject();
 						JSONArray responseArray = new JSONArray();
 					for (String resourceName: resources){
-						uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(resourceName).toString();
+						uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append(resourceName).toString();
+						LOGGER.info("Additional query url: {0}", uri);
+						
 						httpGet = new HttpGet(uri);
 						httpGet.addHeader(oauthHeader);
 						httpGet.addHeader(prettyPrintHeader);
 						
-						providerStartTime = System.nanoTime();
+						providerStartTime = System.currentTimeMillis();
 						response = httpClient.execute(httpGet);
-						providerEndTime = System.nanoTime();
+						providerEndTime = System.currentTimeMillis();
 
-						providerDuration = (providerEndTime - providerStartTime) / 1000000;
+						providerDuration = (providerEndTime - providerStartTime) ;
 						statusCode = response.getStatusLine().getStatusCode();
 						
 						if (statusCode == 200) {
@@ -496,8 +520,8 @@ public class CrudManagerScim {
 							responseString = EntityUtils.toString(response.getEntity());
 							JSONObject jsonObject = new JSONObject(responseString);	
 							
+							
 							if ("slack".equals(providerName)){
-								
 								
 							// For workaround purposess. Slack missing attributes workaround.
 							if ("Users".equals(resourceName)){
@@ -633,26 +657,29 @@ public class CrudManagerScim {
 			}
 		} catch (ClientProtocolException e) {
 			LOGGER.error(
-					"An protocol exception has ocoured while in the process of querying the provider Schemas resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
+					"An protocol exception has occurred while in the process of querying the provider Schemas resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An protocol exception has ocoured while in the process of querying the provider Schemas resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
+					"An protocol exception has occurred while in the process of querying the provider Schemas resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
 					e);
 			throw new ConnectorException(
-					"An protocol exception has ocoured while in the process of querying the provider Schemas resource object. Possible mismatch in interpretation of the HTTP specification",
+					"An protocol exception has occurred while in the process of querying the provider Schemas resource object. Possible mismatch in interpretation of the HTTP specification",
 					e);
 		} catch (IOException e) {
 			LOGGER.error(
-					"An error has ocoured while processing the http response. Occurrence in the process of querying the provider Schemas resource object: {0}",
+					"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An error has ocoured while processing the http response. Occurrence in the process of querying the provider Schemas resource object: {0}",
+					"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object: {0}",
 					e);
 
 			throw new ConnectorIOException(
-					"An error has ocoured while processing the http response. Occurrence in the process of querying the provider Schemas resource object",
+					"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object",
 					e);
+		}finally{
+			logOut();
 		}
+		
 	}
 
 	/**
@@ -733,16 +760,15 @@ if (loginObject !=null){
 			String responseString = null;
 			try {
 
-				providerStartTime = System.nanoTime();
+				providerStartTime = System.currentTimeMillis();
 				HttpResponse response = httpClient.execute(httpPost);
-				providerEndTime = System.nanoTime();
-				providerDuration = (providerEndTime - providerStartTime) / 1000000;
+				providerEndTime = System.currentTimeMillis();
+				providerDuration = (providerEndTime - providerStartTime) ;
 
 				LOGGER.info(
 						"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
 						providerDuration);
 				providerDuration = 0;
-				logOut();
 				int statusCode = response.getStatusLine().getStatusCode();
 LOGGER.info("Status code: {0}", statusCode);
 				if (statusCode == 201) {
@@ -758,44 +784,44 @@ LOGGER.info("Status code: {0}", statusCode);
 				}
 				else {
 				
-					onNoSuccess(response, statusCode,"creating new object");
+					onNoSuccess(response, statusCode,"creating a new object");
 				}
 
 			} catch (ClientProtocolException e) {
 				LOGGER.error(
-						"An protocol exception has ocoured while in the process of creating a new resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
+						"An protocol exception has occurred while in the process of creating a new resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
 						e.getLocalizedMessage());
 				LOGGER.info(
-						"An protocol exception has ocoured while in the process of creating a new resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
+						"An protocol exception has occurred while in the process of creating a new resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
 						e);
 				throw new ConnectionFailedException(
-						"An protocol exception has ocoured while in the process of creating a new resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
+						"An protocol exception has occurred while in the process of creating a new resource object. Possible mismatch in interpretation of the HTTP specification: {0}",
 						e);
 
 			} catch (IOException e) {
 				LOGGER.error(
-						"An error has ocoured while processing the http response. Occurrence in the process of creating a new resource object: {0}",
+						"An error has occurred while processing the http response. Occurrence in the process of creating a new resource object: {0}",
 						e.getLocalizedMessage());
 				LOGGER.info(
-						"An error has ocoured while processing the http response. Occurrence in the process of creating a new resource object: {0}",
+						"An error has occurred while processing the http response. Occurrence in the process of creating a new resource object: {0}",
 						e);
 
 				throw new ConnectorIOException(
-						"An error has ocoured while processing the http response. Occurrence in the process of creating a new resource object",
+						"An error has occurred while processing the http response. Occurrence in the process of creating a new resource object",
 						e);
 			}
 
 		} catch (JSONException e) {
 
 			LOGGER.error(
-					"An exception has ocoured while processing an json object. Occurrence in the process of creating a new resource object: {0}",
+					"An exception has occurred while processing an json object. Occurrence in the process of creating a new resource object: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An exception has ocoured while processing an json object. Occurrence in the process of creating a new resource object: {0}",
+					"An exception has occurred while processing an json object. Occurrence in the process of creating a new resource object: {0}",
 					e);
 
 			throw new ConnectorException(
-					"An exception has ocoured while processing an json object. Occurrence in the process of creating a new resource objec",
+					"An exception has occurred while processing an json object. Occurrence in the process of creating a new resource objec",
 					e);
 		} catch (UnsupportedEncodingException e1) {
 			LOGGER.error("Unsupported encoding: {0}. Occurrence in the process of creating a new resource object ",
@@ -804,8 +830,9 @@ LOGGER.info("Status code: {0}", statusCode);
 
 			throw new ConnectorException(
 					"Unsupported encoding, Occurrence in the process of creating a new resource object ", e1);
+		}finally {
+			logOut();
 		}
-		logOut();
 		throw new UnknownUidException("No uid returned in the process of resource creation");
 	}
 
@@ -846,21 +873,19 @@ LOGGER.info("Status code: {0}", statusCode);
 		String responseString = null;
 		try {
 			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
-			LOGGER.info("The update JSON object wich is beaing sent: {0}", jsonObject);
+			LOGGER.info("The update JSON object wich is being sent: {0}", jsonObject);
 			bodyContent.setContentType("application/json");
 			httpPatch.setEntity(bodyContent);
 
-			providerStartTime = System.nanoTime();
+			providerStartTime = System.currentTimeMillis();
 			HttpResponse response = httpClient.execute(httpPatch);
-			providerEndTime = System.nanoTime();
-			providerDuration = (providerEndTime - providerStartTime) / 1000000;
+			providerEndTime = System.currentTimeMillis();
+			providerDuration = (providerEndTime - providerStartTime) ;
 
 			LOGGER.info(
 					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
 					providerDuration);
 			providerDuration = 0;
-
-			logOut();
 			int statusCode = response.getStatusLine().getStatusCode();
 
 			if (statusCode == 200 || statusCode == 201) {
@@ -894,10 +919,10 @@ LOGGER.info("Status code: {0}", statusCode);
 						httpGet.addHeader(oauthHeader);
 						httpGet.addHeader(prettyPrintHeader);
 
-						providerStartTime = System.nanoTime();
+						providerStartTime = System.currentTimeMillis();
 						response = httpClient.execute(httpGet);
-						providerEndTime = System.nanoTime();
-						providerDuration = (providerEndTime - providerStartTime) / 1000000;
+						providerEndTime = System.currentTimeMillis();
+						providerDuration = (providerEndTime - providerStartTime) ;
 
 						LOGGER.info(
 								"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
@@ -923,11 +948,11 @@ LOGGER.info("Status code: {0}", statusCode);
 								bodyContent.setContentType("application/json");
 								httpPatch.setEntity(bodyContent);
 
-								providerStartTime = System.nanoTime();
+								providerStartTime = System.currentTimeMillis();
 								response = httpClient.execute(httpPatch);
 
-								providerEndTime = System.nanoTime();
-								providerDuration = (providerEndTime - providerStartTime) / 1000000;
+								providerEndTime = System.currentTimeMillis();
+								providerDuration = (providerEndTime - providerStartTime) ;
 
 								LOGGER.info(
 										"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
@@ -936,8 +961,6 @@ LOGGER.info("Status code: {0}", statusCode);
 
 								statusCode = response.getStatusLine().getStatusCode();
 								LOGGER.info("status code: {0}", statusCode);
-
-								logOut();
 								if (statusCode == 200 || statusCode == 201) {
 									LOGGER.info("Update of resource was succesfull");
 									responseString = EntityUtils.toString(response.getEntity());
@@ -974,40 +997,41 @@ LOGGER.info("Status code: {0}", statusCode);
 		} catch (JSONException e) {
 
 			LOGGER.error(
-					"An exception has ocoured while processing an json object. Occurrence in the process of updating a resource object: {0}",
+					"An exception has occurred while processing an json object. Occurrence in the process of updating a resource object: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An exception has ocoured while processing an json object. Occurrence in the process of updating a resource object: {0}",
+					"An exception has occurred while processing an json object. Occurrence in the process of updating a resource object: {0}",
 					e);
 
 			throw new ConnectorException(
-					"An exception has ocoured while processing an json object,Occurrence in the process of updating a resource object",
+					"An exception has occurred while processing an json object,Occurrence in the process of updating a resource object",
 					e);
 		} catch (ClientProtocolException e) {
 			LOGGER.error(
-					"An protocol exception has ocoured while in the process of updating a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
+					"An protocol exception has occurred while in the process of updating a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An protocol exception has ocoured while in the process of updating a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
+					"An protocol exception has occurred while in the process of updating a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
 					e);
 			throw new ConnectionFailedException(
-					"An protocol exception has ocoured while in the process of updating a resource object, Possible mismatch in the interpretation of the HTTP specification.",
+					"An protocol exception has occurred while in the process of updating a resource object, Possible mismatch in the interpretation of the HTTP specification.",
 					e);
 		} catch (IOException e) {
 
 			LOGGER.error(
-					"An error has ocoured while processing the http response. Occurrence in the process of updating a resource object: {0}",
+					"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An error has ocoured while processing the http response. Occurrence in the process of creating a resource object: {0}",
+					"An error has occurred while processing the http response. Occurrence in the process of creating a resource object: {0}",
 					e);
 
 			throw new ConnectorIOException(
-					"An error has ocoured while processing the http response. Occurrence in the process of creating a resource object",
+					"An error has occurred while processing the http response. Occurrence in the process of creating a resource object",
 					e);
 
+		}finally {
+			logOut();
 		}
-		logOut();
 		throw new UnknownUidException("No uid returned in the process of resource update");
 
 	}
@@ -1041,17 +1065,16 @@ LOGGER.info("Status code: {0}", statusCode);
 		String responseString = null;
 
 		try {
-			providerStartTime = System.nanoTime();
+			providerStartTime = System.currentTimeMillis();
 			HttpResponse response = httpClient.execute(httpDelete);
-			providerEndTime = System.nanoTime();
-			providerDuration = (providerEndTime - providerStartTime) / 1000000;
+			providerEndTime = System.currentTimeMillis();
+			providerDuration = (providerEndTime - providerStartTime) ;
 
 			LOGGER.info(
 					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
 					providerDuration);
 			providerDuration = 0;
 
-			logOut();
 			int statusCode = response.getStatusLine().getStatusCode();
 
 			if (statusCode == 204 || statusCode == 200) {
@@ -1067,25 +1090,27 @@ LOGGER.info("Status code: {0}", statusCode);
 
 		} catch (ClientProtocolException e) {
 			LOGGER.error(
-					"An protocol exception has ocoured while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
+					"An protocol exception has occurred while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An protocol exception has ocoured while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
+					"An protocol exception has occurred while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
 					e);
 			throw new ConnectionFailedException(
-					"An protocol exception has ocoured while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification.",
+					"An protocol exception has occurred while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification.",
 					e);
 		} catch (IOException e) {
 			LOGGER.error(
-					"An error has ocoured while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
+					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An error has ocoured while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
+					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
 					e);
 
 			throw new ConnectorIOException(
-					"An error has ocoured while processing the http response. Occurrence in the process of deleting a resource object.",
+					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object.",
 					e);
+		}finally{
+			logOut();
 		}
 	}
 
@@ -1107,13 +1132,37 @@ LOGGER.info("Status code: {0}", statusCode);
 	private void onNoSuccess(HttpResponse response, int statusCode, String message)
 			throws ParseException, IOException {
 		
+		StringBuilder exceptionStringBuilder;
+		
 		if(response.getEntity() !=null){
-		String responseString = EntityUtils.toString(response.getEntity());
-		LOGGER.error("Error response from provider: {0}" , responseString);
+			String responseString = EntityUtils.toString(response.getEntity());
+			
+			LOGGER.error("Full Error response from provider: {0}" , responseString);
+			
+			JSONObject responseObject = new JSONObject(responseString);
+			
+			if(responseObject.has("Errors")){
+				responseObject=responseObject.getJSONObject("Errors");
+				if(responseObject.has("description")){
+					responseString=responseObject.getString("description");
+					 exceptionStringBuilder = new StringBuilder("Query for ").append(message)
+								.append(" was unsuccessful. Status code returned: ").append(statusCode).append(". Error response from provider: ").append(responseString);
+				}else{
+					responseString = ". No description was provided from the provider";
+					exceptionStringBuilder = new StringBuilder("Query for ").append(message)
+							.append(" was unsuccessful. Status code returned: ").append(statusCode).append(responseString);
+				}
+			}else {
+				exceptionStringBuilder = new StringBuilder("Query for ").append(message)
+						.append(" was unsuccessful. Status code returned: ").append(statusCode);
+			}		
+		
+		}else{
+			 exceptionStringBuilder = new StringBuilder("Query for ").append(message)
+						.append(" was unsuccessful. Status code returned: ").append(statusCode);
 		}
 		
-		StringBuilder exceptionStringBuilder = new StringBuilder("Query for ").append(message)
-				.append(" was unsuccessful. Status code returned: ").append(statusCode);
+		
 		String exceptionString = exceptionStringBuilder.toString();
 		
 		if (message == null) {
@@ -1163,7 +1212,6 @@ LOGGER.info("Status code: {0}", statusCode);
 	public void logOut() {
 		if(!tokenAuthentication){
 		loginInstance.releaseConnection();
-		
 		LOGGER.info("The connecion was released");
 		}
 	}

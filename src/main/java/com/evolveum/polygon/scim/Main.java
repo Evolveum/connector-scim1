@@ -46,10 +46,11 @@ public class Main {
 
 
 
-
-		//listAllfromResources();
+		long providerStartTime = System.currentTimeMillis();
+		listAllfromResources();
+		
 		//for (int i =0; i<10; i++ ){
-		createResourceTest();
+		//createResourceTest();
 		/*
 		}
 		 */
@@ -71,6 +72,11 @@ public class Main {
 		// conn.schema();
 
 		LOGGER.info("Handler result: {0}", result); // Result handler
+		long providerEndTime = System.currentTimeMillis();
+		long duration = (providerEndTime - providerStartTime);
+		
+		LOGGER.info("The overall duration for the processed request: {0} milliseconds", duration);
+		
 	}
 
 	private static Set<Attribute> GenericBuilderTest() {
@@ -251,7 +257,6 @@ public class Main {
 		@Override
 		public void handleResult(SearchResult result) {
 			LOGGER.info("im handling {0}", result.getRemainingPagedResults());
-
 		}
 	};
 
@@ -259,8 +264,18 @@ public class Main {
 		ScimConnector conn = new ScimConnector();
 
 		initConnector(conn);
-
-		//conn.executeQuery(userClass, null, handler, options);
+		long startTime = System.currentTimeMillis();
+		
+		LOGGER.info("###############################executeStart#########################");
+		conn.executeQuery(userClass, null, handler, options);
+		
+		LOGGER.info("###############################executeEnd#########################");
+		long endTime = System.currentTimeMillis();
+		
+		long time = (endTime- startTime);
+		
+		LOGGER.error("The executeQuery method Time: {0} milliseconds", time);
+		
 		//conn.executeQuery(groupClass, null, handler, options);
 		//conn.executeQuery(entitlementClass, null, handler, options);
 	}

@@ -63,7 +63,16 @@ UpdateAttributeValuesOp {
 			// test log delete
 			SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
 			if (this.schemaParser != null) {
+
+				long startTime = System.currentTimeMillis();
 				buildSchemas(schemaBuilder);
+				long endTime = System.currentTimeMillis();
+				
+				long time = (endTime- startTime);
+				
+				LOGGER.error("The buildSchemas methods Time: {0} milliseconds", time);
+			
+			
 			} else {
 
 				ObjectClassInfo userSchemaInfo = UserDataBuilder.getUserSchema();
@@ -306,6 +315,7 @@ UpdateAttributeValuesOp {
 
 	@Override
 	public void init(Configuration configuration) {
+		String[] loginUrlParts;
 		LOGGER.info("Initiation");
 		this.configuration = (ScimConnectorConfiguration) configuration;
 		this.configuration.validate();
@@ -313,14 +323,22 @@ UpdateAttributeValuesOp {
 
 		// For Salesforce workaround purposes
 
-		String[] loginUrlParts = this.configuration.getLoginURL().split("\\."); // e.g.
+		
+		if(!this.configuration.getLoginURL().isEmpty()){
+			
+		
+	loginUrlParts = this.configuration.getLoginURL().split("\\."); // e.g.
+		
+		}else{
+			
+	 loginUrlParts = this.configuration.getBaseUrl().split("\\."); // e.g.
+		}
 		// https://login.salesforce.com
 		if (loginUrlParts.length >= 2) {
-
 			providerName = loginUrlParts[1];
 		}
 		//
-
+		LOGGER.info("The provider name is {0}", providerName);
 		this.schemaParser = crudManager.qeueryEntity(providerName, SCHEMAS);
 
 		if (this.schemaParser != null) {

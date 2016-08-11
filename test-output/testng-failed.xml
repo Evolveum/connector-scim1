@@ -8,8 +8,7 @@
           <include name="configurationTest"/>
           <include name="createObjectOnResourcesTest"/>
           <include name="cleanup"/>
-          <include name="deleteObjectfromResourcesTest"/>
-          <include name="filterMethodTest" invocation-numbers="6"/>
+          <include name="deleteObjectfromResourcesTest" invocation-numbers="0"/>
         </methods>
       </class> <!-- com.evolveum.polygon.test.scim.Testclass -->
     </classes>

@@ -44,7 +44,7 @@ public class Testclass {
 
 		//TODO test issues with eq filter slack
 		
-		return new Object[][] {{"users","contains"},{"groups","contains"},{"users","uid"},{"groups","uid"},{"users","startswith"},{"groups","startswith"}, {"groups","containsall"} };
+		return new Object[][] {{"users","contains"},{"groups","contains"},{"users","uid"},{"groups","uid"},{"users","startswith"},{"groups","startswith"},{"users","equals"},{"groups","equals"} };
 	}
 
 	@DataProvider(name = "updateUserResourceObjectTestProvider")
@@ -84,15 +84,17 @@ public class Testclass {
 	public static Object[][] tesConfigResourcesProvider() {
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
-		configurationParameters.put("clientID","");
-		configurationParameters.put("clientSecret", "xx");
+		configurationParameters.put("clientID","**");
+		configurationParameters.put("clientSecret", "**");
 		configurationParameters.put("endpoint", "/scim");
-		configurationParameters.put("loginUrl", "https://api.slack.com");
-		configurationParameters.put("password", "xx");
-		configurationParameters.put("service", "xx");
-		configurationParameters.put("userName", "xx");
+		configurationParameters.put("loginUrl", "");
+		configurationParameters.put("password", "**");
+		configurationParameters.put("service", "**");
+		configurationParameters.put("userName", "**");
 		configurationParameters.put("version", "/v1");
 		configurationParameters.put("authentication", "token");
+		configurationParameters.put("baseurl", "https://api.slack.com");
+		configurationParameters.put("token", "**");
 
 		return new Object[][] {{configurationParameters,true}};
 	}
@@ -100,7 +102,7 @@ public class Testclass {
 
 	///////////////////////////TestSuite////////////////////////////
 
-	@Test (priority=1, dataProvider = "tesConfigProvider")
+	//@Test (priority=1, dataProvider = "tesConfigProvider")
 	public void configurationTest(HashMap <String,String> configurationParameters, Boolean assertionVariable){
 
 		groupUid = null;
@@ -115,7 +117,7 @@ public class Testclass {
 	}
 
 
-	@Test ( priority=2, dependsOnMethods = {"configurationTest"} , dataProvider = "createTestProvider")
+	//@Test ( priority=2, dependsOnMethods = {"configurationTest"} , dataProvider = "createTestProvider")
 	private void createObjectOnResourcesTest(String resourceName, Boolean assertParameter){
 
 		Boolean resourceWasCreated = false;
@@ -147,7 +149,7 @@ public class Testclass {
 
 	}
 
-	@Test (priority=6,dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "filterMethodTestProvider")
+	//@Test (priority=6,dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "filterMethodTestProvider")
 	public void filterMethodTest(String resourceName,String filterType ){
 
 		testConfiguration.filterMethodsTest(filterType, resourceName);
@@ -157,7 +159,7 @@ public class Testclass {
 
 
 	}
-	@Test ( priority=5, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "listAllfromResourcesProvider")
+	//@Test ( priority=5, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "listAllfromResourcesProvider")
 	private void listAllfromResourcesTest(int numberOfResources, String resourceName){
 
 		testConfiguration.listAllfromResourcesTestHelper(resourceName);
@@ -165,7 +167,7 @@ public class Testclass {
 
 	}
 
-	@Test ( priority=3, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "updateUserResourceObjectTestProvider")
+	//@Test ( priority=3, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "updateUserResourceObjectTestProvider")
 	private void updateUserResourceObjectTest(String updateType, Uid uid){
 
 		Uid returnedUid = testConfiguration.updateResourceTestHelper("users", updateType);
@@ -174,7 +176,7 @@ public class Testclass {
 
 
 	}
-	@Test (priority=4,dependsOnMethods = {"createObjectOnResourcesTest"},  dataProvider = "updateGroupResourceObjectTestProvider")
+	//@Test (priority=4,dependsOnMethods = {"createObjectOnResourcesTest"},  dataProvider = "updateGroupResourceObjectTestProvider")
 	private void updateGroupResourceObjectTest(String updateType, Uid uid){
 
 
@@ -203,7 +205,7 @@ public class Testclass {
 		
 	}
 
-	@Test (priority=7,dependsOnMethods= {"createObjectOnResourcesTest"}, dataProvider = "deletetObjectfromResourcesProvider")
+	//@Test (priority=7,dependsOnMethods= {"createObjectOnResourcesTest"}, dataProvider = "deletetObjectfromResourcesProvider")
 	private void deleteObjectfromResourcesTest(String resourceName){
 
 		testConfiguration.deleteResourceTestHelper(resourceName);

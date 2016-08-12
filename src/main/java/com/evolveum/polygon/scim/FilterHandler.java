@@ -312,7 +312,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 			Collection<Filter> filterList= buildValueList(filter,"members");
 			for(Filter f: filterList){
-				if(f instanceof EqualsFilter){
+				if(f instanceof ContainsFilter){
 					
 					objectNameDictionary.put("members", "members");
 					return f.accept(this,p);
@@ -743,7 +743,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 				filterList.add(containsSingleAtribute);
 			}else{
 				// For salesforce workaroud purposess
-				EqualsFilter containsSingleAtribute = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(attributeName,o));
+				EqualsFilter containsSingleAtribute = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build("members.display",o));
 				filterList.add(containsSingleAtribute); 
 			}
 

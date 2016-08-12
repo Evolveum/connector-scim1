@@ -12,12 +12,12 @@ import org.identityconnectors.framework.spi.StatefulConfiguration;
  */
 public class ScimConnectorConfiguration extends AbstractConfiguration implements StatefulConfiguration {
 	
-	private String AUTHENTICATION = "pass";
-	private String SCIM_ENDPOINT = "/services/scim";
+	private String AUTHENTICATION = "token";
+	private String SCIM_ENDPOINT = "/scim";
 	private String SCIM_VERSION = "/v1";
 	private String USERNAME = "**";
 	private String PASSWORD = "**";
-	private String LOGINURL = "https://login.salesforce.com";
+	private String LOGINURL = "";
 	private String BASEURL = "https://api.slack.com";
 	private String GRANT = "**";
 	private String CLIENTID = "**";
@@ -246,7 +246,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	public void validate() {
 		
 		if (StringUtil.isBlank(AUTHENTICATION)) {
-			throw new IllegalArgumentException("Scim endpoint cannot be empty.");
+			throw new IllegalArgumentException("Authentication cannot be empty.");
 		}
 		
 		if (!"token".equals(AUTHENTICATION)){
@@ -276,10 +276,10 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		}else {
 			
 			if (StringUtil.isBlank(TOKEN)) {
-				throw new IllegalArgumentException("Scim endpoint cannot be empty.");
+				throw new IllegalArgumentException("Token cannot be empty.");
 			}
 			if (StringUtil.isBlank(BASEURL)) {
-				throw new IllegalArgumentException("Scim version cannot be empty.");
+				throw new IllegalArgumentException("Base URL cannot be empty.");
 			}
 			
 		}

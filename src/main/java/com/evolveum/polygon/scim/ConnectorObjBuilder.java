@@ -65,7 +65,7 @@ public class ConnectorObjBuilder {
 		for (String key : resourceJsonObject.keySet()) {
 			Object attribute = resourceJsonObject.get(key);
 			// Salesforce workaround
-			if ("meta".equals(key.intern()) || "alias".equals(key.intern()) || "schemas".equals(key.intern())) {
+			if ("meta".equals(key.intern()) || "alias".equals(key.intern()) || "schemas".equals(key.intern())||"photos".equals(key.intern())) {
 
 				LOGGER.warn(
 						"Processing trought salesforce \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.",
@@ -90,7 +90,6 @@ public class ConnectorObjBuilder {
 						String objectKeyName = "";
 						if (o instanceof JSONObject) {
 							for (String s : ((JSONObject) o).keySet()) {
-
 								if ("type".equals(s.intern())) {
 									objectKeyName = objectNameBilder.append(".").append(((JSONObject) o).get(s)).toString();
 									objectNameBilder.delete(0, objectNameBilder.length());

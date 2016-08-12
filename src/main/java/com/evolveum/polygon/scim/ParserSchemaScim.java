@@ -208,10 +208,20 @@ public class ParserSchemaScim {
 					} else {
 						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
 							StringBuilder complexAttrName = new StringBuilder(attributeName);
+							
+							HashMap<String, Object> subattributeKeyMap = (HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames);
+							
+							for(String attributePropertie: subattributeKeyMap.keySet()){
+								
+								if("multiValued".equals(attributePropertie)){
+									subattributeKeyMap.put("multiValued", true);
+								}
+							}
+							
 							attributeMap.put(
 									complexAttrName.append(".").append("default").append(".")
 									.append(subAttributeKeyNames).toString(),
-									(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+									subattributeKeyMap);
 							isComplex = true;
 						}
 

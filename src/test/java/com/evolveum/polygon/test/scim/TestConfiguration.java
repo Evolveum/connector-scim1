@@ -34,7 +34,7 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 public class TestConfiguration {
 
 
-	private static Integer testNumber = 43;
+	private static Integer testNumber = 45;
 	private  Uid userTestUid = null;
 	private  Uid groupTestUid = null;
 	private static final ArrayList<ConnectorObject> result = new ArrayList<>();

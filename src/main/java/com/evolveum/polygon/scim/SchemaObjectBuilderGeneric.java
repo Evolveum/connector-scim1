@@ -98,6 +98,11 @@ public class SchemaObjectBuilderGeneric {
 
 		if ("/Users".equals(objectTypeName.intern())) {
 			builder.setType(ObjectClass.ACCOUNT_NAME);
+			
+			if ("slack".equals(providerName)){
+				
+				slackWorkaround(builder);
+			}
 
 		} else if ("/Groups".equals(objectTypeName.intern())) {
 			builder.setType(ObjectClass.GROUP_NAME);
@@ -181,5 +186,21 @@ public class SchemaObjectBuilderGeneric {
 		}
 
 		return infoBuilder;
+	}
+	
+	private void slackWorkaround(ObjectClassInfoBuilder builder){
+		
+		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder("emails.default.value");
+		infoBuilder.setMultiValued(true);
+		infoBuilder.setRequired(true);
+		infoBuilder.setType(String.class);
+		builder.addAttributeInfo(infoBuilder.build());
+		
+		 infoBuilder = new AttributeInfoBuilder("emails.default.primary");
+		infoBuilder.setMultiValued(false);
+		infoBuilder.setRequired(true);
+		infoBuilder.setType(Boolean.class);
+		builder.addAttributeInfo(infoBuilder.build());
+		
 	}
 }

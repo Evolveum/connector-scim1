@@ -94,7 +94,7 @@ public class Testclass {
 		configurationParameters.put("version", "/v1");
 		configurationParameters.put("authentication", "token");
 		configurationParameters.put("baseurl", "https://api.slack.com");
-		configurationParameters.put("token", "**");
+		configurationParameters.put("token", "");
 
 		return new Object[][] {{configurationParameters,true}};
 	}
@@ -151,7 +151,16 @@ public class Testclass {
 
 	//@Test (priority=6,dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "filterMethodTestProvider")
 	public void filterMethodTest(String resourceName,String filterType ){
+		//test fixture
+		// - dependency on test that create this user I am going to fetch by uid
 
+		//test itself
+		//User user = getUser(uid)
+		
+		//verification that happens what I epxected to happen
+		// assertEquals(expectedUsername, user.getUsername());
+		// assertEquals(expectedWorkEmail, user.get("user.work.email"));
+		
 		testConfiguration.filterMethodsTest(filterType, resourceName);
 
 		Assert.assertFalse(testConfiguration.getHandlerResult().isEmpty());

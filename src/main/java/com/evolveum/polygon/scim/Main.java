@@ -47,7 +47,7 @@ public class Main {
 
 
 		long providerStartTime = System.currentTimeMillis();
-		listAllfromResources();
+		//listAllfromResources();
 		
 		//for (int i =0; i<10; i++ ){
 		//createResourceTest();
@@ -56,7 +56,7 @@ public class Main {
 		 */
 		
 		
-		//filterMethodsTest();
+		filterMethodsTest();
 		//updateResourceTest();
 
 
@@ -288,7 +288,7 @@ public class Main {
 
 		operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
 		operationOptions.put("PAGED_RESULTS_OFFSET", 1);
-		operationOptions.put("PAGE_SIZE", 50);
+		operationOptions.put("PAGE_SIZE", 2);
 
 		OperationOptions options = new OperationOptions(operationOptions);
 
@@ -335,7 +335,7 @@ public class Main {
 	private static void filterMethodsTest() {
 		ScimConnector conn = new ScimConnector();
 
-		ContainsAllValuesFilter containsAllValuesFilter = (ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.default.value","00558000000W2vRAAS"));
+		ContainsAllValuesFilter containsAllValuesFilter = (ContainsAllValuesFilter)FilterBuilder.containsAllValues(AttributeBuilder.build("members.default.display","10"));
 
 		ContainsFilter containsFilterTest = (ContainsFilter) FilterBuilder
 				.contains(AttributeBuilder.build("members.User.value", "00558000000VcXnAAK"));
@@ -361,7 +361,7 @@ public class Main {
 		initConnector(conn);
 
 		//conn.executeQuery(userClass, endsWithFilter, handler, options);
-		//conn.executeQuery(groupClass, containsAllValuesFilter, handler, options);
+		conn.executeQuery(groupClass, containsAllValuesFilter, handler, options);
 		//conn.executeQuery(entitlementClass, containsAllValuesFilter, handler, null);
 	}
 

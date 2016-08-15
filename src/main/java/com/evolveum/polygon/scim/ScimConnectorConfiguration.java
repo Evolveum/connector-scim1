@@ -21,7 +21,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	private String BASEURL = "https://api.slack.com";
 	private String GRANT = "**";
 	private String CLIENTID = "**";
-	private String TOKEN = "";
+	private String TOKEN = "**";
 	private String CLIENTSECRET = "**";
 
 	private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);

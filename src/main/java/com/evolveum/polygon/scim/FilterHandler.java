@@ -312,7 +312,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 			Collection<Filter> filterList= buildValueList(filter,"members");
 			for(Filter f: filterList){
-				if(f instanceof ContainsFilter){
+				if(f instanceof EqualsFilter){
 					
 					objectNameDictionary.put("members", "members");
 					return f.accept(this,p);
@@ -704,6 +704,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	private void translateSchemaMapToDictionary(Map<String, Map<String, Object>> schemaMap) {
 
 		if (schemaMap != null) {
+			objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 			for (String attributeNameKey : schemaMap.keySet()) {
 				String[] attributeNameKeyParts = attributeNameKey.split("\\."); // e.g.
 				// emails.work.value
@@ -735,15 +736,15 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		List<Object> valueList = filter.getAttribute().getValue();
 		Collection<Filter> filterList= new ArrayList<Filter>();
 
-		for(Object o:valueList){		
+		for(Object value:valueList){		
 			if(attributeName.isEmpty()){
 
 				ContainsFilter containsSingleAtribute = (ContainsFilter) FilterBuilder
-						.contains(AttributeBuilder.build(filter.getName(), o));
+						.contains(AttributeBuilder.build(filter.getName(), value));
 				filterList.add(containsSingleAtribute);
 			}else{
 				// For salesforce workaroud purposess
-				EqualsFilter containsSingleAtribute = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build("members.display",o));
+				EqualsFilter containsSingleAtribute = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(attributeName,value));
 				filterList.add(containsSingleAtribute); 
 			}
 

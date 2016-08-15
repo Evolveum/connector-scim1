@@ -27,9 +27,9 @@ import org.identityconnectors.framework.spi.SearchResultsHandler;
 
 public class Main {
 
-	private static final Uid TEST_UID = new Uid("00558000000W2vRAAS");
+	private static final Uid TEST_UID = new Uid("U1ZHE7GBY");
 	private static final Uid BLANC_TEST_UID = null;
-	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
+	private static final ArrayList<ConnectorObject> results = new ArrayList<>();
 	private static final Log LOGGER = Log.getLog(Main.class);
 
 	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
@@ -57,6 +57,7 @@ public class Main {
 		
 		
 		filterMethodsTest();
+		evaluateResult(results);
 		//updateResourceTest();
 
 
@@ -71,7 +72,7 @@ public class Main {
 		// conn.delete(userC, TEST_UID, null);
 		// conn.schema();
 
-		LOGGER.info("Handler result: {0}", result); // Result handler
+		LOGGER.info("Handler result: {0}", results); // Result handler
 		long providerEndTime = System.currentTimeMillis();
 		long duration = (providerEndTime - providerStartTime);
 		
@@ -250,15 +251,20 @@ public class Main {
 
 		@Override
 		public boolean handle(ConnectorObject connectorObject) {
-			result.add(connectorObject);
+			results.add(connectorObject);
 			return true;
 		}
-
+		
 		@Override
 		public void handleResult(SearchResult result) {
 			LOGGER.info("im handling {0}", result.getRemainingPagedResults());
 		}
 	};
+	
+	public ArrayList<ConnectorObject> getHandlerResult(){
+
+		return this.results;
+	}
 
 	private static void listAllfromResources() {
 		ScimConnector conn = new ScimConnector();
@@ -345,7 +351,7 @@ public class Main {
 
 		// OrFilter orFilterTest = (OrFilter) FilterBuilder.or(eq, ct);
 
-		 AndFilter andFilterTest = (AndFilter) FilterBuilder.and(containsFilterTest, equalsFilterTest);
+		// AndFilter andFilterTest = (AndFilter) FilterBuilder.and(containsFilterTest, equalsFilterTest);
 
 		// NotFilter notFilterTest= (NotFilter)FilterBuilder.not(eq);
 
@@ -360,8 +366,8 @@ public class Main {
 
 		initConnector(conn);
 
-		//conn.executeQuery(userClass, endsWithFilter, handler, options);
-		conn.executeQuery(groupClass, containsAllValuesFilter, handler, options);
+		conn.executeQuery(userClass, uidEqualsFilterTest, handler, options);
+		//conn.executeQuery(groupClass, containsAllValuesFilter, handler, options);
 		//conn.executeQuery(entitlementClass, containsAllValuesFilter, handler, null);
 	}
 
@@ -373,6 +379,23 @@ public class Main {
 		conn.schema();
 
 		return conn;
+	}
+	
+	private static void evaluateResult(ArrayList<ConnectorObject> results){
+		
+	for(ConnectorObject result: results ){
+		Set<Attribute> attributeSet = new HashSet<Attribute>();
+		
+		attributeSet=result.getAttributes();	
+		
+		
+		for(Attribute attribute:attributeSet){
+			LOGGER.info("The attribute Name: {0}",attribute.getName());
+			attribute.getValue();
+			
+		}
+		
+		} 
 	}
 
 }

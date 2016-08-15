@@ -1,11 +1,13 @@
 package com.evolveum.polygon.test.scim;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.testng.Assert;
@@ -27,15 +29,19 @@ public void f2() {}
 public void g() {}
  * */
 import com.evolveum.polygon.scim.CrudManagerScim;
+import com.evolveum.polygon.scim.ScimConnector;
 
 
 public class Testclass {
 
+	private static Uid userUid;
+	private static Uid groupUid;
+	//private Uid etitlementUid;
+	private static Integer testNumber =0;
 	
-	TestConfiguration testConfiguration = null;
-	public static Uid userUid;
-	public static Uid groupUid;
-	public Uid etitlementUid= null;
+	private static ScimConnector connector;
+	
+	private static ScimConnectorConfiguration configuration;
 
 	private static final Log LOGGER = Log.getLog(Testclass.class);
 
@@ -44,7 +50,7 @@ public class Testclass {
 
 		//TODO test issues with eq filter slack
 		
-		return new Object[][] {{"users","contains"},{"groups","contains"},{"users","uid"},{"groups","uid"},{"users","startswith"},{"groups","startswith"},{"users","equals"},{"groups","equals"} };
+		return new Object[][] {{"users","uid"}/*{"users","contains"},{"groups","contains"},{"users","uid"},{"groups","uid"},{"users","startswith"},{"groups","startswith"},{"users","equals"},{"groups","equals"}*/ };
 	}
 
 	@DataProvider(name = "updateUserResourceObjectTestProvider")
@@ -65,13 +71,20 @@ public class Testclass {
 	public static Object[][] listAllfromResourcesProvider() {
 		return new Object[][] {{1, "users"}, {1, "groups"}};
 	}
+	
+	@DataProvider(name = "parameterConsistencyTestProvider")
+	public static Object[][] parameterConsistencyTestProvider() {
+
+		
+		return new Object[][] {{"groups","uid"},{"users","uid"}};
+	}
 
 
 	@DataProvider(name = "deletetObjectfromResourcesProvider")
 	public static Object[][] deletetObjectfromResourcesResourceProvider() {
 
 
-		return new Object[][] {{"users"},{"groups"}};
+		return new Object[][] {{"users", userUid},{"groups", groupUid}};
 	}
 
 	@DataProvider(name = "createTestProvider")
@@ -82,6 +95,8 @@ public class Testclass {
 
 	@DataProvider(name = "tesConfigProvider")
 	public static Object[][] tesConfigResourcesProvider() {
+		
+	  testNumber =67;
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("clientID","**");
@@ -94,7 +109,7 @@ public class Testclass {
 		configurationParameters.put("version", "/v1");
 		configurationParameters.put("authentication", "token");
 		configurationParameters.put("baseurl", "https://api.slack.com");
-		configurationParameters.put("token", "");
+		configurationParameters.put("token", "**");
 
 		return new Object[][] {{configurationParameters,true}};
 	}
@@ -102,40 +117,41 @@ public class Testclass {
 
 	///////////////////////////TestSuite////////////////////////////
 
-	//@Test (priority=1, dataProvider = "tesConfigProvider")
+	@Test (priority=1, dataProvider = "tesConfigProvider")
 	public void configurationTest(HashMap <String,String> configurationParameters, Boolean assertionVariable){
 
 		groupUid = null;
 		userUid = null;	
 
-		testConfiguration = new TestConfiguration(configurationParameters);
+		configuration = ScimTestUtils.buildConfiguration(configurationParameters);
 
-		Boolean isValid= testConfiguration.isConfigurationValid();
+		Boolean isValid= ScimTestUtils.isConfigurationValid(configuration);
+		
+		if(isValid){
+			
+			connector = new ScimConnector();
+			connector.init(configuration);
+		}
 
 		Assert.assertEquals(isValid, assertionVariable);
 
 	}
 
 
-	//@Test ( priority=2, dependsOnMethods = {"configurationTest"} , dataProvider = "createTestProvider")
+	@Test ( priority=2, dependsOnMethods = {"configurationTest"} , dataProvider = "createTestProvider")
 	private void createObjectOnResourcesTest(String resourceName, Boolean assertParameter){
 
 		Boolean resourceWasCreated = false;
 
-		if(testConfiguration == null){
-			tesConfigResourcesProvider();
-		}
 
 		if("users".equals(resourceName)){
-			userUid= testConfiguration.createResourceTestHelper(resourceName);
-			testConfiguration.setUserTestUid(userUid);
+			userUid= ScimTestUtils.createResourceTestHelper(resourceName,testNumber,connector);
 			if(userUid !=null){
 				resourceWasCreated = true;
 			}
 		}else if ("groups".equals(resourceName)){
 
-			groupUid= testConfiguration.createResourceTestHelper(resourceName);
-			testConfiguration.setGroupTestUid(groupUid);
+			groupUid= ScimTestUtils.createResourceTestHelper(resourceName,testNumber,connector);
 			if(groupUid !=null){
 				resourceWasCreated = true;
 			}
@@ -148,8 +164,38 @@ public class Testclass {
 		Assert.assertEquals(resourceWasCreated, assertParameter);
 
 	}
+	
+	@Test ( priority=2, dependsOnMethods = {"createObjectOnResourcesTest"} , dataProvider = "parameterConsistencyTestProvider")
+	private void parameterConsistencyTest(String resourceName, String filterType){
+		
+		
+		ArrayList<ConnectorObject> result= new ArrayList<ConnectorObject> ();
+		
+		result = ScimTestUtils.filter(filterType, resourceName,testNumber, userUid, groupUid, connector,ScimTestUtils.getOptions());
+		
+		HashMap<String, String> evaluationResults = ScimTestUtils.processResult(result, resourceName,testNumber);
+		
 
-	//@Test (priority=6,dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "filterMethodTestProvider")
+		
+		/*	result = scimTestUtils.filter(filterType, resourceName);
+		
+		HashMap<String, String> evaluationResults = new HashMap<String,String>();
+		
+		evaluationResults=scimTestUtils.processResult(scimTestUtils.getHandlerResult(), resourceName);
+		 * 
+		 * */
+		
+		for(String attributeName: evaluationResults.keySet()){
+			
+			String nameValue= evaluationResults.get(attributeName);
+			
+			Assert.assertEquals(nameValue, attributeName);
+		}
+
+	}
+	
+
+	@Test (priority=6,dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "filterMethodTestProvider")
 	public void filterMethodTest(String resourceName,String filterType ){
 		//test fixture
 		// - dependency on test that create this user I am going to fetch by uid
@@ -161,36 +207,40 @@ public class Testclass {
 		// assertEquals(expectedUsername, user.getUsername());
 		// assertEquals(expectedWorkEmail, user.get("user.work.email"));
 		
-		testConfiguration.filterMethodsTest(filterType, resourceName);
-
-		Assert.assertFalse(testConfiguration.getHandlerResult().isEmpty());
+		
+		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>() ;
+		returnedObjects=ScimTestUtils.filter(filterType, resourceName,testNumber,userUid,groupUid,connector,ScimTestUtils.getOptions());
+		
+		Assert.assertFalse(returnedObjects.isEmpty());
 
 
 
 	}
-	//@Test ( priority=5, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "listAllfromResourcesProvider")
+	@Test ( priority=5, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "listAllfromResourcesProvider")
 	private void listAllfromResourcesTest(int numberOfResources, String resourceName){
-
-		testConfiguration.listAllfromResourcesTestHelper(resourceName);
-		Assert.assertEquals(testConfiguration.getHandlerResult().size(), numberOfResources);
+		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>() ;
+		
+		
+		returnedObjects=ScimTestUtils.listAllfromResourcesTestHelper(resourceName,connector,ScimTestUtils.getOptions());
+		Assert.assertEquals(returnedObjects.size(), numberOfResources);
 
 	}
 
-	//@Test ( priority=3, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "updateUserResourceObjectTestProvider")
+	@Test ( priority=3, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "updateUserResourceObjectTestProvider")
 	private void updateUserResourceObjectTest(String updateType, Uid uid){
 
-		Uid returnedUid = testConfiguration.updateResourceTestHelper("users", updateType);
+		Uid returnedUid = ScimTestUtils.updateResourceTestHelper("users", updateType,userUid,groupUid, testNumber,connector);
 
 		Assert.assertEquals(uid,returnedUid );
 
 
 	}
-	//@Test (priority=4,dependsOnMethods = {"createObjectOnResourcesTest"},  dataProvider = "updateGroupResourceObjectTestProvider")
+	@Test (priority=4,dependsOnMethods = {"createObjectOnResourcesTest"},  dataProvider = "updateGroupResourceObjectTestProvider")
 	private void updateGroupResourceObjectTest(String updateType, Uid uid){
 
 
 
-		Uid returnedUid = testConfiguration.updateResourceTestHelper("groups", updateType);
+		Uid returnedUid = ScimTestUtils.updateResourceTestHelper("groups", updateType,userUid,groupUid,testNumber,connector);
 
 		Assert.assertEquals(uid,returnedUid );
 
@@ -202,25 +252,28 @@ public class Testclass {
 		 if (result.getStatus() == ITestResult.FAILURE) {
 			 if (userUid !=null){
 				 LOGGER.warn("Atempting to delete resource: {0}", "users");
-			 deleteObjectfromResourcesTest("users");
+			 deleteObjectfromResourcesTest("users",userUid);
 			 
 			 }else 
 			 if(groupUid !=null){
 				 LOGGER.warn("Atempting to delete resource: {0}", "groups");
-			 deleteObjectfromResourcesTest("groups");
+			 deleteObjectfromResourcesTest("groups",groupUid);
 			 }else{
 			 LOGGER.warn("Test failure, uid values of resource objects are null. No resource deletion operation was atempted");
 			 }}      
 		
 	}
 
-	//@Test (priority=7,dependsOnMethods= {"createObjectOnResourcesTest"}, dataProvider = "deletetObjectfromResourcesProvider")
-	private void deleteObjectfromResourcesTest(String resourceName){
+	@Test (priority=7,dependsOnMethods= {"createObjectOnResourcesTest"}, dataProvider = "deletetObjectfromResourcesProvider")
+	private void deleteObjectfromResourcesTest(String resourceName,Uid uid){
 
-		testConfiguration.deleteResourceTestHelper(resourceName);
-		testConfiguration.filterMethodsTest("uid", resourceName);
+		ArrayList<ConnectorObject> returnedObjects= new ArrayList<ConnectorObject>(); 
+		
+		ScimTestUtils.deleteResourceTestHelper(resourceName,uid,connector );
+		ScimTestUtils.filter("uid", resourceName, testNumber,userUid,groupUid,connector, ScimTestUtils.getOptions());
 
-		Assert.assertTrue(testConfiguration.getHandlerResult().isEmpty());
+		
+		Assert.assertTrue(returnedObjects.isEmpty());
 
 	}
 

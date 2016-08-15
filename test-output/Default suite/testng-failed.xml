@@ -6,13 +6,10 @@
       <class name="com.evolveum.polygon.test.scim.Testclass">
         <methods>
           <include name="configurationTest"/>
-          <include name="listAllfromResourcesTest"/>
-          <include name="createObjectOnResourcesTest" invocation-numbers="0 1"/>
-          <include name="updateUserResourceObjectTest"/>
-          <include name="updateGroupResourceObjectTest"/>
+          <include name="listAllfromResourcesTest" invocation-numbers="0 1"/>
+          <include name="createObjectOnResourcesTest"/>
+          <include name="parameterConsistencyTest" invocation-numbers="1"/>
           <include name="cleanup"/>
-          <include name="deleteObjectfromResourcesTest"/>
-          <include name="filterMethodTest"/>
         </methods>
       </class> <!-- com.evolveum.polygon.test.scim.Testclass -->
     </classes>

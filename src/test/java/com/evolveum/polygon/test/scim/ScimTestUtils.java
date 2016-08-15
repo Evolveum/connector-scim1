@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.script.ScriptEngineManager;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -31,14 +32,13 @@ import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 
-public class TestConfiguration {
+public class ScimTestUtils {
 
 
-	private static Integer testNumber = 45;
-	private  Uid userTestUid = null;
-	private  Uid groupTestUid = null;
-	private static final ArrayList<ConnectorObject> result = new ArrayList<>();
-	private static final Log LOGGER = Log.getLog(TestConfiguration.class);
+	//private static Integer testNumber = 65;
+
+
+	private static final Log LOGGER = Log.getLog(ScimTestUtils.class);
 
 	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
 	private static final ObjectClass groupClass = ObjectClass.GROUP;
@@ -57,22 +57,16 @@ public class TestConfiguration {
 		mandatoriParameters.add("version");
 
 	}
-*/
+
 
 	private static OperationOptions options ;
 
 
 	ScimConnectorConfiguration scimConnectorConfiguration;
 	private static ScimConnector conn;
-
-
-	public TestConfiguration(HashMap configuration) {
-		this.scimConnectorConfiguration= buildConfiguration(configuration);
-		this.conn= initConnector(scimConnectorConfiguration);
-		this.options =getOptions();
-	}
-
-	private static ScimConnectorConfiguration buildConfiguration(HashMap<String,String> configuration){
+*/
+	
+	public static ScimConnectorConfiguration buildConfiguration(HashMap<String,String> configuration){
 		ScimConnectorConfiguration scimConnectorConfiguration = new ScimConnectorConfiguration();
 
 
@@ -111,17 +105,19 @@ public class TestConfiguration {
 
 	}
 
-	private static Set<Attribute> userCreateBuilder() {
+	private static Set<Attribute> userCreateBuilder(Integer testNumber) {
 
 		StringBuilder testAttributeString= new StringBuilder();
 
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		testAttributeString.append(testNumber.toString()).append("testuser@testdomain.com");
+		testAttributeString.append(testNumber.toString()).append("testuser");
 
 		attributeSet.add(AttributeBuilder.build("userName", testAttributeString.toString()));
 		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
+		
+		testAttributeString = new StringBuilder(testNumber.toString()).append("testuser@testdomain.com");
 		attributeSet.add(AttributeBuilder.build("emails.work.value", testAttributeString.toString()));
 		attributeSet.add(AttributeBuilder.build("emails.work.primary",true));
 		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
@@ -131,7 +127,7 @@ public class TestConfiguration {
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 
 
-		attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
+		//ttributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
 
 
 		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
@@ -139,7 +135,7 @@ public class TestConfiguration {
 		return attributeSet;
 	}
 
-	private static Set<Attribute> userSingleValUpdateBuilder() {
+	private static Set<Attribute> userSingleValUpdateBuilder(Integer testNumber ) {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
@@ -150,7 +146,7 @@ public class TestConfiguration {
 
 		return attributeSet;
 
-	}private static Set<Attribute> userMultiValUpdateBuilder() {
+	}private static Set<Attribute> userMultiValUpdateBuilder(Integer testNumber) {
 
 		StringBuilder buildUpdateEmailAdress = new StringBuilder(testNumber.toString()).append("testupdateuser@testdomain.com");
 		
@@ -179,7 +175,7 @@ public class TestConfiguration {
 		return attributeSet;
 	}
 
-	private static Set<Attribute> groupCreateBuilder() {
+	private static Set<Attribute> groupCreateBuilder(Integer testNumber) {
 
 		StringBuilder testAttributeString = new StringBuilder();
 
@@ -189,12 +185,10 @@ public class TestConfiguration {
 
 		attributeSet.add(AttributeBuilder.build("displayName", testAttributeString.toString()));
 		
-		attributeSet.add(AttributeBuilder.build("schemas","urn:scim:schemas:core:1.0"));
-
 		return attributeSet;
 	}
 
-	private  Set<Attribute> groupSingleValUpdateBuilder() {
+	private static  Set<Attribute> groupSingleValUpdateBuilder(Integer testNumber) {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
@@ -202,7 +196,7 @@ public class TestConfiguration {
 
 		return attributeSet;
 	}
-	private  Set<Attribute> groupMultiValUpdateBuilder() {
+	private static  Set<Attribute> groupMultiValUpdateBuilder(Integer testNumber, Uid userTestUid ) {
 	
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
@@ -221,24 +215,12 @@ public class TestConfiguration {
 		return attr;
 	}
 
-	public static SearchResultsHandler handler = new SearchResultsHandler() {
+	public static ArrayList<ConnectorObject>  listAllfromResourcesTestHelper(String resourceName,ScimConnector conn,OperationOptions options) {
 
-		@Override
-		public boolean handle(ConnectorObject connectorObject) {
-			result.add(connectorObject);
-			return true;
-		}
-
-		@Override
-		public void handleResult(SearchResult result) {
-			LOGGER.info("im handling {0}", result.getRemainingPagedResults());
-
-		}
-	};
-
-	public static void listAllfromResourcesTestHelper(String resourceName) {
-		result.clear();
-
+		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>() ;
+		
+		TestSearchResultsHandler handler = new TestSearchResultsHandler();
+		returnedObjects = handler.getResult();
 
 		if("users".equalsIgnoreCase(resourceName)){
 			conn.executeQuery(userClass, null, handler, options);
@@ -250,6 +232,8 @@ public class TestConfiguration {
 
 			conn.executeQuery(entitlementClass, null, handler, options);
 		}
+		
+		return returnedObjects;
 	}
 
 
@@ -267,13 +251,13 @@ public class TestConfiguration {
 		return options;
 	}
 
-	public  void deleteResourceTestHelper(String resourceName) {
+	public static  void deleteResourceTestHelper(String resourceName, Uid uid,ScimConnector conn) {
 
 		if("users".equalsIgnoreCase(resourceName)){
-			conn.delete(userClass, userTestUid, null);
+			conn.delete(userClass, uid, null);
 
 		}else if("groups".equalsIgnoreCase(resourceName)){
-			conn.delete(groupClass, groupTestUid, null);
+			conn.delete(groupClass, uid, null);
 
 		}else {
 
@@ -283,13 +267,13 @@ public class TestConfiguration {
 
 	}
 
-	public static Uid createResourceTestHelper(String resourceName) {
+	public static Uid createResourceTestHelper(String resourceName, Integer testNumber,ScimConnector conn) {
 		Uid uid= null;
 
 		if("users".equals(resourceName)) {
-			uid= conn.create(userClass, userCreateBuilder(), null);
+			uid= conn.create(userClass, userCreateBuilder(testNumber), null);
 		}else if("groups".equals(resourceName)) {
-			uid= conn.create(groupClass, groupCreateBuilder(), null);
+			uid= conn.create(groupClass, groupCreateBuilder(testNumber), null);
 		}
 		else {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
@@ -301,16 +285,16 @@ public class TestConfiguration {
 		return uid;
 	}
 
-	public  Uid updateResourceTestHelper(String resourceName, String updateType) {
+	public static  Uid updateResourceTestHelper(String resourceName, String updateType, Uid userTestUid,Uid groupTestUid,  Integer testNumber,ScimConnector conn) {
 		Uid uid= null;
 
 		if("users".equals(resourceName)) {
 			if("single".equals(updateType)){
 
-				uid =conn.update(userClass, userTestUid, userSingleValUpdateBuilder(), null);
+				uid =conn.update(userClass, userTestUid, userSingleValUpdateBuilder(testNumber), null);
 			}else if("multi".equals(updateType)){
 
-				uid =conn.update(userClass, userTestUid, userMultiValUpdateBuilder(), null);
+				uid =conn.update(userClass, userTestUid, userMultiValUpdateBuilder(testNumber), null);
 
 			}else if("enabled".equals(updateType)){
 
@@ -326,9 +310,9 @@ public class TestConfiguration {
 		}else if("groups".equals(resourceName)) {
 			if("single".equals(updateType)){
 
-				uid= conn.update(groupClass, groupTestUid, groupSingleValUpdateBuilder(), null);
+				uid= conn.update(groupClass, groupTestUid, groupSingleValUpdateBuilder(testNumber), null);
 			}else if("multi".equals(updateType)){
-				uid= conn.update(groupClass, groupTestUid, groupMultiValUpdateBuilder(), null);
+				uid= conn.update(groupClass, groupTestUid, groupMultiValUpdateBuilder(testNumber,userTestUid), null);
 
 			}
 		}
@@ -343,13 +327,13 @@ public class TestConfiguration {
 
 	}
 
-	public  Uid addAttributeValuesTestHelper(String resourceName) {
+	public  Uid addAttributeValuesTestHelper(String resourceName, Uid testUid, Integer testNumber, ScimConnector conn) {
 		Uid uid= null;
 
 		if("users".equals(resourceName)) {
-			uid =conn.update(userClass, userTestUid, userSingleValUpdateBuilder(), null);
+			uid =conn.update(userClass, testUid, userSingleValUpdateBuilder(testNumber), null);
 		}else if("groups".equals(resourceName)) {
-			uid= conn.update(groupClass, groupTestUid, groupCreateBuilder(), null);
+			uid= conn.update(groupClass, testUid, groupCreateBuilder(testNumber), null);
 		} 
 		else {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
@@ -362,13 +346,13 @@ public class TestConfiguration {
 
 	}
 
-	public  Uid removeAttributeValuesTestHelper(String resourceName) {
+	public  Uid removeAttributeValuesTestHelper(String resourceName, Uid testUid, Integer testNumber,ScimConnector conn) {
 		Uid uid= null;
 
 		if("users".equals(resourceName)) {
-			uid =conn.update(userClass, userTestUid, userSingleValUpdateBuilder(), null);
+			uid =conn.update(userClass, testUid, userSingleValUpdateBuilder(testNumber), null);
 		}else if("groups".equals(resourceName)) {
-			uid= conn.update(groupClass, groupTestUid, groupCreateBuilder(), null);
+			uid= conn.update(groupClass, testUid, groupCreateBuilder(testNumber), null);
 		} 
 		else {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
@@ -381,10 +365,11 @@ public class TestConfiguration {
 
 	}
 
-	public  void filterMethodsTest(String filterType, String resourceName) {
-		result.clear();
+	public static ArrayList<ConnectorObject> filter(String filterType, String resourceName, Integer testNumber, Uid userTestUid, Uid groupTestUid,ScimConnector conn,OperationOptions options) {
 
-		Filter filter = getFilter(filterType,resourceName);
+		TestSearchResultsHandler handler = new TestSearchResultsHandler();
+		
+		Filter filter = getFilter(filterType,resourceName,testNumber,userTestUid, groupTestUid);
 
 		try {
 			if("users".equalsIgnoreCase(resourceName)){
@@ -395,8 +380,10 @@ public class TestConfiguration {
 				conn.executeQuery(entitlementClass, filter, handler, options);
 			}
 		} catch (Exception e) {
-			LOGGER.warn("An exception has ocoured while processing the filter method test: {0}", e.getMessage());;
+			LOGGER.warn("An exception has occurred while processing the filter method test: {0}", e.getMessage());;
 		}
+		
+ return handler.getResult();
 	}
 
 	private static ScimConnector initConnector(ScimConnectorConfiguration conf) {
@@ -408,7 +395,7 @@ public class TestConfiguration {
 		return conn;
 	}
 
-	private  AttributeFilter getFilter(String filterType, String resourceName){
+	private static  AttributeFilter getFilter(String filterType, String resourceName, Integer testNumber, Uid userTestUid , Uid groupTestUid){
 		AttributeFilter filter = null ;
 
 		if ("contains".equalsIgnoreCase(filterType)){
@@ -464,48 +451,96 @@ public class TestConfiguration {
 		return filter;
 	}
 
-	public ArrayList<ConnectorObject> getHandlerResult(){
-
-		return this.result;
-	}
-
-	public boolean isConfigurationValid(){
+	public static boolean isConfigurationValid(ScimConnectorConfiguration connectorConfiguration){
 
 
 		try {
-			scimConnectorConfiguration.validate();
+			connectorConfiguration.validate();
 		} catch (Exception e) {
 			return false; 
 		}
 		return true;
 	}
 
-	public Set<Attribute> getAttributeSet(String resourceName){
+	public Set<Attribute> getAttributeSet(String resourceName, Integer testNumber){
 
 		Set<Attribute> attributeSet= new HashSet<>();
 
 		if ("users".equals(resourceName)){
-			attributeSet = userCreateBuilder();
+			attributeSet = userCreateBuilder(testNumber);
 
 		}else if ("groups".equals(resourceName)){
 
-			attributeSet = groupCreateBuilder();
+			attributeSet = groupCreateBuilder(testNumber);
 		}
 
 
 		return attributeSet;
 	}
 
-	public  void setGroupTestUid(Uid groupUid){
-		groupTestUid = groupUid;
-
+	public static HashMap<String,String>  processResult(ArrayList<ConnectorObject> results, String resourceName, Integer testNumber){
+		
+		HashMap<String,String> evaluationResult = new HashMap<String,String>();
+		
+		Set<Attribute> createAttributeSet = new HashSet<Attribute>();
+		
+		String createAttributeName;
+		
+		if("users".equals(resourceName)){
+			
+			createAttributeSet= userCreateBuilder(testNumber);
+			
+		}else if("groups".equals(resourceName)){
+			
+			createAttributeSet = groupCreateBuilder(testNumber);
+		}
+		
+		for(Attribute createAttribute: createAttributeSet){
+		createAttributeName	= createAttribute.getName();
+		
+			evaluationResult.put(createAttributeName, "#AttributeNameNotFound#");
+		}
+		
+		
+	for(ConnectorObject result: results ){
+		Set<Attribute> returnedAttributeSet = new HashSet<Attribute>();
+	
+		
+		returnedAttributeSet=result.getAttributes();	
+		//System.out.println("The returned attr set: " + returnedAttributeSet);
+		for(Attribute attribute:returnedAttributeSet){
+		
+			String returnedAttributeName= attribute.getName();
+			LOGGER.info("The attribute Name: {0}",returnedAttributeName);
+			
+			
+			for(Attribute createAttribute: createAttributeSet){
+				createAttributeName= createAttribute.getName();
+				
+				//System.out.println("The created attr name: "+createAttributeName +" the returned name: " +returnedAttributeName);
+				
+				if (createAttributeName.equals(returnedAttributeName)){
+					
+					if (createAttribute.getValue().equals(attribute.getValue())){
+						
+						//System.out.println("The created attr name: "+createAttributeName +" the returned name: " +returnedAttributeName);
+						evaluationResult.replace(createAttributeName, returnedAttributeName);
+						break;
+						
+					}else {
+						
+						evaluationResult.replace(createAttributeName, "The returned value does not correspond to the value which vas set");
+					}
+				}
+				
+			}
+		}
+		
+		} 
+	
+	return evaluationResult;
 	}
-
-	public  void setUserTestUid(Uid userUid){
-
-		userTestUid = userUid;
-	}
-
+	
 }
 
 

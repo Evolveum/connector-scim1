@@ -48,9 +48,21 @@ public class Testclass {
 	@DataProvider(name = "filterMethodTestProvider")
 	public static Object[][] filterMethodTestResourcesProvider() {
 
+<<<<<<< HEAD
 		//TODO test issues with eq filter slack
 		
 		return new Object[][] {{"users","uid"}/*{"users","contains"},{"groups","contains"},{"users","uid"},{"groups","uid"},{"users","startswith"},{"groups","startswith"},{"users","equals"},{"groups","equals"}*/ };
+=======
+		// TODO test issues with eq filter slack
+
+		return new Object[][] { { "users",
+				"uid"},
+						 {"users","contains"},{"groups","contains"},
+						  {"users","uid"},{"groups","uid"},{"users"
+						  ,"startswith"},{"groups","startswith"},{
+						 "users","equals"},{"groups","equals"}
+						  };
+>>>>>>> accdac8... test class conf mod
 	}
 
 	@DataProvider(name = "updateUserResourceObjectTestProvider")
@@ -164,6 +176,7 @@ public class Testclass {
 		Assert.assertEquals(resourceWasCreated, assertParameter);
 
 	}
+<<<<<<< HEAD
 	
 	@Test ( priority=2, dependsOnMethods = {"createObjectOnResourcesTest"} , dataProvider = "parameterConsistencyTestProvider")
 	private void parameterConsistencyTest(String resourceName, String filterType){
@@ -182,6 +195,22 @@ public class Testclass {
 		HashMap<String, String> evaluationResults = new HashMap<String,String>();
 		
 		evaluationResults=scimTestUtils.processResult(scimTestUtils.getHandlerResult(), resourceName);
+=======
+
+	@Test(priority = 2, dependsOnMethods = {
+			"createObjectOnResourcesTest" }, dataProvider = "parameterConsistencyTestProvider")
+	private void parameterConsistencyTest(String resourceName, String filterType) {
+
+		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+
+		result = ScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
+				ScimTestUtils.getOptions());
+
+		HashMap<String, String> evaluationResults = ScimTestUtils.processResult(result, resourceName, testNumber);
+
+		/*
+		 * result = scimTestUtils.filter(filterType, resourceName);
+>>>>>>> accdac8... test class conf mod
 		 * 
 		 * */
 		
@@ -214,6 +243,13 @@ public class Testclass {
 		Assert.assertFalse(returnedObjects.isEmpty());
 
 
+<<<<<<< HEAD
+=======
+	@Test(priority = 5, dependsOnMethods = {
+			"createObjectOnResourcesTest" }, dataProvider = "listAllfromResourcesProvider")
+	private void listAllfromResourcesTest(int numberOfResources, String resourceName) {
+		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+>>>>>>> accdac8... test class conf mod
 
 	}
 	@Test ( priority=5, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "listAllfromResourcesProvider")
@@ -226,10 +262,16 @@ public class Testclass {
 
 	}
 
+<<<<<<< HEAD
 	@Test ( priority=3, dependsOnMethods = {"createObjectOnResourcesTest"}, dataProvider = "updateUserResourceObjectTestProvider")
 	private void updateUserResourceObjectTest(String updateType, Uid uid){
 
 		Uid returnedUid = ScimTestUtils.updateResourceTestHelper("users", updateType,userUid,groupUid, testNumber,connector);
+=======
+	@Test(priority = 3, dependsOnMethods = {
+			"createObjectOnResourcesTest" }, dataProvider = "updateUserResourceObjectTestProvider")
+	private void updateUserResourceObjectTest(String updateType, Uid uid) {
+>>>>>>> accdac8... test class conf mod
 
 		Assert.assertEquals(uid,returnedUid );
 
@@ -238,6 +280,12 @@ public class Testclass {
 	@Test (priority=4,dependsOnMethods = {"createObjectOnResourcesTest"},  dataProvider = "updateGroupResourceObjectTestProvider")
 	private void updateGroupResourceObjectTest(String updateType, Uid uid){
 
+<<<<<<< HEAD
+=======
+	@Test(priority = 4, dependsOnMethods = {
+			"createObjectOnResourcesTest" }, dataProvider = "updateGroupResourceObjectTestProvider")
+	private void updateGroupResourceObjectTest(String updateType, Uid uid) {
+>>>>>>> accdac8... test class conf mod
 
 
 		Uid returnedUid = ScimTestUtils.updateResourceTestHelper("groups", updateType,userUid,groupUid,testNumber,connector);
@@ -264,8 +312,16 @@ public class Testclass {
 		
 	}
 
+<<<<<<< HEAD
 	@Test (priority=7,dependsOnMethods= {"createObjectOnResourcesTest"}, dataProvider = "deletetObjectfromResourcesProvider")
 	private void deleteObjectfromResourcesTest(String resourceName,Uid uid){
+=======
+	@Test(priority = 7, dependsOnMethods = {
+			"createObjectOnResourcesTest" }, dataProvider = "deletetObjectfromResourcesProvider")
+	private void deleteObjectfromResourcesTest(String resourceName, Uid uid) {
+
+		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+>>>>>>> accdac8... test class conf mod
 
 		ArrayList<ConnectorObject> returnedObjects= new ArrayList<ConnectorObject>(); 
 		

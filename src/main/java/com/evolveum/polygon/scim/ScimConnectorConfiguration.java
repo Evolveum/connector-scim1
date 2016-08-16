@@ -23,6 +23,12 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	private String CLIENTID = "**";
 	private String TOKEN = "**";
 	private String CLIENTSECRET = "**";
+<<<<<<< HEAD
+=======
+
+	private String PROXY;
+	private Integer PROXY_PORT_NUMBER;
+>>>>>>> accdac8... test class conf mod
 
 	private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
 

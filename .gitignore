@@ -26,3 +26,4 @@ test-output/
 .project
 src/main/java/com/evolveum/polygon/scim/Main.java
 .classpath
+/bin/

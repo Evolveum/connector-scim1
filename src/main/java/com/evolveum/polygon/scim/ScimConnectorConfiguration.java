@@ -11,7 +11,7 @@ import org.identityconnectors.framework.spi.StatefulConfiguration;
  * processing the connector configuration.
  */
 public class ScimConnectorConfiguration extends AbstractConfiguration implements StatefulConfiguration {
-	
+
 	private String AUTHENTICATION = "token";
 	private String SCIM_ENDPOINT = "/scim";
 	private String SCIM_VERSION = "/v1";
@@ -23,12 +23,9 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	private String CLIENTID = "**";
 	private String TOKEN = "**";
 	private String CLIENTSECRET = "**";
-<<<<<<< HEAD
-=======
 
 	private String PROXY;
 	private Integer PROXY_PORT_NUMBER;
->>>>>>> accdac8... test class conf mod
 
 	private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
 
@@ -37,7 +34,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 * 
 	 * @return the authentication string.
 	 */
-	
+
 	@ConfigurationProperty(order = 1, displayMessageKey = "Authentication", groupMessageKey = "basic.group", helpMessageKey = "Please provide the type of authentication.", required = true, confidential = false)
 	public String getAuthentication() {
 		return AUTHENTICATION;
@@ -53,7 +50,6 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		this.AUTHENTICATION = authentication;
 	}
 
-	
 	@ConfigurationProperty(order = 2, displayMessageKey = "Username", groupMessageKey = "basic.group", helpMessageKey = "Please provide the administrator user name for the scim enabled service you are logging into", required = true, confidential = false)
 
 	public String getUserName() {
@@ -216,8 +212,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	public void setService(String service) {
 		this.GRANT = service;
 	}
-	
-	
+
 	@ConfigurationProperty(order = 10, displayMessageKey = "Base URL", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the base url for a token type of authentication.", required = true, confidential = false)
 	public String getBaseUrl() {
 		return BASEURL;
@@ -232,8 +227,8 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	public void setBaseUrl(String baseUrl) {
 		this.BASEURL = baseUrl;
 	}
-	
-	@ConfigurationProperty(order = 11, displayMessageKey = "Token", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the token for a token type of authentication.", required = true, confidential = false)
+
+	@ConfigurationProperty(order = 11, displayMessageKey = "Token", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the token for a token type of authentication.", required = false, confidential = true)
 	public String getToken() {
 		return TOKEN;
 	}
@@ -248,48 +243,78 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		this.TOKEN = token;
 	}
 
+	@ConfigurationProperty(order = 12, displayMessageKey = "Proxy adress", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the adress of the proxy host.", required = false, confidential = false)
+	public String getProxyUrl() {
+		return PROXY;
+	}
+
+	/**
+	 * Setter method for the "TOKEN" attribute.
+	 * 
+	 * @param username
+	 *            the user name string value.
+	 */
+	public void setProxyUrl(String proxy) {
+		this.PROXY = proxy;
+	}
+
+	@ConfigurationProperty(order = 13, displayMessageKey = "Proxy port number", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the port number of the proxy host.", required = false, confidential = false)
+	public Integer getProxyPortNumber() {
+		return PROXY_PORT_NUMBER;
+	}
+
+	/**
+	 * Setter method for the "TOKEN" attribute.
+	 * 
+	 * @param username
+	 *            the user name string value.
+	 */
+	public void setProxyPortNumber(Integer proxyPortNumber) {
+		this.PROXY_PORT_NUMBER = proxyPortNumber;
+	}
+
 	@Override
 	public void validate() {
-		
+
 		if (StringUtil.isBlank(AUTHENTICATION)) {
 			throw new IllegalArgumentException("Authentication cannot be empty.");
 		}
-		
-		if (!"token".equals(AUTHENTICATION)){
 
-		if (StringUtil.isBlank(USERNAME)) {
-			throw new IllegalArgumentException("Username cannot be empty");
-		}
+		if (!"token".equals(AUTHENTICATION)) {
 
-		if (StringUtil.isBlank(PASSWORD)) {
-			throw new IllegalArgumentException("Password cannot be empty");
-		}
+			if (StringUtil.isBlank(USERNAME)) {
+				throw new IllegalArgumentException("Username cannot be empty");
+			}
 
-		if (StringUtil.isBlank(CLIENTSECRET)) {
-			throw new IllegalArgumentException("Client Secret cannot be empty.");
-		}
+			if (StringUtil.isBlank(PASSWORD)) {
+				throw new IllegalArgumentException("Password cannot be empty");
+			}
 
-		if (StringUtil.isBlank(LOGINURL)) {
-			throw new IllegalArgumentException("Login url cannot be empty.");
-		}
-		if (StringUtil.isBlank(GRANT)) {
-			throw new IllegalArgumentException("Grant type cannot be empty.");
-		}
-		if (StringUtil.isBlank(CLIENTID)) {
-			throw new IllegalArgumentException("Client id cannot be empty.");
-		}
-		
-		}else {
-			
+			if (StringUtil.isBlank(CLIENTSECRET)) {
+				throw new IllegalArgumentException("Client Secret cannot be empty.");
+			}
+
+			if (StringUtil.isBlank(LOGINURL)) {
+				throw new IllegalArgumentException("Login url cannot be empty.");
+			}
+			if (StringUtil.isBlank(GRANT)) {
+				throw new IllegalArgumentException("Grant type cannot be empty.");
+			}
+			if (StringUtil.isBlank(CLIENTID)) {
+				throw new IllegalArgumentException("Client id cannot be empty.");
+			}
+
+		} else {
+
 			if (StringUtil.isBlank(TOKEN)) {
 				throw new IllegalArgumentException("Token cannot be empty.");
 			}
 			if (StringUtil.isBlank(BASEURL)) {
 				throw new IllegalArgumentException("Base URL cannot be empty.");
 			}
-			
+
 		}
-		
+
 		if (StringUtil.isBlank(SCIM_ENDPOINT)) {
 			throw new IllegalArgumentException("Scim endpoint cannot be empty.");
 		}
@@ -309,6 +334,11 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		this.PASSWORD = null;
 		this.USERNAME = null;
 		this.GRANT = null;
+		this.AUTHENTICATION = null;
+		this.PROXY = null;
+		this.PROXY_PORT_NUMBER = null;
+		this.TOKEN = null;
+		this.BASEURL = null;
 	}
 
 }

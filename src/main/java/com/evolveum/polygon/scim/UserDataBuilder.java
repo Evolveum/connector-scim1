@@ -36,7 +36,7 @@ public class UserDataBuilder implements ObjectTranslator {
 	private static final String DELETE = "delete";
 
 	private String operation;
-	
+
 	static {
 		objectNameDictionary.put("userName", "userName");
 
@@ -189,9 +189,9 @@ public class UserDataBuilder implements ObjectTranslator {
 			for (Attribute injectedAttribute : injectedAttributes) {
 				String attributeName = injectedAttribute.getName();
 				multiValueAttribute.add(injectedAttribute);
-				
+
 				if (attributeName.contains(".")) {
-					
+
 					String[] keyParts = attributeName.split("\\."); // e.g.
 					// schemas.default.blank
 					if (keyParts.length == 2) {
@@ -200,7 +200,7 @@ public class UserDataBuilder implements ObjectTranslator {
 					} else {
 						multiLayerAttribute.add(injectedAttribute);
 					}
-				}else {
+				} else {
 
 					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(injectedAttribute));
 				}
@@ -211,11 +211,11 @@ public class UserDataBuilder implements ObjectTranslator {
 		for (Attribute attribute : imsAttributes) {
 
 			String attributeName = attribute.getName();
-			
-			if ("schemas".equals(attributeName)){
-				
-				attributeName= "schemas";
-				attribute= AttributeBuilder.build("schemas.default.blank",attribute.getValue());
+
+			if ("schemas".equals(attributeName)) {
+
+				attributeName = "schemas";
+				attribute = AttributeBuilder.build("schemas.default.blank", attribute.getValue());
 			}
 
 			if (objectNameDictionary.containsKey(attributeName)) {
@@ -236,7 +236,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 			} else if ("__ENABLE__".equals(attributeName)) {
 				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
-				
+
 			} else {
 				LOGGER.warn("Attribute name not defined in dictionary {0}", attributeName);
 			}
@@ -294,7 +294,7 @@ public class UserDataBuilder implements ObjectTranslator {
 				}
 
 				String canonicaltypeName = "";
-				boolean writeToArray= true;
+				boolean writeToArray = true;
 				JSONArray jArray = new JSONArray();
 
 				ArrayList<String> checkedTypeNames = new ArrayList<String>();
@@ -310,16 +310,14 @@ public class UserDataBuilder implements ObjectTranslator {
 						canonicaltypeName = nameFromSubSetParts[1].intern();
 
 						checkedTypeNames.add(canonicaltypeName);
-						for(Attribute subSetAttribute:subAttributeLayerSet){
+						for (Attribute subSetAttribute : subAttributeLayerSet) {
 							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
 							// email.work.value
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
-								
-
 
 								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
-										writeToArray = false;
+									writeToArray = false;
 									List<Object> valueList = subSetAttribute.getValue();
 
 									for (Object attributeValue : valueList) {
@@ -335,18 +333,18 @@ public class UserDataBuilder implements ObjectTranslator {
 											}
 										}
 										jArray.put(multivalueObject);
-										
+
 									}
 
 								} else {
 
-									if (!"blank".equals(finalSubAttributeNameParts[2].intern())){
-									multivalueObject.put(finalSubAttributeNameParts[2].intern(),
-											AttributeUtil.getSingleValue(subSetAttribute));
-									}else{
-										
+									if (!"blank".equals(finalSubAttributeNameParts[2].intern())) {
+										multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+												AttributeUtil.getSingleValue(subSetAttribute));
+									} else {
+
 										jArray.put(AttributeUtil.getSingleValue(subSetAttribute));
-										writeToArray =false;
+										writeToArray = false;
 									}
 
 									if (!"default".equals(nameFromSubSetParts[1].intern())) {
@@ -357,11 +355,12 @@ public class UserDataBuilder implements ObjectTranslator {
 											multivalueObject.put("operation", DELETE);
 										}
 									}
-									
+
 								}
 							}
-						} if (writeToArray){
-							
+						}
+						if (writeToArray) {
+
 							jArray.put(multivalueObject);
 						}
 					}
@@ -584,7 +583,6 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("groups.default.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("groups.default.display").build());
-
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.display").build());
 

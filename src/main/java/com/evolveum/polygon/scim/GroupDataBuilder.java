@@ -29,23 +29,23 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
-	
+
 	private static final String DELETE = "delete";
 
 	private String operation;
-	
+
 	public GroupDataBuilder(String operation) {
 		this.operation = operation;
 	}
 
 	static {
 		objectNameDictionary.put("displayName", "displayName");
-		
-		  objectNameDictionary.put("members.User.value", "value");
-		  objectNameDictionary.put("members.User.display", "display");
-		  objectNameDictionary.put("members.Group.value", "value");
-		  objectNameDictionary.put("members.Group.display", "display");
-		 
+
+		objectNameDictionary.put("members.User.value", "value");
+		objectNameDictionary.put("members.User.display", "display");
+		objectNameDictionary.put("members.Group.value", "value");
+		objectNameDictionary.put("members.Group.display", "display");
+
 		objectNameDictionary.put("schemas", "schemas");
 		objectNameDictionary.put("members.default.value", "value");
 		objectNameDictionary.put("members.default.display", "display");
@@ -71,15 +71,15 @@ public class GroupDataBuilder implements ObjectTranslator {
 		JSONObject completeJsonObj = new JSONObject();
 
 		Set<Attribute> multiLayerAttribute = new HashSet<Attribute>();
-		
+
 		if (injectedAttributes != null) {
 			for (Attribute injectedAttribute : injectedAttributes) {
 				String attributeName = injectedAttribute.getName();
-				
+
 				if (attributeName.contains(".")) {
 
-						multiLayerAttribute.add(injectedAttribute);
-				}else {
+					multiLayerAttribute.add(injectedAttribute);
+				} else {
 
 					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(injectedAttribute));
 				}
@@ -162,7 +162,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 				}
 
 				String canonicaltypeName = "";
-				boolean writeToArray= true;
+				boolean writeToArray = true;
 				JSONArray jArray = new JSONArray();
 
 				ArrayList<String> checkedTypeNames = new ArrayList<String>();
@@ -178,16 +178,14 @@ public class GroupDataBuilder implements ObjectTranslator {
 						canonicaltypeName = nameFromSubSetParts[1].intern();
 
 						checkedTypeNames.add(canonicaltypeName);
-						for(Attribute subSetAttribute:subAttributeLayerSet){
+						for (Attribute subSetAttribute : subAttributeLayerSet) {
 							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
 							// email.work.value
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
-								
-
 
 								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
-										writeToArray = false;
+									writeToArray = false;
 									List<Object> valueList = subSetAttribute.getValue();
 
 									for (Object attributeValue : valueList) {
@@ -203,18 +201,18 @@ public class GroupDataBuilder implements ObjectTranslator {
 											}
 										}
 										jArray.put(multivalueObject);
-										
+
 									}
 
 								} else {
 
-									if (!"blank".equals(finalSubAttributeNameParts[2].intern())){
-									multivalueObject.put(finalSubAttributeNameParts[2].intern(),
-											AttributeUtil.getSingleValue(subSetAttribute));
-									}else{
-										
+									if (!"blank".equals(finalSubAttributeNameParts[2].intern())) {
+										multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+												AttributeUtil.getSingleValue(subSetAttribute));
+									} else {
+
 										jArray.put(AttributeUtil.getSingleValue(subSetAttribute));
-										writeToArray =false;
+										writeToArray = false;
 									}
 
 									if (!"default".equals(nameFromSubSetParts[1].intern())) {
@@ -225,11 +223,12 @@ public class GroupDataBuilder implements ObjectTranslator {
 											multivalueObject.put("operation", DELETE);
 										}
 									}
-									
+
 								}
 							}
-						} if (writeToArray){
-							
+						}
+						if (writeToArray) {
+
 							jArray.put(multivalueObject);
 						}
 					}
@@ -257,16 +256,11 @@ public class GroupDataBuilder implements ObjectTranslator {
 		builder.addAttributeInfo(Name.INFO);
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").setRequired(true).build());
-		
-		  builder.addAttributeInfo(AttributeInfoBuilder.define(
-		  "members.Group.value").build());
-		  builder.addAttributeInfo(AttributeInfoBuilder.define(
-		  "members.Group.display").build());
-		  builder.addAttributeInfo(AttributeInfoBuilder.define(
-		  "members.User.value").build());
-		  builder.addAttributeInfo(AttributeInfoBuilder.define(
-		  "members.User.display").build());
-		
+
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.Group.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.Group.display").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.display").build());
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.display").build());

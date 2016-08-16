@@ -1,6 +1,5 @@
 package com.evolveum.polygon.scim;
 
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -31,13 +30,19 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 
 // Missing filterVisitor methods/filters from SCIM v1 specification: not equal, present
 
-/** Contains methods needed for building a "filter" query which is sent to the resource provider as a more
- * specific search query.
+/**
+ * Contains methods needed for building a "filter" query which is sent to the
+ * resource provider as a more specific search query.
  */
 public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
-	/** Calls the "translateSchemaMapToDictionary" method for schema to filter dictionary translation.
-	 * @param schemaMap - Map containing the representation of all the schemas of resource object provided from the service provider.
+	/**
+	 * Calls the "translateSchemaMapToDictionary" method for schema to filter
+	 * dictionary translation.
+	 * 
+	 * @param schemaMap
+	 *            - Map containing the representation of all the schemas of
+	 *            resource object provided from the service provider.
 	 */
 	public FilterHandler(Map<String, Map<String, Object>> schemaMap) {
 		translateSchemaMapToDictionary(schemaMap);
@@ -87,15 +92,11 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		objectNameDictionary.put("displayName", "displayName");
 		objectNameDictionary.put("nickName", "nickName");
 
-
 		objectNameDictionary.put("emails.work.value", "emails.work.value");
-
 
 		objectNameDictionary.put("emails.home.value", "emails.home.value");
 
-
 		objectNameDictionary.put("emails.other.value", "emails.other.value");
-
 
 		objectNameDictionary.put("addresses.work.streetAddress", "addresses.work.streetAddress");
 		objectNameDictionary.put("addresses.work.locality", "addresses.work.locality");
@@ -120,49 +121,35 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 		objectNameDictionary.put("phoneNumbers.work.value", "phoneNumbers.work.value");
 
-
 		objectNameDictionary.put("phoneNumbers.home.value", "phoneNumbers.home.value");
-
 
 		objectNameDictionary.put("phoneNumbers.mobile.value", "phoneNumbers.mobile.value");
 
-
 		objectNameDictionary.put("phoneNumbers.fax.value", "phoneNumbers.fax.value");
-
 
 		objectNameDictionary.put("phoneNumbers.pager.value", "phoneNumbers.pager.value");
 
 		objectNameDictionary.put("phoneNumbers.other.value", "phoneNumbers.other.value");
 
-
-
-
 		objectNameDictionary.put("photos.photo.value", "photos.photo.value");
-
 
 		objectNameDictionary.put("photos.thumbnail.value", "photos.thumbnail.value");
 
 		objectNameDictionary.put("ims.aim.value", "ims.aim.value");
 
-
 		objectNameDictionary.put("ims.gtalk.value", "ims.gtalk.value");
 
-
 		objectNameDictionary.put("ims.icq.value", "ims.icq.value");
-
 
 		objectNameDictionary.put("ims.msn.value", "ims.msn.value");
 
 		objectNameDictionary.put("ims.xmpp.value", "ims.xmpp.value");
 
-
 		objectNameDictionary.put("ims.skype.value", "ims.skype.value");
-
 
 		objectNameDictionary.put("ims.qq.value", "ims.qq.value");
 
 		objectNameDictionary.put("ims.yahoo.value", "ims.yahoo.value");
-
 
 		objectNameDictionary.put("ims.other.value", "ims.other.value");
 
@@ -177,7 +164,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		objectNameDictionary.put("active", "active");
 		objectNameDictionary.put("password", "password");
 
-
 		objectNameDictionary.put("x509Certificates", "x509Certificates");
 		objectNameDictionary.put("x509Certificates.value", "value");
 
@@ -191,52 +177,57 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 		objectNameDictionary.put("displayName", "displayName");
 
-
-		/*	objectNameDictionary.put("members.User.value", "value");
-			objectNameDictionary.put("members.User.display", "display");
-			objectNameDictionary.put("members.Group.value", "value");
-			objectNameDictionary.put("members.Group.display", "display");
+		/*
+		 * objectNameDictionary.put("members.User.value", "value");
+		 * objectNameDictionary.put("members.User.display", "display");
+		 * objectNameDictionary.put("members.Group.value", "value");
+		 * objectNameDictionary.put("members.Group.display", "display");
 		 */
 		objectNameDictionary.put("members.default.value", "value");
 		objectNameDictionary.put("members.default.display", "display");
 
 	}
 
-	/** Implementation of the "visitAndFilter" filter method.
-	 * @param p Helper parameter which may contain the "valuePath" string value indicating the name of an complex attribute with two
-	 * or more subattributes being processed.
-	 * @param filter The filter or list of filters being processed.
+	/**
+	 * Implementation of the "visitAndFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the "valuePath" string
+	 *            value indicating the name of an complex attribute with two or
+	 *            more subattributes being processed.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The filter part of an query.
 	 */
 	@Override
 	public StringBuilder visitAndFilter(String p, AndFilter filter) {
 		LOGGER.info("Processing request trought AND filter");
 
-		String[] samePathIdParts  = p.split("\\.");// e.g valuePath.members
+		String[] samePathIdParts = p.split("\\.");// e.g valuePath.members
 
-		if(samePathIdParts.length >1){
+		if (samePathIdParts.length > 1) {
 			p = samePathIdParts[1];
 		}
 
 		StringBuilder completeQuery = new StringBuilder();
-		int i =0;
-		int size =filter.getFilters().size();
+		int i = 0;
+		int size = filter.getFilters().size();
 		boolean isFirst = true;
 
 		for (Filter f : filter.getFilters()) {
 			i++;
 
 			if (isFirst) {
-				if(!p.isEmpty()|| samePathIdParts.length >1){
+				if (!p.isEmpty() || samePathIdParts.length > 1) {
 					completeQuery.append(p);
 					completeQuery.append("[");
 					completeQuery.append(f.accept(this, p));
 					isFirst = false;
-					if (i==size){
+					if (i == size) {
 						completeQuery.append("]");
 						isFirst = false;
 					}
-				}else{
+				} else {
 
 					completeQuery = f.accept(this, p);
 					isFirst = false;
@@ -252,8 +243,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 				} else {
 					completeQuery.append(f.accept(this, p).toString());
 				}
-				if(i==size){
-					if (!p.isEmpty()|| samePathIdParts.length >1){
+				if (i == size) {
+					if (!p.isEmpty() || samePathIdParts.length > 1) {
 						completeQuery.append("]");
 					}
 				}
@@ -263,9 +254,15 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 		return completeQuery;
 	}
-	/** Implementation of the "visitContainsFilter" filter method.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+
+	/**
+	 * Implementation of the "visitContainsFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
 	 * @throws InvalidAttributeValueException
 	 */
@@ -292,50 +289,60 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			throw new InvalidAttributeValueException("No atribute key name provided");
 		}
 	}
-	/** Implementation of the "visitContainsAllValuesFilter" filter method.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+
+	/**
+	 * Implementation of the "visitContainsAllValuesFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The final filter query.
 	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
 		StringBuilder preprocessedFilter = null;
-		
-		
-		if (!"salesforce".equals(p)&&!"slack".equals(p)){
+
+		if (!"salesforce".equals(p) && !"slack".equals(p)) {
 			preprocessedFilter = processArrayQ(filter, p);
 		}
-		if(null != preprocessedFilter){
+		if (null != preprocessedFilter) {
 			return preprocessedFilter;
-		}else{
+		} else {
 
-			Collection<Filter> filterList= buildValueList(filter,"members");
-			for(Filter f: filterList){
-				if(f instanceof EqualsFilter){
-					
+			Collection<Filter> filterList = buildValueList(filter, "members");
+			for (Filter f : filterList) {
+				if (f instanceof EqualsFilter) {
+
 					objectNameDictionary.put("members", "members");
-					return f.accept(this,p);
+					return f.accept(this, p);
 				}
 			}
 			objectNameDictionary.put("members", "members");
 			AndFilter andFilterTest = (AndFilter) FilterBuilder.and(filterList);
 
-			return andFilterTest.accept(this,p);
+			return andFilterTest.accept(this, p);
 
 		}
 
-
 	}
-	/** Implementation of the "visitEqualsFilter" filter method.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+
+	/**
+	 * Implementation of the "visitEqualsFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
 	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitEqualsFilter(String p, EqualsFilter filter) {
-		LOGGER.info("Processing request trought EQUALS filter: {0}",filter);
+		LOGGER.info("Processing request trought EQUALS filter: {0}", filter);
 
 		if (!filter.getName().isEmpty()) {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -359,9 +366,16 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			throw new InvalidAttributeValueException("No atribute key name provided");
 		}
 	}
-	/** Implementation of the "visitExtendedFilter" filter method is not supported in this connector.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+
+	/**
+	 * Implementation of the "visitExtendedFilter" filter method is not
+	 * supported in this connector.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @throws NoSuchMethodError
 	 */
 	@Override
@@ -370,9 +384,14 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		throw new NoSuchMethodError("Usuported queuery filter");
 	}
 
-	/** Implementation of the "visitGreaterThanFilter" filter method.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+	/**
+	 * Implementation of the "visitGreaterThanFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
 	 * @throws InvalidAttributeValueException
 	 */
@@ -397,19 +416,25 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			}
 		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY: {0}",filter);
+			LOGGER.error("Filter atribute key name EMPTY: {0}", filter);
 			throw new InvalidAttributeValueException("No atribute key name provided");
 		}
 	}
-	/** Implementation of the "visitGreaterThanOrEqualFilter" filter method.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+
+	/**
+	 * Implementation of the "visitGreaterThanOrEqualFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
 	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitGreaterThanOrEqualFilter(String p, GreaterThanOrEqualFilter filter) {
-		LOGGER.info("Processing request trought GREATHERTHANOREQUAL filter: {0}",filter);
+		LOGGER.info("Processing request trought GREATHERTHANOREQUAL filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -427,19 +452,25 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			}
 		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY: {0}",filter);
+			LOGGER.error("Filter atribute key name EMPTY: {0}", filter);
 			throw new InvalidAttributeValueException("No atribute key name provided");
 		}
 	}
-	/** Implementation of the "visitLessThanFilter" filter method.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+
+	/**
+	 * Implementation of the "visitLessThanFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
 	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitLessThanFilter(String p, LessThanFilter filter) {
-		LOGGER.info("Processing request trought LESSTHAN filter: {0}",filter);
+		LOGGER.info("Processing request trought LESSTHAN filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -448,29 +479,35 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 				if (objectNameDictionary.containsKey(filter.getName())) {
 
 					return BuildString(filter.getAttribute(), LESSTHAN, objectNameDictionary.get(filter.getName()));
-				}else {
+				} else {
 					LOGGER.error("Usuported attribute name procesed by queuery filter: {0}", filter.getName());
 					throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
 				}
 			} else {
 				return preprocessedFilter;
 			}
-		}else {
+		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY: {0}",filter);
+			LOGGER.error("Filter atribute key name EMPTY: {0}", filter);
 			throw new InvalidAttributeValueException("No atribute key name provided");
 
 		}
 	}
-	/** Implementation of the "visitLessThanOrEqualFilter" filter method.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+
+	/**
+	 * Implementation of the "visitLessThanOrEqualFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
 	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitLessThanOrEqualFilter(String p, LessThanOrEqualFilter filter) {
-		LOGGER.info("Processing request trought LESSTHANOREQUAL filter: {0}",filter);
+		LOGGER.info("Processing request trought LESSTHANOREQUAL filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -488,14 +525,19 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			}
 		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY: {0}",filter);
+			LOGGER.error("Filter atribute key name EMPTY: {0}", filter);
 			throw new InvalidAttributeValueException("No atribute key name provided");
 		}
 	}
 
-	/** Implementation of the "visitNotFilter" filter method.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+	/**
+	 * Implementation of the "visitNotFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The complete query.
 	 */
 	@Override
@@ -507,9 +549,15 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 		return completeQuery;
 	}
-	/** Implementation of the "visitOrFilter" filter method.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+
+	/**
+	 * Implementation of the "visitOrFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The complete query.
 	 */
 	@Override
@@ -546,15 +594,21 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		return completeQuery;
 
 	}
-	/** Implementation of the "visitStartsWithFilter" filter method.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+
+	/**
+	 * Implementation of the "visitStartsWithFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
 	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitStartsWithFilter(String p, StartsWithFilter filter) {
-		LOGGER.info("Processing request trought STARTSWITH filter: {0}",filter);
+		LOGGER.info("Processing request trought STARTSWITH filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -575,9 +629,15 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			throw new InvalidAttributeValueException("No atribute key name provided");
 		}
 	}
-	/** Implementation of the "visitEndsWithFilter" filter method.
-	 * @param p Helper parameter which may contain the resource provider name used for workaround purposes.
-	 * @param filter The filter or list of filters being processed.
+
+	/**
+	 * Implementation of the "visitEndsWithFilter" filter method.
+	 * 
+	 * @param p
+	 *            Helper parameter which may contain the resource provider name
+	 *            used for workaround purposes.
+	 * @param filter
+	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
 	 * @throws InvalidAttributeValueException
 	 */
@@ -606,10 +666,17 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 					"No atribute key name provided while processing an ends with filter");
 		}
 	}
-	/** Builds the string representation of an filter query.
-	 * @param attribute The attribute on behalf of which the query result should be filtered out .
-	 * @param operator The operator which represents the type of filter used.
-	 * @param name The name of the attribute which is being used.
+
+	/**
+	 * Builds the string representation of an filter query.
+	 * 
+	 * @param attribute
+	 *            The attribute on behalf of which the query result should be
+	 *            filtered out .
+	 * @param operator
+	 *            The operator which represents the type of filter used.
+	 * @param name
+	 *            The name of the attribute which is being used.
 	 * @return The string representation of a filter.
 	 * @throws InvalidAttributeValueException
 	 */
@@ -631,12 +698,19 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		return resultString;
 	}
 
-	/** Processes through an filter query containing an complex attribute with subattributes.
-	 * @param filter The filter which is being processed.
-	 * @param p Helper parameter which can contain the name of the service provider for workaround purposes
-	 * or can be populated with an "valuePath" string value indicating the name of a complex attribute with two
-	 * or more subattributes being processed.
-	 * @return The final string representation of a filter or null if the attribute is evaluated as non complex.
+	/**
+	 * Processes through an filter query containing an complex attribute with
+	 * subattributes.
+	 * 
+	 * @param filter
+	 *            The filter which is being processed.
+	 * @param p
+	 *            Helper parameter which can contain the name of the service
+	 *            provider for workaround purposes or can be populated with an
+	 *            "valuePath" string value indicating the name of a complex
+	 *            attribute with two or more subattributes being processed.
+	 * @return The final string representation of a filter or null if the
+	 *         attribute is evaluated as non complex.
 	 */
 	private StringBuilder processArrayQ(AttributeFilter filter, String p) {
 		if (filter.getName().contains(".")) {
@@ -646,13 +720,12 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			if (keyParts.length == 3) {
 
 				StringBuilder processedString = new StringBuilder();
-				Collection<Filter> filterList =new ArrayList<Filter>();
+				Collection<Filter> filterList = new ArrayList<Filter>();
 				if (filter instanceof EqualsFilter) {
 
 					StringBuilder keyName = new StringBuilder(keyParts[0]).append(".").append(keyParts[2]);
 					EqualsFilter eqfilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder
 							.build(keyName.toString(), AttributeUtil.getAsStringValue(filter.getAttribute())));
-
 
 					StringBuilder type = new StringBuilder(keyParts[0]).append(".").append("type");
 					objectNameDictionary.put(type.toString(), type.toString());
@@ -664,25 +737,22 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 					objectNameDictionary.put(type.toString(), type.toString());
 					objectNameDictionary.put(keyName.toString(), keyName.toString());
-				}
-				else if (filter instanceof ContainsAllValuesFilter){
-					StringBuilder pathName = new StringBuilder("valuePath").append(".").append(keyParts[0]); 
-					p =pathName.toString();
+				} else if (filter instanceof ContainsAllValuesFilter) {
+					StringBuilder pathName = new StringBuilder("valuePath").append(".").append(keyParts[0]);
+					p = pathName.toString();
 
-
-					filterList= buildValueList((ContainsAllValuesFilter)filter,keyParts[2]);
+					filterList = buildValueList((ContainsAllValuesFilter) filter, keyParts[2]);
 
 					StringBuilder type = new StringBuilder(keyParts[0]).append(".").append("type");
 
-
-					EqualsFilter eq = (EqualsFilter) FilterBuilder
-							.equalTo(AttributeBuilder.build("type", keyParts[1]));
+					EqualsFilter eq = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build("type", keyParts[1]));
 					filterList.add(eq);
 
 					objectNameDictionary.put("type", "type");
 					objectNameDictionary.put(keyParts[2], keyParts[2]);
-				}else {
-					LOGGER.warn("Evalated filter is not supported for querying of \"complex\" attributes: {0}.", filter);
+				} else {
+					LOGGER.warn("Evalated filter is not supported for querying of \"complex\" attributes: {0}.",
+							filter);
 					return null;
 				}
 				AndFilter and = (AndFilter) FilterBuilder.and(filterList);
@@ -690,16 +760,26 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 				processedString = and.accept(this, p);
 				return processedString;
 			}
-			LOGGER.info("The attribute {0} is not a \"complex\" attribute. The filter query will be processed accordingli.",filter.getName());
+			LOGGER.info(
+					"The attribute {0} is not a \"complex\" attribute. The filter query will be processed accordingli.",
+					filter.getName());
 			return null;
 		}
-		LOGGER.info("Delimiters not found in the attribute name of {0}, the attribute is non complex. The filter query will be processed accordingly",filter.getName());
+		LOGGER.info(
+				"Delimiters not found in the attribute name of {0}, the attribute is non complex. The filter query will be processed accordingly",
+				filter.getName());
 		return null;
 	}
 
-	/** Processes a Map representation of the resource schemas provided from the resource provider. A dictionary is generated at the output of this method 
-	 * which is later used for filter translation. Is the resource schemas representation is not present then and default dictionary is used.
-	 * @param schemaMap Map representing the resource schemas provided from the resource provider.
+	/**
+	 * Processes a Map representation of the resource schemas provided from the
+	 * resource provider. A dictionary is generated at the output of this method
+	 * which is later used for filter translation. Is the resource schemas
+	 * representation is not present then and default dictionary is used.
+	 * 
+	 * @param schemaMap
+	 *            Map representing the resource schemas provided from the
+	 *            resource provider.
 	 */
 	private void translateSchemaMapToDictionary(Map<String, Map<String, Object>> schemaMap) {
 
@@ -726,26 +806,32 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		}
 	}
 
-	/** Method is called if an attribute is processed which contains multiple values. 
-	 * @param filter The filter which is being processed.
-	 * @param attributeName The name of the attribute which is being processed.
+	/**
+	 * Method is called if an attribute is processed which contains multiple
+	 * values.
+	 * 
+	 * @param filter
+	 *            The filter which is being processed.
+	 * @param attributeName
+	 *            The name of the attribute which is being processed.
 	 * @return List of filters which was built from the list of values.
 	 */
-	private Collection<Filter> buildValueList(ContainsAllValuesFilter filter, String attributeName){
+	private Collection<Filter> buildValueList(ContainsAllValuesFilter filter, String attributeName) {
 
 		List<Object> valueList = filter.getAttribute().getValue();
-		Collection<Filter> filterList= new ArrayList<Filter>();
+		Collection<Filter> filterList = new ArrayList<Filter>();
 
-		for(Object value:valueList){		
-			if(attributeName.isEmpty()){
+		for (Object value : valueList) {
+			if (attributeName.isEmpty()) {
 
 				ContainsFilter containsSingleAtribute = (ContainsFilter) FilterBuilder
 						.contains(AttributeBuilder.build(filter.getName(), value));
 				filterList.add(containsSingleAtribute);
-			}else{
+			} else {
 				// For salesforce workaroud purposess
-				EqualsFilter containsSingleAtribute = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(attributeName,value));
-				filterList.add(containsSingleAtribute); 
+				EqualsFilter containsSingleAtribute = (EqualsFilter) FilterBuilder
+						.equalTo(AttributeBuilder.build(attributeName, value));
+				filterList.add(containsSingleAtribute);
 			}
 
 		}

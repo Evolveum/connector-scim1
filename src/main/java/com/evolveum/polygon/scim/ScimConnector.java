@@ -38,7 +38,7 @@ import org.json.JSONObject;
 @ConnectorClass(displayNameKey = "ScimConnector.connector.display", configurationClass = ScimConnectorConfiguration.class)
 
 public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp,
-UpdateAttributeValuesOp {
+		UpdateAttributeValuesOp {
 
 	private ScimConnectorConfiguration configuration;
 	private CrudManagerScim crudManager;
@@ -67,12 +67,11 @@ UpdateAttributeValuesOp {
 				long startTime = System.currentTimeMillis();
 				buildSchemas(schemaBuilder);
 				long endTime = System.currentTimeMillis();
-				
-				long time = (endTime- startTime);
-				
+
+				long time = (endTime - startTime);
+
 				LOGGER.error("The buildSchemas methods Time: {0} milliseconds", time);
-			
-			
+
 			} else {
 
 				ObjectClassInfo userSchemaInfo = UserDataBuilder.getUserSchema();
@@ -157,9 +156,9 @@ UpdateAttributeValuesOp {
 	@Override
 	public Uid create(ObjectClass object, Set<Attribute> attribute, OperationOptions options) {
 		LOGGER.info("Resource object create");
-		
+
 		HashSet<Attribute> injectetAttributeSet = new HashSet<Attribute>();
-		
+
 		if (attribute == null || attribute.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty", attribute);
 			throw new IllegalArgumentException("Set of Attributes value is null or empty");
@@ -177,18 +176,20 @@ UpdateAttributeValuesOp {
 
 					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
-					
-					// TODO improve for other providers 
-					if ("slack".equals(providerName)){
-						if (hlAtrribute.containsKey("schema")){
-						Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",hlAtrribute.get("schema"));
-						
-						injectetAttributeSet.add(schemaAttribute);
+
+					// TODO improve for other providers
+					if ("slack".equals(providerName)) {
+						if (hlAtrribute.containsKey("schema")) {
+							Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
+									hlAtrribute.get("schema"));
+
+							injectetAttributeSet.add(schemaAttribute);
 						}
-						
+
 					}
 
-					uid = crudManager.createEntity(USERS, jsonDataBuilder, attribute, attributeMap,injectetAttributeSet);
+					uid = crudManager.createEntity(USERS, jsonDataBuilder, attribute, attributeMap,
+							injectetAttributeSet);
 				}
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
@@ -199,16 +200,18 @@ UpdateAttributeValuesOp {
 					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
 
-					// TODO improve for other providers 
-					if ("slack".equals(providerName)){
-						if (hlAtrribute.containsKey("schema")){
-						Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",hlAtrribute.get("schema"));
-						injectetAttributeSet.add(schemaAttribute);
+					// TODO improve for other providers
+					if ("slack".equals(providerName)) {
+						if (hlAtrribute.containsKey("schema")) {
+							Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
+									hlAtrribute.get("schema"));
+							injectetAttributeSet.add(schemaAttribute);
 						}
-						
+
 					}
-					
-					uid = crudManager.createEntity(GROUPS, jsonDataBuilder, attribute, attributeMap,injectetAttributeSet);
+
+					uid = crudManager.createEntity(GROUPS, jsonDataBuilder, attribute, attributeMap,
+							injectetAttributeSet);
 
 				}
 
@@ -221,18 +224,20 @@ UpdateAttributeValuesOp {
 
 					Map<String, Map<String, Object>> attributeMap = new HashMap<String, Map<String, Object>>();
 					attributeMap = fetchAttributeMap(hlAtrribute, attributeMap);
-					
-					// TODO improve for other providers 
-					if ("slack".equals(providerName)){
-						if (hlAtrribute.containsKey("schema")){
-						Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",hlAtrribute.get("schema"));
-						
-						injectetAttributeSet.add(schemaAttribute);
+
+					// TODO improve for other providers
+					if ("slack".equals(providerName)) {
+						if (hlAtrribute.containsKey("schema")) {
+							Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
+									hlAtrribute.get("schema"));
+
+							injectetAttributeSet.add(schemaAttribute);
 						}
-						
+
 					}
 
-					uid = crudManager.createEntity(endpointName, jsonDataBuilder, attribute, attributeMap,injectetAttributeSet);
+					uid = crudManager.createEntity(endpointName, jsonDataBuilder, attribute, attributeMap,
+							injectetAttributeSet);
 				}
 			}
 
@@ -241,22 +246,24 @@ UpdateAttributeValuesOp {
 
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				ObjectTranslator userBuild = new UserDataBuilder("");
-				
-				// TODO improve for other providers 
-				if ("slack".equals(providerName)){
+
+				// TODO improve for other providers
+				if ("slack".equals(providerName)) {
 
 					Map<String, String> hlAtrribute;
 					hlAtrribute = fetchHighLevelAttributeMap("/Users");
 					if (hlAtrribute != null) {
-						
-					if (hlAtrribute.containsKey("schema")){
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",hlAtrribute.get("schema"));
-					injectetAttributeSet.add(schemaAttribute);
-					}}
-					
+
+						if (hlAtrribute.containsKey("schema")) {
+							Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
+									hlAtrribute.get("schema"));
+							injectetAttributeSet.add(schemaAttribute);
+						}
+					}
+
 				}
 
-				Uid uid = crudManager.createEntity(USERS, userBuild, attribute, null,injectetAttributeSet);
+				Uid uid = crudManager.createEntity(USERS, userBuild, attribute, null, injectetAttributeSet);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -268,20 +275,22 @@ UpdateAttributeValuesOp {
 			} else if (ObjectClass.GROUP.equals(object)) {
 
 				GroupDataBuilder groupBuild = new GroupDataBuilder("");
-				
-				// TODO improve for other providers 
-				if ("slack".equals(providerName)){
+
+				// TODO improve for other providers
+				if ("slack".equals(providerName)) {
 
 					Map<String, String> hlAtrribute;
 					hlAtrribute = fetchHighLevelAttributeMap("/Users");
 					if (hlAtrribute != null) {
 
-					if (hlAtrribute.containsKey("schema")){
-					
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",hlAtrribute.get("schema"));
-					injectetAttributeSet.add(schemaAttribute);
-					}}
-					
+						if (hlAtrribute.containsKey("schema")) {
+
+							Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
+									hlAtrribute.get("schema"));
+							injectetAttributeSet.add(schemaAttribute);
+						}
+					}
+
 				}
 
 				Uid uid = crudManager.createEntity(GROUPS, groupBuild, attribute, null, injectetAttributeSet);
@@ -323,15 +332,13 @@ UpdateAttributeValuesOp {
 
 		// For Salesforce workaround purposes
 
-		
-		if(!this.configuration.getLoginURL().isEmpty()){
-			
-		
-	loginUrlParts = this.configuration.getLoginURL().split("\\."); // e.g.
-		
-		}else{
-			
-	 loginUrlParts = this.configuration.getBaseUrl().split("\\."); // e.g.
+		if (!this.configuration.getLoginURL().isEmpty()) {
+
+			loginUrlParts = this.configuration.getLoginURL().split("\\."); // e.g.
+
+		} else {
+
+			loginUrlParts = this.configuration.getBaseUrl().split("\\."); // e.g.
 		}
 		// https://login.salesforce.com
 		if (loginUrlParts.length >= 2) {
@@ -345,9 +352,10 @@ UpdateAttributeValuesOp {
 
 			// TODO switch to true, just for test purposes
 			genericsCanBeApplied = true;
-		}else{
-			
-			LOGGER.warn("No schema found for processing, the connector will switch to the core SCIM v1. schema definition");
+		} else {
+
+			LOGGER.warn(
+					"No schema found for processing, the connector will switch to the core SCIM v1. schema definition");
 		}
 
 	}
@@ -666,9 +674,9 @@ UpdateAttributeValuesOp {
 		if ("salesforce".equals(providerName) || "slack".equals(providerName)) {
 
 			LOGGER.info("The provider name is: {0}", providerName);
-			
+
 			queryUriSnippet.append(prefixChar).append("filter=")
-			.append(query.accept(new FilterHandler(schemaMap), providerName));
+					.append(query.accept(new FilterHandler(schemaMap), providerName));
 
 		} else {
 			queryUriSnippet.append(prefixChar).append("filter=").append(query.accept(new FilterHandler(schemaMap), ""));
@@ -749,7 +757,7 @@ UpdateAttributeValuesOp {
 		Integer PagedResultsOffset = options.getPagedResultsOffset();
 		if (pageSize != null && PagedResultsOffset != null) {
 			queryBuilder.append("?startIndex=").append(PagedResultsOffset).append("&").append("count=")
-			.append(pageSize);
+					.append(pageSize);
 
 			return queryBuilder;
 		}

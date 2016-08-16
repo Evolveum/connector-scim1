@@ -9,7 +9,6 @@ import java.util.Set;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -74,9 +73,9 @@ public class GenericDataBuilder implements ObjectTranslator {
 			for (Attribute injectedAttribute : injectedAttributes) {
 				String attributeName = injectedAttribute.getName();
 				multiValueAttribute.add(injectedAttribute);
-				
+
 				if (attributeName.contains(".")) {
-					
+
 					String[] keyParts = attributeName.split("\\."); // e.g.
 					// schemas.default.blank
 					if (keyParts.length == 2) {
@@ -85,7 +84,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 					} else {
 						multiLayerAttribute.add(injectedAttribute);
 					}
-				}else {
+				} else {
 
 					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(injectedAttribute));
 				}
@@ -148,7 +147,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 	 *            methods.
 	 * @return A json representation of the provided data set.
 	 */
-	// TODO more efficient 
+	// TODO more efficient
 	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
 
 		String mainAttributeName = "";
@@ -177,7 +176,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 				}
 
 				String canonicaltypeName = "";
-				boolean writeToArray= true;
+				boolean writeToArray = true;
 				JSONArray jArray = new JSONArray();
 
 				ArrayList<String> checkedTypeNames = new ArrayList<String>();
@@ -193,7 +192,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 						canonicaltypeName = nameFromSubSetParts[1].intern();
 
 						checkedTypeNames.add(canonicaltypeName);
-						for(Attribute subSetAttribute:subAttributeLayerSet){
+						for (Attribute subSetAttribute : subAttributeLayerSet) {
 							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
 							// email.work.value
@@ -215,18 +214,18 @@ public class GenericDataBuilder implements ObjectTranslator {
 											}
 										}
 										jArray.put(multivalueObject);
-										
+
 									}
 
 								} else {
 
-									if (!"blank".equals(finalSubAttributeNameParts[2].intern())){
-									multivalueObject.put(finalSubAttributeNameParts[2].intern(),
-											AttributeUtil.getSingleValue(subSetAttribute));
-									}else{
-										
+									if (!"blank".equals(finalSubAttributeNameParts[2].intern())) {
+										multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+												AttributeUtil.getSingleValue(subSetAttribute));
+									} else {
+
 										jArray.put(AttributeUtil.getSingleValue(subSetAttribute));
-										writeToArray =false;
+										writeToArray = false;
 									}
 
 									if (!"default".equals(nameFromSubSetParts[1].intern())) {
@@ -237,11 +236,12 @@ public class GenericDataBuilder implements ObjectTranslator {
 											multivalueObject.put("operation", DELETE);
 										}
 									}
-									
+
 								}
 							}
-						} if (writeToArray){
-							
+						}
+						if (writeToArray) {
+
 							jArray.put(multivalueObject);
 						}
 					}

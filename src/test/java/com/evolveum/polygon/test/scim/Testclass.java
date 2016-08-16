@@ -5,10 +5,10 @@ import java.util.HashMap;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.testng.Assert;
 import org.testng.ITestResult;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -20,6 +20,11 @@ public class Testclass {
 	private static Uid userUid;
 	private static Uid groupUid;
 	// private Uid etitlementUid;
+
+	private static Integer pageSize;
+
+	private static Integer pageOffset;
+
 	private static Integer testNumber = 0;
 
 	private static ScimConnector connector;
@@ -33,13 +38,9 @@ public class Testclass {
 
 		// TODO test issues with eq filter slack
 
-		return new Object[][] { { "users",
-				"uid"},
-						 {"users","contains"},{"groups","contains"},
-						  {"users","uid"},{"groups","uid"},{"users"
-						  ,"startswith"},{"groups","startswith"},{
-						 "users","equals"},{"groups","equals"}
-						  };
+		return new Object[][] { { "users", "uid" }, { "users", "contains" }, { "groups", "contains" },
+				{ "users", "uid" }, { "groups", "uid" }, { "users", "startswith" }, { "groups", "startswith" },
+				{ "users", "equals" }, { "groups", "equals" } };
 	}
 
 	@DataProvider(name = "updateUserResourceObjectTestProvider")
@@ -79,10 +80,13 @@ public class Testclass {
 		return new Object[][] { { "users", true }, { "groups", true } };
 	}
 
-	@DataProvider(name = "tesConfigProvider")
-	public static Object[][] tesConfigResourcesProvider() {
+	@DataProvider(name = "configTestProvider")
+	public static Object[][] configurationTestResourcesProvider() {
 
-		testNumber = 68;
+		pageSize = 1;
+		pageOffset = 1;
+
+		testNumber = 74;
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("clientID", "**");
@@ -102,7 +106,7 @@ public class Testclass {
 
 	/////////////////////////// TestSuite////////////////////////////
 
-	@Test(priority = 1, dataProvider = "tesConfigProvider")
+	@Test(priority = 1, dataProvider = "configTestProvider")
 	public void configurationTest(HashMap<String, String> configurationParameters, Boolean assertionVariable) {
 
 		groupUid = null;
@@ -126,6 +130,10 @@ public class Testclass {
 	private void createObjectOnResourcesTest(String resourceName, Boolean assertParameter) {
 
 		Boolean resourceWasCreated = false;
+
+		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+
+		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
 
 		if ("users".equals(resourceName)) {
 			userUid = ScimTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
@@ -152,23 +160,16 @@ public class Testclass {
 			"createObjectOnResourcesTest" }, dataProvider = "parameterConsistencyTestProvider")
 	private void parameterConsistencyTest(String resourceName, String filterType) {
 
+		StringBuilder testType = new StringBuilder("createObject");
+
 		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
-		result = ScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
-				ScimTestUtils.getOptions());
+		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
 
-		HashMap<String, String> evaluationResults = ScimTestUtils.processResult(result, resourceName, testNumber);
+		result = ScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector, options);
 
-		/*
-		 * result = scimTestUtils.filter(filterType, resourceName);
-		 * 
-		 * HashMap<String, String> evaluationResults = new
-		 * HashMap<String,String>();
-		 * 
-		 * evaluationResults=scimTestUtils.processResult(scimTestUtils.
-		 * getHandlerResult(), resourceName);
-		 * 
-		 */
+		HashMap<String, String> evaluationResults = ScimTestUtils.processResult(result, resourceName,
+				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
 
@@ -192,8 +193,11 @@ public class Testclass {
 		// assertEquals(expectedWorkEmail, user.get("user.work.email"));
 
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+
+		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
+
 		returnedObjects = ScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
-				ScimTestUtils.getOptions());
+				options);
 
 		Assert.assertFalse(returnedObjects.isEmpty());
 
@@ -204,8 +208,10 @@ public class Testclass {
 	private void listAllfromResourcesTest(int numberOfResources, String resourceName) {
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
-		returnedObjects = ScimTestUtils.listAllfromResourcesTestHelper(resourceName, connector,
-				ScimTestUtils.getOptions());
+		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
+
+		returnedObjects = ScimTestUtils.listAllfromResourcesTestHelper(resourceName, connector, options);
+
 		Assert.assertEquals(returnedObjects.size(), numberOfResources);
 
 	}
@@ -214,8 +220,26 @@ public class Testclass {
 			"createObjectOnResourcesTest" }, dataProvider = "updateUserResourceObjectTestProvider")
 	private void updateUserResourceObjectTest(String updateType, Uid uid) {
 
-		Uid returnedUid = ScimTestUtils.updateResourceTestHelper("users", updateType, userUid, groupUid, testNumber,
+		Uid returnedUid = ScimTestUtils.updateResourceTest("users", updateType, userUid, groupUid, testNumber,
 				connector);
+
+		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+
+		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
+
+		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
+
+		result = ScimTestUtils.filter("uid", "users", testNumber, userUid, groupUid, connector, options);
+
+		HashMap<String, String> evaluationResults = ScimTestUtils.processResult(result, "users", testType.toString(),
+				userUid, testNumber);
+
+		for (String attributeName : evaluationResults.keySet()) {
+
+			String nameValue = evaluationResults.get(attributeName);
+
+			Assert.assertEquals(nameValue, attributeName);
+		}
 
 		Assert.assertEquals(uid, returnedUid);
 
@@ -225,14 +249,14 @@ public class Testclass {
 			"createObjectOnResourcesTest" }, dataProvider = "updateGroupResourceObjectTestProvider")
 	private void updateGroupResourceObjectTest(String updateType, Uid uid) {
 
-		Uid returnedUid = ScimTestUtils.updateResourceTestHelper("groups", updateType, userUid, groupUid, testNumber,
+		Uid returnedUid = ScimTestUtils.updateResourceTest("groups", updateType, userUid, groupUid, testNumber,
 				connector);
 
 		Assert.assertEquals(uid, returnedUid);
 
 	}
 
-	@AfterMethod
+	// @AfterMethod
 	private void cleanup(ITestResult result) {
 		if (result.getStatus() == ITestResult.FAILURE) {
 			if (userUid != null) {
@@ -256,8 +280,10 @@ public class Testclass {
 
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
+		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
+
 		ScimTestUtils.deleteResourceTestHelper(resourceName, uid, connector);
-		ScimTestUtils.filter("uid", resourceName, testNumber, userUid, groupUid, connector, ScimTestUtils.getOptions());
+		returnedObjects = ScimTestUtils.filter("uid", resourceName, testNumber, userUid, groupUid, connector, options);
 
 		Assert.assertTrue(returnedObjects.isEmpty());
 

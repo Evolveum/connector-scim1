@@ -86,13 +86,12 @@ public class CrudManagerScim {
 	 * @throws ConnectorIOException
 	 */
 	public JSONObject logIntoService() {
-		
-	
+
 		String loginAccessToken = null;
 		String loginInstanceUrl = null;
 		JSONObject jsonObject = null;
 		String proxyUrl = conf.getProxyUrl();
-		
+
 		if (!"token".equals(conf.getAuthentication())) {
 
 			HttpClient httpclient;
@@ -552,7 +551,7 @@ public class CrudManagerScim {
 				LOGGER.warn("Query for {1} was unsuccessful. Status code returned is {0}", statusCode,
 						resourceEndPoint);
 				LOGGER.warn(
-						"No definition for provided shcemas was found, the connector will switch to default core schema configuration!");
+						"No definition for provided schemas was found, the connector will switch to default core schema configuration!");
 				return null;
 			}
 		} catch (ClientProtocolException e) {

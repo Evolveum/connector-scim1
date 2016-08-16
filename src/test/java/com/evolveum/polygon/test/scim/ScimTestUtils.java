@@ -28,33 +28,12 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 public class ScimTestUtils {
 
-	// private static Integer testNumber = 65;
-
 	private static final Log LOGGER = Log.getLog(ScimTestUtils.class);
 
 	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
 	private static final ObjectClass groupClass = ObjectClass.GROUP;
 	private static final ObjectClass entitlementClass = new ObjectClass("Entitlements");
-	/*
-	 * private static Collection <String> mandatoriParameters = new
-	 * ArrayList<String>();
-	 * 
-	 * static { mandatoriParameters.add("authentication");
-	 * mandatoriParameters.add("clientID");
-	 * mandatoriParameters.add("clientSecret");
-	 * mandatoriParameters.add("endpoint"); mandatoriParameters.add("loginUrl");
-	 * mandatoriParameters.add("password"); mandatoriParameters.add("service");
-	 * mandatoriParameters.add("userName"); mandatoriParameters.add("version");
-	 * 
-	 * }
-	 * 
-	 * 
-	 * private static OperationOptions options ;
-	 * 
-	 * 
-	 * ScimConnectorConfiguration scimConnectorConfiguration; private static
-	 * ScimConnector conn;
-	 */
+
 
 	public static ScimConnectorConfiguration buildConfiguration(HashMap<String, String> configuration) {
 		ScimConnectorConfiguration scimConnectorConfiguration = new ScimConnectorConfiguration();
@@ -193,13 +172,6 @@ public class ScimTestUtils {
 		return attributeSet;
 	}
 
-	private static Set<Attribute> resourceCreateBuilder() {
-		Set<Attribute> attr = new HashSet<Attribute>();
-
-		attr.add(AttributeBuilder.build("displayName", "My Custom Test1 Entitlement"));
-
-		return attr;
-	}
 
 	public static ArrayList<ConnectorObject> listAllfromResourcesTestHelper(String resourceName, ScimConnector conn,
 			OperationOptions options) {
@@ -207,7 +179,7 @@ public class ScimTestUtils {
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		TestSearchResultsHandler handler = new TestSearchResultsHandler();
-		returnedObjects = handler.getResult();
+
 
 		if ("users".equalsIgnoreCase(resourceName)) {
 			conn.executeQuery(userClass, null, handler, options);
@@ -220,16 +192,18 @@ public class ScimTestUtils {
 			conn.executeQuery(entitlementClass, null, handler, options);
 		}
 
+		returnedObjects = handler.getResult();
+
 		return returnedObjects;
 	}
 
-	public static OperationOptions getOptions() {
+	public static OperationOptions getOptions(Integer pageSize, Integer pageOffset) {
 
 		Map<String, Object> operationOptions = new HashMap<String, Object>();
 
 		operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
-		operationOptions.put("PAGED_RESULTS_OFFSET", 1);
-		operationOptions.put("PAGE_SIZE", 1);
+		operationOptions.put("PAGED_RESULTS_OFFSET", pageOffset);
+		operationOptions.put("PAGE_SIZE", pageSize);
 
 		OperationOptions options = new OperationOptions(operationOptions);
 
@@ -268,7 +242,7 @@ public class ScimTestUtils {
 		return uid;
 	}
 
-	public static Uid updateResourceTestHelper(String resourceName, String updateType, Uid userTestUid,
+	public static Uid updateResourceTest(String resourceName, String updateType, Uid userTestUid,
 			Uid groupTestUid, Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
@@ -369,14 +343,6 @@ public class ScimTestUtils {
 		return handler.getResult();
 	}
 
-	private static ScimConnector initConnector(ScimConnectorConfiguration conf) {
-		ScimConnector conn = new ScimConnector();
-
-		conn.init(conf);
-		conn.schema();
-
-		return conn;
-	}
 
 	private static AttributeFilter getFilter(String filterType, String resourceName, Integer testNumber,
 			Uid userTestUid, Uid groupTestUid) {
@@ -460,7 +426,7 @@ public class ScimTestUtils {
 		return attributeSet;
 	}
 
-	public static HashMap<String, String> processResult(ArrayList<ConnectorObject> results, String resourceName,
+	public static HashMap<String, String> processResult(ArrayList<ConnectorObject> results, String resourceName, String testType, Uid userTestUid, 
 			Integer testNumber) {
 
 		HashMap<String, String> evaluationResult = new HashMap<String, String>();
@@ -470,12 +436,26 @@ public class ScimTestUtils {
 		String createAttributeName;
 
 		if ("users".equals(resourceName)) {
-
-			createAttributeSet = userCreateBuilder(testNumber);
+			if("createObject".equals(testType)){
+				createAttributeSet = userCreateBuilder(testNumber);
+			} else if("update-single".equals(testType)){
+				createAttributeSet = userSingleValUpdateBuilder(testNumber);
+			}else if("update-multi".equals(testType)){
+				createAttributeSet = userMultiValUpdateBuilder(testNumber);
+			}else if("update-disabled".equals(testType)){
+				createAttributeSet = userDisableUpdate();
+			}else if("update-enabled".equals(testType)){
+				createAttributeSet = userEnableUpdate();
+			}
 
 		} else if ("groups".equals(resourceName)) {
-
-			createAttributeSet = groupCreateBuilder(testNumber);
+			if("createObject".equals(testType)){
+				createAttributeSet = groupCreateBuilder(testNumber);
+			}else if("update-single".equals(testType)){
+				createAttributeSet = groupSingleValUpdateBuilder(testNumber);
+			}else if("update-multi".equals(testType)){
+				groupMultiValUpdateBuilder(testNumber, userTestUid);
+			}
 		}
 
 		for (Attribute createAttribute : createAttributeSet) {
@@ -483,7 +463,6 @@ public class ScimTestUtils {
 
 			evaluationResult.put(createAttributeName, "#AttributeNameNotFound#");
 		}
-
 		for (ConnectorObject result : results) {
 			Set<Attribute> returnedAttributeSet = new HashSet<Attribute>();
 

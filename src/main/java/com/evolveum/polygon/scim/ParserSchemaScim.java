@@ -132,7 +132,7 @@ public class ParserSchemaScim {
 									StringBuilder complexAttrName = new StringBuilder(attributeName);
 									attributeMap.put(
 											complexAttrName.append(".").append(referenceValue.get("value")).append(".")
-											.append(subAttributeKeyNames).toString(),
+													.append(subAttributeKeyNames).toString(),
 											(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
 									isComplex = true;
 
@@ -154,7 +154,7 @@ public class ParserSchemaScim {
 									StringBuilder complexAttrName = new StringBuilder(attributeName);
 									attributeMap.put(
 											complexAttrName.append(".").append(sringReferenceValue).append(".")
-											.append(subAttributeKeyNames).toString(),
+													.append(subAttributeKeyNames).toString(),
 											(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
 									isComplex = true;
 

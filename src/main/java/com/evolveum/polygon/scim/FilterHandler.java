@@ -692,7 +692,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			throw new InvalidAttributeValueException("No atribute value provided while building filter queuery");
 		} else {
 			resultString.append(name).append(SPACE).append(operator).append(SPACE).append(QUOTATION)
-			.append(AttributeUtil.getAsStringValue(attribute)).append(QUOTATION);
+					.append(AttributeUtil.getAsStringValue(attribute)).append(QUOTATION);
 		}
 
 		return resultString;

@@ -9,6 +9,7 @@ import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.testng.Assert;
 import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -261,23 +262,6 @@ public class SalesforceSpecificTestSuite {
 
 	}
 
-	// @AfterMethod
-	private void cleanup(ITestResult result) {
-		if (result.getStatus() == ITestResult.FAILURE) {
-			if (userUid != null) {
-				LOGGER.warn("Atempting to delete resource: {0}", "users");
-				deleteObjectfromResourcesTest("users", userUid);
-			} else if (groupUid != null) {
-				LOGGER.warn("Atempting to delete resource: {0}", "groups");
-				deleteObjectfromResourcesTest("groups", groupUid);
-			} else {
-				LOGGER.warn(
-						"Test failure, uid values of resource objects are null. No resource deletion operation was atempted");
-			}
-		}
-
-	}
-
 	@Test(priority = 7, dependsOnMethods = {
 			"createObjectOnResourcesTest" }, dataProvider = "deletetObjectfromResourcesProvider")
 	private void deleteObjectfromResourcesTest(String resourceName, Uid uid) {
@@ -311,6 +295,44 @@ public class SalesforceSpecificTestSuite {
 			throw new Exception("Uid not set");
 		}
 		return uid;
+	}
+
+	@AfterMethod
+	private void cleanup(ITestResult result) throws Exception {
+		if (result.getStatus() == ITestResult.FAILURE) {
+
+			String methodThatFailed = result.getMethod().getMethodName();
+
+			if ("createObjectOnResourcesTest".equals(methodThatFailed)) {
+
+				if (userUid != null) {
+					LOGGER.warn("Atempting to delete resource: {0}", "users");
+					deleteObjectfromResourcesTest("users", userUid);
+				} else if (groupUid != null) {
+					LOGGER.warn("Atempting to delete resource: {0}", "groups");
+					deleteObjectfromResourcesTest("groups", groupUid);
+				} else {
+					LOGGER.warn(
+							"Test failure, uid values of resource objects are null. No resource deletion operation was atempted");
+				}
+
+				throw new Exception("Test failure while creating the resource objects, test suite will not continue.");
+
+			} else if ("updateUserResourceObjectTest".equals(methodThatFailed)) {
+				if (userUid != null) {
+					LOGGER.warn("Atempting to delete resource: {0}", "users");
+					deleteObjectfromResourcesTest("users", userUid);
+				} else if (groupUid != null) {
+					LOGGER.warn("Atempting to delete resource: {0}", "groups");
+					deleteObjectfromResourcesTest("groups", groupUid);
+				}
+
+				throw new Exception(
+						"Test failure while updating the \"User\" resource objects, test suite will not continue.");
+			}
+
+		}
+
 	}
 
 }

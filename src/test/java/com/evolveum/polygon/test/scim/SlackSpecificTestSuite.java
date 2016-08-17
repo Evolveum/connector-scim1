@@ -15,11 +15,10 @@ import org.testng.annotations.Test;
 import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
-public class Testclass {
+public class SlackSpecificTestSuite {
 
 	private static Uid userUid;
 	private static Uid groupUid;
-	// private Uid etitlementUid;
 
 	private static Integer pageSize;
 
@@ -31,16 +30,15 @@ public class Testclass {
 
 	private static ScimConnectorConfiguration configuration;
 
-	private static final Log LOGGER = Log.getLog(Testclass.class);
+	private static final Log LOGGER = Log.getLog(SlackSpecificTestSuite.class);
 
 	@DataProvider(name = "filterMethodTestProvider")
 	public static Object[][] filterMethodTestResourcesProvider() {
 
 		// TODO test issues with eq filter slack
 
-		return new Object[][] { { "users", "uid" }, { "users", "contains" }, { "groups", "contains" },
-				{ "users", "uid" }, { "groups", "uid" }, { "users", "startswith" }, { "groups", "startswith" },
-				{ "users", "equals" }, { "groups", "equals" } };
+		return new Object[][] { { "users", "uid" }, { "groups", "uid" },  { "users", "contains" }, { "groups", "contains" },
+			{ "users", "startswith" }, { "groups", "startswith" },{ "users", "equals" }, { "groups", "equals" } };
 	}
 
 	@DataProvider(name = "updateUserResourceObjectTestProvider")
@@ -89,18 +87,14 @@ public class Testclass {
 		testNumber = 74;
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
-		configurationParameters.put("clientID", "**");
-		configurationParameters.put("clientSecret", "**");
 		configurationParameters.put("endpoint", "/scim");
-		configurationParameters.put("loginUrl", "");
-		configurationParameters.put("password", "**");
-		configurationParameters.put("service", "**");
-		configurationParameters.put("userName", "**");
 		configurationParameters.put("version", "/v1");
 		configurationParameters.put("authentication", "token");
 		configurationParameters.put("baseurl", "https://api.slack.com");
-		configurationParameters.put("token", "**");
-
+		configurationParameters.put("token", "");
+		configurationParameters.put("proxy", "**");
+		configurationParameters.put("proxy_port_number", "**");
+		
 		return new Object[][] { { configurationParameters, true } };
 	}
 
@@ -112,9 +106,9 @@ public class Testclass {
 		groupUid = null;
 		userUid = null;
 
-		configuration = ScimTestUtils.buildConfiguration(configurationParameters);
+		configuration = SlackSpecificTestUtils.buildConfiguration(configurationParameters);
 
-		Boolean isValid = ScimTestUtils.isConfigurationValid(configuration);
+		Boolean isValid = SlackSpecificTestUtils.isConfigurationValid(configuration);
 
 		if (isValid) {
 
@@ -131,18 +125,15 @@ public class Testclass {
 
 		Boolean resourceWasCreated = false;
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
-
-		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
 
 		if ("users".equals(resourceName)) {
-			userUid = ScimTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
+			userUid = SlackSpecificTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
 			if (userUid != null) {
 				resourceWasCreated = true;
 			}
 		} else if ("groups".equals(resourceName)) {
 
-			groupUid = ScimTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
+			groupUid = SlackSpecificTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
 			if (groupUid != null) {
 				resourceWasCreated = true;
 			}
@@ -164,11 +155,11 @@ public class Testclass {
 
 		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
-		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
+		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
-		result = ScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector, options);
+		result = SlackSpecificTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = ScimTestUtils.processResult(result, resourceName,
+		HashMap<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, resourceName,
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -194,9 +185,9 @@ public class Testclass {
 
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
-		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
+		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
-		returnedObjects = ScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
+		returnedObjects = SlackSpecificTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
 				options);
 
 		Assert.assertFalse(returnedObjects.isEmpty());
@@ -208,9 +199,9 @@ public class Testclass {
 	private void listAllfromResourcesTest(int numberOfResources, String resourceName) {
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
-		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
+		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
-		returnedObjects = ScimTestUtils.listAllfromResourcesTestHelper(resourceName, connector, options);
+		returnedObjects = SlackSpecificTestUtils.listAllfromResourcesTestUtil(resourceName, connector, options);
 
 		Assert.assertEquals(returnedObjects.size(), numberOfResources);
 
@@ -220,18 +211,18 @@ public class Testclass {
 			"createObjectOnResourcesTest" }, dataProvider = "updateUserResourceObjectTestProvider")
 	private void updateUserResourceObjectTest(String updateType, Uid uid) {
 
-		Uid returnedUid = ScimTestUtils.updateResourceTest("users", updateType, userUid, groupUid, testNumber,
+		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest("users", updateType, userUid, groupUid, testNumber,
 				connector);
 
 		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
 
-		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
+		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
-		result = ScimTestUtils.filter("uid", "users", testNumber, userUid, groupUid, connector, options);
+		result = SlackSpecificTestUtils.filter("uid", "users", testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = ScimTestUtils.processResult(result, "users", testType.toString(),
+		HashMap<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "users", testType.toString(),
 				userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -249,8 +240,28 @@ public class Testclass {
 			"createObjectOnResourcesTest" }, dataProvider = "updateGroupResourceObjectTestProvider")
 	private void updateGroupResourceObjectTest(String updateType, Uid uid) {
 
-		Uid returnedUid = ScimTestUtils.updateResourceTest("groups", updateType, userUid, groupUid, testNumber,
+		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest("groups", updateType, userUid, groupUid, testNumber,
 				connector);
+		
+		
+		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+
+		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
+
+		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
+
+		result = SlackSpecificTestUtils.filter("uid", "groups", testNumber, userUid, groupUid, connector, options);
+
+		HashMap<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "groups", testType.toString(),
+				userUid, testNumber);
+
+		for (String attributeName : evaluationResults.keySet()) {
+
+			String nameValue = evaluationResults.get(attributeName);
+
+			Assert.assertEquals(nameValue, attributeName);
+		}
+		
 
 		Assert.assertEquals(uid, returnedUid);
 
@@ -280,10 +291,10 @@ public class Testclass {
 
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
-		OperationOptions options = ScimTestUtils.getOptions(pageSize, pageOffset);
+		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
-		ScimTestUtils.deleteResourceTestHelper(resourceName, uid, connector);
-		returnedObjects = ScimTestUtils.filter("uid", resourceName, testNumber, userUid, groupUid, connector, options);
+		SlackSpecificTestUtils.deleteResourceTestHelper(resourceName, uid, connector);
+		returnedObjects = SlackSpecificTestUtils.filter("uid", resourceName, testNumber, userUid, groupUid, connector, options);
 
 		Assert.assertTrue(returnedObjects.isEmpty());
 

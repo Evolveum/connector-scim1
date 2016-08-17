@@ -26,9 +26,9 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
-public class ScimTestUtils {
+public class StandardScimTestUtils {
 
-	private static final Log LOGGER = Log.getLog(ScimTestUtils.class);
+	private static final Log LOGGER = Log.getLog(StandardScimTestUtils.class);
 
 	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
 	private static final ObjectClass groupClass = ObjectClass.GROUP;
@@ -62,6 +62,11 @@ public class ScimTestUtils {
 				scimConnectorConfiguration.setBaseUrl(configuration.get(configurationParameter));
 			} else if ("token".equals(configurationParameter)) {
 				scimConnectorConfiguration.setToken(configuration.get(configurationParameter));
+			}else if ("proxy".equals(configurationParameter)) {
+				scimConnectorConfiguration.setProxyUrl(configuration.get(configurationParameter));
+			} else if ("proxy_port_number".equals(configurationParameter)) {
+			Integer portNumber =Integer.parseInt(configuration.get(configurationParameter));	
+				scimConnectorConfiguration.setProxyPortNumber(portNumber);
 			} else {
 
 				LOGGER.warn("Occurrence of an non defined parameter");
@@ -91,7 +96,7 @@ public class ScimTestUtils {
 		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 
-		// ttributeSet.add(AttributeBuilder.build("entitlements.default.value",
+		// attributeSet.add(AttributeBuilder.build("entitlements.default.value",
 		// "00e58000000qvhqAAA"));
 
 		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
@@ -173,7 +178,7 @@ public class ScimTestUtils {
 	}
 
 
-	public static ArrayList<ConnectorObject> listAllfromResourcesTestHelper(String resourceName, ScimConnector conn,
+	public static ArrayList<ConnectorObject> listAllfromResourcesTestUtil(String resourceName, ScimConnector conn,
 			OperationOptions options) {
 
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();

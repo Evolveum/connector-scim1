@@ -60,6 +60,8 @@ public class GenericDataBuilder implements ObjectTranslator {
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes,
 			Map<String, Map<String, Object>> attributeMap) {
 
+		LOGGER.info("The dictionary: {0}", attributeMap.keySet().toString());
+
 		LOGGER.info("Building account JsonObject");
 
 		JSONObject completeJsonObj = new JSONObject();

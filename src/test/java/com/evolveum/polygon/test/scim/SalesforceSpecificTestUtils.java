@@ -34,7 +34,6 @@ public class SalesforceSpecificTestUtils {
 	private static final ObjectClass groupClass = ObjectClass.GROUP;
 	private static final ObjectClass entitlementClass = new ObjectClass("Entitlements");
 
-
 	public static ScimConnectorConfiguration buildConfiguration(HashMap<String, String> configuration) {
 		ScimConnectorConfiguration scimConnectorConfiguration = new ScimConnectorConfiguration();
 
@@ -61,7 +60,7 @@ public class SalesforceSpecificTestUtils {
 			} else if ("proxy".equals(configurationParameter)) {
 				scimConnectorConfiguration.setProxyUrl(configuration.get(configurationParameter));
 			} else if ("proxy_port_number".equals(configurationParameter)) {
-			Integer portNumber =Integer.parseInt(configuration.get(configurationParameter));	
+				Integer portNumber = Integer.parseInt(configuration.get(configurationParameter));
 				scimConnectorConfiguration.setProxyPortNumber(portNumber);
 			} else {
 
@@ -173,14 +172,12 @@ public class SalesforceSpecificTestUtils {
 		return attributeSet;
 	}
 
-
 	public static ArrayList<ConnectorObject> listAllfromResourcesTestUtil(String resourceName, ScimConnector conn,
 			OperationOptions options) {
 
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		TestSearchResultsHandler handler = new TestSearchResultsHandler();
-
 
 		if ("users".equalsIgnoreCase(resourceName)) {
 			conn.executeQuery(userClass, null, handler, options);
@@ -243,8 +240,8 @@ public class SalesforceSpecificTestUtils {
 		return uid;
 	}
 
-	public static Uid updateResourceTest(String resourceName, String updateType, Uid userTestUid,
-			Uid groupTestUid, Integer testNumber, ScimConnector conn) {
+	public static Uid updateResourceTest(String resourceName, String updateType, Uid userTestUid, Uid groupTestUid,
+			Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
 		if ("users".equals(resourceName)) {
@@ -344,7 +341,6 @@ public class SalesforceSpecificTestUtils {
 		return handler.getResult();
 	}
 
-
 	private static AttributeFilter getFilter(String filterType, String resourceName, Integer testNumber,
 			Uid userTestUid, Uid groupTestUid) {
 		AttributeFilter filter = null;
@@ -427,8 +423,8 @@ public class SalesforceSpecificTestUtils {
 		return attributeSet;
 	}
 
-	public static HashMap<String, String> processResult(ArrayList<ConnectorObject> results, String resourceName, String testType, Uid userTestUid, 
-			Integer testNumber) {
+	public static HashMap<String, String> processResult(ArrayList<ConnectorObject> results, String resourceName,
+			String testType, Uid userTestUid, Integer testNumber) {
 
 		HashMap<String, String> evaluationResult = new HashMap<String, String>();
 
@@ -437,24 +433,24 @@ public class SalesforceSpecificTestUtils {
 		String createAttributeName;
 
 		if ("users".equals(resourceName)) {
-			if("createObject".equals(testType)){
+			if ("createObject".equals(testType)) {
 				createAttributeSet = userCreateBuilder(testNumber);
-			} else if("update-single".equals(testType)){
+			} else if ("update-single".equals(testType)) {
 				createAttributeSet = userSingleValUpdateBuilder(testNumber);
-			}else if("update-multi".equals(testType)){
+			} else if ("update-multi".equals(testType)) {
 				createAttributeSet = userMultiValUpdateBuilder(testNumber);
-			}else if("update-disabled".equals(testType)){
+			} else if ("update-disabled".equals(testType)) {
 				createAttributeSet = userDisableUpdate();
-			}else if("update-enabled".equals(testType)){
+			} else if ("update-enabled".equals(testType)) {
 				createAttributeSet = userEnableUpdate();
 			}
 
 		} else if ("groups".equals(resourceName)) {
-			if("createObject".equals(testType)){
+			if ("createObject".equals(testType)) {
 				createAttributeSet = groupCreateBuilder(testNumber);
-			}else if("update-single".equals(testType)){
+			} else if ("update-single".equals(testType)) {
 				createAttributeSet = groupSingleValUpdateBuilder(testNumber);
-			}else if("update-multi".equals(testType)){
+			} else if ("update-multi".equals(testType)) {
 				groupMultiValUpdateBuilder(testNumber, userTestUid);
 			}
 		}

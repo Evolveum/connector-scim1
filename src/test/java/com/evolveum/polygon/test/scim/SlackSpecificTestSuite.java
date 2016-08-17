@@ -37,8 +37,9 @@ public class SlackSpecificTestSuite {
 
 		// TODO test issues with eq filter slack
 
-		return new Object[][] { { "users", "uid" }, { "groups", "uid" },  { "users", "contains" }, { "groups", "contains" },
-			{ "users", "startswith" }, { "groups", "startswith" },{ "users", "equals" }, { "groups", "equals" } };
+		return new Object[][] { { "users", "uid" }, { "groups", "uid" }, { "users", "contains" },
+				{ "groups", "contains" }, { "users", "startswith" }, { "groups", "startswith" }, { "users", "equals" },
+				{ "groups", "equals" } };
 	}
 
 	@DataProvider(name = "updateUserResourceObjectTestProvider")
@@ -84,7 +85,7 @@ public class SlackSpecificTestSuite {
 		pageSize = 1;
 		pageOffset = 1;
 
-		testNumber = 74;
+		testNumber = 81;
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("endpoint", "/scim");
@@ -92,9 +93,9 @@ public class SlackSpecificTestSuite {
 		configurationParameters.put("authentication", "token");
 		configurationParameters.put("baseurl", "https://api.slack.com");
 		configurationParameters.put("token", "");
-		configurationParameters.put("proxy", "**");
-		configurationParameters.put("proxy_port_number", "**");
-		
+		configurationParameters.put("proxy", "");
+		configurationParameters.put("proxy_port_number", "");
+
 		return new Object[][] { { configurationParameters, true } };
 	}
 
@@ -114,6 +115,7 @@ public class SlackSpecificTestSuite {
 
 			connector = new ScimConnector();
 			connector.init(configuration);
+			connector.schema();
 		}
 
 		Assert.assertEquals(isValid, assertionVariable);
@@ -124,7 +126,6 @@ public class SlackSpecificTestSuite {
 	private void createObjectOnResourcesTest(String resourceName, Boolean assertParameter) {
 
 		Boolean resourceWasCreated = false;
-
 
 		if ("users".equals(resourceName)) {
 			userUid = SlackSpecificTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
@@ -157,7 +158,8 @@ public class SlackSpecificTestSuite {
 
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
-		result = SlackSpecificTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector, options);
+		result = SlackSpecificTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
+				options);
 
 		HashMap<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, resourceName,
 				testType.toString(), userUid, testNumber);
@@ -187,8 +189,8 @@ public class SlackSpecificTestSuite {
 
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
-		returnedObjects = SlackSpecificTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
-				options);
+		returnedObjects = SlackSpecificTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid,
+				connector, options);
 
 		Assert.assertFalse(returnedObjects.isEmpty());
 
@@ -222,8 +224,8 @@ public class SlackSpecificTestSuite {
 
 		result = SlackSpecificTestUtils.filter("uid", "users", testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "users", testType.toString(),
-				userUid, testNumber);
+		HashMap<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "users",
+				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
 
@@ -242,8 +244,7 @@ public class SlackSpecificTestSuite {
 
 		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest("groups", updateType, userUid, groupUid, testNumber,
 				connector);
-		
-		
+
 		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
@@ -252,8 +253,8 @@ public class SlackSpecificTestSuite {
 
 		result = SlackSpecificTestUtils.filter("uid", "groups", testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "groups", testType.toString(),
-				userUid, testNumber);
+		HashMap<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "groups",
+				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
 
@@ -261,7 +262,6 @@ public class SlackSpecificTestSuite {
 
 			Assert.assertEquals(nameValue, attributeName);
 		}
-		
 
 		Assert.assertEquals(uid, returnedUid);
 
@@ -294,7 +294,8 @@ public class SlackSpecificTestSuite {
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
 		SlackSpecificTestUtils.deleteResourceTestHelper(resourceName, uid, connector);
-		returnedObjects = SlackSpecificTestUtils.filter("uid", resourceName, testNumber, userUid, groupUid, connector, options);
+		returnedObjects = SlackSpecificTestUtils.filter("uid", resourceName, testNumber, userUid, groupUid, connector,
+				options);
 
 		Assert.assertTrue(returnedObjects.isEmpty());
 

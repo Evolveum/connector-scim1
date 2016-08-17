@@ -33,7 +33,6 @@ public class SlackSpecificTestUtils {
 	private static final ObjectClass groupClass = ObjectClass.GROUP;
 	private static final ObjectClass entitlementClass = new ObjectClass("Entitlements");
 
-
 	public static ScimConnectorConfiguration buildConfiguration(HashMap<String, String> configuration) {
 		ScimConnectorConfiguration scimConnectorConfiguration = new ScimConnectorConfiguration();
 
@@ -41,7 +40,7 @@ public class SlackSpecificTestUtils {
 
 			if ("endpoint".equals(configurationParameter)) {
 				scimConnectorConfiguration.setEndpoint(configuration.get(configurationParameter));
-			}  else if ("version".equals(configurationParameter)) {
+			} else if ("version".equals(configurationParameter)) {
 				scimConnectorConfiguration.setVersion(configuration.get(configurationParameter));
 			} else if ("authentication".equals(configurationParameter)) {
 				scimConnectorConfiguration.setAuthentication(configuration.get(configurationParameter));
@@ -49,11 +48,15 @@ public class SlackSpecificTestUtils {
 				scimConnectorConfiguration.setBaseUrl(configuration.get(configurationParameter));
 			} else if ("token".equals(configurationParameter)) {
 				scimConnectorConfiguration.setToken(configuration.get(configurationParameter));
-			}else if ("proxy".equals(configurationParameter)) {
+			} else if ("proxy".equals(configurationParameter)) {
 				scimConnectorConfiguration.setProxyUrl(configuration.get(configurationParameter));
 			} else if ("proxy_port_number".equals(configurationParameter)) {
-			Integer portNumber =Integer.parseInt(configuration.get(configurationParameter));	
-				scimConnectorConfiguration.setProxyPortNumber(portNumber);
+				String parameterValue = configuration.get(configurationParameter);
+				if (!parameterValue.isEmpty()) {
+					Integer portNumber = Integer.parseInt(parameterValue);
+					scimConnectorConfiguration.setProxyPortNumber(portNumber);
+				} else
+					scimConnectorConfiguration.setProxyPortNumber(null);
 			} else {
 
 				LOGGER.warn("Occurrence of an non defined parameter");
@@ -107,8 +110,8 @@ public class SlackSpecificTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("emails.work.value", buildUpdateEmailAdress.toString()));
-		attributeSet.add(AttributeBuilder.build("emails.work.primary", false));
+		attributeSet.add(AttributeBuilder.build("emails.default.value", buildUpdateEmailAdress.toString()));
+		attributeSet.add(AttributeBuilder.build("emails.default.primary", true));
 
 		return attributeSet;
 	}
@@ -161,7 +164,6 @@ public class SlackSpecificTestUtils {
 		return attributeSet;
 	}
 
-
 	public static ArrayList<ConnectorObject> listAllfromResourcesTestUtil(String resourceName, ScimConnector conn,
 			OperationOptions options) {
 
@@ -169,14 +171,13 @@ public class SlackSpecificTestUtils {
 
 		TestSearchResultsHandler handler = new TestSearchResultsHandler();
 
-
 		if ("users".equalsIgnoreCase(resourceName)) {
 			conn.executeQuery(userClass, null, handler, options);
 
 		} else if ("groups".equalsIgnoreCase(resourceName)) {
 			conn.executeQuery(groupClass, null, handler, options);
 
-		}else {
+		} else {
 
 			LOGGER.warn("Resource not supported", resourceName);
 			throw new ConnectorException("Resource not supported");
@@ -229,8 +230,8 @@ public class SlackSpecificTestUtils {
 		return uid;
 	}
 
-	public static Uid updateResourceTest(String resourceName, String updateType, Uid userTestUid,
-			Uid groupTestUid, Integer testNumber, ScimConnector conn) {
+	public static Uid updateResourceTest(String resourceName, String updateType, Uid userTestUid, Uid groupTestUid,
+			Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
 		if ("users".equals(resourceName)) {
@@ -304,7 +305,7 @@ public class SlackSpecificTestUtils {
 				conn.executeQuery(userClass, filter, handler, options);
 			} else if ("groups".equalsIgnoreCase(resourceName)) {
 				conn.executeQuery(groupClass, filter, handler, options);
-			}else {
+			} else {
 				LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 			}
 		} catch (Exception e) {
@@ -314,7 +315,6 @@ public class SlackSpecificTestUtils {
 
 		return handler.getResult();
 	}
-
 
 	private static AttributeFilter getFilter(String filterType, String resourceName, Integer testNumber,
 			Uid userTestUid, Uid groupTestUid) {
@@ -353,7 +353,7 @@ public class SlackSpecificTestUtils {
 				filter = (StartsWithFilter) FilterBuilder
 						.startsWith(AttributeBuilder.build("displayName", testNumber.toString()));
 			}
-			//TODO check
+			// TODO check
 		} else if ("containsall".equalsIgnoreCase(filterType)) {
 			if ("groups".equals(resourceName)) {
 				filter = (ContainsAllValuesFilter) FilterBuilder
@@ -389,8 +389,8 @@ public class SlackSpecificTestUtils {
 		return attributeSet;
 	}
 
-	public static HashMap<String, String> processResult(ArrayList<ConnectorObject> results, String resourceName, String testType, Uid userTestUid, 
-			Integer testNumber) {
+	public static HashMap<String, String> processResult(ArrayList<ConnectorObject> results, String resourceName,
+			String testType, Uid userTestUid, Integer testNumber) {
 
 		HashMap<String, String> evaluationResult = new HashMap<String, String>();
 
@@ -399,24 +399,24 @@ public class SlackSpecificTestUtils {
 		String createAttributeName;
 
 		if ("users".equals(resourceName)) {
-			if("createObject".equals(testType)){
+			if ("createObject".equals(testType)) {
 				createAttributeSet = userCreateBuilder(testNumber);
-			} else if("update-single".equals(testType)){
+			} else if ("update-single".equals(testType)) {
 				createAttributeSet = userSingleValUpdateBuilder(testNumber);
-			}else if("update-multi".equals(testType)){
+			} else if ("update-multi".equals(testType)) {
 				createAttributeSet = userMultiValUpdateBuilder(testNumber);
-			}else if("update-disabled".equals(testType)){
+			} else if ("update-disabled".equals(testType)) {
 				createAttributeSet = userDisableUpdate();
-			}else if("update-enabled".equals(testType)){
+			} else if ("update-enabled".equals(testType)) {
 				createAttributeSet = userEnableUpdate();
 			}
 
 		} else if ("groups".equals(resourceName)) {
-			if("createObject".equals(testType)){
+			if ("createObject".equals(testType)) {
 				createAttributeSet = groupCreateBuilder(testNumber);
-			}else if("update-single".equals(testType)){
+			} else if ("update-single".equals(testType)) {
 				createAttributeSet = groupSingleValUpdateBuilder(testNumber);
-			}else if("update-multi".equals(testType)){
+			} else if ("update-multi".equals(testType)) {
 				groupMultiValUpdateBuilder(testNumber, userTestUid);
 			}
 		}

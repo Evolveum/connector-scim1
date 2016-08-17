@@ -246,7 +246,31 @@ public class ParserSchemaScim {
 	}
 
 	public List<Map<String, Map<String, Object>>> getAttributeMapList() {
-		return attributeMapList;
+
+		// Modified for slack "invalid type name" workaround purposes
+
+		if (!"slack".equals(providerName)) {
+			return attributeMapList;
+		} else {
+			if (!attributeMapList.isEmpty()) {
+
+				for (int i = 0; i < attributeMapList.size(); i++) {
+					Map<String, Map<String, Object>> resources = attributeMapList.get(i);
+
+					if (resources.containsKey("userName") && !resources.containsKey("emails.default.primary")
+							&& !resources.containsKey("emails.default.value")) {
+
+						resources.put("emails.default.primary", null);
+						resources.put("emails.default.value", null);
+
+						attributeMapList.remove(i);
+						attributeMapList.add(i, resources);
+					}
+
+				}
+			}
+			return attributeMapList;
+		}
 
 	}
 

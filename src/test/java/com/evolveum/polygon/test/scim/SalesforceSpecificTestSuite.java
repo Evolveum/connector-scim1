@@ -37,9 +37,10 @@ public class SalesforceSpecificTestSuite {
 
 		// TODO test issues with eq filter slack
 
-		return new Object[][] { { "users", "uid" },{ "groups", "uid" }, { "users", "contains" }, { "groups", "contains" },
-				 { "users", "startswith" }, { "groups", "startswith" },{ "users", "endswith" }, { "groups", "endswith" },
-				{ "users", "equals" }, { "groups", "equals" }, { "groups", "containsall" } };
+		return new Object[][] { { "users", "uid" }, { "groups", "uid" }, { "users", "contains" },
+				{ "groups", "contains" }, { "users", "startswith" }, { "groups", "startswith" },
+				{ "users", "endswith" }, { "groups", "endswith" }, { "users", "equals" }, { "groups", "equals" },
+				{ "groups", "containsall" } };
 	}
 
 	@DataProvider(name = "updateUserResourceObjectTestProvider")
@@ -117,6 +118,7 @@ public class SalesforceSpecificTestSuite {
 
 			connector = new ScimConnector();
 			connector.init(configuration);
+			connector.schema();
 		}
 
 		Assert.assertEquals(isValid, assertionVariable);
@@ -127,7 +129,6 @@ public class SalesforceSpecificTestSuite {
 	private void createObjectOnResourcesTest(String resourceName, Boolean assertParameter) {
 
 		Boolean resourceWasCreated = false;
-
 
 		if ("users".equals(resourceName)) {
 			userUid = StandardScimTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
@@ -160,7 +161,8 @@ public class SalesforceSpecificTestSuite {
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
-		result = StandardScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector, options);
+		result = StandardScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
+				options);
 
 		HashMap<String, String> evaluationResults = StandardScimTestUtils.processResult(result, resourceName,
 				testType.toString(), userUid, testNumber);
@@ -181,8 +183,8 @@ public class SalesforceSpecificTestSuite {
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
-		returnedObjects = StandardScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
-				options);
+		returnedObjects = StandardScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid,
+				connector, options);
 
 		Assert.assertFalse(returnedObjects.isEmpty());
 
@@ -216,8 +218,8 @@ public class SalesforceSpecificTestSuite {
 
 		result = StandardScimTestUtils.filter("uid", "users", testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = StandardScimTestUtils.processResult(result, "users", testType.toString(),
-				userUid, testNumber);
+		HashMap<String, String> evaluationResults = StandardScimTestUtils.processResult(result, "users",
+				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
 
@@ -236,8 +238,7 @@ public class SalesforceSpecificTestSuite {
 
 		Uid returnedUid = StandardScimTestUtils.updateResourceTest("groups", updateType, userUid, groupUid, testNumber,
 				connector);
-		
-		
+
 		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
@@ -246,8 +247,8 @@ public class SalesforceSpecificTestSuite {
 
 		result = StandardScimTestUtils.filter("uid", "groups", testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = StandardScimTestUtils.processResult(result, "groups", testType.toString(),
-				userUid, testNumber);
+		HashMap<String, String> evaluationResults = StandardScimTestUtils.processResult(result, "groups",
+				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
 
@@ -255,7 +256,6 @@ public class SalesforceSpecificTestSuite {
 
 			Assert.assertEquals(nameValue, attributeName);
 		}
-		
 
 		Assert.assertEquals(uid, returnedUid);
 
@@ -287,7 +287,8 @@ public class SalesforceSpecificTestSuite {
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
 		StandardScimTestUtils.deleteResourceTestHelper(resourceName, uid, connector);
-		returnedObjects = StandardScimTestUtils.filter("uid", resourceName, testNumber, userUid, groupUid, connector, options);
+		returnedObjects = StandardScimTestUtils.filter("uid", resourceName, testNumber, userUid, groupUid, connector,
+				options);
 
 		Assert.assertTrue(returnedObjects.isEmpty());
 

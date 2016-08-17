@@ -213,6 +213,12 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		this.GRANT = service;
 	}
 
+	/**
+	 * Getter method for the "BASEURL" attribute.
+	 * 
+	 * @return the BASEURL string value.
+	 */
+
 	@ConfigurationProperty(order = 10, displayMessageKey = "Base URL", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the base url for a token type of authentication.", required = true, confidential = false)
 	public String getBaseUrl() {
 		return BASEURL;
@@ -222,11 +228,17 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 * Setter method for the "BASEURL" attribute.
 	 * 
 	 * @param username
-	 *            the user name string value.
+	 *            the base url string value.
 	 */
 	public void setBaseUrl(String baseUrl) {
 		this.BASEURL = baseUrl;
 	}
+
+	/**
+	 * Getter method for the "TOKEN" attribute.
+	 * 
+	 * @return the TOKEN string value.
+	 */
 
 	@ConfigurationProperty(order = 11, displayMessageKey = "Token", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the token for a token type of authentication.", required = false, confidential = true)
 	public String getToken() {
@@ -237,11 +249,17 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 * Setter method for the "TOKEN" attribute.
 	 * 
 	 * @param username
-	 *            the user name string value.
+	 *            the token string value.
 	 */
 	public void setToken(String token) {
 		this.TOKEN = token;
 	}
+
+	/**
+	 * Getter method for the "PROXY" attribute.
+	 * 
+	 * @return the PROXY url string value.
+	 */
 
 	@ConfigurationProperty(order = 12, displayMessageKey = "Proxy adress", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the adress of the proxy host.", required = false, confidential = false)
 	public String getProxyUrl() {
@@ -249,14 +267,20 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	}
 
 	/**
-	 * Setter method for the "TOKEN" attribute.
+	 * Setter method for the "PROXY" attribute.
 	 * 
-	 * @param username
-	 *            the user name string value.
+	 * @param proxy
+	 *            the proxy url string value.
 	 */
 	public void setProxyUrl(String proxy) {
 		this.PROXY = proxy;
 	}
+
+	/**
+	 * Getter method for the "PROXY_PORT_NUMBER" attribute.
+	 * 
+	 * @return the PROXY_PORT_NUMBER integer value.
+	 */
 
 	@ConfigurationProperty(order = 13, displayMessageKey = "Proxy port number", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the port number of the proxy host.", required = false, confidential = false)
 	public Integer getProxyPortNumber() {
@@ -264,10 +288,10 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	}
 
 	/**
-	 * Setter method for the "TOKEN" attribute.
+	 * Setter method for the "PROXY_PORT_NUMBER" attribute.
 	 * 
-	 * @param username
-	 *            the user name string value.
+	 * @param proxyPortNumber
+	 *            the proxy number integer value.
 	 */
 	public void setProxyPortNumber(Integer proxyPortNumber) {
 		this.PROXY_PORT_NUMBER = proxyPortNumber;

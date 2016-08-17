@@ -52,12 +52,16 @@ public class SchemaObjectBuilderGeneric {
 	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName) {
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
 		builder.addAttributeInfo(Name.INFO);
-
 		for (String attributeName : attributeMap.keySet()) {
 
 			AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 
-			if (!attributeName.equals("active")) {
+			if ("emails.default.primary".equals(attributeName)) {
+
+			}
+			// modified for slack "invalid type name" workaround purposes
+			if (!"active".equals(attributeName) && !(("emails.default.primary".equals(attributeName)
+					|| "emails.default.value".equals(attributeName)) && "slack".equals(providerName))) {
 				Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
 				schemaSubPropertiesMap = attributeMap.get(attributeName);
 				for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
@@ -75,7 +79,6 @@ public class SchemaObjectBuilderGeneric {
 					} else {
 						subPropertiesChecker(infoBuilder, schemaSubPropertiesMap, subPropertieName);
 						// Salesforce workaround
-
 						if ("salesforce".equals(providerName)) {
 
 							if ("members.User.value".equals(attributeName)
@@ -91,18 +94,16 @@ public class SchemaObjectBuilderGeneric {
 				}
 				builder.addAttributeInfo(infoBuilder.build());
 			} else {
-				builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-
+				if ("active".equals(attributeName)) {
+					builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+				} else {
+					slackWorkaround(builder, attributeName, infoBuilder);
+				}
 			}
 		}
 
 		if ("/Users".equals(objectTypeName.intern())) {
 			builder.setType(ObjectClass.ACCOUNT_NAME);
-
-			if ("slack".equals(providerName)) {
-
-				slackWorkaround(builder);
-			}
 
 		} else if ("/Groups".equals(objectTypeName.intern())) {
 			builder.setType(ObjectClass.GROUP_NAME);
@@ -188,19 +189,20 @@ public class SchemaObjectBuilderGeneric {
 		return infoBuilder;
 	}
 
-	private void slackWorkaround(ObjectClassInfoBuilder builder) {
+	private void slackWorkaround(ObjectClassInfoBuilder builder, String attributeName,
+			AttributeInfoBuilder infoBuilder) {
 
-		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder("emails.default.value");
-		infoBuilder.setMultiValued(true);
-		infoBuilder.setRequired(true);
-		infoBuilder.setType(String.class);
-		builder.addAttributeInfo(infoBuilder.build());
-
-		infoBuilder = new AttributeInfoBuilder("emails.default.primary");
-		infoBuilder.setMultiValued(false);
-		infoBuilder.setRequired(true);
-		infoBuilder.setType(Boolean.class);
-		builder.addAttributeInfo(infoBuilder.build());
+		if ("emails.default.value".equals(attributeName)) {
+			infoBuilder.setMultiValued(true);
+			infoBuilder.setRequired(true);
+			infoBuilder.setType(String.class);
+			builder.addAttributeInfo(infoBuilder.build());
+		} else {
+			infoBuilder.setMultiValued(false);
+			infoBuilder.setRequired(true);
+			infoBuilder.setType(Boolean.class);
+			builder.addAttributeInfo(infoBuilder.build());
+		}
 
 	}
 }

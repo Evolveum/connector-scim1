@@ -32,7 +32,6 @@ public class StandardScimTestUtils {
 
 	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
 	private static final ObjectClass groupClass = ObjectClass.GROUP;
-	private static final ObjectClass entitlementClass = new ObjectClass("Entitlements");
 
 	public static ScimConnectorConfiguration buildConfiguration(HashMap<String, String> configuration) {
 		ScimConnectorConfiguration scimConnectorConfiguration = new ScimConnectorConfiguration();
@@ -64,8 +63,12 @@ public class StandardScimTestUtils {
 			} else if ("proxy".equals(configurationParameter)) {
 				scimConnectorConfiguration.setProxyUrl(configuration.get(configurationParameter));
 			} else if ("proxy_port_number".equals(configurationParameter)) {
-				Integer portNumber = Integer.parseInt(configuration.get(configurationParameter));
-				scimConnectorConfiguration.setProxyPortNumber(portNumber);
+				String parameterValue = configuration.get(configurationParameter);
+				if (!parameterValue.isEmpty()) {
+					Integer portNumber = Integer.parseInt(parameterValue);
+					scimConnectorConfiguration.setProxyPortNumber(portNumber);
+				} else
+					scimConnectorConfiguration.setProxyPortNumber(null);
 			} else {
 
 				LOGGER.warn("Occurrence of an non defined parameter");
@@ -81,22 +84,17 @@ public class StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		testAttributeString.append(testNumber.toString()).append("testuser");
+		testAttributeString.append(testNumber.toString()).append("testusertestuser@testdomain.com");
 
 		attributeSet.add(AttributeBuilder.build("userName", testAttributeString.toString()));
 		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
 
-		testAttributeString = new StringBuilder(testNumber.toString()).append("testuser@testdomain.com");
 		attributeSet.add(AttributeBuilder.build("emails.work.value", testAttributeString.toString()));
 		attributeSet.add(AttributeBuilder.build("emails.work.primary", true));
-		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
 
 		attributeSet.add(AttributeBuilder.build("title", "Mr."));
 		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
-
-		// attributeSet.add(AttributeBuilder.build("entitlements.default.value",
-		// "00e58000000qvhqAAA"));
 
 		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
 
@@ -189,9 +187,6 @@ public class StandardScimTestUtils {
 		} else if ("groups".equalsIgnoreCase(resourceName)) {
 			conn.executeQuery(groupClass, null, handler, options);
 
-		} else if ("entitlements".equalsIgnoreCase(resourceName)) {
-
-			conn.executeQuery(entitlementClass, null, handler, options);
 		}
 
 		returnedObjects = handler.getResult();
@@ -334,9 +329,8 @@ public class StandardScimTestUtils {
 				conn.executeQuery(userClass, filter, handler, options);
 			} else if ("groups".equalsIgnoreCase(resourceName)) {
 				conn.executeQuery(groupClass, filter, handler, options);
-			} else if ("entitlements".equalsIgnoreCase(resourceName)) {
-				conn.executeQuery(entitlementClass, filter, handler, options);
 			}
+
 		} catch (Exception e) {
 			LOGGER.warn("An exception has occurred while processing the filter method test: {0}", e.getMessage());
 			;

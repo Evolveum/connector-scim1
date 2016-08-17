@@ -310,12 +310,18 @@ public class StandardScimTestSuite {
 				if (userUid != null) {
 					LOGGER.warn("Atempting to delete resource: {0}", "users");
 					deleteObjectfromResourcesTest("users", userUid);
-				} else if (groupUid != null) {
-					LOGGER.warn("Atempting to delete resource: {0}", "groups");
-					deleteObjectfromResourcesTest("groups", groupUid);
 				} else {
 					LOGGER.warn(
-							"Test failure, uid values of resource objects are null. No resource deletion operation was atempted");
+							"Test failure, uid value of resource \"User\" is null. No resource deletion operation was atempted");
+				}
+				if (groupUid != null) {
+					LOGGER.warn("Atempting to delete resource: {0}", "groups");
+					deleteObjectfromResourcesTest("groups", groupUid);
+				} else
+
+				{
+					LOGGER.warn(
+							"Test failure, uid value of resource \"Groups\" is null. No resource deletion operation was atempted");
 				}
 
 				throw new Exception("Test failure while creating the resource objects, test suite will not continue.");
@@ -324,7 +330,9 @@ public class StandardScimTestSuite {
 				if (userUid != null) {
 					LOGGER.warn("Atempting to delete resource: {0}", "users");
 					deleteObjectfromResourcesTest("users", userUid);
-				} else if (groupUid != null) {
+				}
+
+				if (groupUid != null) {
 					LOGGER.warn("Atempting to delete resource: {0}", "groups");
 					deleteObjectfromResourcesTest("groups", groupUid);
 				}

@@ -31,7 +31,6 @@ public class SlackSpecificTestUtils {
 
 	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
 	private static final ObjectClass groupClass = ObjectClass.GROUP;
-	private static final ObjectClass entitlementClass = new ObjectClass("Entitlements");
 
 	public static ScimConnectorConfiguration buildConfiguration(HashMap<String, String> configuration) {
 		ScimConnectorConfiguration scimConnectorConfiguration = new ScimConnectorConfiguration();

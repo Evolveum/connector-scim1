@@ -60,8 +60,12 @@ public class SalesforceSpecificTestUtils {
 			} else if ("proxy".equals(configurationParameter)) {
 				scimConnectorConfiguration.setProxyUrl(configuration.get(configurationParameter));
 			} else if ("proxy_port_number".equals(configurationParameter)) {
-				Integer portNumber = Integer.parseInt(configuration.get(configurationParameter));
-				scimConnectorConfiguration.setProxyPortNumber(portNumber);
+				String parameterValue = configuration.get(configurationParameter);
+				if (!parameterValue.isEmpty()) {
+					Integer portNumber = Integer.parseInt(parameterValue);
+					scimConnectorConfiguration.setProxyPortNumber(portNumber);
+				} else
+					scimConnectorConfiguration.setProxyPortNumber(null);
 			} else {
 
 				LOGGER.warn("Occurrence of an non defined parameter");
@@ -77,12 +81,11 @@ public class SalesforceSpecificTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		testAttributeString.append(testNumber.toString()).append("testuser");
+		testAttributeString.append(testNumber.toString()).append("testuser@testdomain.com");
 
 		attributeSet.add(AttributeBuilder.build("userName", testAttributeString.toString()));
 		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
 
-		testAttributeString = new StringBuilder(testNumber.toString()).append("testuser@testdomain.com");
 		attributeSet.add(AttributeBuilder.build("emails.work.value", testAttributeString.toString()));
 		attributeSet.add(AttributeBuilder.build("emails.work.primary", true));
 		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
@@ -91,8 +94,7 @@ public class SalesforceSpecificTestUtils {
 		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 
-		// attributeSet.add(AttributeBuilder.build("entitlements.default.value",
-		// "00e58000000qvhqAAA"));
+		attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
 
 		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
 
@@ -113,13 +115,9 @@ public class SalesforceSpecificTestUtils {
 
 	private static Set<Attribute> userMultiValUpdateBuilder(Integer testNumber) {
 
-		StringBuilder buildUpdateEmailAdress = new StringBuilder(testNumber.toString())
-				.append("testupdateuser@testdomain.com");
-
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("emails.work.value", buildUpdateEmailAdress.toString()));
-		attributeSet.add(AttributeBuilder.build("emails.work.primary", false));
+		attributeSet.add(AttributeBuilder.build("phoneNumbers.work.value", "000 000 111"));
 
 		return attributeSet;
 	}
@@ -165,6 +163,14 @@ public class SalesforceSpecificTestUtils {
 	}
 
 	private static Set<Attribute> groupMultiValUpdateBuilder(Integer testNumber, Uid userTestUid) {
+
+		Set<Attribute> attributeSet = new HashSet<Attribute>();
+
+		attributeSet.add(AttributeBuilder.build("members.User.value", userTestUid.getUidValue()));
+		return attributeSet;
+	}
+
+	private static Set<Attribute> entitlementMultiValUpdateBuilder(Integer testNumber, Uid userTestUid) {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
@@ -235,8 +241,8 @@ public class SalesforceSpecificTestUtils {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 		}
 
-		// TODO test negative in salesforce/ free-plan
-		// conn.create(entitlementClass, BuilderTestResource(), null);
+		// Test for entitlement creation negative in salesforce/ free-plan
+
 		return uid;
 	}
 
@@ -270,7 +276,15 @@ public class SalesforceSpecificTestUtils {
 				uid = conn.update(groupClass, groupTestUid, groupMultiValUpdateBuilder(testNumber, userTestUid), null);
 
 			}
-		} else {
+		} else if ("entitlements".equals(resourceName)) {
+			if ("multi".equals(updateType)) {
+				uid = conn.update(entitlementClass, groupTestUid,
+						entitlementMultiValUpdateBuilder(testNumber, userTestUid), null);
+
+			}
+		}
+
+		else {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 		}
 		return uid;
@@ -451,6 +465,10 @@ public class SalesforceSpecificTestUtils {
 			} else if ("update-single".equals(testType)) {
 				createAttributeSet = groupSingleValUpdateBuilder(testNumber);
 			} else if ("update-multi".equals(testType)) {
+				groupMultiValUpdateBuilder(testNumber, userTestUid);
+			}
+		} else if ("entitlements".equals(resourceName)) {
+			if ("update-multi".equals(testType)) {
 				groupMultiValUpdateBuilder(testNumber, userTestUid);
 			}
 		}

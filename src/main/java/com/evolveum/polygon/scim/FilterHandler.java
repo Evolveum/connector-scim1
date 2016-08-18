@@ -3,9 +3,7 @@ package com.evolveum.polygon.scim;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
-import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -36,18 +34,6 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
  */
 public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
-	/**
-	 * Calls the "translateSchemaMapToDictionary" method for schema to filter
-	 * dictionary translation.
-	 * 
-	 * @param schemaMap
-	 *            - Map containing the representation of all the schemas of
-	 *            resource object provided from the service provider.
-	 */
-	public FilterHandler(Map<String, Map<String, Object>> schemaMap) {
-		translateSchemaMapToDictionary(schemaMap);
-	}
-
 	private static final Log LOGGER = Log.getLog(FilterHandler.class);
 
 	private static final String SPACE = "%20";
@@ -75,118 +61,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	private static final String OR = "or";
 
 	private static final String NOT = "not";
-
-	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
-
-	static {
-
-		objectNameDictionary.put("userName", "userName");
-
-		objectNameDictionary.put("name.formatted", "name.formatted");
-		objectNameDictionary.put("name.familyName", "name.familyName");
-		objectNameDictionary.put("name.givenName", "name.givenName");
-		objectNameDictionary.put("name.middleName", "name.middleName");
-		objectNameDictionary.put("name.honorificPrefix", "name.honorificPrefix");
-		objectNameDictionary.put("name.honorificSuffix", "name.honorificSuffix");
-
-		objectNameDictionary.put("displayName", "displayName");
-		objectNameDictionary.put("nickName", "nickName");
-
-		objectNameDictionary.put("emails.work.value", "emails.work.value");
-
-		objectNameDictionary.put("emails.home.value", "emails.home.value");
-
-		objectNameDictionary.put("emails.other.value", "emails.other.value");
-
-		objectNameDictionary.put("addresses.work.streetAddress", "addresses.work.streetAddress");
-		objectNameDictionary.put("addresses.work.locality", "addresses.work.locality");
-		objectNameDictionary.put("addresses.work.region", "addresses.work.region");
-		objectNameDictionary.put("addresses.work.postalCode", "addresses.work.postalCode");
-		objectNameDictionary.put("addresses.work.country", "addresses.work.country");
-		objectNameDictionary.put("addresses.work.formatted", "addresses.work.formatted");
-
-		objectNameDictionary.put("addresses.home.streetAddress", "addresses.work.streetAddress");
-		objectNameDictionary.put("addresses.home.locality", "addresses.work.locality");
-		objectNameDictionary.put("addresses.home.region", "addresses.work.region");
-		objectNameDictionary.put("addresses.home.postalCode", "addresses.work.postalCode");
-		objectNameDictionary.put("addresses.home.country", "addresses.work.country");
-		objectNameDictionary.put("addresses.home.formatted", "addresses.work.formatted");
-
-		objectNameDictionary.put("addresses.other.streetAddress", "addresses.work.streetAddress");
-		objectNameDictionary.put("addresses.other.locality", "addresses.work.locality");
-		objectNameDictionary.put("addresses.other.region", "addresses.work.region");
-		objectNameDictionary.put("addresses.other.postalCode", "addresses.work.postalCode");
-		objectNameDictionary.put("addresses.other.country", "addresses.work.country");
-		objectNameDictionary.put("addresses.other.formatted", "addresses.work.formatted");
-
-		objectNameDictionary.put("phoneNumbers.work.value", "phoneNumbers.work.value");
-
-		objectNameDictionary.put("phoneNumbers.home.value", "phoneNumbers.home.value");
-
-		objectNameDictionary.put("phoneNumbers.mobile.value", "phoneNumbers.mobile.value");
-
-		objectNameDictionary.put("phoneNumbers.fax.value", "phoneNumbers.fax.value");
-
-		objectNameDictionary.put("phoneNumbers.pager.value", "phoneNumbers.pager.value");
-
-		objectNameDictionary.put("phoneNumbers.other.value", "phoneNumbers.other.value");
-
-		objectNameDictionary.put("photos.photo.value", "photos.photo.value");
-
-		objectNameDictionary.put("photos.thumbnail.value", "photos.thumbnail.value");
-
-		objectNameDictionary.put("ims.aim.value", "ims.aim.value");
-
-		objectNameDictionary.put("ims.gtalk.value", "ims.gtalk.value");
-
-		objectNameDictionary.put("ims.icq.value", "ims.icq.value");
-
-		objectNameDictionary.put("ims.msn.value", "ims.msn.value");
-
-		objectNameDictionary.put("ims.xmpp.value", "ims.xmpp.value");
-
-		objectNameDictionary.put("ims.skype.value", "ims.skype.value");
-
-		objectNameDictionary.put("ims.qq.value", "ims.qq.value");
-
-		objectNameDictionary.put("ims.yahoo.value", "ims.yahoo.value");
-
-		objectNameDictionary.put("ims.other.value", "ims.other.value");
-
-		objectNameDictionary.put("userType", "userType");
-		objectNameDictionary.put("title", "title");
-		objectNameDictionary.put("preferredLanguage", "preferredLanguage");
-		objectNameDictionary.put("locale", "locale");
-
-		objectNameDictionary.put("id", "id");
-		objectNameDictionary.put("externalId", "externalId");
-		objectNameDictionary.put("timezone", "timezone");
-		objectNameDictionary.put("active", "active");
-		objectNameDictionary.put("password", "password");
-
-		objectNameDictionary.put("x509Certificates", "x509Certificates");
-		objectNameDictionary.put("x509Certificates.value", "value");
-
-		objectNameDictionary.put("entitlements.default.value", "value");
-
-		objectNameDictionary.put("schema.type", "type");
-		objectNameDictionary.put("schema.organization", "organization");
-
-		objectNameDictionary.put("roles.default.value", "value");
-		objectNameDictionary.put("roles.default.display", "value");
-
-		objectNameDictionary.put("displayName", "displayName");
-
-		/*
-		 * objectNameDictionary.put("members.User.value", "value");
-		 * objectNameDictionary.put("members.User.display", "display");
-		 * objectNameDictionary.put("members.Group.value", "value");
-		 * objectNameDictionary.put("members.Group.display", "display");
-		 */
-		objectNameDictionary.put("members.default.value", "value");
-		objectNameDictionary.put("members.default.display", "display");
-
-	}
 
 	/**
 	 * Implementation of the "visitAndFilter" filter method.
@@ -273,13 +147,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
-
-				if (objectNameDictionary.containsKey(filter.getName())) {
-					return BuildString(filter.getAttribute(), CONTAINS, objectNameDictionary.get(filter.getName()));
-				} else {
-					LOGGER.error("Usuported attribute name procesed by queuery filter: {0}", filter.getName());
-					throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
-				}
+				return BuildString(filter.getAttribute(), CONTAINS, filter.getName());
 			} else {
 				return preprocessedFilter;
 			}
@@ -316,11 +184,9 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			for (Filter f : filterList) {
 				if (f instanceof EqualsFilter) {
 
-					objectNameDictionary.put("members", "members");
 					return f.accept(this, p);
 				}
 			}
-			objectNameDictionary.put("members", "members");
 			AndFilter andFilterTest = (AndFilter) FilterBuilder.and(filterList);
 
 			return andFilterTest.accept(this, p);
@@ -348,14 +214,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				if (objectNameDictionary.containsKey(filter.getName())) {
-
-					return BuildString(filter.getAttribute(), EQUALS, objectNameDictionary.get(filter.getName()));
-
-				} else {
-					LOGGER.error("Usuported attribute name procesed by queuery filter: {0}", filter.getName());
-					throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
-				}
+				return BuildString(filter.getAttribute(), EQUALS, filter.getName());
 
 			} else {
 				return preprocessedFilter;
@@ -404,13 +263,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				if (objectNameDictionary.containsKey(filter.getName())) {
+				return BuildString(filter.getAttribute(), GREATERTHAN, filter.getName());
 
-					return BuildString(filter.getAttribute(), GREATERTHAN, objectNameDictionary.get(filter.getName()));
-				} else {
-					LOGGER.error("Usuported attribute name procesed by queuery filter: {0}", filter.getName());
-					throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
-				}
 			} else {
 				return preprocessedFilter;
 			}
@@ -440,13 +294,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				if (objectNameDictionary.containsKey(filter.getName())) {
-
-					return BuildString(filter.getAttribute(), GREATEROREQ, objectNameDictionary.get(filter.getName()));
-				} else {
-					LOGGER.error("Usuported attribute name procesed by queuery filter: {0}", filter.getName());
-					throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
-				}
+				return BuildString(filter.getAttribute(), GREATEROREQ, filter.getName());
 			} else {
 				return preprocessedFilter;
 			}
@@ -475,14 +323,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
+				return BuildString(filter.getAttribute(), LESSTHAN, filter.getName());
 
-				if (objectNameDictionary.containsKey(filter.getName())) {
-
-					return BuildString(filter.getAttribute(), LESSTHAN, objectNameDictionary.get(filter.getName()));
-				} else {
-					LOGGER.error("Usuported attribute name procesed by queuery filter: {0}", filter.getName());
-					throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
-				}
 			} else {
 				return preprocessedFilter;
 			}
@@ -513,13 +355,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				if (objectNameDictionary.containsKey(filter.getName())) {
-
-					return BuildString(filter.getAttribute(), LESSOREQ, objectNameDictionary.get(filter.getName()));
-				} else {
-					LOGGER.error("Usuported attribute name procesed by queuery filter: {0}", filter.getName());
-					throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
-				}
+				return BuildString(filter.getAttribute(), LESSOREQ, filter.getName());
 			} else {
 				return preprocessedFilter;
 			}
@@ -614,12 +450,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				if (objectNameDictionary.containsKey(filter.getName())) {
-					return BuildString(filter.getAttribute(), STARTSWITH, objectNameDictionary.get(filter.getName()));
-				} else {
-					LOGGER.error("Usuported attribute name procesed by queuery filter: {0}", filter.getName());
-					throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
-				}
+				return BuildString(filter.getAttribute(), STARTSWITH, filter.getName());
 			} else {
 				return preprocessedFilter;
 			}
@@ -648,14 +479,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
+				return BuildString(filter.getAttribute(), ENDSWITH, filter.getName());
 
-				if (objectNameDictionary.containsKey(filter.getName())) {
-
-					return BuildString(filter.getAttribute(), ENDSWITH, objectNameDictionary.get(filter.getName()));
-				} else {
-					LOGGER.error("Usuported attribute name procesed by queuery filter: {0}", filter.getName());
-					throw new InvalidAttributeValueException("Usuported attribute name procesed by queuery filter");
-				}
 			} else {
 				return preprocessedFilter;
 			}
@@ -728,28 +553,21 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 							.build(keyName.toString(), AttributeUtil.getAsStringValue(filter.getAttribute())));
 
 					StringBuilder type = new StringBuilder(keyParts[0]).append(".").append("type");
-					objectNameDictionary.put(type.toString(), type.toString());
 
 					EqualsFilter eq = (EqualsFilter) FilterBuilder
 							.equalTo(AttributeBuilder.build(type.toString(), keyParts[1]));
 					filterList.add(eqfilter);
 					filterList.add(eq);
 
-					objectNameDictionary.put(type.toString(), type.toString());
-					objectNameDictionary.put(keyName.toString(), keyName.toString());
 				} else if (filter instanceof ContainsAllValuesFilter) {
 					StringBuilder pathName = new StringBuilder("valuePath").append(".").append(keyParts[0]);
 					p = pathName.toString();
 
 					filterList = buildValueList((ContainsAllValuesFilter) filter, keyParts[2]);
 
-					StringBuilder type = new StringBuilder(keyParts[0]).append(".").append("type");
-
 					EqualsFilter eq = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build("type", keyParts[1]));
 					filterList.add(eq);
 
-					objectNameDictionary.put("type", "type");
-					objectNameDictionary.put(keyParts[2], keyParts[2]);
 				} else {
 					LOGGER.warn("Evalated filter is not supported for querying of \"complex\" attributes: {0}.",
 							filter);
@@ -769,41 +587,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 				"Delimiters not found in the attribute name of {0}, the attribute is non complex. The filter query will be processed accordingly",
 				filter.getName());
 		return null;
-	}
-
-	/**
-	 * Processes a Map representation of the resource schemas provided from the
-	 * resource provider. A dictionary is generated at the output of this method
-	 * which is later used for filter translation. Is the resource schemas
-	 * representation is not present then and default dictionary is used.
-	 * 
-	 * @param schemaMap
-	 *            Map representing the resource schemas provided from the
-	 *            resource provider.
-	 */
-	private void translateSchemaMapToDictionary(Map<String, Map<String, Object>> schemaMap) {
-
-		if (schemaMap != null) {
-			objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
-			for (String attributeNameKey : schemaMap.keySet()) {
-				String[] attributeNameKeyParts = attributeNameKey.split("\\."); // e.g.
-				// emails.work.value
-				if (attributeNameKeyParts.length == 3) {
-					StringBuilder buildAttributeDictionaryValue = new StringBuilder(attributeNameKeyParts[0])
-							.append(".").append(attributeNameKeyParts[2]);
-					objectNameDictionary.put(attributeNameKey, buildAttributeDictionaryValue.toString());
-
-				} else {
-
-					objectNameDictionary.put(attributeNameKey, attributeNameKey);
-				}
-
-			}
-			LOGGER.info("The filter dictionary which was build from the provided schema: {0}", objectNameDictionary);
-
-		} else {
-			LOGGER.warn("No schema provided, switching to default filter dictionary: {0}", objectNameDictionary);
-		}
 	}
 
 	/**

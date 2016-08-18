@@ -30,8 +30,8 @@ public class StandardScimTestUtils {
 
 	private static final Log LOGGER = Log.getLog(StandardScimTestUtils.class);
 
-	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
-	private static final ObjectClass groupClass = ObjectClass.GROUP;
+	protected static final ObjectClass userClass = ObjectClass.ACCOUNT;
+	protected static final ObjectClass groupClass = ObjectClass.GROUP;
 
 	public static ScimConnectorConfiguration buildConfiguration(HashMap<String, String> configuration) {
 		ScimConnectorConfiguration scimConnectorConfiguration = new ScimConnectorConfiguration();
@@ -101,7 +101,7 @@ public class StandardScimTestUtils {
 		return attributeSet;
 	}
 
-	private static Set<Attribute> userSingleValUpdateBuilder(Integer testNumber) {
+	protected static Set<Attribute> userSingleValUpdateBuilder(Integer testNumber) {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
@@ -113,7 +113,7 @@ public class StandardScimTestUtils {
 
 	}
 
-	private static Set<Attribute> userMultiValUpdateBuilder(Integer testNumber) {
+	protected static Set<Attribute> userMultiValUpdateBuilder(Integer testNumber) {
 
 		StringBuilder buildUpdateEmailAdress = new StringBuilder(testNumber.toString())
 				.append("testupdateuser@testdomain.com");
@@ -126,7 +126,7 @@ public class StandardScimTestUtils {
 		return attributeSet;
 	}
 
-	private static Set<Attribute> userEnableUpdate() {
+	protected static Set<Attribute> userEnableUpdate() {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
@@ -135,7 +135,7 @@ public class StandardScimTestUtils {
 		return attributeSet;
 	}
 
-	private static Set<Attribute> userDisableUpdate() {
+	protected static Set<Attribute> userDisableUpdate() {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
@@ -144,7 +144,7 @@ public class StandardScimTestUtils {
 		return attributeSet;
 	}
 
-	private static Set<Attribute> groupCreateBuilder(Integer testNumber) {
+	protected static Set<Attribute> groupCreateBuilder(Integer testNumber) {
 
 		StringBuilder testAttributeString = new StringBuilder();
 
@@ -157,7 +157,7 @@ public class StandardScimTestUtils {
 		return attributeSet;
 	}
 
-	private static Set<Attribute> groupSingleValUpdateBuilder(Integer testNumber) {
+	protected static Set<Attribute> groupSingleValUpdateBuilder(Integer testNumber) {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
@@ -166,7 +166,7 @@ public class StandardScimTestUtils {
 		return attributeSet;
 	}
 
-	private static Set<Attribute> groupMultiValUpdateBuilder(Integer testNumber, Uid userTestUid) {
+	protected static Set<Attribute> groupMultiValUpdateBuilder(Integer testNumber, Uid userTestUid) {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
@@ -187,6 +187,10 @@ public class StandardScimTestUtils {
 		} else if ("groups".equalsIgnoreCase(resourceName)) {
 			conn.executeQuery(groupClass, null, handler, options);
 
+		} else {
+
+			LOGGER.warn("Resource not supported", resourceName);
+			throw new ConnectorException("Resource not supported");
 		}
 
 		returnedObjects = handler.getResult();
@@ -329,6 +333,8 @@ public class StandardScimTestUtils {
 				conn.executeQuery(userClass, filter, handler, options);
 			} else if ("groups".equalsIgnoreCase(resourceName)) {
 				conn.executeQuery(groupClass, filter, handler, options);
+			} else {
+				LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 			}
 
 		} catch (Exception e) {

@@ -592,16 +592,4 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		return builder.build();
 	}
-
-	/**
-	 * Method not implemented in this class.
-	 * 
-	 * @return null
-	 **/
-	@Override
-	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes,
-			Map<String, Map<String, Object>> attributeMap) {
-		// Method not implemented in this class.
-		return null;
-	}
 }

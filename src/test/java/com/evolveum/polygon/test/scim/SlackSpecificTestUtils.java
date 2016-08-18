@@ -3,15 +3,12 @@ package com.evolveum.polygon.test.scim;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
@@ -23,47 +20,10 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 
 import com.evolveum.polygon.scim.ScimConnector;
-import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
-public class SlackSpecificTestUtils {
+public class SlackSpecificTestUtils extends StandardScimTestUtils {
 
 	private static final Log LOGGER = Log.getLog(SlackSpecificTestUtils.class);
-
-	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
-	private static final ObjectClass groupClass = ObjectClass.GROUP;
-
-	public static ScimConnectorConfiguration buildConfiguration(HashMap<String, String> configuration) {
-		ScimConnectorConfiguration scimConnectorConfiguration = new ScimConnectorConfiguration();
-
-		for (String configurationParameter : configuration.keySet()) {
-
-			if ("endpoint".equals(configurationParameter)) {
-				scimConnectorConfiguration.setEndpoint(configuration.get(configurationParameter));
-			} else if ("version".equals(configurationParameter)) {
-				scimConnectorConfiguration.setVersion(configuration.get(configurationParameter));
-			} else if ("authentication".equals(configurationParameter)) {
-				scimConnectorConfiguration.setAuthentication(configuration.get(configurationParameter));
-			} else if ("baseurl".equals(configurationParameter)) {
-				scimConnectorConfiguration.setBaseUrl(configuration.get(configurationParameter));
-			} else if ("token".equals(configurationParameter)) {
-				scimConnectorConfiguration.setToken(configuration.get(configurationParameter));
-			} else if ("proxy".equals(configurationParameter)) {
-				scimConnectorConfiguration.setProxyUrl(configuration.get(configurationParameter));
-			} else if ("proxy_port_number".equals(configurationParameter)) {
-				String parameterValue = configuration.get(configurationParameter);
-				if (!parameterValue.isEmpty()) {
-					Integer portNumber = Integer.parseInt(parameterValue);
-					scimConnectorConfiguration.setProxyPortNumber(portNumber);
-				} else
-					scimConnectorConfiguration.setProxyPortNumber(null);
-			} else {
-
-				LOGGER.warn("Occurrence of an non defined parameter");
-			}
-		}
-		return scimConnectorConfiguration;
-
-	}
 
 	private static Set<Attribute> userCreateBuilder(Integer testNumber) {
 
@@ -90,132 +50,6 @@ public class SlackSpecificTestUtils {
 		return attributeSet;
 	}
 
-	private static Set<Attribute> userSingleValUpdateBuilder(Integer testNumber) {
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("nickName", testNumber.toString()));
-
-		attributeSet.add(AttributeBuilder.build("name.familyName", "TestUpdate"));
-
-		return attributeSet;
-
-	}
-
-	private static Set<Attribute> userMultiValUpdateBuilder(Integer testNumber) {
-
-		StringBuilder buildUpdateEmailAdress = new StringBuilder(testNumber.toString())
-				.append("testupdateuser@testdomain.com");
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("emails.default.value", buildUpdateEmailAdress.toString()));
-		attributeSet.add(AttributeBuilder.build("emails.default.primary", true));
-
-		return attributeSet;
-	}
-
-	private static Set<Attribute> userEnableUpdate() {
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
-
-		return attributeSet;
-	}
-
-	private static Set<Attribute> userDisableUpdate() {
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("__ENABLE__", false));
-
-		return attributeSet;
-	}
-
-	private static Set<Attribute> groupCreateBuilder(Integer testNumber) {
-
-		StringBuilder testAttributeString = new StringBuilder();
-
-		testAttributeString.append(testNumber.toString()).append("TestGroup");
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("displayName", testAttributeString.toString()));
-
-		return attributeSet;
-	}
-
-	private static Set<Attribute> groupSingleValUpdateBuilder(Integer testNumber) {
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("displayName", testNumber.toString()));
-
-		return attributeSet;
-	}
-
-	private static Set<Attribute> groupMultiValUpdateBuilder(Integer testNumber, Uid userTestUid) {
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
-		return attributeSet;
-	}
-
-	public static ArrayList<ConnectorObject> listAllfromResourcesTestUtil(String resourceName, ScimConnector conn,
-			OperationOptions options) {
-
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
-
-		TestSearchResultsHandler handler = new TestSearchResultsHandler();
-
-		if ("users".equalsIgnoreCase(resourceName)) {
-			conn.executeQuery(userClass, null, handler, options);
-
-		} else if ("groups".equalsIgnoreCase(resourceName)) {
-			conn.executeQuery(groupClass, null, handler, options);
-
-		} else {
-
-			LOGGER.warn("Resource not supported", resourceName);
-			throw new ConnectorException("Resource not supported");
-		}
-
-		returnedObjects = handler.getResult();
-
-		return returnedObjects;
-	}
-
-	public static OperationOptions getOptions(Integer pageSize, Integer pageOffset) {
-
-		Map<String, Object> operationOptions = new HashMap<String, Object>();
-
-		operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
-		operationOptions.put("PAGED_RESULTS_OFFSET", pageOffset);
-		operationOptions.put("PAGE_SIZE", pageSize);
-
-		OperationOptions options = new OperationOptions(operationOptions);
-
-		return options;
-	}
-
-	public static void deleteResourceTestHelper(String resourceName, Uid uid, ScimConnector conn) {
-
-		if ("users".equalsIgnoreCase(resourceName)) {
-			conn.delete(userClass, uid, null);
-
-		} else if ("groups".equalsIgnoreCase(resourceName)) {
-			conn.delete(groupClass, uid, null);
-
-		} else {
-
-			LOGGER.warn("Resource not supported", resourceName);
-			throw new ConnectorException("Resource not supported");
-		}
-
-	}
-
 	public static Uid createResourceTestHelper(String resourceName, Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
@@ -229,67 +63,17 @@ public class SlackSpecificTestUtils {
 		return uid;
 	}
 
-	public static Uid updateResourceTest(String resourceName, String updateType, Uid userTestUid, Uid groupTestUid,
-			Integer testNumber, ScimConnector conn) {
-		Uid uid = null;
+	protected static Set<Attribute> userMultiValUpdateBuilder(Integer testNumber) {
 
-		if ("users".equals(resourceName)) {
-			if ("single".equals(updateType)) {
+		StringBuilder buildUpdateEmailAdress = new StringBuilder(testNumber.toString())
+				.append("testupdateuser@testdomain.com");
 
-				uid = conn.update(userClass, userTestUid, userSingleValUpdateBuilder(testNumber), null);
-			} else if ("multi".equals(updateType)) {
+		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-				uid = conn.update(userClass, userTestUid, userMultiValUpdateBuilder(testNumber), null);
+		attributeSet.add(AttributeBuilder.build("emails.default.value", buildUpdateEmailAdress.toString()));
+		attributeSet.add(AttributeBuilder.build("emails.default.primary", true));
 
-			} else if ("enabled".equals(updateType)) {
-
-				uid = conn.update(userClass, userTestUid, userEnableUpdate(), null);
-
-			} else if ("disabled".equals(updateType)) {
-
-				uid = conn.update(userClass, userTestUid, userDisableUpdate(), null);
-
-			}
-
-		} else if ("groups".equals(resourceName)) {
-			if ("single".equals(updateType)) {
-
-				uid = conn.update(groupClass, groupTestUid, groupSingleValUpdateBuilder(testNumber), null);
-			} else if ("multi".equals(updateType)) {
-				uid = conn.update(groupClass, groupTestUid, groupMultiValUpdateBuilder(testNumber, userTestUid), null);
-
-			}
-		} else {
-			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
-		}
-		return uid;
-	}
-
-	public Uid addAttributeValuesTestHelper(String resourceName, Uid testUid, Integer testNumber, ScimConnector conn) {
-		Uid uid = null;
-
-		if ("users".equals(resourceName)) {
-			uid = conn.update(userClass, testUid, userSingleValUpdateBuilder(testNumber), null);
-		} else if ("groups".equals(resourceName)) {
-			uid = conn.update(groupClass, testUid, groupCreateBuilder(testNumber), null);
-		} else {
-			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
-		}
-		return uid;
-	}
-
-	public Uid removeAttributeValuesTestHelper(String resourceName, Uid testUid, Integer testNumber,
-			ScimConnector conn) {
-		Uid uid = null;
-
-		if ("users".equals(resourceName)) {
-			uid = conn.update(userClass, testUid, userSingleValUpdateBuilder(testNumber), null);
-		} else if ("groups".equals(resourceName)) {
-			uid = conn.update(groupClass, testUid, groupCreateBuilder(testNumber), null);
-		} else {
-			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
-		}
-		return uid;
+		return attributeSet;
 	}
 
 	public static ArrayList<ConnectorObject> filter(String filterType, String resourceName, Integer testNumber,
@@ -307,6 +91,7 @@ public class SlackSpecificTestUtils {
 			} else {
 				LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 			}
+
 		} catch (Exception e) {
 			LOGGER.warn("An exception has occurred while processing the filter method test: {0}", e.getMessage());
 			;
@@ -361,16 +146,6 @@ public class SlackSpecificTestUtils {
 		}
 
 		return filter;
-	}
-
-	public static boolean isConfigurationValid(ScimConnectorConfiguration connectorConfiguration) {
-
-		try {
-			connectorConfiguration.validate();
-		} catch (Exception e) {
-			return false;
-		}
-		return true;
 	}
 
 	public Set<Attribute> getAttributeSet(String resourceName, Integer testNumber) {

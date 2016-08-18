@@ -3,7 +3,6 @@ package com.evolveum.polygon.scim;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.identityconnectors.common.logging.Log;
@@ -57,10 +56,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 	 *            discarded.
 	 * @return The complete json representation of the provided data set.
 	 */
-	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes,
-			Map<String, Map<String, Object>> attributeMap) {
-
-		LOGGER.info("The dictionary: {0}", attributeMap.keySet().toString());
+	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
 
 		LOGGER.info("Building account JsonObject");
 
@@ -100,28 +96,24 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 			String attributeName = attribute.getName();
 
-			if (attributeMap.containsKey(attributeName)) {
-				if (attributeName.contains(".")) {
+			if ("__ENABLE__".equals(attributeName)) {
+				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
+			} else if (attributeName.contains(".")) {
 
-					String[] keyParts = attributeName.split("\\."); // e.g.
-					// emails.work.value
-					if (keyParts.length == 2) {
+				String[] keyParts = attributeName.split("\\."); // e.g.
+				// emails.work.value
+				if (keyParts.length == 2) {
 
-						multiValueAttribute.add(attribute);
-					} else {
-						multiLayerAttribute.add(attribute);
-					}
-
+					multiValueAttribute.add(attribute);
 				} else {
-
-					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
+					multiLayerAttribute.add(attribute);
 				}
 
-			} else if ("__ENABLE__".equals(attributeName)) {
-				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
 			} else {
-				LOGGER.warn("Attribute name not defined in dictionary: {0}", attributeName);
+
+				completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 			}
+
 		}
 
 		if (multiValueAttribute != null) {
@@ -336,16 +328,5 @@ public class GenericDataBuilder implements ObjectTranslator {
 		}
 
 		return json;
-	}
-
-	/**
-	 * Method not implemented in this class.
-	 * 
-	 * @return null
-	 **/
-	@Override
-	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
-
-		return null;
 	}
 }

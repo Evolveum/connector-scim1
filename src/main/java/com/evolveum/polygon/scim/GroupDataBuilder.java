@@ -267,16 +267,4 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 		return builder.build();
 	}
-
-	/**
-	 * Method not implemented in this class.
-	 * 
-	 * @return null
-	 **/
-	@Override
-	public JSONObject translateSetToJson(Set<Attribute> imattributes, Set<Attribute> connattributes,
-			Map<String, Map<String, Object>> attributeMap) {
-		return null;
-	}
-
 }

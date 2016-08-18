@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
@@ -595,9 +594,6 @@ public class CrudManagerScim {
 	 * @param attributes
 	 *            The provided attributes set containing information for object
 	 *            creation.
-	 * @param attributeMap
-	 *            A Map containing the dictionary which represents the resource
-	 *            schema.
 	 * @throws ConnectorException
 	 * @throws ConnectorIOException
 	 * @throws ConnectionFailedException
@@ -607,7 +603,7 @@ public class CrudManagerScim {
 	 */
 
 	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
-			Object attributeMap, HashSet<Attribute> injectedAttributeSet) {
+			HashSet<Attribute> injectedAttributeSet) {
 		String orgID = null;
 		JSONObject loginObject = logIntoService();
 		if (loginObject != null) {
@@ -635,12 +631,8 @@ public class CrudManagerScim {
 
 		JSONObject jsonObject = new JSONObject();
 
-		if (attributeMap != null && attributeMap instanceof HashMap<?, ?>) {
-			jsonObject = objectTranslator.translateSetToJson(attributes, injectedAttributeSet,
-					(Map<String, Map<String, Object>>) attributeMap);
-		} else {
-			jsonObject = objectTranslator.translateSetToJson(attributes, injectedAttributeSet);
-		}
+		jsonObject = objectTranslator.translateSetToJson(attributes, injectedAttributeSet);
+
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").toString();
 
@@ -962,8 +954,6 @@ public class CrudManagerScim {
 		httpDelete.addHeader(oauthHeader);
 		httpDelete.addHeader(prettyPrintHeader);
 
-		String responseString = null;
-
 		try {
 			providerStartTime = System.currentTimeMillis();
 			HttpResponse response = httpClient.execute(httpDelete);
@@ -1039,6 +1029,8 @@ public class CrudManagerScim {
 			LOGGER.error("Full Error response from provider: {0}", responseString);
 
 			JSONObject responseObject = new JSONObject(responseString);
+
+			// TODO mod for usecases when "Errors" is an json array.
 
 			if (responseObject.has("Errors")) {
 				responseObject = responseObject.getJSONObject("Errors");

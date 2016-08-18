@@ -16,7 +16,7 @@ import org.testng.annotations.Test;
 import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
-public class SlackSpecificTestSuite {
+public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	private static Uid userUid;
 	private static Uid groupUid;
@@ -43,6 +43,26 @@ public class SlackSpecificTestSuite {
 				{ "groups", "equals" } };
 	}
 
+	@DataProvider(name = "configTestProvider")
+	public static Object[][] configurationTestResourcesProvider() {
+
+		pageSize = 1;
+		pageOffset = 1;
+
+		testNumber = 89;
+
+		HashMap<String, String> configurationParameters = new HashMap<String, String>();
+		configurationParameters.put("endpoint", "/scim");
+		configurationParameters.put("version", "/v1");
+		configurationParameters.put("authentication", "token");
+		configurationParameters.put("baseurl", "https://api.slack.com");
+		configurationParameters.put("token", "");
+		configurationParameters.put("proxy", "");
+		configurationParameters.put("proxy_port_number", "");
+
+		return new Object[][] { { configurationParameters, true } };
+	}
+
 	@DataProvider(name = "updateUserResourceObjectTestProvider")
 	public static Object[][] updateUserResourceObjectTestResourceProvider() throws Exception {
 		Uid uid = getUid("user");
@@ -57,50 +77,11 @@ public class SlackSpecificTestSuite {
 		return new Object[][] { { "single", uid }, { "multi", uid } };
 	}
 
-	@DataProvider(name = "listAllfromResourcesProvider")
-	public static Object[][] listAllfromResourcesProvider() {
-		return new Object[][] { { 1, "users" }, { 1, "groups" } };
-	}
-
-	@DataProvider(name = "parameterConsistencyTestProvider")
-	public static Object[][] parameterConsistencyTestProvider() {
-
-		return new Object[][] { { "groups", "uid" }, { "users", "uid" } };
-	}
-
 	@DataProvider(name = "deletetObjectfromResourcesProvider")
 	public static Object[][] deletetObjectfromResourcesResourceProvider() {
 
 		return new Object[][] { { "users", userUid }, { "groups", groupUid } };
 	}
-
-	@DataProvider(name = "createTestProvider")
-	public static Object[][] createTestResourceProvider() {
-
-		return new Object[][] { { "users", true }, { "groups", true } };
-	}
-
-	@DataProvider(name = "configTestProvider")
-	public static Object[][] configurationTestResourcesProvider() {
-
-		pageSize = 1;
-		pageOffset = 1;
-
-		testNumber = 82;
-
-		HashMap<String, String> configurationParameters = new HashMap<String, String>();
-		configurationParameters.put("endpoint", "/scim");
-		configurationParameters.put("version", "/v1");
-		configurationParameters.put("authentication", "token");
-		configurationParameters.put("baseurl", "https://api.slack.com");
-		configurationParameters.put("token", "");
-		configurationParameters.put("proxy", "");
-		configurationParameters.put("proxy_port_number", "");
-
-		return new Object[][] { { configurationParameters, true } };
-	}
-
-	/////////////////////////// TestSuite////////////////////////////
 
 	@Test(priority = 1, dataProvider = "configTestProvider")
 	public void configurationTest(HashMap<String, String> configurationParameters, Boolean assertionVariable) {
@@ -176,15 +157,6 @@ public class SlackSpecificTestSuite {
 
 	@Test(priority = 6, dependsOnMethods = { "createObjectOnResourcesTest" }, dataProvider = "filterMethodTestProvider")
 	public void filterMethodTest(String resourceName, String filterType) {
-		// test fixture
-		// - dependency on test that create this user I am going to fetch by uid
-
-		// test itself
-		// User user = getUser(uid)
-
-		// verification that happens what I epxected to happen
-		// assertEquals(expectedUsername, user.getUsername());
-		// assertEquals(expectedWorkEmail, user.get("user.work.email"));
 
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
@@ -318,16 +290,16 @@ public class SlackSpecificTestSuite {
 				if (userUid != null) {
 					LOGGER.warn("Atempting to delete resource: {0}", "users");
 					deleteObjectfromResourcesTest("users", userUid);
-				}else {
+				} else {
 					LOGGER.warn(
 							"Test failure, uid value of resource \"User\" is null. No resource deletion operation was atempted");
 				}
 				if (groupUid != null) {
 					LOGGER.warn("Atempting to delete resource: {0}", "groups");
 					deleteObjectfromResourcesTest("groups", groupUid);
-				}else
-				
-				 {
+				} else
+
+				{
 					LOGGER.warn(
 							"Test failure, uid value of resource \"Groups\" is null. No resource deletion operation was atempted");
 				}
@@ -339,7 +311,7 @@ public class SlackSpecificTestSuite {
 					LOGGER.warn("Atempting to delete resource: {0}", "users");
 					deleteObjectfromResourcesTest("users", userUid);
 				}
-				
+
 				if (groupUid != null) {
 					LOGGER.warn("Atempting to delete resource: {0}", "groups");
 					deleteObjectfromResourcesTest("groups", groupUid);

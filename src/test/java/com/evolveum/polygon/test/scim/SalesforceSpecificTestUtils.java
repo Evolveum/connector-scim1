@@ -3,11 +3,9 @@ package com.evolveum.polygon.test.scim;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -24,56 +22,14 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 
 import com.evolveum.polygon.scim.ScimConnector;
-import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
-public class SalesforceSpecificTestUtils {
+public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 
 	private static final Log LOGGER = Log.getLog(SalesforceSpecificTestUtils.class);
 
 	private static final ObjectClass userClass = ObjectClass.ACCOUNT;
 	private static final ObjectClass groupClass = ObjectClass.GROUP;
 	private static final ObjectClass entitlementClass = new ObjectClass("Entitlements");
-
-	public static ScimConnectorConfiguration buildConfiguration(HashMap<String, String> configuration) {
-		ScimConnectorConfiguration scimConnectorConfiguration = new ScimConnectorConfiguration();
-
-		for (String configurationParameter : configuration.keySet()) {
-
-			if ("clientID".equals(configurationParameter)) {
-				scimConnectorConfiguration.setClientID(configuration.get(configurationParameter));
-			} else if ("clientSecret".equals(configurationParameter)) {
-				scimConnectorConfiguration.setClientSecret(configuration.get(configurationParameter));
-			} else if ("endpoint".equals(configurationParameter)) {
-				scimConnectorConfiguration.setEndpoint(configuration.get(configurationParameter));
-			} else if ("loginUrl".equals(configurationParameter)) {
-				scimConnectorConfiguration.setLoginURL(configuration.get(configurationParameter));
-			} else if ("password".equals(configurationParameter)) {
-				scimConnectorConfiguration.setPassword(configuration.get(configurationParameter));
-			} else if ("service".equals(configurationParameter)) {
-				scimConnectorConfiguration.setService(configuration.get(configurationParameter));
-			} else if ("userName".equals(configurationParameter)) {
-				scimConnectorConfiguration.setUserName(configuration.get(configurationParameter));
-			} else if ("version".equals(configurationParameter)) {
-				scimConnectorConfiguration.setVersion(configuration.get(configurationParameter));
-			} else if ("authentication".equals(configurationParameter)) {
-				scimConnectorConfiguration.setAuthentication(configuration.get(configurationParameter));
-			} else if ("proxy".equals(configurationParameter)) {
-				scimConnectorConfiguration.setProxyUrl(configuration.get(configurationParameter));
-			} else if ("proxy_port_number".equals(configurationParameter)) {
-				String parameterValue = configuration.get(configurationParameter);
-				if (!parameterValue.isEmpty()) {
-					Integer portNumber = Integer.parseInt(parameterValue);
-					scimConnectorConfiguration.setProxyPortNumber(portNumber);
-				} else
-					scimConnectorConfiguration.setProxyPortNumber(null);
-			} else {
-
-				LOGGER.warn("Occurrence of an non defined parameter");
-			}
-		}
-		return scimConnectorConfiguration;
-
-	}
 
 	private static Set<Attribute> userCreateBuilder(Integer testNumber) {
 
@@ -101,72 +57,12 @@ public class SalesforceSpecificTestUtils {
 		return attributeSet;
 	}
 
-	private static Set<Attribute> userSingleValUpdateBuilder(Integer testNumber) {
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("nickName", testNumber.toString()));
-
-		attributeSet.add(AttributeBuilder.build("name.familyName", "TestUpdate"));
-
-		return attributeSet;
-
-	}
-
-	private static Set<Attribute> userMultiValUpdateBuilder(Integer testNumber) {
+	protected static Set<Attribute> userMultiValUpdateBuilder(Integer testNumber) {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
 		attributeSet.add(AttributeBuilder.build("phoneNumbers.work.value", "000 000 111"));
 
-		return attributeSet;
-	}
-
-	private static Set<Attribute> userEnableUpdate() {
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
-
-		return attributeSet;
-	}
-
-	private static Set<Attribute> userDisableUpdate() {
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("__ENABLE__", false));
-
-		return attributeSet;
-	}
-
-	private static Set<Attribute> groupCreateBuilder(Integer testNumber) {
-
-		StringBuilder testAttributeString = new StringBuilder();
-
-		testAttributeString.append(testNumber.toString()).append("TestGroup");
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("displayName", testAttributeString.toString()));
-
-		return attributeSet;
-	}
-
-	private static Set<Attribute> groupSingleValUpdateBuilder(Integer testNumber) {
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("displayName", testNumber.toString()));
-
-		return attributeSet;
-	}
-
-	private static Set<Attribute> groupMultiValUpdateBuilder(Integer testNumber, Uid userTestUid) {
-
-		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build("members.User.value", userTestUid.getUidValue()));
 		return attributeSet;
 	}
 
@@ -199,35 +95,6 @@ public class SalesforceSpecificTestUtils {
 		returnedObjects = handler.getResult();
 
 		return returnedObjects;
-	}
-
-	public static OperationOptions getOptions(Integer pageSize, Integer pageOffset) {
-
-		Map<String, Object> operationOptions = new HashMap<String, Object>();
-
-		operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
-		operationOptions.put("PAGED_RESULTS_OFFSET", pageOffset);
-		operationOptions.put("PAGE_SIZE", pageSize);
-
-		OperationOptions options = new OperationOptions(operationOptions);
-
-		return options;
-	}
-
-	public static void deleteResourceTestHelper(String resourceName, Uid uid, ScimConnector conn) {
-
-		if ("users".equalsIgnoreCase(resourceName)) {
-			conn.delete(userClass, uid, null);
-
-		} else if ("groups".equalsIgnoreCase(resourceName)) {
-			conn.delete(groupClass, uid, null);
-
-		} else {
-
-			LOGGER.warn("Resource not supported", resourceName);
-			throw new ConnectorException("Resource not supported");
-		}
-
 	}
 
 	public static Uid createResourceTestHelper(String resourceName, Integer testNumber, ScimConnector conn) {
@@ -288,11 +155,6 @@ public class SalesforceSpecificTestUtils {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 		}
 		return uid;
-
-		// conn.update(userClass, TEST_UID, updateTestUser(), null);
-		// conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
-		// conn.update(entitlementClass, ,attr, null);
-
 	}
 
 	public Uid addAttributeValuesTestHelper(String resourceName, Uid testUid, Integer testNumber, ScimConnector conn) {
@@ -306,11 +168,6 @@ public class SalesforceSpecificTestUtils {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 		}
 		return uid;
-
-		// conn.update(userClass, TEST_UID, updateTestUser(), null);
-		// conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
-		// conn.update(entitlementClass, ,attr, null);
-
 	}
 
 	public Uid removeAttributeValuesTestHelper(String resourceName, Uid testUid, Integer testNumber,
@@ -325,11 +182,6 @@ public class SalesforceSpecificTestUtils {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 		}
 		return uid;
-
-		// conn.update(userClass, TEST_UID, updateTestUser(), null);
-		// conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
-		// conn.update(entitlementClass, ,attr, null);
-
 	}
 
 	public static ArrayList<ConnectorObject> filter(String filterType, String resourceName, Integer testNumber,
@@ -392,9 +244,6 @@ public class SalesforceSpecificTestUtils {
 				filter = (StartsWithFilter) FilterBuilder
 						.startsWith(AttributeBuilder.build("displayName", testNumber.toString()));
 			}
-			// TODO not working with salesforce
-			// {"Errors":[{"description":"Unsupported Operator :
-			// ew","code":400}]}
 		} else if ("endswith".equalsIgnoreCase(filterType)) {
 			if ("users".equals(resourceName)) {
 				filter = (EndsWithFilter) FilterBuilder.endsWith(AttributeBuilder.build("userName", "testdomain.com"));
@@ -410,16 +259,6 @@ public class SalesforceSpecificTestUtils {
 		}
 
 		return filter;
-	}
-
-	public static boolean isConfigurationValid(ScimConnectorConfiguration connectorConfiguration) {
-
-		try {
-			connectorConfiguration.validate();
-		} catch (Exception e) {
-			return false;
-		}
-		return true;
 	}
 
 	public Set<Attribute> getAttributeSet(String resourceName, Integer testNumber) {

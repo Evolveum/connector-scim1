@@ -21,9 +21,8 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	private String BASEURL;
 	private String GRANT;
 	private String CLIENTID;
-
-	private String TOKEN = "";
-	private String CLIENTSECRET = "";
+	private String TOKEN;
+	private String CLIENTSECRET;
 
 	private String PROXY;
 	private Integer PROXY_PORT_NUMBER;

@@ -114,7 +114,7 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 	}
 
 	public static Uid updateResourceTest(String resourceName, String updateType, Uid userTestUid, Uid groupTestUid,
-			Integer testNumber, ScimConnector conn) {
+			Uid entitlementTestUid, Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
 		if ("users".equals(resourceName)) {
@@ -145,7 +145,7 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 			}
 		} else if ("entitlements".equals(resourceName)) {
 			if ("multi".equals(updateType)) {
-				uid = conn.update(entitlementClass, groupTestUid,
+				uid = conn.update(entitlementClass, entitlementTestUid,
 						entitlementMultiValUpdateBuilder(testNumber, userTestUid), null);
 
 			}
@@ -222,8 +222,10 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 			}
 		} else if ("equals".equalsIgnoreCase(filterType)) {
 			if ("users".equals(resourceName)) {
-				filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build("userName", testNumber.toString()));
+
+				StringBuilder userName = new StringBuilder(testNumber.toString()).append("testuser@testdomain.com");
+
+				filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build("userName", userName.toString()));
 			} else if ("groups".equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder
 						.equalTo(AttributeBuilder.build("displayName", testNumber.toString()));
@@ -254,7 +256,7 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 		} else if ("containsall".equalsIgnoreCase(filterType)) {
 			if ("groups".equals(resourceName)) {
 				filter = (ContainsAllValuesFilter) FilterBuilder
-						.containsAllValues(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
+						.containsAllValues(AttributeBuilder.build("members.User.value", userTestUid.getUidValue()));
 			}
 		}
 

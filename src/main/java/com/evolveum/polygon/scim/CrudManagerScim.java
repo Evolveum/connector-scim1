@@ -95,7 +95,7 @@ public class CrudManagerScim {
 
 			HttpClient httpclient;
 
-			if (!proxyUrl.isEmpty()) {
+			if (proxyUrl != null && !proxyUrl.isEmpty()) {
 
 				HttpHost proxy = new HttpHost(proxyUrl, conf.getProxyPortNumber());
 
@@ -232,7 +232,7 @@ public class CrudManagerScim {
 	 * information and processes responses which are handed over to the provided
 	 * result handler.
 	 * 
-	 * @param queuery
+	 * @param query
 	 *            The query object which can be a string or an Uid type object.
 	 * @param resourceEndPoint
 	 *            The resource endpoint name.
@@ -242,17 +242,17 @@ public class CrudManagerScim {
 	 * @throws ConnectorException
 	 * @throws ConnectorIOException
 	 */
-	public void qeueryEntity(Object queuery, String resourceEndPoint, ResultsHandler resultHandler) {
+	public void qeueryEntity(Object query, String resourceEndPoint, ResultsHandler resultHandler) {
 
 		logIntoService();
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String q;
-		if (queuery instanceof Uid) {
+		if (query instanceof Uid) {
 
-			q = ((Uid) queuery).getUidValue();
+			q = ((Uid) query).getUidValue();
 		} else {
 
-			q = (String) queuery;
+			q = (String) query;
 		}
 
 		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(q)
@@ -287,7 +287,7 @@ public class CrudManagerScim {
 
 						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
-							if (queuery instanceof Uid) {
+							if (query instanceof Uid) {
 								ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
 								resultHandler.handle(objBuilder.buildConnectorObject(jsonObject, resourceEndPoint));
 
@@ -417,7 +417,7 @@ public class CrudManagerScim {
 
 				} else {
 
-					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", queuery);
+					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", query);
 				}
 			} else {
 				onNoSuccess(response, statusCode, uri);
@@ -889,14 +889,14 @@ public class CrudManagerScim {
 		} catch (JSONException e) {
 
 			LOGGER.error(
-					"An exception has occurred while processing an json object. Occurrence in the process of updating a resource object: {0}",
+					"An exception has occurred while processing a json object. Occurrence in the process of updating a resource object: {0}",
 					e.getLocalizedMessage());
 			LOGGER.info(
-					"An exception has occurred while processing an json object. Occurrence in the process of updating a resource object: {0}",
+					"An exception has occurred while processing a json object. Occurrence in the process of updating a resource object: {0}",
 					e);
 
 			throw new ConnectorException(
-					"An exception has occurred while processing an json object,Occurrence in the process of updating a resource object",
+					"An exception has occurred while processing a json object,Occurrence in the process of updating a resource object",
 					e);
 		} catch (ClientProtocolException e) {
 			LOGGER.error(
@@ -1289,6 +1289,165 @@ public class CrudManagerScim {
 				jsonObject.put("attributes", attributesArray);
 			}
 
+		}
+
+	}
+
+	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
+			String membershipResourceEndpoin) {
+
+		logIntoService();
+		HttpClient httpClient = HttpClientBuilder.create().build();
+		String q;
+		q = ((Uid) uid).getUidValue();
+
+		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(q)
+				.toString();
+		LOGGER.info("Qeury url: {0}", uri);
+		HttpGet httpGet = new HttpGet(uri);
+		httpGet.addHeader(oauthHeader);
+		httpGet.addHeader(prettyPrintHeader);
+
+		String responseString = null;
+		HttpResponse response;
+		try {
+			providerStartTime = System.currentTimeMillis();
+			response = httpClient.execute(httpGet);
+			providerEndTime = System.currentTimeMillis();
+			providerDuration = (providerEndTime - providerStartTime);
+
+			LOGGER.info(
+					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+					providerDuration);
+
+			providerDuration = 0;
+
+			int statusCode = response.getStatusLine().getStatusCode();
+			LOGGER.info("Status code: {0}", statusCode);
+			if (statusCode == 200) {
+
+				responseString = EntityUtils.toString(response.getEntity());
+				if (!responseString.isEmpty()) {
+					try {
+						JSONObject jsonObject = new JSONObject(responseString);
+
+						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
+						try {
+
+							if (jsonObject.has("groups")) {
+								int amountOfResources = jsonObject.getJSONArray("groups").length();
+
+								for (int i = 0; i < amountOfResources; i++) {
+									JSONObject minResourceJson = new JSONObject();
+									minResourceJson = jsonObject.getJSONArray("groups").getJSONObject(i);
+									if (minResourceJson.has("value")) {
+
+										String groupUid = minResourceJson.getString("value");
+										if (groupUid != null && !groupUid.isEmpty()) {
+
+											StringBuilder groupUri = new StringBuilder(scimBaseUri).append("/")
+													.append(membershipResourceEndpoin).append("/").append(groupUid);
+
+											LOGGER.info("The uri to which we are sending the queri {0}", groupUri);
+
+											HttpGet httpGetR = new HttpGet(groupUri.toString());
+											httpGetR.addHeader(oauthHeader);
+											httpGetR.addHeader(prettyPrintHeader);
+
+											HttpResponse resourceResponse = httpClient.execute(httpGetR);
+
+											if (statusCode == 200) {
+												responseString = EntityUtils.toString(resourceResponse.getEntity());
+												JSONObject fullResourcejson = new JSONObject(responseString);
+
+												LOGGER.info(
+														"The {0}. resource json object which was returned by the service provider: {1}",
+														i + 1, fullResourcejson.toString(1));
+
+												ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
+
+												long startTime = System.currentTimeMillis();
+												ConnectorObject conOb = objBuilder.buildConnectorObject(
+														fullResourcejson, membershipResourceEndpoin);
+												long endTime = System.currentTimeMillis();
+
+												long time = (endTime - startTime);
+
+												LOGGER.error(
+														"The connector object builder method Time: {0} milliseconds",
+														time);
+
+												resultHandler.handle(conOb);
+
+											} else {
+
+												onNoSuccess(resourceResponse, statusCode, groupUri.toString());
+											}
+
+										}
+									} else {
+										LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
+
+										throw new ConnectorException(
+												"No uid present in fetchet object while processing queuery result");
+
+									}
+								}
+							} else {
+
+								LOGGER.error("Resource object not present in provider response to the query");
+
+								throw new ConnectorException(
+										"No uid present in fetchet object while processing queuery result");
+
+							}
+
+						} catch (Exception e) {
+							LOGGER.error(
+									"Builder error. Error while building connId object. The exception message: {0}",
+									e.getLocalizedMessage());
+							LOGGER.info("Builder error. Error while building connId object. The excetion message: {0}",
+									e);
+							throw new ConnectorException(e);
+						}
+
+					} catch (JSONException jsonException) {
+						if (q == null) {
+							q = "the full resource representation";
+						}
+						LOGGER.error(
+								"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+								jsonException.getLocalizedMessage(), q);
+						LOGGER.info(
+								"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+								jsonException, q);
+						throw new ConnectorException(
+								"An exception has occurred while setting the variable \"jsonObject\".", jsonException);
+					}
+
+				} else {
+
+					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", uri);
+				}
+			} else {
+				onNoSuccess(response, statusCode, uri);
+			}
+
+		} catch (IOException e) {
+
+			if (q == null) {
+				q = "the full resource representation";
+			}
+
+			LOGGER.error(
+					"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+					e.getLocalizedMessage(), q);
+			LOGGER.info(
+					"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+					e, q);
+			throw new ConnectorIOException("An error occurred while processing the queuery http response.", e);
+		} finally {
+			logOut();
 		}
 
 	}

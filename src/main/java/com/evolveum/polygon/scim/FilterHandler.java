@@ -179,7 +179,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		if (null != preprocessedFilter) {
 			return preprocessedFilter;
 		} else {
-
 			Collection<Filter> filterList = buildValueList(filter, "members");
 			for (Filter f : filterList) {
 				if (f instanceof EqualsFilter) {

@@ -20,6 +20,7 @@ import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
+import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
@@ -432,7 +433,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			throw new ConnectorException("Result handler for queuery can not be null");
 		}
 
-		if (isSupportedQuery(query)) {
+		String valueForSpecialHandling = querryChecker(query);
+
+		if (valueForSpecialHandling.isEmpty()) {
 
 			if (genericsCanBeApplied) {
 
@@ -493,12 +496,20 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					throw new IllegalArgumentException("ObjectClass is not supported");
 				}
 			}
+		} else {
+
+			if (ObjectClass.GROUP.equals(objectClass)) {
+				Uid quieriedObject = new Uid(valueForSpecialHandling);
+
+				crudManager.queryMembershipData(quieriedObject, USERS, handler, GROUPS);
+			}
 		}
 
 	}
 
 	/**
-	 * Evaluates if the provided filter query is supported.
+	 * Evaluates if the provided filter query is supported or in need of special
+	 * handling.
 	 * 
 	 * @param filter
 	 *            the provided filter query.
@@ -506,15 +517,32 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * @throws IllegalArgumentException
 	 *             if the provided filter is no supported.
 	 **/
-	protected boolean isSupportedQuery(Filter filter) {
+	protected String querryChecker(Filter filter) {
 
-		if (filter instanceof AttributeFilter || filter == null || filter instanceof CompositeFilter) {
+		if ((filter instanceof AttributeFilter || filter == null || filter instanceof CompositeFilter)
+				&& !(filter instanceof ContainsAllValuesFilter)) {
 
-			return true;
-		} else {
-			LOGGER.error("Provided filter is not supported: {0}", filter);
-			throw new IllegalArgumentException("Provided filter is not supported");
+			return "";
+			// TODO for slack contains all values workaround purposes
+		} else if (filter instanceof ContainsAllValuesFilter && "slack".equals(providerName)) {
+			List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
+			if (valueList.size() == 1) {
+				Object uidString = valueList.get(0);
+				if (uidString instanceof String) {
+					LOGGER.warn("Processing trough  \"contains all values\"  filter workaround.");
+					return (String) uidString;
+
+				}
+			}
+
+		} else if (filter instanceof ContainsAllValuesFilter) {
+
+			return "";
+
 		}
+		LOGGER.error("Provided filter is not supported: {0}", filter);
+		throw new IllegalArgumentException("Provided filter is not supported");
+
 	}
 
 	/**

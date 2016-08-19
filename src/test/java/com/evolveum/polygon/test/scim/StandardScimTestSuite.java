@@ -33,8 +33,8 @@ public class StandardScimTestSuite {
 
 	private static final Log LOGGER = Log.getLog(StandardScimTestSuite.class);
 
-	@DataProvider(name = "filterMethodTestProvider")
-	public static Object[][] filterMethodTestResourcesProvider() {
+	@DataProvider(name = "filterMethodProvider")
+	public static Object[][] filterMethodResourcesProvider() {
 
 		// TODO test issues with eq filter slack
 
@@ -44,15 +44,15 @@ public class StandardScimTestSuite {
 				{ "groups", "containsall" } };
 	}
 
-	@DataProvider(name = "updateUserResourceObjectTestProvider")
-	public static Object[][] updateUserResourceObjectTestResourceProvider() throws Exception {
+	@DataProvider(name = "updateUserProvider")
+	public static Object[][] updateUserResourceProvider() throws Exception {
 		Uid uid = getUid("user");
 
 		return new Object[][] { { "single", uid }, { "multi", uid }, { "disabled", uid }, { "enabled", uid } };
 	}
 
-	@DataProvider(name = "updateGroupResourceObjectTestProvider")
-	public static Object[][] updateGroupResourceObjectTestResourceProvider() throws Exception {
+	@DataProvider(name = "updateGroupProvider")
+	public static Object[][] updateGroupResourceProvider() throws Exception {
 		Uid uid = getUid("group");
 
 		return new Object[][] { { "single", uid }, { "multi", uid } };
@@ -64,25 +64,25 @@ public class StandardScimTestSuite {
 	}
 
 	@DataProvider(name = "parameterConsistencyTestProvider")
-	public static Object[][] parameterConsistencyTestProvider() {
+	public static Object[][] parameterConsistencyResourceProvider() {
 
 		return new Object[][] { { "groups", "uid" }, { "users", "uid" } };
 	}
 
-	@DataProvider(name = "deletetObjectfromResourcesProvider")
-	public static Object[][] deletetObjectfromResourcesResourceProvider() {
+	@DataProvider(name = "deleteProvider")
+	public static Object[][] deleteResourceProvider() {
 
 		return new Object[][] { { "users", userUid }, { "groups", groupUid } };
 	}
 
 	@DataProvider(name = "createTestProvider")
-	public static Object[][] createTestResourceProvider() {
+	public static Object[][] createResourceProvider() {
 
 		return new Object[][] { { "users", true }, { "groups", true } };
 	}
 
 	@DataProvider(name = "configTestProvider")
-	public static Object[][] configurationTestResourcesProvider() {
+	public static Object[][] configurationResourcesProvider() {
 
 		pageSize = 1;
 		pageOffset = 1;
@@ -129,7 +129,7 @@ public class StandardScimTestSuite {
 	}
 
 	@Test(priority = 2, dependsOnMethods = { "configurationTest" }, dataProvider = "createTestProvider")
-	private void createObjectOnResourcesTest(String resourceName, Boolean assertParameter) {
+	private void createObjectTest(String resourceName, Boolean assertParameter) {
 
 		Boolean resourceWasCreated = false;
 
@@ -154,8 +154,7 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 2, dependsOnMethods = {
-			"createObjectOnResourcesTest" }, dataProvider = "parameterConsistencyTestProvider")
+	@Test(priority = 2, dependsOnMethods = { "createObjectTest" }, dataProvider = "parameterConsistencyTestProvider")
 	private void parameterConsistencyTest(String resourceName, String filterType) {
 
 		StringBuilder testType = new StringBuilder("createObject");
@@ -179,7 +178,7 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 6, dependsOnMethods = { "createObjectOnResourcesTest" }, dataProvider = "filterMethodTestProvider")
+	@Test(priority = 6, dependsOnMethods = { "createObjectTest" }, dataProvider = "filterMethodProvider")
 	public void filterMethodTest(String resourceName, String filterType) {
 
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
@@ -193,9 +192,8 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 5, dependsOnMethods = {
-			"createObjectOnResourcesTest" }, dataProvider = "listAllfromResourcesProvider")
-	private void listAllfromResourcesTest(int numberOfResources, String resourceName) {
+	@Test(priority = 5, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllfromResourcesProvider")
+	private void listAllTest(int numberOfResources, String resourceName) {
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
@@ -206,9 +204,8 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 3, dependsOnMethods = {
-			"createObjectOnResourcesTest" }, dataProvider = "updateUserResourceObjectTestProvider")
-	private void updateUserResourceObjectTest(String updateType, Uid uid) {
+	@Test(priority = 3, dependsOnMethods = { "createObjectTest" }, dataProvider = "updateUserProvider")
+	private void updateUserTest(String updateType, Uid uid) {
 
 		Uid returnedUid = StandardScimTestUtils.updateResourceTest("users", updateType, userUid, groupUid, testNumber,
 				connector);
@@ -235,9 +232,8 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 4, dependsOnMethods = {
-			"createObjectOnResourcesTest" }, dataProvider = "updateGroupResourceObjectTestProvider")
-	private void updateGroupResourceObjectTest(String updateType, Uid uid) {
+	@Test(priority = 4, dependsOnMethods = { "createObjectTest" }, dataProvider = "updateGroupProvider")
+	private void updateGroupTest(String updateType, Uid uid) {
 
 		Uid returnedUid = StandardScimTestUtils.updateResourceTest("groups", updateType, userUid, groupUid, testNumber,
 				connector);
@@ -264,9 +260,8 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 7, dependsOnMethods = {
-			"createObjectOnResourcesTest" }, dataProvider = "deletetObjectfromResourcesProvider")
-	private void deleteObjectfromResourcesTest(String resourceName, Uid uid) {
+	@Test(priority = 7, dependsOnMethods = { "createObjectTest" }, dataProvider = "deleteProvider")
+	private void deleteObjectTest(String resourceName, Uid uid) {
 
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
@@ -305,18 +300,18 @@ public class StandardScimTestSuite {
 
 			String methodThatFailed = result.getMethod().getMethodName();
 
-			if ("createObjectOnResourcesTest".equals(methodThatFailed)) {
+			if ("createObjectTest".equals(methodThatFailed)) {
 
 				if (userUid != null) {
 					LOGGER.warn("Atempting to delete resource: {0}", "users");
-					deleteObjectfromResourcesTest("users", userUid);
+					deleteObjectTest("users", userUid);
 				} else {
 					LOGGER.warn(
 							"Test failure, uid value of resource \"User\" is null. No resource deletion operation was atempted");
 				}
 				if (groupUid != null) {
 					LOGGER.warn("Atempting to delete resource: {0}", "groups");
-					deleteObjectfromResourcesTest("groups", groupUid);
+					deleteObjectTest("groups", groupUid);
 				} else
 
 				{
@@ -326,15 +321,15 @@ public class StandardScimTestSuite {
 
 				throw new Exception("Test failure while creating the resource objects, test suite will not continue.");
 
-			} else if ("updateUserResourceObjectTest".equals(methodThatFailed)) {
+			} else if ("updateUserTest".equals(methodThatFailed)) {
 				if (userUid != null) {
 					LOGGER.warn("Atempting to delete resource: {0}", "users");
-					deleteObjectfromResourcesTest("users", userUid);
+					deleteObjectTest("users", userUid);
 				}
 
 				if (groupUid != null) {
 					LOGGER.warn("Atempting to delete resource: {0}", "groups");
-					deleteObjectfromResourcesTest("groups", groupUid);
+					deleteObjectTest("groups", groupUid);
 				}
 
 				throw new Exception(

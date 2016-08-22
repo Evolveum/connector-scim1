@@ -624,7 +624,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	private SchemaBuilder buildSchemas(SchemaBuilder schemaBuilder, ParserSchemaScim schemaParser) {
 		LOGGER.info("Building schemas from provided data");
 
-		SchemaObjectBuilderGeneric schemaObjectBuilder = new SchemaObjectBuilderGeneric(providerName);
+		SchemaObjectBuilderGeneric schemaObjectBuilder = new SchemaObjectBuilderGeneric();
 		int iterator = 0;
 		Map<String, String> hlAtrribute = new HashMap<String, String>();
 		for (Map<String, Map<String, Object>> attributeMap : schemaParser.getAttributeMapList()) {
@@ -633,7 +633,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			for (String key : hlAtrribute.keySet()) {
 				if ("endpoint".equals(key.intern())) {
 					String schemaName = hlAtrribute.get(key);
-					ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap, schemaName);
+					ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap, schemaName,providerName);
 					schemaBuilder.defineObjectClass(oclassInfo);
 				}
 			}

@@ -15,13 +15,13 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	private String AUTHENTICATION;
 	private String SCIM_ENDPOINT;
 	private String SCIM_VERSION;
-	private String USERNAME ;
+	private String USERNAME;
 	private String PASSWORD;
 	private String LOGINURL;
 	private String BASEURL;
-	private String GRANT ;
-	private String CLIENTID ;
-	
+	private String GRANT;
+	private String CLIENTID;
+
 	private String TOKEN;
 	private String CLIENTSECRET;
 

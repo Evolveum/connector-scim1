@@ -21,19 +21,12 @@ import org.json.JSONObject;
  **/
 public class SchemaObjectBuilderGeneric {
 
-	private String providerName = "";
-
 	// Constructor for Salesforce workaround purposes
 
 	/**
 	 * Used to populate the variable "providerName" with the name of the service
 	 * provider. Used mainly for workaround purposes.
 	 **/
-	public SchemaObjectBuilderGeneric(String providerName) {
-		this.providerName = providerName;
-
-	}
-
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 
 	/**
@@ -49,7 +42,7 @@ public class SchemaObjectBuilderGeneric {
 	 * @return An instance of ObjectClassInfo with the constructed schema
 	 *         information.
 	 **/
-	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName) {
+	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName, String providerName) {
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
 		builder.addAttributeInfo(Name.INFO);
 		for (String attributeName : attributeMap.keySet()) {

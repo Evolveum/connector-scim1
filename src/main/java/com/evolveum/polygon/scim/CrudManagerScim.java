@@ -47,11 +47,10 @@ public class CrudManagerScim {
 
 	// TODO check all cases when logout is called
 
-	private String scimBaseUri;
-	private Header oauthHeader;
-	private Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
 	private ScimConnectorConfiguration conf;
 	private boolean tokenAuthentication = false;
+
+	private Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
 
 	long providerStartTime;
 	long providerEndTime;
@@ -84,8 +83,9 @@ public class CrudManagerScim {
 	 * @throws ConnectionFailedException
 	 * @throws ConnectorIOException
 	 */
-	public JSONObject logIntoService() {
+	public HashMap<String, Object> logIntoService() {
 
+		Header authHeader = null;
 		String loginAccessToken = null;
 		String loginInstanceUrl = null;
 		JSONObject jsonObject = null;
@@ -211,20 +211,30 @@ public class CrudManagerScim {
 				throw new ConnectorException("An exception has occurred while setting the \"jsonObject\".",
 						jsonException);
 			}
-			oauthHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
+			authHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
 		} else {
 			tokenAuthentication = true;
 			loginInstanceUrl = conf.getBaseUrl();
 			loginAccessToken = conf.getToken();
 
-			oauthHeader = new BasicHeader("Authorization", "Bearer " + loginAccessToken);
+			authHeader = new BasicHeader("Authorization", "Bearer " + loginAccessToken);
 		}
-		scimBaseUri = new StringBuilder(loginInstanceUrl).append(conf.getEndpoint()).append(conf.getVersion())
+		String scimBaseUri = new StringBuilder(loginInstanceUrl).append(conf.getEndpoint()).append(conf.getVersion())
 				.toString();
 
 		LOGGER.info("Login Successful");
 
-		return jsonObject;
+		/// TODO login to return authorization data
+		HashMap<String, Object> autoriazationData = new HashMap<String, Object>();
+		autoriazationData.put("uri", scimBaseUri);
+		autoriazationData.put("authHeader", authHeader);
+
+		if (jsonObject != null) {
+			autoriazationData.put("json", jsonObject);
+		}
+
+		///
+		return autoriazationData;
 	}
 
 	/**
@@ -244,7 +254,24 @@ public class CrudManagerScim {
 	 */
 	public void qeueryEntity(Object query, String resourceEndPoint, ResultsHandler resultHandler) {
 
-		logIntoService();
+		Header authHeader = null;
+		String scimBaseUri = "";
+		HashMap<String, Object> autoriazationData = logIntoService();
+
+		for (String data : autoriazationData.keySet()) {
+			if ("authHeader".equals(data)) {
+				authHeader = (Header) autoriazationData.get(data);
+
+			} else if ("uri".equals(data)) {
+				scimBaseUri = (String) autoriazationData.get(data);
+			}
+		}
+
+		if (authHeader == null || scimBaseUri.isEmpty()) {
+
+			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
+		}
+
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String q;
 		if (query instanceof Uid) {
@@ -259,7 +286,7 @@ public class CrudManagerScim {
 				.toString();
 		LOGGER.info("Qeury url: {0}", uri);
 		HttpGet httpGet = new HttpGet(uri);
-		httpGet.addHeader(oauthHeader);
+		httpGet.addHeader(authHeader);
 		httpGet.addHeader(prettyPrintHeader);
 
 		String responseString = null;
@@ -315,7 +342,7 @@ public class CrudManagerScim {
 												String resourceUri = minResourceJson.getJSONObject("meta")
 														.getString("location").toString();
 												HttpGet httpGetR = new HttpGet(resourceUri);
-												httpGetR.addHeader(oauthHeader);
+												httpGetR.addHeader(authHeader);
 												httpGetR.addHeader(prettyPrintHeader);
 
 												providerStartTime = System.currentTimeMillis();
@@ -460,11 +487,30 @@ public class CrudManagerScim {
 	 */
 	public ParserSchemaScim qeueryEntity(String providerName, String resourceEndPoint) {
 		logIntoService();
+
+		Header authHeader = null;
+		String scimBaseUri = "";
+		HashMap<String, Object> autoriazationData = logIntoService();
+
+		for (String data : autoriazationData.keySet()) {
+			if ("authHeader".equals(data)) {
+				authHeader = (Header) autoriazationData.get(data);
+
+			} else if ("uri".equals(data)) {
+				scimBaseUri = (String) autoriazationData.get(data);
+			}
+		}
+
+		if (authHeader == null || scimBaseUri.isEmpty()) {
+
+			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
+		}
+
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).toString();
 		LOGGER.info("Qeury url: {0}", uri);
 		HttpGet httpGet = new HttpGet(uri);
-		httpGet.addHeader(oauthHeader);
+		httpGet.addHeader(authHeader);
 		httpGet.addHeader(prettyPrintHeader);
 
 		HttpResponse response;
@@ -493,13 +539,13 @@ public class CrudManagerScim {
 					JSONObject jsonObject = new JSONObject(responseString);
 
 					long startTime = System.currentTimeMillis();
-					ParserSchemaScim psc = processResponse(jsonObject, providerName);
+					ParserSchemaScim schemaParser = processResponse(jsonObject, providerName);
 					long endTime = System.currentTimeMillis();
 
 					long time = (endTime - startTime);
 
 					LOGGER.error("The process filter method Time: {0} milliseconds", time);
-					return psc;
+					return schemaParser;
 
 				} else {
 
@@ -514,7 +560,7 @@ public class CrudManagerScim {
 						LOGGER.info("Additional query url: {0}", uri);
 
 						httpGet = new HttpGet(uri);
-						httpGet.addHeader(oauthHeader);
+						httpGet.addHeader(authHeader);
 						httpGet.addHeader(prettyPrintHeader);
 
 						providerStartTime = System.currentTimeMillis();
@@ -604,8 +650,28 @@ public class CrudManagerScim {
 
 	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
 			HashSet<Attribute> injectedAttributeSet) {
+
 		String orgID = null;
-		JSONObject loginObject = logIntoService();
+		JSONObject loginObject = null;
+		Header authHeader = null;
+		String scimBaseUri = "";
+		HashMap<String, Object> autoriazationData = logIntoService();
+
+		for (String data : autoriazationData.keySet()) {
+			if ("authHeader".equals(data)) {
+				authHeader = (Header) autoriazationData.get(data);
+			} else if ("uri".equals(data)) {
+				scimBaseUri = (String) autoriazationData.get(data);
+			} else if ("json".equals(data)) {
+				loginObject = (JSONObject) autoriazationData.get(data);
+			}
+		}
+
+		if (authHeader == null || scimBaseUri.isEmpty()) {
+
+			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
+		}
+
 		if (loginObject != null) {
 			if (loginObject.has("id")) {
 				orgID = loginObject.getString("id");
@@ -642,7 +708,7 @@ public class CrudManagerScim {
 			LOGGER.info("Json object to be send: {0}", jsonObject.toString(1));
 
 			HttpPost httpPost = new HttpPost(uri);
-			httpPost.addHeader(oauthHeader);
+			httpPost.addHeader(authHeader);
 			httpPost.addHeader(prettyPrintHeader);
 
 			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
@@ -748,6 +814,22 @@ public class CrudManagerScim {
 	 * @return the uid of the created object.
 	 */
 	public Uid updateEntity(Uid uid, String resourceEndPoint, JSONObject jsonObject) {
+		Header authHeader = null;
+		String scimBaseUri = "";
+		HashMap<String, Object> autoriazationData = logIntoService();
+
+		for (String data : autoriazationData.keySet()) {
+			if ("authHeader".equals(data)) {
+				authHeader = (Header) autoriazationData.get(data);
+			} else if ("uri".equals(data)) {
+				scimBaseUri = (String) autoriazationData.get(data);
+			}
+		}
+
+		if (authHeader == null || scimBaseUri.isEmpty()) {
+
+			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
+		}
 
 		logIntoService();
 
@@ -758,7 +840,7 @@ public class CrudManagerScim {
 		LOGGER.info("The uri for the update request: {0}", uri);
 		HttpPatch httpPatch = new HttpPatch(uri);
 
-		httpPatch.addHeader(oauthHeader);
+		httpPatch.addHeader(authHeader);
 		httpPatch.addHeader(prettyPrintHeader);
 
 		String responseString = null;
@@ -796,78 +878,31 @@ public class CrudManagerScim {
 
 				return uid;
 			} else if (statusCode == 500 && "Groups".equals(resourceEndPoint)) {
-
-				// Salesforce group/members workaround
+				HandlingStrategy strategy;
+				// For Salesforce group/members workaround purposes
 				String[] uriParts = scimBaseUri.split("\\."); // e.g.
 				// https://eu6.salesforce.com/services/scim/v1
 
 				if (uriParts.length >= 2) {
 
 					if ("salesforce".equals(uriParts[1])) {
-						LOGGER.warn(
-								"Status code from first update query: {0}. Processing trought Salesforce \"group/member update\" workaround. ",
-								statusCode);
-						HttpGet httpGet = new HttpGet(uri);
-						httpGet.addHeader(oauthHeader);
-						httpGet.addHeader(prettyPrintHeader);
+						strategy = new SalesforceHandlingStrategy();
 
-						providerStartTime = System.currentTimeMillis();
-						response = httpClient.execute(httpGet);
-						providerEndTime = System.currentTimeMillis();
-						providerDuration = (providerEndTime - providerStartTime);
+					} else if ("slack".equals(uriParts[1])) {
 
-						LOGGER.info(
-								"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
-								providerDuration);
+						strategy = new SlackHandlingStrategy();
 
-						providerDuration = 0;
+					} else {
 
-						statusCode = response.getStatusLine().getStatusCode();
-						LOGGER.info("status code: {0}", statusCode);
-						if (statusCode == 200) {
+						strategy = new StandardScimHandlingStrategy();
+					}
+					Uid id = strategy.specialGroupUpdateProcedure(response, jsonObject, uri, authHeader);
 
-							responseString = EntityUtils.toString(response.getEntity());
-							if (!responseString.isEmpty()) {
+					if (id != null) {
 
-								JSONObject json = new JSONObject(responseString);
-								LOGGER.info("Json object returned from service provider: {0}", json);
-								for (String attributeName : jsonObject.keySet()) {
-
-									json.put(attributeName, jsonObject.get(attributeName));
-
-								}
-								bodyContent = new StringEntity(json.toString(1));
-								bodyContent.setContentType("application/json");
-								httpPatch.setEntity(bodyContent);
-
-								providerStartTime = System.currentTimeMillis();
-								response = httpClient.execute(httpPatch);
-
-								providerEndTime = System.currentTimeMillis();
-								providerDuration = (providerEndTime - providerStartTime);
-
-								LOGGER.info(
-										"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
-										providerDuration);
-								providerDuration = 0;
-
-								statusCode = response.getStatusLine().getStatusCode();
-								LOGGER.info("status code: {0}", statusCode);
-								if (statusCode == 200 || statusCode == 201) {
-									LOGGER.info("Update of resource was succesfull");
-									responseString = EntityUtils.toString(response.getEntity());
-									json = new JSONObject(responseString);
-									Uid id = new Uid(json.getString("id"));
-									LOGGER.ok("Json response: {0}", json.toString(1));
-									return id;
-								} else {
-
-									onNoSuccess(response, statusCode, "updating object");
-								}
-
-							}
-						}
-
+						return id;
+					} else {
+						onNoSuccess(response, statusCode, "updating object");
 					}
 				}
 
@@ -942,7 +977,22 @@ public class CrudManagerScim {
 	 */
 	public void deleteEntity(Uid uid, String resourceEndPoint) {
 
-		logIntoService();
+		Header authHeader = null;
+		String scimBaseUri = "";
+		HashMap<String, Object> autoriazationData = logIntoService();
+
+		for (String data : autoriazationData.keySet()) {
+			if ("authHeader".equals(data)) {
+				authHeader = (Header) autoriazationData.get(data);
+			} else if ("uri".equals(data)) {
+				scimBaseUri = (String) autoriazationData.get(data);
+			}
+		}
+
+		if (authHeader == null || scimBaseUri.isEmpty()) {
+
+			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
+		}
 
 		HttpClient httpClient = HttpClientBuilder.create().build();
 
@@ -951,7 +1001,7 @@ public class CrudManagerScim {
 
 		LOGGER.info("The uri for the delete request: {0}", uri);
 		HttpDelete httpDelete = new HttpDelete(uri);
-		httpDelete.addHeader(oauthHeader);
+		httpDelete.addHeader(authHeader);
 		httpDelete.addHeader(prettyPrintHeader);
 
 		try {
@@ -1106,7 +1156,7 @@ public class CrudManagerScim {
 			JSONObject minResourceJson = new JSONObject();
 			minResourceJson = responseObject.getJSONArray("Resources").getJSONObject(i);
 
-			// TODO test if id check neaded
+			// TODO test if id check needed
 			// if (minResourceJson.has("id") && minResourceJson.getString("id")
 			// != null) {
 			if (minResourceJson.has("endpoint")) {
@@ -1322,6 +1372,23 @@ public class CrudManagerScim {
 	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
 			String membershipResourceEndpoin) {
 
+		Header authHeader = null;
+		String scimBaseUri = "";
+		HashMap<String, Object> autoriazationData = logIntoService();
+
+		for (String data : autoriazationData.keySet()) {
+			if ("authHeader".equals(data)) {
+				authHeader = (Header) autoriazationData.get(data);
+			} else if ("uri".equals(data)) {
+				scimBaseUri = (String) autoriazationData.get(data);
+			}
+		}
+
+		if (authHeader == null || scimBaseUri.isEmpty()) {
+
+			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
+		}
+
 		logIntoService();
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String q;
@@ -1331,7 +1398,7 @@ public class CrudManagerScim {
 				.toString();
 		LOGGER.info("Qeury url: {0}", uri);
 		HttpGet httpGet = new HttpGet(uri);
-		httpGet.addHeader(oauthHeader);
+		httpGet.addHeader(authHeader);
 		httpGet.addHeader(prettyPrintHeader);
 
 		String responseString = null;
@@ -1377,7 +1444,7 @@ public class CrudManagerScim {
 											LOGGER.info("The uri to which we are sending the queri {0}", groupUri);
 
 											HttpGet httpGetR = new HttpGet(groupUri.toString());
-											httpGetR.addHeader(oauthHeader);
+											httpGetR.addHeader(authHeader);
 											httpGetR.addHeader(prettyPrintHeader);
 
 											HttpResponse resourceResponse = httpClient.execute(httpGetR);
@@ -1483,5 +1550,120 @@ public class CrudManagerScim {
 			loginInstance.releaseConnection();
 			LOGGER.info("The connecion was released");
 		}
+
+	}
+
+	public Uid specialUpdateProcedure(HttpResponse response, HttpClient httpClient, String uri) {
+
+		Header authHeader = null;
+		String scimBaseUri = "";
+		HashMap<String, Object> autoriazationData = logIntoService();
+
+		for (String data : autoriazationData.keySet()) {
+			if ("authHeader".equals(data)) {
+				authHeader = (Header) autoriazationData.get(data);
+			} else if ("uri".equals(data)) {
+				scimBaseUri = (String) autoriazationData.get(data);
+			}
+		}
+
+		if (authHeader == null || scimBaseUri.isEmpty()) {
+
+			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
+		}
+
+		Uid id = null;
+		Integer statusCode = response.getStatusLine().getStatusCode();
+
+		JSONObject jsonObject = new JSONObject();
+
+		// Salesforce group/members workaround
+		String[] uriParts = scimBaseUri.split("\\."); // e.g.
+		// https://eu6.salesforce.com/services/scim/v1
+
+		if (uriParts.length >= 2) {
+
+			if ("salesforce".equals(uriParts[1])) {
+				LOGGER.warn(
+						"Status code from first update query: {0}. Processing trought Salesforce \"group/member update\" workaround. ",
+						statusCode);
+				HttpGet httpGet = new HttpGet(uri);
+				httpGet.addHeader(authHeader);
+				httpGet.addHeader(prettyPrintHeader);
+
+				providerStartTime = System.currentTimeMillis();
+				try {
+					response = httpClient.execute(httpGet);
+
+					providerEndTime = System.currentTimeMillis();
+					providerDuration = (providerEndTime - providerStartTime);
+
+					LOGGER.info(
+							"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+							providerDuration);
+
+					providerDuration = 0;
+
+					statusCode = response.getStatusLine().getStatusCode();
+					LOGGER.info("status code: {0}", statusCode);
+					if (statusCode == 200) {
+
+						String responseString = EntityUtils.toString(response.getEntity());
+						if (!responseString.isEmpty()) {
+
+							JSONObject json = new JSONObject(responseString);
+							LOGGER.info("Json object returned from service provider: {0}", json);
+							for (String attributeName : jsonObject.keySet()) {
+
+								json.put(attributeName, jsonObject.get(attributeName));
+
+							}
+							StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
+							HttpPatch httpPatch = new HttpPatch(uri);
+
+							bodyContent = new StringEntity(json.toString(1));
+							bodyContent.setContentType("application/json");
+							httpPatch.setEntity(bodyContent);
+
+							providerStartTime = System.currentTimeMillis();
+							response = httpClient.execute(httpPatch);
+
+							providerEndTime = System.currentTimeMillis();
+							providerDuration = (providerEndTime - providerStartTime);
+
+							LOGGER.info(
+									"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+									providerDuration);
+							providerDuration = 0;
+
+							statusCode = response.getStatusLine().getStatusCode();
+							LOGGER.info("status code: {0}", statusCode);
+							if (statusCode == 200 || statusCode == 201) {
+								LOGGER.info("Update of resource was succesfull");
+								responseString = EntityUtils.toString(response.getEntity());
+								json = new JSONObject(responseString);
+								id = new Uid(json.getString("id"));
+								LOGGER.ok("Json response: {0}", json.toString(1));
+								return id;
+							} else {
+
+								onNoSuccess(response, statusCode, "updating object");
+							}
+
+						}
+					}
+
+				} catch (ClientProtocolException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+		}
+		return id;
+
 	}
 }

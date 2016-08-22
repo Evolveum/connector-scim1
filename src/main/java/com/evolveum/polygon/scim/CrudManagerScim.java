@@ -1021,7 +1021,7 @@ public class CrudManagerScim {
 	 */
 	private void onNoSuccess(HttpResponse response, int statusCode, String message) throws ParseException, IOException {
 
-		StringBuilder exceptionStringBuilder;
+		StringBuilder exceptionStringBuilder = null;
 
 		if (response.getEntity() != null) {
 			String responseString = EntityUtils.toString(response.getEntity());
@@ -1030,21 +1030,25 @@ public class CrudManagerScim {
 
 			JSONObject responseObject = new JSONObject(responseString);
 
-			// TODO mod for usecases when "Errors" is an json array.
-
 			if (responseObject.has("Errors")) {
-				responseObject = responseObject.getJSONObject("Errors");
-				if (responseObject.has("description")) {
-					responseString = responseObject.getString("description");
-					exceptionStringBuilder = new StringBuilder("Query for ").append(message)
-							.append(" was unsuccessful. Status code returned: ").append(statusCode)
-							.append(". Error response from provider: ").append(responseString);
-				} else {
-					responseString = ". No description was provided from the provider";
-					exceptionStringBuilder = new StringBuilder("Query for ").append(message)
-							.append(" was unsuccessful. Status code returned: ").append(statusCode)
-							.append(responseString);
+				Object returnedObject = new Object();
+
+				returnedObject = responseObject.get("Errors");
+
+				if (returnedObject instanceof JSONObject) {
+
+					responseObject = (JSONObject) returnedObject;
+
+					exceptionStringBuilder = buildErrorMessage(responseObject, message, statusCode);
+				} else if (returnedObject instanceof JSONArray) {
+
+					for (Object messageObject : (JSONArray) returnedObject) {
+						exceptionStringBuilder = buildErrorMessage((JSONObject) messageObject, message, statusCode);
+
+					}
+
 				}
+
 			} else {
 				exceptionStringBuilder = new StringBuilder("Query for ").append(message)
 						.append(" was unsuccessful. Status code returned: ").append(statusCode);
@@ -1062,10 +1066,32 @@ public class CrudManagerScim {
 		}
 		LOGGER.error(exceptionString);
 
-		LOGGER.info("An error has occured. Http status: {0}", statusCode);
+		LOGGER.info("An error has occured. Http status: \"{0}\"", statusCode);
 		LOGGER.info(exceptionString);
 
 		throw new ConnectorIOException(exceptionString);
+	}
+
+	public StringBuilder buildErrorMessage(JSONObject responseObject, String message, int statusCode) {
+
+		String responseString = new String();
+
+		StringBuilder exceptionStringBuilder = new StringBuilder();
+
+		if (responseObject.has("description")) {
+			responseString = responseObject.getString("description");
+			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
+					.append(" was unsuccessful. Status code returned: ").append("\"").append(statusCode).append("\"")
+					.append(". Error response from provider: ").append("\"").append(responseString).append("\"");
+
+		} else {
+			responseString = ". No description was provided from the provider";
+			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
+					.append(" was unsuccessful. Status code returned: ").append("\"").append(statusCode).append("\"")
+					.append(responseString);
+		}
+
+		return exceptionStringBuilder;
 	}
 
 	/**

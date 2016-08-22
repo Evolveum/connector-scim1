@@ -18,8 +18,6 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 
-	// TODO check eq filter for entitlements (salesforce -> Entitlements:
-	// members resource has to be filtered on its own.)
 	private static Uid userUid;
 	private static Uid groupUid;
 	private static Uid entitlementUid = new Uid("00e58000000cqxLAAQ");
@@ -75,7 +73,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 		pageSize = 1;
 		pageOffset = 1;
 
-		testNumber = 53;
+		testNumber = 54;
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 

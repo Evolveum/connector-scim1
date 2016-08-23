@@ -2,6 +2,7 @@ package com.evolveum.polygon.scim;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +17,8 @@ import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
+import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -30,8 +33,134 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	@Override
 	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint)
 			throws ConnectorException {
-		// TODO Auto-generated method stub
-		return null;
+
+		LOGGER.info("Building the connector object from provided json");
+
+		if (resourceJsonObject == null) {
+			LOGGER.error(
+					"Empty json object was passed from data provider. Error ocourance while building connector object");
+			throw new ConnectorException(
+					"Empty json object was passed from data provider. Error ocourance while building connector object");
+		}
+
+		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
+		cob.setUid(resourceJsonObject.getString("id"));
+
+		if ("Users".equals(resourceEndPoint)) {
+			cob.setName(resourceJsonObject.getString("userName"));
+		} else if ("Groups".equals(resourceEndPoint)) {
+
+			cob.setName(resourceJsonObject.getString("displayName"));
+			cob.setObjectClass(ObjectClass.GROUP);
+		} else {
+			cob.setName(resourceJsonObject.getString("displayName"));
+			ObjectClass objectClass = new ObjectClass(resourceEndPoint);
+			;
+			cob.setObjectClass(objectClass);
+
+		}
+		for (String key : resourceJsonObject.keySet()) {
+			Object attribute = resourceJsonObject.get(key);
+			if ("meta".equals(key.intern()) || "schemas".equals(key.intern())) {
+
+				LOGGER.warn("The attribute \"{0}\" was omitted from the connId object build.", key.intern());
+			} else
+
+			if (attribute instanceof JSONArray) {
+
+				JSONArray jArray = (JSONArray) attribute;
+
+				Map<String, Collection<Object>> multivaluedAttributeMap = new HashMap<String, Collection<Object>>();
+				Collection<Object> attributeValues = new ArrayList<Object>();
+
+				for (Object o : jArray) {
+					StringBuilder objectNameBilder = new StringBuilder(key.intern());
+					String objectKeyName = "";
+					if (o instanceof JSONObject) {
+						for (String s : ((JSONObject) o).keySet()) {
+							if ("type".equals(s.intern())) {
+								objectKeyName = objectNameBilder.append(".").append(((JSONObject) o).get(s)).toString();
+								objectNameBilder.delete(0, objectNameBilder.length());
+								break;
+							}
+						}
+
+						for (String s : ((JSONObject) o).keySet()) {
+
+							if ("type".equals(s.intern())) {
+							} else {
+
+								if (!"".equals(objectKeyName)) {
+									objectNameBilder = objectNameBilder.append(objectKeyName).append(".")
+											.append(s.intern());
+								} else {
+									objectKeyName = objectNameBilder.append(".").append("default").toString();
+									objectNameBilder = objectNameBilder.append(".").append(s.intern());
+								}
+
+								if (attributeValues.isEmpty()) {
+									attributeValues.add(((JSONObject) o).get(s));
+									multivaluedAttributeMap.put(objectNameBilder.toString(), attributeValues);
+								} else {
+									if (multivaluedAttributeMap.containsKey(objectNameBilder.toString())) {
+										attributeValues = multivaluedAttributeMap.get(objectNameBilder.toString());
+										attributeValues.add(((JSONObject) o).get(s));
+									} else {
+										Collection<Object> newAttributeValues = new ArrayList<Object>();
+										newAttributeValues.add(((JSONObject) o).get(s));
+										multivaluedAttributeMap.put(objectNameBilder.toString(), newAttributeValues);
+									}
+
+								}
+								objectNameBilder.delete(0, objectNameBilder.length());
+
+							}
+						}
+
+						//
+
+					} else {
+						objectKeyName = objectNameBilder.append(".").append(o.toString()).toString();
+						cob.addAttribute(objectKeyName, o);
+					}
+				}
+
+				if (!multivaluedAttributeMap.isEmpty()) {
+					for (String attributeName : multivaluedAttributeMap.keySet()) {
+						cob.addAttribute(attributeName, multivaluedAttributeMap.get(attributeName));
+					}
+
+				}
+
+			} else if (attribute instanceof JSONObject) {
+				for (String s : ((JSONObject) attribute).keySet()) {
+
+					StringBuilder objectNameBilder = new StringBuilder(key.intern());
+					cob.addAttribute(objectNameBilder.append(".").append(s).toString(),
+							((JSONObject) attribute).get(s));
+
+				}
+
+			} else {
+
+				if ("active".equals(key)) {
+					cob.addAttribute("__ENABLE__", resourceJsonObject.get(key));
+				} else {
+
+					if (!resourceJsonObject.get(key).equals(null)) {
+
+						cob.addAttribute(key.intern(), resourceJsonObject.get(key));
+					} else {
+						cob.addAttribute(key.intern(), "");
+
+					}
+				}
+			}
+		}
+		ConnectorObject finalConnectorObject = cob.build();
+		LOGGER.info("The connector object returned for the processed json: {0}", finalConnectorObject);
+		return finalConnectorObject;
+
 	}
 
 	@Override

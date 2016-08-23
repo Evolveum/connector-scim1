@@ -668,21 +668,7 @@ public class CrudManagerScim {
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		HandlingStrategy strategy;
-		String[] uriParts = scimBaseUri.split("\\."); // e.g.
-		// https://eu6.salesforce.com/services/scim/v1
-
-		if ("salesforce".equals(uriParts[1])) {
-			strategy = new SalesforceHandlingStrategy();
-
-		} else if ("slack".equals(uriParts[1])) {
-
-			strategy = new SlackHandlingStrategy();
-
-		} else {
-
-			strategy = new StandardScimHandlingStrategy();
-		}
+		HandlingStrategy strategy = selectStrategy(scimBaseUri, true);
 		injectedAttributeSet = strategy.attributeInjection(injectedAttributeSet, autoriazationData);
 
 		JSONObject jsonObject = new JSONObject();
@@ -1542,5 +1528,51 @@ public class CrudManagerScim {
 			LOGGER.info("The connecion was released");
 		}
 
+	}
+
+	// TODO replace strategy initialization with this method
+	public HandlingStrategy selectStrategy(String providerNameString, Boolean stringHasDelimiters) {
+
+		HandlingStrategy strategy;
+		String[] uriParts = providerNameString.split("\\."); // e.g.
+		// https://eu6.salesforce.com/services/scim/v1
+
+		if (stringHasDelimiters) {
+
+			if (uriParts.length >= 2) {
+
+				if ("salesforce".equals(uriParts[1])) {
+					strategy = new SalesforceHandlingStrategy();
+
+				} else if ("slack".equals(uriParts[1])) {
+
+					strategy = new SlackHandlingStrategy();
+
+				} else {
+
+					strategy = new StandardScimHandlingStrategy();
+				}
+			} else {
+
+				strategy = new StandardScimHandlingStrategy();
+			}
+
+		} else {
+
+			if ("salesforce".equals(providerNameString)) {
+				strategy = new SalesforceHandlingStrategy();
+
+			} else if ("slack".equals(providerNameString)) {
+
+				strategy = new SlackHandlingStrategy();
+
+			} else {
+
+				strategy = new StandardScimHandlingStrategy();
+			}
+
+		}
+
+		return strategy;
 	}
 }

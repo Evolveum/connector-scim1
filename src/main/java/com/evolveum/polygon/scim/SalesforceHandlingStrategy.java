@@ -21,10 +21,12 @@ import org.identityconnectors.framework.common.exceptions.ConnectionFailedExcept
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.ObjectClassInfo;
+import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
+import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.json.JSONArray;
@@ -191,13 +193,6 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName,
-			String providerName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public Uid specialGroupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri,
 			Header authHeader) {
 
@@ -233,12 +228,11 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 					bodyContent.setContentType("application/json");
 
 					HttpPatch httpPatch = new HttpPatch(uri);
-
+					httpPatch.addHeader(authHeader);
+					httpPatch.addHeader(PRETTYPRINTHEADER);
 					httpPatch.setEntity(bodyContent);
 
 					response = httpClient.execute(httpPatch);
-
-					// TODO fix bug in group update
 					statusCode = response.getStatusLine().getStatusCode();
 					LOGGER.info("status code: {0}", statusCode);
 					if (statusCode == 200 || statusCode == 201) {
@@ -285,4 +279,40 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 		return id;
 	}
 
+	@Override
+	public ObjectClassInfoBuilder schemaBuilderProcedure(String attributeName,
+			Map<String, Map<String, Object>> attributeMap, ObjectClassInfoBuilder builder,
+			SchemaObjectBuilderGeneric schemaBuilder) {
+		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
+
+		if (!"active".equals(attributeName)) {
+			Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
+			schemaSubPropertiesMap = attributeMap.get(attributeName);
+			for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
+				if ("subAttributes".equals(subPropertieName.intern())) {
+					// TODO check positive cases
+					infoBuilder = new AttributeInfoBuilder(attributeName.intern());
+					JSONArray jsonArray = new JSONArray();
+
+					jsonArray = ((JSONArray) schemaSubPropertiesMap.get(subPropertieName));
+					for (int i = 0; i < jsonArray.length(); i++) {
+						JSONObject attribute = new JSONObject();
+						attribute = jsonArray.getJSONObject(i);
+					}
+					break;
+				} else {
+					schemaBuilder.subPropertiesChecker(infoBuilder, schemaSubPropertiesMap, subPropertieName);
+					if ("members.User.value".equals(attributeName) || "members.Group.value".equals(attributeName)
+							|| "members.default.value".equals(attributeName)
+							|| "members.default.display".equals(attributeName)) {
+						infoBuilder.setMultiValued(true);
+					}
+				}
+			}
+			builder.addAttributeInfo(infoBuilder.build());
+		} else {
+			builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+		}
+		return builder;
+	}
 }

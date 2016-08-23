@@ -42,57 +42,23 @@ public class SchemaObjectBuilderGeneric {
 	 * @return An instance of ObjectClassInfo with the constructed schema
 	 *         information.
 	 **/
-	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName, String providerName) {
+	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName,
+			String providerName) {
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
 		builder.addAttributeInfo(Name.INFO);
 		for (String attributeName : attributeMap.keySet()) {
+			HandlingStrategy strategy;
 
-			AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
-
-			if ("emails.default.primary".equals(attributeName)) {
-
-			}
-			// modified for slack "invalid type name" workaround purposes
-			if (!"active".equals(attributeName) && !(("emails.default.primary".equals(attributeName)
-					|| "emails.default.value".equals(attributeName)) && "slack".equals(providerName))) {
-				Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
-				schemaSubPropertiesMap = attributeMap.get(attributeName);
-				for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
-					if ("subAttributes".equals(subPropertieName.intern())) {
-						// TODO check positive cases
-						infoBuilder = new AttributeInfoBuilder(attributeName.intern());
-						JSONArray jsonArray = new JSONArray();
-
-						jsonArray = ((JSONArray) schemaSubPropertiesMap.get(subPropertieName));
-						for (int i = 0; i < jsonArray.length(); i++) {
-							JSONObject attribute = new JSONObject();
-							attribute = jsonArray.getJSONObject(i);
-						}
-						break;
-					} else {
-						subPropertiesChecker(infoBuilder, schemaSubPropertiesMap, subPropertieName);
-						// Salesforce workaround
-						if ("salesforce".equals(providerName)) {
-
-							if ("members.User.value".equals(attributeName)
-									|| "members.Group.value".equals(attributeName)
-									|| "members.default.value".equals(attributeName)
-									|| "members.default.display".equals(attributeName)) {
-								infoBuilder.setMultiValued(true);
-							}
-						}
-
-					}
-
-				}
-				builder.addAttributeInfo(infoBuilder.build());
+			if ("salesforce".equals(providerName)) {
+				strategy = new SalesforceHandlingStrategy();
+			} else if ("slack".equals(providerName)) {
+				strategy = new SlackHandlingStrategy();
 			} else {
-				if ("active".equals(attributeName)) {
-					builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-				} else {
-					slackWorkaround(builder, attributeName, infoBuilder);
-				}
+				strategy = new StandardScimHandlingStrategy();
 			}
+
+			builder = strategy.schemaBuilderProcedure(attributeName, attributeMap, builder, this);
+
 		}
 
 		if ("/Users".equals(objectTypeName.intern())) {
@@ -126,7 +92,7 @@ public class SchemaObjectBuilderGeneric {
 	 * @return The "AttributeInfoBuilder" object populated with the
 	 *         sub-propertie values set.
 	 **/
-	private AttributeInfoBuilder subPropertiesChecker(AttributeInfoBuilder infoBuilder,
+	public AttributeInfoBuilder subPropertiesChecker(AttributeInfoBuilder infoBuilder,
 			Map<String, Object> schemaAttributeMap, String subPropertieName) {
 
 		if ("readOnly".equals(subPropertieName.intern())) {
@@ -180,22 +146,5 @@ public class SchemaObjectBuilderGeneric {
 		}
 
 		return infoBuilder;
-	}
-
-	private void slackWorkaround(ObjectClassInfoBuilder builder, String attributeName,
-			AttributeInfoBuilder infoBuilder) {
-
-		if ("emails.default.value".equals(attributeName)) {
-			infoBuilder.setMultiValued(true);
-			infoBuilder.setRequired(true);
-			infoBuilder.setType(String.class);
-			builder.addAttributeInfo(infoBuilder.build());
-		} else {
-			infoBuilder.setMultiValued(false);
-			infoBuilder.setRequired(true);
-			infoBuilder.setType(Boolean.class);
-			builder.addAttributeInfo(infoBuilder.build());
-		}
-
 	}
 }

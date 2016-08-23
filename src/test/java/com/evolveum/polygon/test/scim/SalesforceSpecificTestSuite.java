@@ -73,18 +73,20 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 		pageSize = 1;
 		pageOffset = 1;
 
-		testNumber = 61;
+		testNumber = 64;
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 
-		configurationParameters.put("clientID", "");
+		configurationParameters.put("clientID",
+				"");
 		configurationParameters.put("clientSecret", "");
 		configurationParameters.put("endpoint", "/services/scim");
-		configurationParameters.put("loginUrl", "");
+		configurationParameters.put("loginUrl", "https://login.salesforce.com");
 		configurationParameters.put("password", "");
 		configurationParameters.put("service", "");
 		configurationParameters.put("userName", "");
 		configurationParameters.put("version", "/v1");
+
 		configurationParameters.put("authentication", "**");
 		configurationParameters.put("proxy", "");
 		configurationParameters.put("proxy_port_number", "");

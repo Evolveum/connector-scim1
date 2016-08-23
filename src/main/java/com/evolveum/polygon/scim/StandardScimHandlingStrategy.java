@@ -9,7 +9,7 @@ import org.apache.http.HttpResponse;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.ObjectClassInfo;
+import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.json.JSONObject;
@@ -50,8 +50,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName,
-			String providerName) {
+	public ObjectClassInfoBuilder schemaBuilderProcedure(String attributeName,
+			Map<String, Map<String, Object>> attributeMap, ObjectClassInfoBuilder builder,
+			SchemaObjectBuilderGeneric schemaBuilder) {
 		// TODO Auto-generated method stub
 		return null;
 	}

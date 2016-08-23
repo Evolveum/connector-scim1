@@ -62,7 +62,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		if (schema == null) {
 			// test log delete
 			SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
-			ParserSchemaScim schemaParser = crudManager.qeueryEntity(providerName, SCHEMAS);
+			ParserSchemaScim schemaParser = crudManager.qeuerySchemas(providerName, SCHEMAS);
 
 			if (schemaParser != null) {
 
@@ -112,22 +112,22 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				crudManager.deleteEntity(uid, USERS);
+				crudManager.delete(uid, USERS);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				crudManager.deleteEntity(uid, GROUPS);
+				crudManager.delete(uid, GROUPS);
 			} else {
 
-				crudManager.deleteEntity(uid, endpointName);
+				crudManager.delete(uid, endpointName);
 			}
 
 		} else {
 
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				crudManager.deleteEntity(uid, USERS);
+				crudManager.delete(uid, USERS);
 			} else if (ObjectClass.GROUP.equals(object)) {
-				crudManager.deleteEntity(uid, GROUPS);
+				crudManager.delete(uid, GROUPS);
 			} else {
 				LOGGER.error("Provided object value is not valid: {0}", object);
 				throw new IllegalArgumentException("Object value not valid");
@@ -170,7 +170,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					injectetAttributeSet.add(schemaAttribute);
 				}
 
-				uid = crudManager.createEntity(USERS, jsonDataBuilder, attribute, injectetAttributeSet);
+				uid = crudManager.create(USERS, jsonDataBuilder, attribute, injectetAttributeSet);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
@@ -183,7 +183,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				}
 
-				uid = crudManager.createEntity(GROUPS, jsonDataBuilder, attribute, injectetAttributeSet);
+				uid = crudManager.create(GROUPS, jsonDataBuilder, attribute, injectetAttributeSet);
 
 			} else {
 				// TODO improve for other providers
@@ -195,7 +195,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					injectetAttributeSet.add(schemaAttribute);
 				}
 
-				uid = crudManager.createEntity(endpointName, jsonDataBuilder, attribute, injectetAttributeSet);
+				uid = crudManager.create(endpointName, jsonDataBuilder, attribute, injectetAttributeSet);
 			}
 
 			return uid;
@@ -212,7 +212,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					injectetAttributeSet.add(schemaAttribute);
 				}
 
-				Uid uid = crudManager.createEntity(USERS, userBuild, attribute, injectetAttributeSet);
+				Uid uid = crudManager.create(USERS, userBuild, attribute, injectetAttributeSet);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -234,7 +234,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				}
 
-				Uid uid = crudManager.createEntity(GROUPS, groupBuild, attribute, injectetAttributeSet);
+				Uid uid = crudManager.create(GROUPS, groupBuild, attribute, injectetAttributeSet);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -286,7 +286,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		}
 		//
 		LOGGER.info("The provider name is {0}", providerName);
-		ParserSchemaScim schemaParser = crudManager.qeueryEntity(providerName, SCHEMAS);
+		ParserSchemaScim schemaParser = crudManager.qeuerySchemas(providerName, SCHEMAS);
 
 		if (schemaParser != null) {
 
@@ -324,14 +324,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, USERS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = crudManager.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null));
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = crudManager.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null));
 			} else {
-				uid = crudManager.updateEntity(id, endpointName,
-						genericDataBuilder.translateSetToJson(attributes, null));
+				uid = crudManager.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null));
 
 			}
 
@@ -343,7 +342,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				userJsonObject = userJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.updateEntity(id, USERS, userJsonObject);
+				Uid uid = crudManager.update(id, USERS, userJsonObject);
 
 				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
 
@@ -360,7 +359,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				groupJsonObject = groupJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.updateEntity(id, GROUPS, groupJsonObject);
+				Uid uid = crudManager.update(id, GROUPS, groupJsonObject);
 
 				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
 
@@ -443,7 +442,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				if (endpointName.intern() == ObjectClass.ACCOUNT.getObjectClassValue().intern()) {
 					if (query == null) {
 
-						crudManager.qeueryEntity(queryUriSnippet.toString(), USERS, handler);
+						crudManager.qeuery(queryUriSnippet.toString(), USERS, handler);
 
 					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
@@ -453,7 +452,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					}
 				} else if (endpointName.intern() == ObjectClass.GROUP.getObjectClassValue().intern()) {
 					if (query == null) {
-						crudManager.qeueryEntity(queryUriSnippet.toString(), GROUPS, handler);
+						crudManager.qeuery(queryUriSnippet.toString(), GROUPS, handler);
 
 					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
 
@@ -464,7 +463,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 					if (query == null) {
 
-						crudManager.qeueryEntity(queryUriSnippet.toString(), endpointName, handler);
+						crudManager.qeuery(queryUriSnippet.toString(), endpointName, handler);
 					} else if (query instanceof EqualsFilter && qIsUid(endpointName, query, handler)) {
 
 					} else {
@@ -476,7 +475,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				if (ObjectClass.ACCOUNT.equals(objectClass)) {
 
 					if (query == null) {
-						crudManager.qeueryEntity(queryUriSnippet.toString(), USERS, handler);
+						crudManager.qeuery(queryUriSnippet.toString(), USERS, handler);
 					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
 					} else {
@@ -484,7 +483,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					}
 				} else if (ObjectClass.GROUP.equals(objectClass)) {
 					if (query == null) {
-						crudManager.qeueryEntity(queryUriSnippet.toString(), GROUPS, handler);
+						crudManager.qeuery(queryUriSnippet.toString(), GROUPS, handler);
 					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
 
 					} else {
@@ -563,7 +562,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		Attribute filterAttr = ((EqualsFilter) query).getAttribute();
 
 		if (filterAttr instanceof Uid) {
-			crudManager.qeueryEntity((Uid) filterAttr, endPoint, resultHandler);
+			crudManager.qeuery((Uid) filterAttr, endPoint, resultHandler);
 			return true;
 		} else
 			return false;
@@ -608,7 +607,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			queryUriSnippet.append(prefixChar).append("filter=").append(query.accept(new FilterHandler(), ""));
 		}
 
-		crudManager.qeueryEntity(queryUriSnippet.toString(), endPoint, resultHandler);
+		crudManager.qeuery(queryUriSnippet.toString(), endPoint, resultHandler);
 	}
 
 	/**
@@ -633,7 +632,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			for (String key : hlAtrribute.keySet()) {
 				if ("endpoint".equals(key.intern())) {
 					String schemaName = hlAtrribute.get(key);
-					ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap, schemaName,providerName);
+					ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap, schemaName,
+							providerName);
 					schemaBuilder.defineObjectClass(oclassInfo);
 				}
 			}
@@ -692,14 +692,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, USERS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = crudManager.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null));
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = crudManager.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null));
 			} else {
-				uid = crudManager.updateEntity(id, endpointName,
-						genericDataBuilder.translateSetToJson(attributes, null));
+				uid = crudManager.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null));
 			}
 
 			return uid;
@@ -710,7 +709,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				userJsonObject = userJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.updateEntity(id, USERS, userJsonObject);
+				Uid uid = crudManager.update(id, USERS, userJsonObject);
 
 				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
 
@@ -727,7 +726,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				groupJsonObject = groupJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.updateEntity(id, GROUPS, groupJsonObject);
+				Uid uid = crudManager.update(id, GROUPS, groupJsonObject);
 
 				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
 
@@ -772,16 +771,15 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, USERS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = crudManager.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null));
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = crudManager.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null));
 
 			} else {
 
-				uid = crudManager.updateEntity(id, endpointName,
-						genericDataBuilder.translateSetToJson(attributes, null));
+				uid = crudManager.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null));
 			}
 
 			return uid;
@@ -792,7 +790,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				userJsonObject = userJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.updateEntity(id, USERS, userJsonObject);
+				Uid uid = crudManager.update(id, USERS, userJsonObject);
 
 				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
 
@@ -809,7 +807,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				groupJsonObject = groupJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.updateEntity(id, GROUPS, groupJsonObject);
+				Uid uid = crudManager.update(id, GROUPS, groupJsonObject);
 
 				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
 

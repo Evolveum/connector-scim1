@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -22,6 +21,7 @@ import org.identityconnectors.framework.common.exceptions.ConnectionFailedExcept
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
@@ -47,9 +47,9 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 
 		if (resourceJsonObject == null) {
 			LOGGER.error(
-					"Empty json object was passed from data provider. Error ocourance while building connector object");
+					"Empty json object was passed from data provider. Error occurrence while building connector object");
 			throw new ConnectorException(
-					"Empty json object was passed from data provider. Error ocourance while building connector object");
+					"Empty json object was passed from data provider. Error occurrence while building connector object");
 		}
 
 		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
@@ -175,10 +175,42 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
-			HashSet<Attribute> injectedAttributeSet) {
-		// TODO Auto-generated method stub
-		return null;
+	public HashSet<Attribute> attributeInjection(HashSet<Attribute> injectedAttributeSet,
+			HashMap<String, Object> autoriazationData) {
+
+		JSONObject loginObject = null;
+		String orgID = null;
+
+		if (autoriazationData.containsKey("json")) {
+
+			loginObject = (JSONObject) autoriazationData.get("json");
+		}
+
+		if (loginObject != null) {
+			if (loginObject.has("id")) {
+				orgID = loginObject.getString("id");
+				String idParts[] = orgID.split("\\/");
+				System.out.println("##: " + orgID);
+				orgID = idParts[4];
+			}
+		} else {
+
+			LOGGER.info("No json object returned after login");
+		}
+		// injection of organization ID into the set of attributes
+		if (orgID != null) {
+			LOGGER.info("The organization ID is: {0}", orgID);
+
+			// TODO schema version might change
+			injectedAttributeSet
+					.add(AttributeBuilder.build("schema.type", "urn:scim:schemas:extension:enterprise:1.0"));
+
+			injectedAttributeSet.add(AttributeBuilder.build("schema.organization", orgID));
+		} else {
+			LOGGER.warn("No organization ID specified in instance URL");
+		}
+		return injectedAttributeSet;
+
 	}
 
 	@Override

@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -61,13 +60,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					e);
 
 		}
-		return null;
-	}
-
-	@Override
-	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
-			HashSet<Attribute> injectedAttributeSet) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -260,6 +252,12 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	public List<Map<String, Map<String, Object>>> getAttributeMapList(
 			List<Map<String, Map<String, Object>>> attributeMapList) {
 		return attributeMapList;
+	}
+
+	@Override
+	public HashSet<Attribute> attributeInjection(HashSet<Attribute> injectedAttributeSet,
+			HashMap<String, Object> autoriazationData) {
+		return injectedAttributeSet;
 	}
 
 }

@@ -252,7 +252,7 @@ public class CrudManagerScim {
 	 * @throws ConnectorException
 	 * @throws ConnectorIOException
 	 */
-	public void qeueryEntity(Object query, String resourceEndPoint, ResultsHandler resultHandler) {
+	public void qeuery(Object query, String resourceEndPoint, ResultsHandler resultHandler) {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
@@ -485,7 +485,7 @@ public class CrudManagerScim {
 	 * @return an instance of "ScimSchemaParser" containing the schema
 	 *         information of all endpoint.
 	 */
-	public ParserSchemaScim qeueryEntity(String providerName, String resourceEndPoint) {
+	public ParserSchemaScim qeuerySchemas(String providerName, String resourceEndPoint) {
 		logIntoService();
 
 		Header authHeader = null;
@@ -648,11 +648,9 @@ public class CrudManagerScim {
 	 * @return the uid of the created object.
 	 */
 
-	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
+	public Uid create(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
 			HashSet<Attribute> injectedAttributeSet) {
 
-		String orgID = null;
-		JSONObject loginObject = null;
 		Header authHeader = null;
 		String scimBaseUri = "";
 		HashMap<String, Object> autoriazationData = logIntoService();
@@ -662,8 +660,6 @@ public class CrudManagerScim {
 				authHeader = (Header) autoriazationData.get(data);
 			} else if ("uri".equals(data)) {
 				scimBaseUri = (String) autoriazationData.get(data);
-			} else if ("json".equals(data)) {
-				loginObject = (JSONObject) autoriazationData.get(data);
 			}
 		}
 
@@ -672,28 +668,22 @@ public class CrudManagerScim {
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		if (loginObject != null) {
-			if (loginObject.has("id")) {
-				orgID = loginObject.getString("id");
-				String idParts[] = orgID.split("\\/");
-				orgID = idParts[4];
-			}
+		HandlingStrategy strategy;
+		String[] uriParts = scimBaseUri.split("\\."); // e.g.
+		// https://eu6.salesforce.com/services/scim/v1
+
+		if ("salesforce".equals(uriParts[1])) {
+			strategy = new SalesforceHandlingStrategy();
+
+		} else if ("slack".equals(uriParts[1])) {
+
+			strategy = new SlackHandlingStrategy();
+
 		} else {
 
-			LOGGER.info("No json object returned after login");
+			strategy = new StandardScimHandlingStrategy();
 		}
-		// injection of organization ID into the set of attributes
-		if (orgID != null) {
-			LOGGER.info("The organization ID is: {0}", orgID);
-
-			// TODO schema version might change
-			injectedAttributeSet
-					.add(AttributeBuilder.build("schema.type", "urn:scim:schemas:extension:enterprise:1.0"));
-
-			injectedAttributeSet.add(AttributeBuilder.build("schema.organization", orgID));
-		} else {
-			LOGGER.warn("No organization ID specified in instance URL");
-		}
+		injectedAttributeSet = strategy.attributeInjection(injectedAttributeSet, autoriazationData);
 
 		JSONObject jsonObject = new JSONObject();
 
@@ -813,7 +803,7 @@ public class CrudManagerScim {
 	 *
 	 * @return the uid of the created object.
 	 */
-	public Uid updateEntity(Uid uid, String resourceEndPoint, JSONObject jsonObject) {
+	public Uid update(Uid uid, String resourceEndPoint, JSONObject jsonObject) {
 		Header authHeader = null;
 		String scimBaseUri = "";
 		HashMap<String, Object> autoriazationData = logIntoService();
@@ -879,7 +869,6 @@ public class CrudManagerScim {
 				return uid;
 			} else if (statusCode == 500 && "Groups".equals(resourceEndPoint)) {
 				HandlingStrategy strategy;
-				// For Salesforce group/members workaround purposes
 				String[] uriParts = scimBaseUri.split("\\."); // e.g.
 				// https://eu6.salesforce.com/services/scim/v1
 
@@ -975,7 +964,7 @@ public class CrudManagerScim {
 	 * @throws ConnectionFailedException
 	 *
 	 */
-	public void deleteEntity(Uid uid, String resourceEndPoint) {
+	public void delete(Uid uid, String resourceEndPoint) {
 
 		Header authHeader = null;
 		String scimBaseUri = "";

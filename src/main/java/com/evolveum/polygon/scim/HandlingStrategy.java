@@ -1,9 +1,9 @@
 package com.evolveum.polygon.scim;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -26,8 +26,8 @@ public interface HandlingStrategy {
 	public Uid specialGroupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
 			CrudManagerScim manager);
 
-	public Uid createEntity(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
-			HashSet<Attribute> injectedAttributeSet);
+	public HashSet<Attribute> attributeInjection(HashSet<Attribute> injectedAttributeSet,
+			HashMap<String, Object> autoriazationData);
 
 	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter);
 

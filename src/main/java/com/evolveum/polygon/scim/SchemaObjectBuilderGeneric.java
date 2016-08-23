@@ -1,6 +1,5 @@
 package com.evolveum.polygon.scim;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
@@ -9,9 +8,6 @@ import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
-import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
  * A class containing the methods used for building a schema representation
@@ -20,8 +16,6 @@ import org.json.JSONObject;
  * described by the service provider.
  **/
 public class SchemaObjectBuilderGeneric {
-
-	// Constructor for Salesforce workaround purposes
 
 	/**
 	 * Used to populate the variable "providerName" with the name of the service
@@ -46,16 +40,18 @@ public class SchemaObjectBuilderGeneric {
 			String providerName) {
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
 		builder.addAttributeInfo(Name.INFO);
-		for (String attributeName : attributeMap.keySet()) {
-			HandlingStrategy strategy;
 
-			if ("salesforce".equals(providerName)) {
-				strategy = new SalesforceHandlingStrategy();
-			} else if ("slack".equals(providerName)) {
-				strategy = new SlackHandlingStrategy();
-			} else {
-				strategy = new StandardScimHandlingStrategy();
-			}
+		HandlingStrategy strategy;
+
+		if ("salesforce".equals(providerName)) {
+			strategy = new SalesforceHandlingStrategy();
+		} else if ("slack".equals(providerName)) {
+			strategy = new SlackHandlingStrategy();
+		} else {
+			strategy = new StandardScimHandlingStrategy();
+		}
+
+		for (String attributeName : attributeMap.keySet()) {
 
 			builder = strategy.schemaBuilderProcedure(attributeName, attributeMap, builder, this);
 

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -72,7 +73,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 			if ("meta".equals(key.intern()) || "alias".equals(key.intern()) || "schemas".equals(key.intern())) {
 
 				LOGGER.warn(
-						"Processing trought salesforce \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.",
+						"Processing trought \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.",
 						key.intern());
 			} else
 
@@ -187,14 +188,175 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public void parseAttribute(JSONObject attribute) {
-		// TODO Auto-generated method stub
+	public Map<String, Map<String, Object>> parseAttribute(JSONObject attribute,
+			Map<String, Map<String, Object>> attributeMap, ParserSchemaScim parser) {
+
+		String attributeName = null;
+		Boolean isComplex = false;
+		Boolean isMultiValued = false;
+		Map<String, Object> attributeObjects = new HashMap<String, Object>();
+		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
+
+		if (attribute.has("subAttributes")) {
+			boolean hasTypeValues = false;
+			JSONArray subAttributes = new JSONArray();
+			subAttributes = (JSONArray) attribute.get("subAttributes");
+			if (attributeName == null) {
+				for (String subAttributeNameKeys : attribute.keySet()) {
+					if ("name".equals(subAttributeNameKeys.intern())) {
+						attributeName = attribute.get(subAttributeNameKeys).toString();
+						break;
+					}
+				}
+			}
+			for (String nameKey : attribute.keySet()) {
+				if ("multiValued".equals(nameKey.intern())) {
+					isMultiValued = (Boolean) attribute.get(nameKey);
+					break;
+				}
+
+			}
+
+			for (int i = 0; i < subAttributes.length(); i++) {
+				JSONObject subAttribute = new JSONObject();
+				subAttribute = subAttributes.getJSONObject(i);
+				subAttributeMap = parser.parseSubAttribute(subAttribute, subAttributeMap);
+			}
+			for (String typeKey : subAttributeMap.keySet()) {
+				if ("type".equals(typeKey.intern())) {
+					hasTypeValues = true;
+					break;
+				}
+			}
+
+			if (hasTypeValues) {
+				Map<String, Object> typeObject = new HashMap<String, Object>();
+				typeObject = (Map<String, Object>) subAttributeMap.get("type");
+				if (typeObject.containsKey("canonicalValues") || typeObject.containsKey("referenceTypes")) {
+					JSONArray referenceValues = new JSONArray();
+					if (typeObject.containsKey("canonicalValues")) {
+						referenceValues = (JSONArray) typeObject.get("canonicalValues");
+					} else {
+						referenceValues = (JSONArray) typeObject.get("referenceTypes");
+					}
+
+					for (int j = 0; j < referenceValues.length(); j++) {
+						JSONObject referenceValue = new JSONObject();
+
+						/*
+						 * Salesforce scim schema inconsistencies workaround
+						 * (canonicalValues,referenceTypes) defined as array of
+						 * json objects -> should be defined as array of string
+						 * values
+						 */
+						LOGGER.warn(
+								"Processing trought Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes) ");
+						referenceValue = ((JSONArray) referenceValues).getJSONObject(j);
+						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+							if (!"type".equals(subAttributeKeyNames.intern())) { // TODO
+								// some
+								// other
+								// complex
+								// attribute
+								// names
+								// may
+								// be
+								// used
+								StringBuilder complexAttrName = new StringBuilder(attributeName);
+								attributeMap.put(
+										complexAttrName.append(".").append(referenceValue.get("value")).append(".")
+												.append(subAttributeKeyNames).toString(),
+										(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+								isComplex = true;
+
+							}
+						}
+					}
+				} else {
+					ArrayList<String> defaultReferenceTypeValues = new ArrayList<String>();
+					defaultReferenceTypeValues.add("User");
+					defaultReferenceTypeValues.add("Group");
+
+					defaultReferenceTypeValues.add("external");
+					defaultReferenceTypeValues.add("uri");
+
+					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+						if (!"type".equals(subAttributeKeyNames.intern())) {
+							for (String defaultTypeReferenceValues : defaultReferenceTypeValues) {
+								StringBuilder complexAttrName = new StringBuilder(attributeName);
+								complexAttrName.append(".").append(defaultTypeReferenceValues);
+								attributeMap.put(complexAttrName.append(".").append(subAttributeKeyNames).toString(),
+										(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+								isComplex = true;
+							}
+						}
+
+					}
+
+				}
+
+			} else {
+				if ("roles".equals(attributeName)) {
+
+					LOGGER.warn(
+							"Processing trought salesforce \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.",
+							attributeName);
+
+					isMultiValued = true;
+				}
+
+				if (!isMultiValued) {
+					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+						StringBuilder complexAttrName = new StringBuilder(attributeName);
+						attributeMap.put(complexAttrName.append(".").append(subAttributeKeyNames).toString(),
+								(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+						isComplex = true;
+					}
+				} else {
+					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+						StringBuilder complexAttrName = new StringBuilder(attributeName);
+
+						HashMap<String, Object> subattributeKeyMap = (HashMap<String, Object>) subAttributeMap
+								.get(subAttributeKeyNames);
+
+						for (String attributePropertie : subattributeKeyMap.keySet()) {
+
+							if ("multiValued".equals(attributePropertie)) {
+								subattributeKeyMap.put("multiValued", true);
+							}
+						}
+
+						attributeMap.put(complexAttrName.append(".").append("default").append(".")
+								.append(subAttributeKeyNames).toString(), subattributeKeyMap);
+						isComplex = true;
+					}
+
+				}
+			}
+
+		} else {
+
+			for (String attributeNameKeys : attribute.keySet()) {
+
+				if ("name".equals(attributeNameKeys.intern())) {
+					attributeName = attribute.get(attributeNameKeys).toString();
+
+				} else {
+					attributeObjects.put(attributeNameKeys, attribute.get(attributeNameKeys));
+				}
+
+			}
+		}
+		if (!isComplex) {
+			attributeMap.put(attributeName, attributeObjects);
+		}
+		return attributeMap;
 
 	}
 
 	@Override
-	public Uid specialGroupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri,
-			Header authHeader) {
+	public Uid specialGroupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
+			CrudManagerScim manager) {
 
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		Uid id = null;
@@ -245,7 +407,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 					} else {
 						responseString = EntityUtils.toString(response.getEntity());
 
-						LOGGER.error("An error has occured while updating the resource {0}", responseString);
+						manager.onNoSuccess(response, "updating object");
 					}
 
 				}
@@ -314,5 +476,11 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 			builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
 		}
 		return builder;
+	}
+
+	@Override
+	public List<Map<String, Map<String, Object>>> getAttributeMapList(
+			List<Map<String, Map<String, Object>>> attributeMapList) {
+		return attributeMapList;
 	}
 }

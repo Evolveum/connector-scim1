@@ -381,7 +381,7 @@ public class CrudManagerScim {
 
 												} else {
 
-													onNoSuccess(resourceResponse, statusCode, resourceUri);
+													onNoSuccess(resourceResponse, resourceUri);
 												}
 
 											}
@@ -447,7 +447,7 @@ public class CrudManagerScim {
 					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", query);
 				}
 			} else {
-				onNoSuccess(response, statusCode, uri);
+				onNoSuccess(response, uri);
 			}
 
 		} catch (IOException e) {
@@ -741,7 +741,7 @@ public class CrudManagerScim {
 					return uid;
 				} else {
 
-					onNoSuccess(response, statusCode, "creating a new object");
+					onNoSuccess(response, "creating a new object");
 				}
 
 			} catch (ClientProtocolException e) {
@@ -896,20 +896,20 @@ public class CrudManagerScim {
 
 						strategy = new StandardScimHandlingStrategy();
 					}
-					Uid id = strategy.specialGroupUpdateProcedure(response, jsonObject, uri, authHeader);
+					Uid id = strategy.specialGroupUpdateProcedure(response, jsonObject, uri, authHeader, this);
 
 					if (id != null) {
 
 						return id;
 					} else {
-						onNoSuccess(response, statusCode, "updating object");
+						onNoSuccess(response, "updating object");
 					}
 				}
 
 			}
 
 			else {
-				onNoSuccess(response, statusCode, "updating object");
+				onNoSuccess(response, "updating object");
 			}
 
 		} catch (UnsupportedEncodingException e) {
@@ -1025,7 +1025,7 @@ public class CrudManagerScim {
 
 				LOGGER.info("Resource not found or resource was already deleted");
 			} else {
-				onNoSuccess(response, statusCode, "deleting object");
+				onNoSuccess(response, "deleting object");
 			}
 
 		} catch (ClientProtocolException e) {
@@ -1069,13 +1069,14 @@ public class CrudManagerScim {
 	 * @throws IOException
 	 * @throws ConnectorIOException
 	 */
-	private void onNoSuccess(HttpResponse response, int statusCode, String message) throws ParseException, IOException {
+	public void onNoSuccess(HttpResponse response, String message) throws ParseException, IOException {
 
+		Integer statusCode = null;
 		StringBuilder exceptionStringBuilder = null;
 
 		if (response.getEntity() != null) {
 			String responseString = EntityUtils.toString(response.getEntity());
-
+			statusCode = response.getStatusLine().getStatusCode();
 			LOGGER.error("Full Error response from provider: {0}", responseString);
 
 			JSONObject responseObject = new JSONObject(responseString);
@@ -1106,7 +1107,7 @@ public class CrudManagerScim {
 
 		} else {
 			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
-					.append(" was unsuccessful. Status code returned: ").append(statusCode);
+					.append(" was unsuccessful. No response object was returned");
 		}
 
 		String exceptionString = exceptionStringBuilder.toString();
@@ -1115,8 +1116,9 @@ public class CrudManagerScim {
 			message = "the full resource representation";
 		}
 		LOGGER.error(exceptionString);
-
-		LOGGER.info("An error has occured. Http status: \"{0}\"", statusCode);
+		if (statusCode != null) {
+			LOGGER.info("An error has occured. Http status: \"{0}\"", statusCode);
+		}
 		LOGGER.info(exceptionString);
 
 		throw new ConnectorIOException(exceptionString);
@@ -1474,7 +1476,7 @@ public class CrudManagerScim {
 
 											} else {
 
-												onNoSuccess(resourceResponse, statusCode, groupUri.toString());
+												onNoSuccess(resourceResponse, groupUri.toString());
 											}
 
 										}
@@ -1523,7 +1525,7 @@ public class CrudManagerScim {
 					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", uri);
 				}
 			} else {
-				onNoSuccess(response, statusCode, uri);
+				onNoSuccess(response, uri);
 			}
 
 		} catch (IOException e) {
@@ -1550,120 +1552,6 @@ public class CrudManagerScim {
 			loginInstance.releaseConnection();
 			LOGGER.info("The connecion was released");
 		}
-
-	}
-
-	public Uid specialUpdateProcedure(HttpResponse response, HttpClient httpClient, String uri) {
-
-		Header authHeader = null;
-		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService();
-
-		for (String data : autoriazationData.keySet()) {
-			if ("authHeader".equals(data)) {
-				authHeader = (Header) autoriazationData.get(data);
-			} else if ("uri".equals(data)) {
-				scimBaseUri = (String) autoriazationData.get(data);
-			}
-		}
-
-		if (authHeader == null || scimBaseUri.isEmpty()) {
-
-			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
-		}
-
-		Uid id = null;
-		Integer statusCode = response.getStatusLine().getStatusCode();
-
-		JSONObject jsonObject = new JSONObject();
-
-		// Salesforce group/members workaround
-		String[] uriParts = scimBaseUri.split("\\."); // e.g.
-		// https://eu6.salesforce.com/services/scim/v1
-
-		if (uriParts.length >= 2) {
-
-			if ("salesforce".equals(uriParts[1])) {
-				LOGGER.warn(
-						"Status code from first update query: {0}. Processing trought Salesforce \"group/member update\" workaround. ",
-						statusCode);
-				HttpGet httpGet = new HttpGet(uri);
-				httpGet.addHeader(authHeader);
-				httpGet.addHeader(prettyPrintHeader);
-
-				providerStartTime = System.currentTimeMillis();
-				try {
-					response = httpClient.execute(httpGet);
-
-					providerEndTime = System.currentTimeMillis();
-					providerDuration = (providerEndTime - providerStartTime);
-
-					LOGGER.info(
-							"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
-							providerDuration);
-
-					providerDuration = 0;
-
-					statusCode = response.getStatusLine().getStatusCode();
-					LOGGER.info("status code: {0}", statusCode);
-					if (statusCode == 200) {
-
-						String responseString = EntityUtils.toString(response.getEntity());
-						if (!responseString.isEmpty()) {
-
-							JSONObject json = new JSONObject(responseString);
-							LOGGER.info("Json object returned from service provider: {0}", json);
-							for (String attributeName : jsonObject.keySet()) {
-
-								json.put(attributeName, jsonObject.get(attributeName));
-
-							}
-							StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
-							HttpPatch httpPatch = new HttpPatch(uri);
-
-							bodyContent = new StringEntity(json.toString(1));
-							bodyContent.setContentType("application/json");
-							httpPatch.setEntity(bodyContent);
-
-							providerStartTime = System.currentTimeMillis();
-							response = httpClient.execute(httpPatch);
-
-							providerEndTime = System.currentTimeMillis();
-							providerDuration = (providerEndTime - providerStartTime);
-
-							LOGGER.info(
-									"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
-									providerDuration);
-							providerDuration = 0;
-
-							statusCode = response.getStatusLine().getStatusCode();
-							LOGGER.info("status code: {0}", statusCode);
-							if (statusCode == 200 || statusCode == 201) {
-								LOGGER.info("Update of resource was succesfull");
-								responseString = EntityUtils.toString(response.getEntity());
-								json = new JSONObject(responseString);
-								id = new Uid(json.getString("id"));
-								LOGGER.ok("Json response: {0}", json.toString(1));
-								return id;
-							} else {
-
-								onNoSuccess(response, statusCode, "updating object");
-							}
-
-						}
-					}
-
-				} catch (ClientProtocolException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-
-		}
-		return id;
 
 	}
 }

@@ -846,12 +846,15 @@ public class CrudManagerScim {
 				LOGGER.info("Update of resource was succesfull");
 
 				responseString = EntityUtils.toString(response.getEntity());
+				if (!responseString.isEmpty()) {
+					JSONObject json = new JSONObject(responseString);
+					LOGGER.ok("Json response: {0}", json.toString());
+					Uid id = new Uid(json.getString("id"));
+					return id;
 
-				JSONObject json = new JSONObject(responseString);
-				Uid id = new Uid(json.getString("id"));
-				LOGGER.ok("Json response: {0}", json.toString());
-				return id;
-
+				} else {
+					LOGGER.warn("Service provider response is empty, no response after the update procedure");
+				}
 			} else if (statusCode == 204) {
 
 				LOGGER.warn("Status code {0}. Response body left intentionally empty, operation may not be successful",
@@ -864,7 +867,7 @@ public class CrudManagerScim {
 
 				HandlingStrategy strategy = fetcher.fetchStrategy(scimBaseUri);
 
-				Uid id = strategy.specialGroupUpdateProcedure(response, jsonObject, uri, authHeader, this);
+				Uid id = strategy.groupUpdateProcedure(response, jsonObject, uri, authHeader, this);
 
 				if (id != null) {
 

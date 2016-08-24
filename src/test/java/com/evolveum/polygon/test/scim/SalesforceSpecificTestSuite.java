@@ -73,7 +73,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 		pageSize = 1;
 		pageOffset = 1;
 
-		testNumber = 72;
+		testNumber = 73;
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 

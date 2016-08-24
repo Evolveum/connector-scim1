@@ -53,7 +53,7 @@ public class SchemaObjectBuilderGeneric {
 
 		for (String attributeName : attributeMap.keySet()) {
 
-			builder = strategy.schemaBuilderProcedure(attributeName, attributeMap, builder, this);
+			builder = strategy.schemaBuilder(attributeName, attributeMap, builder, this);
 
 		}
 

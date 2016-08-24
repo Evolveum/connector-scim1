@@ -30,6 +30,7 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
+import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -212,7 +213,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public StringBuilder containsAllValuesFilterProcedure(String p, ContainsAllValuesFilter filter,
+	public StringBuilder processContainsAllValuesFilter(String p, ContainsAllValuesFilter filter,
 			FilterHandler handler) {
 		return null;
 	}
@@ -385,7 +386,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public Uid specialGroupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
+	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
 			CrudManagerScim manager) {
 
 		HttpClient httpClient = HttpClientBuilder.create().build();
@@ -472,9 +473,8 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public ObjectClassInfoBuilder schemaBuilderProcedure(String attributeName,
-			Map<String, Map<String, Object>> attributeMap, ObjectClassInfoBuilder builder,
-			SchemaObjectBuilderGeneric schemaBuilder) {
+	public ObjectClassInfoBuilder schemaBuilder(String attributeName, Map<String, Map<String, Object>> attributeMap,
+			ObjectClassInfoBuilder builder, SchemaObjectBuilderGeneric schemaBuilder) {
 		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 
 		if (!"active".equals(attributeName)) {
@@ -517,5 +517,10 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	@Override
 	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject) {
 		return jsonObject;
+	}
+
+	@Override
+	public String checkFilter(Filter filter) {
+		return "";
 	}
 }

@@ -176,7 +176,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 		HandlingStrategy strategy = fetcher.fetchStrategy(p);
 
-		StringBuilder preprocessedFilter = strategy.containsAllValuesFilterProcedure(p, filter, this);
+		StringBuilder preprocessedFilter = strategy.processContainsAllValuesFilter(p, filter, this);
 
 		if (null != preprocessedFilter) {
 			return preprocessedFilter;

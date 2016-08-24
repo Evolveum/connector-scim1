@@ -432,9 +432,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			throw new ConnectorException("Result handler for queuery can not be null");
 		}
 
-		String valueForSpecialHandling = querryChecker(query);
+		String flag = querryChecker(query);
 
-		if (valueForSpecialHandling.isEmpty()) {
+		if (flag.isEmpty()) {
 
 			if (genericsCanBeApplied) {
 
@@ -498,7 +498,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		} else {
 
 			if (ObjectClass.GROUP.equals(objectClass)) {
-				Uid quieriedObject = new Uid(valueForSpecialHandling);
+				Uid quieriedObject = new Uid(flag);
 
 				crudManager.queryMembershipData(quieriedObject, USERS, handler, GROUPS);
 			}
@@ -516,7 +516,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * @throws IllegalArgumentException
 	 *             if the provided filter is no supported.
 	 **/
-	protected String querryChecker(Filter filter) {
+	public String querryChecker(Filter filter) {
 
 		if ((filter instanceof AttributeFilter || filter == null || filter instanceof CompositeFilter)
 				&& !(filter instanceof ContainsAllValuesFilter)) {
@@ -543,6 +543,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		throw new IllegalArgumentException("Provided filter is not supported");
 
 	}
+	/*
+	 * if (!(filter instanceof ContainsAllValuesFilter)) {
+	 * 
+	 * return ""; } else { StrategyFetcher fetch = new StrategyFetcher();
+	 * HandlingStrategy strategy = fetch.fetchStrategy(providerName); String
+	 * flag= strategy.checkFilter(filter); String flag= ""; return flag; } }
+	 */
 
 	/**
 	 * Used to evaluate if the queried attribute in the provided filter query is

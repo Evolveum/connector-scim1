@@ -14,6 +14,7 @@ import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
+import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.json.JSONObject;
 
 public interface HandlingStrategy {
@@ -23,24 +24,25 @@ public interface HandlingStrategy {
 	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint)
 			throws ConnectorException;
 
-	public Uid specialGroupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
+	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
 			CrudManagerScim manager);
 
 	public HashSet<Attribute> attributeInjection(HashSet<Attribute> injectedAttributeSet,
 			HashMap<String, Object> autoriazationData);
 
-	public StringBuilder containsAllValuesFilterProcedure(String p, ContainsAllValuesFilter filter,
+	public StringBuilder processContainsAllValuesFilter(String p, ContainsAllValuesFilter filter,
 			FilterHandler filterHandler);
 
 	public Map<String, Map<String, Object>> parseAttribute(JSONObject attribute,
 			Map<String, Map<String, Object>> attributeMap, ParserSchemaScim parser);
 
-	public ObjectClassInfoBuilder schemaBuilderProcedure(String attributeName,
-			Map<String, Map<String, Object>> attributeMap, ObjectClassInfoBuilder builder,
-			SchemaObjectBuilderGeneric schemaBuilder);
+	public ObjectClassInfoBuilder schemaBuilder(String attributeName, Map<String, Map<String, Object>> attributeMap,
+			ObjectClassInfoBuilder builder, SchemaObjectBuilderGeneric schemaBuilder);
 
 	public List<Map<String, Map<String, Object>>> getAttributeMapList(
 			List<Map<String, Map<String, Object>>> attributeMapList);
 
 	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject);
+
+	public String checkFilter(Filter filter);
 }

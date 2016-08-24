@@ -29,7 +29,8 @@ public interface HandlingStrategy {
 	public HashSet<Attribute> attributeInjection(HashSet<Attribute> injectedAttributeSet,
 			HashMap<String, Object> autoriazationData);
 
-	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter);
+	public StringBuilder containsAllValuesFilterProcedure(String p, ContainsAllValuesFilter filter,
+			FilterHandler filterHandler);
 
 	public Map<String, Map<String, Object>> parseAttribute(JSONObject attribute,
 			Map<String, Map<String, Object>> attributeMap, ParserSchemaScim parser);

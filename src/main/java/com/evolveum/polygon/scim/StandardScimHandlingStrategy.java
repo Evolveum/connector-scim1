@@ -193,9 +193,11 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
-		// TODO Auto-generated method stub
-		return null;
+	public StringBuilder containsAllValuesFilterProcedure(String p, ContainsAllValuesFilter filter,
+			FilterHandler handler) {
+		StringBuilder preprocessedFilter = null;
+		preprocessedFilter = handler.processArrayQ(filter, p);
+		return preprocessedFilter;
 	}
 
 	@Override

@@ -128,8 +128,6 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 							}
 						}
 
-						//
-
 					} else {
 						objectKeyName = objectNameBilder.append(".").append(o.toString()).toString();
 						cob.addAttribute(objectKeyName, o);
@@ -214,8 +212,8 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
-		// TODO Auto-generated method stub
+	public StringBuilder containsAllValuesFilterProcedure(String p, ContainsAllValuesFilter filter,
+			FilterHandler handler) {
 		return null;
 	}
 

@@ -192,8 +192,8 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
-		// TODO Auto-generated method stub
+	public StringBuilder containsAllValuesFilterProcedure(String p, ContainsAllValuesFilter filter,
+			FilterHandler handler) {
 		return null;
 	}
 

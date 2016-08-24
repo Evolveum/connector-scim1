@@ -171,11 +171,13 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
-		StringBuilder preprocessedFilter = null;
 
-		if (!"salesforce".equals(p) && !"slack".equals(p)) {
-			preprocessedFilter = processArrayQ(filter, p);
-		}
+		StrategyFetcher fetcher = new StrategyFetcher();
+
+		HandlingStrategy strategy = fetcher.fetchStrategy(p);
+
+		StringBuilder preprocessedFilter = strategy.containsAllValuesFilterProcedure(p, filter, this);
+
 		if (null != preprocessedFilter) {
 			return preprocessedFilter;
 		} else {
@@ -536,7 +538,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 * @return The final string representation of a filter or null if the
 	 *         attribute is evaluated as non complex.
 	 */
-	private StringBuilder processArrayQ(AttributeFilter filter, String p) {
+	public StringBuilder processArrayQ(AttributeFilter filter, String p) {
 		if (filter.getName().contains(".")) {
 
 			String[] keyParts = filter.getName().split("\\."); // eq.

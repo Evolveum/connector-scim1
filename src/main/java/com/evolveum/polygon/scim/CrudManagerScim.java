@@ -315,8 +315,15 @@ public class CrudManagerScim {
 						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
 							if (query instanceof Uid) {
-								ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
-								resultHandler.handle(objBuilder.buildConnectorObject(jsonObject, resourceEndPoint));
+
+								StrategyFetcher fetcher = new StrategyFetcher();
+
+								HandlingStrategy strategy = fetcher.fetchStrategy(scimBaseUri);
+
+								ConnectorObject connectorObject = strategy.buildConnectorObject(jsonObject,
+										resourceEndPoint);
+
+								resultHandler.handle(connectorObject);
 
 							} else {
 								if (jsonObject.has("Resources")) {
@@ -364,20 +371,14 @@ public class CrudManagerScim {
 															"The {0}. resource json object which was returned by the service provider: {1}",
 															i + 1, fullResourcejson);
 
-													ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
+													StrategyFetcher fetcher = new StrategyFetcher();
 
-													long startTime = System.currentTimeMillis();
-													ConnectorObject conOb = objBuilder
+													HandlingStrategy strategy = fetcher.fetchStrategy(scimBaseUri);
+
+													ConnectorObject connectorObject = strategy
 															.buildConnectorObject(fullResourcejson, resourceEndPoint);
-													long endTime = System.currentTimeMillis();
 
-													long time = (endTime - startTime);
-
-													LOGGER.error(
-															"The connector object builder method Time: {0} milliseconds",
-															time);
-
-													resultHandler.handle(conOb);
+													resultHandler.handle(connectorObject);
 
 												} else {
 
@@ -668,7 +669,10 @@ public class CrudManagerScim {
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		HandlingStrategy strategy = selectStrategy(scimBaseUri, true);
+		StrategyFetcher fetcher = new StrategyFetcher();
+
+		HandlingStrategy strategy = fetcher.fetchStrategy(scimBaseUri);
+
 		injectedAttributeSet = strategy.attributeInjection(injectedAttributeSet, autoriazationData);
 
 		JSONObject jsonObject = new JSONObject();
@@ -854,36 +858,20 @@ public class CrudManagerScim {
 
 				return uid;
 			} else if (statusCode == 500 && "Groups".equals(resourceEndPoint)) {
-				HandlingStrategy strategy;
-				String[] uriParts = scimBaseUri.split("\\."); // e.g.
-				// https://eu6.salesforce.com/services/scim/v1
 
-				if (uriParts.length >= 2) {
+				StrategyFetcher fetcher = new StrategyFetcher();
 
-					if ("salesforce".equals(uriParts[1])) {
-						strategy = new SalesforceHandlingStrategy();
+				HandlingStrategy strategy = fetcher.fetchStrategy(scimBaseUri);
 
-					} else if ("slack".equals(uriParts[1])) {
+				Uid id = strategy.specialGroupUpdateProcedure(response, jsonObject, uri, authHeader, this);
 
-						strategy = new SlackHandlingStrategy();
+				if (id != null) {
 
-					} else {
-
-						strategy = new StandardScimHandlingStrategy();
-					}
-					Uid id = strategy.specialGroupUpdateProcedure(response, jsonObject, uri, authHeader, this);
-
-					if (id != null) {
-
-						return id;
-					} else {
-						onNoSuccess(response, "updating object");
-					}
+					return id;
+				} else {
+					onNoSuccess(response, "updating object");
 				}
-
-			}
-
-			else {
+			} else {
 				onNoSuccess(response, "updating object");
 			}
 
@@ -1133,9 +1121,6 @@ public class CrudManagerScim {
 			JSONObject minResourceJson = new JSONObject();
 			minResourceJson = responseObject.getJSONArray("Resources").getJSONObject(i);
 
-			// TODO test if id check needed
-			// if (minResourceJson.has("id") && minResourceJson.getString("id")
-			// != null) {
 			if (minResourceJson.has("endpoint")) {
 				scimParser.parseSchema(minResourceJson);
 
@@ -1144,9 +1129,6 @@ public class CrudManagerScim {
 
 				throw new ConnectorException("No uid present in fetchet object while processing queuery result");
 			}
-
-			// }
-
 		}
 		return scimParser;
 
@@ -1528,51 +1510,5 @@ public class CrudManagerScim {
 			LOGGER.info("The connecion was released");
 		}
 
-	}
-
-	// TODO replace strategy initialization with this method
-	public HandlingStrategy selectStrategy(String providerNameString, Boolean stringHasDelimiters) {
-
-		HandlingStrategy strategy;
-		String[] uriParts = providerNameString.split("\\."); // e.g.
-		// https://eu6.salesforce.com/services/scim/v1
-
-		if (stringHasDelimiters) {
-
-			if (uriParts.length >= 2) {
-
-				if ("salesforce".equals(uriParts[1])) {
-					strategy = new SalesforceHandlingStrategy();
-
-				} else if ("slack".equals(uriParts[1])) {
-
-					strategy = new SlackHandlingStrategy();
-
-				} else {
-
-					strategy = new StandardScimHandlingStrategy();
-				}
-			} else {
-
-				strategy = new StandardScimHandlingStrategy();
-			}
-
-		} else {
-
-			if ("salesforce".equals(providerNameString)) {
-				strategy = new SalesforceHandlingStrategy();
-
-			} else if ("slack".equals(providerNameString)) {
-
-				strategy = new SlackHandlingStrategy();
-
-			} else {
-
-				strategy = new StandardScimHandlingStrategy();
-			}
-
-		}
-
-		return strategy;
 	}
 }

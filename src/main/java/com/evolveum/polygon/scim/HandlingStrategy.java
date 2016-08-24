@@ -41,4 +41,6 @@ public interface HandlingStrategy {
 
 	public List<Map<String, Map<String, Object>>> getAttributeMapList(
 			List<Map<String, Map<String, Object>>> attributeMapList);
+
+	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject);
 }

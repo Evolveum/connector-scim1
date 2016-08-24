@@ -434,4 +434,203 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 		return injectedAttributeSet;
 	}
 
+	@Override
+	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject) {
+
+		LOGGER.warn("Processing trought slack missing schema attributes workaround for the resource: \"{0}\"",
+				resourceName);
+		if ("Users".equals(resourceName)) {
+
+			HashMap<String, String> missingAttirbutes = new HashMap<String, String>();
+			missingAttirbutes.put("userName", "userName");
+			missingAttirbutes.put("nickName", "nickName");
+			missingAttirbutes.put("title", "title");
+			missingAttirbutes.put("schemas", "schemas");
+
+			missingAttirbutes.put("profileUrl", "profileUrl");
+			missingAttirbutes.put("displayName", "displayName");
+			missingAttirbutes.put("timezone", "timezone");
+			missingAttirbutes.put("externalId", "externalId");
+			missingAttirbutes.put("active", "active");
+			missingAttirbutes.put("photos", "photos");
+
+			if (jsonObject.has("attributes")) {
+
+				JSONArray attributesArray = new JSONArray();
+
+				attributesArray = jsonObject.getJSONArray("attributes");
+				for (int indexValue = 0; indexValue < attributesArray.length(); indexValue++) {
+					JSONObject subAttributes = attributesArray.getJSONObject(indexValue);
+
+					if (subAttributes.has("name")) {
+
+						if ("userName".equals(subAttributes.get("name"))) {
+
+							missingAttirbutes.remove("userName");
+						} else if ("nickName".equals(subAttributes.get("name"))) {
+
+							missingAttirbutes.remove("nickName");
+						} else if ("title".equals(subAttributes.get("name"))) {
+
+							missingAttirbutes.remove("title");
+						} else if ("schemas".equals(subAttributes.get("name"))) {
+
+							missingAttirbutes.remove("schemas");
+						} else if ("profileUrl".equals(subAttributes.get("name"))) {
+
+							missingAttirbutes.remove("profileUrl");
+						} else if ("displayName".equals(subAttributes.get("name"))) {
+
+							missingAttirbutes.remove("displayName");
+						} else if ("timezone".equals(subAttributes.get("name"))) {
+
+							missingAttirbutes.remove("timezone");
+						} else if ("externalId".equals(subAttributes.get("name"))) {
+
+							missingAttirbutes.remove("externalId");
+						} else if ("active".equals(subAttributes.get("name"))) {
+
+							missingAttirbutes.remove("active");
+						} else if ("photos".equals(subAttributes.get("name"))) {
+
+							missingAttirbutes.remove("photos");
+						}
+					}
+				}
+
+				for (String missingAttributeName : missingAttirbutes.keySet()) {
+
+					LOGGER.warn("Building schema deffinition for the attribute: \"{0}\"", missingAttributeName);
+
+					if ("userName".equals(missingAttributeName)) {
+						JSONObject userName = new JSONObject();
+
+						userName.put("schema", "urn:scim:schemas:core:1.0");
+						userName.put("name", "userName");
+						userName.put("readOnly", false);
+						userName.put("type", "string");
+						userName.put("required", true);
+						userName.put("caseExact", false);
+
+						attributesArray.put(userName);
+
+					} else if ("active".equals(missingAttributeName)) {
+						JSONObject active = new JSONObject();
+
+						active.put("schema", "urn:scim:schemas:core:1.0");
+						active.put("name", "active");
+						active.put("readOnly", false);
+						active.put("type", "boolean");
+						active.put("required", false);
+						active.put("caseExact", false);
+
+						attributesArray.put(active);
+
+					} else if ("externalId".equals(missingAttributeName)) {
+						JSONObject externalId = new JSONObject();
+
+						externalId.put("schema", "urn:scim:schemas:core:1.0");
+						externalId.put("name", "externalId");
+						externalId.put("readOnly", false);
+						externalId.put("type", "string");
+						externalId.put("required", false);
+						externalId.put("caseExact", true);
+
+						attributesArray.put(externalId);
+
+					} else if ("timezone".equals(missingAttributeName)) {
+						JSONObject timezone = new JSONObject();
+
+						timezone.put("schema", "urn:scim:schemas:core:1.0");
+						timezone.put("name", "timezone");
+						timezone.put("readOnly", false);
+						timezone.put("type", "string");
+						timezone.put("required", false);
+						timezone.put("caseExact", false);
+
+						attributesArray.put(timezone);
+
+					} else if ("displayName".equals(missingAttributeName)) {
+						JSONObject displayName = new JSONObject();
+
+						displayName.put("schema", "urn:scim:schemas:core:1.0");
+						displayName.put("name", "displayName");
+						displayName.put("readOnly", false);
+						displayName.put("type", "string");
+						displayName.put("required", false);
+						displayName.put("caseExact", false);
+
+						attributesArray.put(displayName);
+
+					} else if ("profileUrl".equals(missingAttributeName)) {
+						JSONObject profileUrl = new JSONObject();
+
+						profileUrl.put("schema", "urn:scim:schemas:core:1.0");
+						profileUrl.put("name", "profileUrl");
+						profileUrl.put("readOnly", false);
+						profileUrl.put("type", "string");
+						profileUrl.put("required", false);
+						profileUrl.put("caseExact", false);
+
+						attributesArray.put(profileUrl);
+
+					} else if ("nickName".equals(missingAttributeName)) {
+						JSONObject nickName = new JSONObject();
+
+						nickName.put("schema", "urn:scim:schemas:core:1.0");
+						nickName.put("name", "nickName");
+						nickName.put("readOnly", false);
+						nickName.put("type", "string");
+						nickName.put("required", true);
+						nickName.put("caseExact", false);
+
+						attributesArray.put(nickName);
+
+					} else if ("title".equals(missingAttributeName)) {
+						JSONObject title = new JSONObject();
+
+						title.put("schema", "urn:scim:schemas:core:1.0");
+						title.put("name", "title");
+						title.put("readOnly", false);
+						title.put("type", "string");
+						title.put("required", false);
+						title.put("caseExact", false);
+
+						attributesArray.put(title);
+					} else if ("schemas".equals(missingAttributeName)) {
+						JSONObject schemas = new JSONObject();
+						JSONArray subattributeArray = new JSONArray();
+
+						JSONObject valueBlank = new JSONObject();
+
+						schemas.put("schema", "urn:scim:schemas:core:1.0");
+						schemas.put("name", "schemas");
+						schemas.put("readOnly", false);
+						schemas.put("type", "complex");
+						schemas.put("multiValued", true);
+						schemas.put("required", false);
+						schemas.put("caseExact", false);
+
+						valueBlank.put("name", "blank");
+						valueBlank.put("readOnly", true);
+						valueBlank.put("required", false);
+						valueBlank.put("multiValued", false);
+
+						subattributeArray.put(valueBlank);
+
+						schemas.put("subAttributes", subattributeArray);
+
+						attributesArray.put(schemas);
+					}
+
+				}
+
+				jsonObject.put("attributes", attributesArray);
+			}
+
+		}
+		return jsonObject;
+
+	}
+
 }

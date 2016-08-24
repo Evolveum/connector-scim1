@@ -513,4 +513,9 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 			List<Map<String, Map<String, Object>>> attributeMapList) {
 		return attributeMapList;
 	}
+
+	@Override
+	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject) {
+		return jsonObject;
+	}
 }

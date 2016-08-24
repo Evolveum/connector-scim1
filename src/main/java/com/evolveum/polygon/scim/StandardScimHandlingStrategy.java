@@ -391,4 +391,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		return injectedAttributeSet;
 	}
 
+	@Override
+	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject) {
+		return jsonObject;
+	}
+
 }

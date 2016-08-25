@@ -15,6 +15,7 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
@@ -653,6 +654,23 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 			return "";
 
 		}
+	}
+
+	@Override
+	public StringBuilder retrieveFilterQuery(StringBuilder queryUriSnippet, char prefixChar, Filter query) {
+		LOGGER.info("Processing trought the \" filter\" workaround for the provider: {0}", "slack");
+
+		StringBuilder filterSnippet = new StringBuilder();
+		filterSnippet = query.accept(new FilterHandler(), "slack");
+
+		return queryUriSnippet.append(prefixChar).append("filter=").append(filterSnippet.toString());
+	}
+
+	@Override
+	public HashSet<Attribute> addAttributeToInject(HashSet<Attribute> injectetAttributeSet) {
+		Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank", "urn:scim:schemas:core:1.0");
+		injectetAttributeSet.add(schemaAttribute);
+		return injectetAttributeSet;
 	}
 
 }

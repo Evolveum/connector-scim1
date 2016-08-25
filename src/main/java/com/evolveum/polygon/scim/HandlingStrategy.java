@@ -45,4 +45,8 @@ public interface HandlingStrategy {
 	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject);
 
 	public String checkFilter(Filter filter);
+
+	public StringBuilder retrieveFilterQuery(StringBuilder queryUriSnippet, char prefixChar, Filter query);
+
+	public HashSet<Attribute> addAttributeToInject(HashSet<Attribute> injectetAttributeSet);
 }

@@ -612,7 +612,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 						.contains(AttributeBuilder.build(filter.getName(), value));
 				filterList.add(containsSingleAtribute);
 			} else {
-				// For salesforce workaroud purposess
 				EqualsFilter containsSingleAtribute = (EqualsFilter) FilterBuilder
 						.equalTo(AttributeBuilder.build(attributeName, value));
 				filterList.add(containsSingleAtribute);

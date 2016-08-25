@@ -27,7 +27,6 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.SearchResult;
@@ -1226,20 +1225,14 @@ public class CrudManagerScim {
 														"The {0}. resource json object which was returned by the service provider: {1}",
 														i + 1, fullResourcejson.toString(1));
 
-												ConnectorObjBuilder objBuilder = new ConnectorObjBuilder();
+												StrategyFetcher fetcher = new StrategyFetcher();
 
-												long startTime = System.currentTimeMillis();
-												ConnectorObject conOb = objBuilder.buildConnectorObject(
+												HandlingStrategy strategy = fetcher.fetchStrategy(scimBaseUri);
+
+												ConnectorObject connectorObject = strategy.buildConnectorObject(
 														fullResourcejson, membershipResourceEndpoin);
-												long endTime = System.currentTimeMillis();
 
-												long time = (endTime - startTime);
-
-												LOGGER.error(
-														"The connector object builder method Time: {0} milliseconds",
-														time);
-
-												resultHandler.handle(conOb);
+												resultHandler.handle(connectorObject);
 
 											} else {
 

@@ -10,7 +10,6 @@ import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.OperationOptions;
@@ -18,8 +17,6 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
-import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
@@ -161,39 +158,25 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				// TODO improve for other providers
-				if ("slack".equals(providerName)) {
-
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
-							"urn:scim:schemas:core:1.0");
-
-					injectetAttributeSet.add(schemaAttribute);
-				}
+				StrategyFetcher fetch = new StrategyFetcher();
+				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
+				strategy.addAttributeToInject(injectetAttributeSet);
 
 				uid = crudManager.create(USERS, jsonDataBuilder, attribute, injectetAttributeSet);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				// TODO improve for other providers
-				if ("slack".equals(providerName)) {
-
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
-							"urn:scim:schemas:core:1.0");
-					injectetAttributeSet.add(schemaAttribute);
-
-				}
+				StrategyFetcher fetch = new StrategyFetcher();
+				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
+				strategy.addAttributeToInject(injectetAttributeSet);
 
 				uid = crudManager.create(GROUPS, jsonDataBuilder, attribute, injectetAttributeSet);
 
 			} else {
-				// TODO improve for other providers
-				if ("slack".equals(providerName)) {
 
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
-							"urn:scim:schemas:core:1.0");
-
-					injectetAttributeSet.add(schemaAttribute);
-				}
+				StrategyFetcher fetch = new StrategyFetcher();
+				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
+				strategy.addAttributeToInject(injectetAttributeSet);
 
 				uid = crudManager.create(endpointName, jsonDataBuilder, attribute, injectetAttributeSet);
 			}
@@ -204,13 +187,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				ObjectTranslator userBuild = new UserDataBuilder("");
 
-				// TODO the schema attribute might change workaround needed
-				if ("slack".equals(providerName)) {
-
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
-							"urn:scim:schemas:core:1.0");
-					injectetAttributeSet.add(schemaAttribute);
-				}
+				StrategyFetcher fetch = new StrategyFetcher();
+				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
+				strategy.addAttributeToInject(injectetAttributeSet);
 
 				Uid uid = crudManager.create(USERS, userBuild, attribute, injectetAttributeSet);
 
@@ -225,14 +204,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				GroupDataBuilder groupBuild = new GroupDataBuilder("");
 
-				// TODO the schema attribute might change workaround needed
-				if ("slack".equals(providerName)) {
-
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
-							"urn:scim:schemas:core:1.0");
-					injectetAttributeSet.add(schemaAttribute);
-
-				}
+				StrategyFetcher fetch = new StrategyFetcher();
+				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
+				strategy.addAttributeToInject(injectetAttributeSet);
 
 				Uid uid = crudManager.create(GROUPS, groupBuild, attribute, injectetAttributeSet);
 
@@ -270,7 +244,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		this.configuration.validate();
 		this.crudManager = new CrudManagerScim((ScimConnectorConfiguration) configuration);
 
-		// For Salesforce workaround purposes
+		// For workaround purposes
 
 		if (this.configuration.getLoginURL() != null && !this.configuration.getLoginURL().isEmpty()) {
 
@@ -518,38 +492,17 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 **/
 	public String querryChecker(Filter filter) {
 
-		if ((filter instanceof AttributeFilter || filter == null || filter instanceof CompositeFilter)
-				&& !(filter instanceof ContainsAllValuesFilter)) {
+		if (filter == null || !(filter instanceof ContainsAllValuesFilter)) {
 
 			return "";
-			// TODO for slack contains all values workaround purposes
-		} else if (filter instanceof ContainsAllValuesFilter && "slack".equals(providerName)) {
-			List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
-			if (valueList.size() == 1) {
-				Object uidString = valueList.get(0);
-				if (uidString instanceof String) {
-					LOGGER.warn("Processing trough  \"contains all values\"  filter workaround.");
-					return (String) uidString;
-
-				}
-			}
-
-		} else if (filter instanceof ContainsAllValuesFilter) {
-
-			return "";
-
+		} else {
+			StrategyFetcher fetch = new StrategyFetcher();
+			HandlingStrategy strategy = fetch.fetchStrategy(providerName);
+			String flag = strategy.checkFilter(filter);
+			return flag;
 		}
-		LOGGER.error("Provided filter is not supported: {0}", filter);
-		throw new IllegalArgumentException("Provided filter is not supported");
 
 	}
-	/*
-	 * if (!(filter instanceof ContainsAllValuesFilter)) {
-	 * 
-	 * return ""; } else { StrategyFetcher fetch = new StrategyFetcher();
-	 * HandlingStrategy strategy = fetch.fetchStrategy(providerName); String
-	 * flag= strategy.checkFilter(filter); String flag= ""; return flag; } }
-	 */
 
 	/**
 	 * Used to evaluate if the queried attribute in the provided filter query is
@@ -593,26 +546,19 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 */
 	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler, StringBuilder queryUriSnippet) {
 
-		String prefixChar;
+		char prefixChar;
 
 		if (queryUriSnippet.toString().isEmpty()) {
-			prefixChar = "?";
+			prefixChar = '?';
 
 		} else {
 
-			prefixChar = "&";
+			prefixChar = '&';
 		}
-		// For salesforce workaroud purposess=
-		if ("salesforce".equals(providerName) || "slack".equals(providerName)) {
 
-			LOGGER.info("The provider name is: {0}", providerName);
-
-			queryUriSnippet.append(prefixChar).append("filter=")
-					.append(query.accept(new FilterHandler(), providerName));
-
-		} else {
-			queryUriSnippet.append(prefixChar).append("filter=").append(query.accept(new FilterHandler(), ""));
-		}
+		StrategyFetcher fetch = new StrategyFetcher();
+		HandlingStrategy strategy = fetch.fetchStrategy(providerName);
+		strategy.retrieveFilterQuery(queryUriSnippet, prefixChar, query);
 
 		crudManager.qeuery(queryUriSnippet.toString(), endPoint, resultHandler);
 	}

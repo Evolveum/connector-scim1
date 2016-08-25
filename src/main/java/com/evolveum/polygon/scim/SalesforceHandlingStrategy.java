@@ -189,7 +189,6 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 			if (loginObject.has("id")) {
 				orgID = loginObject.getString("id");
 				String idParts[] = orgID.split("\\/");
-				System.out.println("##: " + orgID);
 				orgID = idParts[4];
 			}
 		} else {
@@ -522,5 +521,21 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	@Override
 	public String checkFilter(Filter filter) {
 		return "";
+	}
+
+	@Override
+	public StringBuilder retrieveFilterQuery(StringBuilder queryUriSnippet, char prefixChar, Filter query) {
+		LOGGER.info("Processing trought the \" filter\" workaround for the provider: {0}", "salesforce");
+
+		StringBuilder filterSnippet = new StringBuilder();
+		filterSnippet = query.accept(new FilterHandler(), "salesforce");
+
+		return queryUriSnippet.append(prefixChar).append("filter=").append(filterSnippet.toString());
+	}
+
+	@Override
+	public HashSet<Attribute> addAttributeToInject(HashSet<Attribute> injectetAttributeSet) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

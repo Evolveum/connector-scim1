@@ -16,11 +16,6 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
  * described by the service provider.
  **/
 public class SchemaObjectBuilderGeneric {
-
-	/**
-	 * Used to populate the variable "providerName" with the name of the service
-	 * provider. Used mainly for workaround purposes.
-	 **/
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 
 	/**
@@ -41,15 +36,8 @@ public class SchemaObjectBuilderGeneric {
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
 		builder.addAttributeInfo(Name.INFO);
 
-		HandlingStrategy strategy;
-
-		if ("salesforce".equals(providerName)) {
-			strategy = new SalesforceHandlingStrategy();
-		} else if ("slack".equals(providerName)) {
-			strategy = new SlackHandlingStrategy();
-		} else {
-			strategy = new StandardScimHandlingStrategy();
-		}
+		StrategyFetcher fetch = new StrategyFetcher();
+		HandlingStrategy strategy = fetch.fetchStrategy(providerName);
 
 		for (String attributeName : attributeMap.keySet()) {
 

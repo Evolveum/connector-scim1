@@ -1,9 +1,9 @@
 package com.evolveum.polygon.scim;
 
 public class StrategyFetcher {
-	
+
 	public HandlingStrategy fetchStrategy(String providerName) {
-		
+
 		HandlingStrategy strategy;
 		String[] uriParts = providerName.split("\\."); // e.g.
 		// https://eu6.salesforce.com/services/scim/v1

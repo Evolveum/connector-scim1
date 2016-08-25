@@ -401,4 +401,20 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		return "";
 	}
 
+	@Override
+	public StringBuilder retrieveFilterQuery(StringBuilder queryUriSnippet, char prefixChar, Filter query) {
+
+		StringBuilder filterSnippet = new StringBuilder();
+		filterSnippet = query.accept(new FilterHandler(), "");
+
+		queryUriSnippet.append(prefixChar).append("filter=").append(filterSnippet.toString());
+		return queryUriSnippet;
+	}
+
+	@Override
+	public HashSet<Attribute> addAttributeToInject(HashSet<Attribute> injectetAttributeSet) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

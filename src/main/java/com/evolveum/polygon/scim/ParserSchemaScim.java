@@ -35,18 +35,8 @@ public class ParserSchemaScim {
 			Object hlAttribute = schemaJson.get(key);
 			if (hlAttribute instanceof JSONArray) {
 
-				HandlingStrategy strategy;
-				if ("salesforce".equals(providerName)) {
-					strategy = new SalesforceHandlingStrategy();
-
-				} else if ("slack".equals(providerName)) {
-
-					strategy = new SlackHandlingStrategy();
-
-				} else {
-
-					strategy = new StandardScimHandlingStrategy();
-				}
+				StrategyFetcher fetcher = new StrategyFetcher();
+				HandlingStrategy strategy = fetcher.fetchStrategy(providerName);
 
 				for (int i = 0; i < ((JSONArray) hlAttribute).length(); i++) {
 					JSONObject attribute = new JSONObject();
@@ -64,15 +54,8 @@ public class ParserSchemaScim {
 	}
 
 	public List<Map<String, Map<String, Object>>> getAttributeMapList() {
-		HandlingStrategy strategy;
-
-		if ("salesforce".equals(providerName)) {
-			strategy = new SalesforceHandlingStrategy();
-		} else if ("slack".equals(providerName)) {
-			strategy = new SlackHandlingStrategy();
-		} else {
-			strategy = new StandardScimHandlingStrategy();
-		}
+		StrategyFetcher fetch = new StrategyFetcher();
+		HandlingStrategy strategy = fetch.fetchStrategy(providerName);
 
 		return strategy.getAttributeMapList(attributeMapList);
 

@@ -44,22 +44,10 @@ import com.evolveum.polygon.scim.common.HttpPatch;
  */
 public class CrudManagerScim {
 
-	// TODO check all cases when logout is called
-
 	private ScimConnectorConfiguration conf;
 	private boolean tokenAuthentication = false;
 
 	private Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
-
-	long providerStartTime;
-	long providerEndTime;
-	long providerDuration;
-
-	long operationStartTime;
-	long operationEndTime;
-	long operationDuration;
-
-	HttpPost loginInstance;
 
 	private static final Log LOGGER = Log.getLog(CrudManagerScim.class);
 
@@ -83,6 +71,8 @@ public class CrudManagerScim {
 	 * @throws ConnectorIOException
 	 */
 	public HashMap<String, Object> logIntoService() {
+
+		HttpPost loginInstance = new HttpPost();
 
 		Header authHeader = null;
 		String loginAccessToken = null;
@@ -131,10 +121,10 @@ public class CrudManagerScim {
 			}
 
 			try {
-				providerStartTime = System.currentTimeMillis();
+				long providerStartTime = System.currentTimeMillis();
 				response = httpclient.execute(loginInstance);
-				providerEndTime = System.currentTimeMillis();
-				providerDuration = (providerEndTime - providerStartTime);
+				long providerEndTime = System.currentTimeMillis();
+				long providerDuration = (providerEndTime - providerStartTime);
 				LOGGER.info(
 						"The amouth of time it took to get the response to the login query from the provider : {0} milliseconds",
 						providerDuration);
@@ -223,16 +213,15 @@ public class CrudManagerScim {
 
 		LOGGER.info("Login Successful");
 
-		/// TODO login to return authorization data
 		HashMap<String, Object> autoriazationData = new HashMap<String, Object>();
 		autoriazationData.put("uri", scimBaseUri);
 		autoriazationData.put("authHeader", authHeader);
+		autoriazationData.put("loginInstance", loginInstance);
 
 		if (jsonObject != null) {
 			autoriazationData.put("json", jsonObject);
 		}
 
-		///
 		return autoriazationData;
 	}
 
@@ -252,17 +241,22 @@ public class CrudManagerScim {
 	 * @throws ConnectorIOException
 	 */
 	public void qeuery(Object query, String resourceEndPoint, ResultsHandler resultHandler) {
-
 		Header authHeader = null;
 		String scimBaseUri = "";
 		HashMap<String, Object> autoriazationData = logIntoService();
+		HttpPost loginInstance = null;
 
 		for (String data : autoriazationData.keySet()) {
 			if ("authHeader".equals(data)) {
+
 				authHeader = (Header) autoriazationData.get(data);
 
 			} else if ("uri".equals(data)) {
+
 				scimBaseUri = (String) autoriazationData.get(data);
+			} else if ("loginInstance".equals(data)) {
+
+				loginInstance = (HttpPost) autoriazationData.get(data);
 			}
 		}
 
@@ -291,10 +285,10 @@ public class CrudManagerScim {
 		String responseString = null;
 		HttpResponse response;
 		try {
-			providerStartTime = System.currentTimeMillis();
+			long providerStartTime = System.currentTimeMillis();
 			response = httpClient.execute(httpGet);
-			providerEndTime = System.currentTimeMillis();
-			providerDuration = (providerEndTime - providerStartTime);
+			long providerEndTime = System.currentTimeMillis();
+			long providerDuration = (providerEndTime - providerStartTime);
 
 			LOGGER.info(
 					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
@@ -464,7 +458,7 @@ public class CrudManagerScim {
 					e, q);
 			throw new ConnectorIOException("An error occurred while processing the queuery http response.", e);
 		} finally {
-			logOut();
+			logOut(loginInstance);
 		}
 	}
 
@@ -492,12 +486,19 @@ public class CrudManagerScim {
 		String scimBaseUri = "";
 		HashMap<String, Object> autoriazationData = logIntoService();
 
+		HttpPost loginInstance = null;
+
 		for (String data : autoriazationData.keySet()) {
 			if ("authHeader".equals(data)) {
+
 				authHeader = (Header) autoriazationData.get(data);
 
 			} else if ("uri".equals(data)) {
+
 				scimBaseUri = (String) autoriazationData.get(data);
+			} else if ("loginInstance".equals(data)) {
+
+				loginInstance = (HttpPost) autoriazationData.get(data);
 			}
 		}
 
@@ -516,11 +517,11 @@ public class CrudManagerScim {
 		HttpResponse response;
 		try {
 
-			providerStartTime = System.currentTimeMillis();
+			long providerStartTime = System.currentTimeMillis();
 			response = httpClient.execute(httpGet);
-			providerEndTime = System.currentTimeMillis();
+			long providerEndTime = System.currentTimeMillis();
 
-			providerDuration = (providerEndTime - providerStartTime);
+			long providerDuration = (providerEndTime - providerStartTime);
 
 			LOGGER.info(
 					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
@@ -622,7 +623,7 @@ public class CrudManagerScim {
 					"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object",
 					e);
 		} finally {
-			logOut();
+			logOut(loginInstance);
 		}
 
 	}
@@ -656,11 +657,19 @@ public class CrudManagerScim {
 		String scimBaseUri = "";
 		HashMap<String, Object> autoriazationData = logIntoService();
 
+		HttpPost loginInstance = null;
+
 		for (String data : autoriazationData.keySet()) {
 			if ("authHeader".equals(data)) {
+
 				authHeader = (Header) autoriazationData.get(data);
+
 			} else if ("uri".equals(data)) {
+
 				scimBaseUri = (String) autoriazationData.get(data);
+			} else if ("loginInstance".equals(data)) {
+
+				loginInstance = (HttpPost) autoriazationData.get(data);
 			}
 		}
 
@@ -698,10 +707,10 @@ public class CrudManagerScim {
 			String responseString = null;
 			try {
 
-				providerStartTime = System.currentTimeMillis();
+				long providerStartTime = System.currentTimeMillis();
 				HttpResponse response = httpClient.execute(httpPost);
-				providerEndTime = System.currentTimeMillis();
-				providerDuration = (providerEndTime - providerStartTime);
+				long providerEndTime = System.currentTimeMillis();
+				long providerDuration = (providerEndTime - providerStartTime);
 
 				LOGGER.info(
 						"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
@@ -768,7 +777,7 @@ public class CrudManagerScim {
 			throw new ConnectorException(
 					"Unsupported encoding, Occurrence in the process of creating a new resource object ", e1);
 		} finally {
-			logOut();
+			logOut(loginInstance);
 		}
 		throw new UnknownUidException("No uid returned in the process of resource creation");
 	}
@@ -798,11 +807,19 @@ public class CrudManagerScim {
 		String scimBaseUri = "";
 		HashMap<String, Object> autoriazationData = logIntoService();
 
+		HttpPost loginInstance = null;
+
 		for (String data : autoriazationData.keySet()) {
 			if ("authHeader".equals(data)) {
+
 				authHeader = (Header) autoriazationData.get(data);
+
 			} else if ("uri".equals(data)) {
+
 				scimBaseUri = (String) autoriazationData.get(data);
+			} else if ("loginInstance".equals(data)) {
+
+				loginInstance = (HttpPost) autoriazationData.get(data);
 			}
 		}
 
@@ -830,10 +847,10 @@ public class CrudManagerScim {
 			bodyContent.setContentType("application/json");
 			httpPatch.setEntity(bodyContent);
 
-			providerStartTime = System.currentTimeMillis();
+			long providerStartTime = System.currentTimeMillis();
 			HttpResponse response = httpClient.execute(httpPatch);
-			providerEndTime = System.currentTimeMillis();
-			providerDuration = (providerEndTime - providerStartTime);
+			long providerEndTime = System.currentTimeMillis();
+			long providerDuration = (providerEndTime - providerStartTime);
 
 			LOGGER.info(
 					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
@@ -923,7 +940,7 @@ public class CrudManagerScim {
 					e);
 
 		} finally {
-			logOut();
+			logOut(loginInstance);
 		}
 		throw new UnknownUidException("No uid returned in the process of resource update");
 
@@ -947,11 +964,19 @@ public class CrudManagerScim {
 		String scimBaseUri = "";
 		HashMap<String, Object> autoriazationData = logIntoService();
 
+		HttpPost loginInstance = null;
+
 		for (String data : autoriazationData.keySet()) {
 			if ("authHeader".equals(data)) {
+
 				authHeader = (Header) autoriazationData.get(data);
+
 			} else if ("uri".equals(data)) {
+
 				scimBaseUri = (String) autoriazationData.get(data);
+			} else if ("loginInstance".equals(data)) {
+
+				loginInstance = (HttpPost) autoriazationData.get(data);
 			}
 		}
 
@@ -971,10 +996,10 @@ public class CrudManagerScim {
 		httpDelete.addHeader(prettyPrintHeader);
 
 		try {
-			providerStartTime = System.currentTimeMillis();
+			long providerStartTime = System.currentTimeMillis();
 			HttpResponse response = httpClient.execute(httpDelete);
-			providerEndTime = System.currentTimeMillis();
-			providerDuration = (providerEndTime - providerStartTime);
+			long providerEndTime = System.currentTimeMillis();
+			long providerDuration = (providerEndTime - providerStartTime);
 
 			LOGGER.info(
 					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
@@ -1016,7 +1041,7 @@ public class CrudManagerScim {
 					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object.",
 					e);
 		} finally {
-			logOut();
+			logOut(loginInstance);
 		}
 	}
 
@@ -1144,11 +1169,19 @@ public class CrudManagerScim {
 		String scimBaseUri = "";
 		HashMap<String, Object> autoriazationData = logIntoService();
 
+		HttpPost loginInstance = null;
+
 		for (String data : autoriazationData.keySet()) {
 			if ("authHeader".equals(data)) {
+
 				authHeader = (Header) autoriazationData.get(data);
+
 			} else if ("uri".equals(data)) {
+
 				scimBaseUri = (String) autoriazationData.get(data);
+			} else if ("loginInstance".equals(data)) {
+
+				loginInstance = (HttpPost) autoriazationData.get(data);
 			}
 		}
 
@@ -1172,10 +1205,10 @@ public class CrudManagerScim {
 		String responseString = null;
 		HttpResponse response;
 		try {
-			providerStartTime = System.currentTimeMillis();
+			long providerStartTime = System.currentTimeMillis();
 			response = httpClient.execute(httpGet);
-			providerEndTime = System.currentTimeMillis();
-			providerDuration = (providerEndTime - providerStartTime);
+			long providerEndTime = System.currentTimeMillis();
+			long providerDuration = (providerEndTime - providerStartTime);
 
 			LOGGER.info(
 					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
@@ -1302,12 +1335,12 @@ public class CrudManagerScim {
 					e, q);
 			throw new ConnectorIOException("An error occurred while processing the queuery http response.", e);
 		} finally {
-			logOut();
+			logOut(loginInstance);
 		}
 
 	}
 
-	public void logOut() {
+	public void logOut(HttpPost loginInstance) {
 		if (!tokenAuthentication) {
 			loginInstance.releaseConnection();
 			LOGGER.info("The connecion was released");

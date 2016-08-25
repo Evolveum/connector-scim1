@@ -33,6 +33,8 @@ import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 import org.json.JSONObject;
 
+import com.evolveum.polygon.scim.common.HttpPatch;
+
 @ConnectorClass(displayNameKey = "ScimConnector.connector.display", configurationClass = ScimConnectorConfiguration.class)
 
 public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp,
@@ -355,13 +357,29 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Test");
 
 		if (crudManager != null && configuration != null) {
-			if (crudManager.logIntoService() != null) {
-				LOGGER.info("Test was succesfull");
+			HashMap<String, Object> autoriazationData = crudManager.logIntoService();
+
+			if (autoriazationData != null && !autoriazationData.isEmpty()) {
+
+				if (autoriazationData.containsKey("loginInstance")) {
+
+					HttpPatch instance = (HttpPatch) autoriazationData.get("loginInstance");
+
+					LOGGER.info("Test was succesfull");
+					crudManager.logOut(instance);
+				} else {
+
+					LOGGER.warn("Connection was not established while testing");
+				}
+
 			} else {
 
 				LOGGER.warn("Connection was not established while testing");
 			}
-			crudManager.logOut();
+
+		} else {
+
+			LOGGER.warn("Connection was not established while testing");
 		}
 
 	}

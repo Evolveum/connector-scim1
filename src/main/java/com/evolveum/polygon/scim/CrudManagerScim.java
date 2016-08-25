@@ -40,26 +40,14 @@ import org.json.JSONTokener;
 import com.evolveum.polygon.scim.common.HttpPatch;
 
 /**
- * Holds the CRUD+L methods needed for interaction with the service provider.
+ * Holds the CRUD+L methods and other methods needed for interaction with the
+ * service provider.
  */
 public class CrudManagerScim {
-
-	private ScimConnectorConfiguration conf;
-	private boolean tokenAuthentication = false;
 
 	private Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
 
 	private static final Log LOGGER = Log.getLog(CrudManagerScim.class);
-
-	/**
-	 * Constructor which populates a variable with the provided configuration.
-	 * 
-	 * @param conf
-	 *            The provided configuration.
-	 */
-	public CrudManagerScim(ScimConnectorConfiguration conf) {
-		this.conf = (ScimConnectorConfiguration) conf;
-	}
 
 	/**
 	 * Used for loging to the service. The data needed for this operation is
@@ -70,7 +58,7 @@ public class CrudManagerScim {
 	 * @throws ConnectionFailedException
 	 * @throws ConnectorIOException
 	 */
-	public HashMap<String, Object> logIntoService() {
+	public HashMap<String, Object> logIntoService(ScimConnectorConfiguration conf) {
 
 		HttpPost loginInstance = new HttpPost();
 
@@ -202,7 +190,6 @@ public class CrudManagerScim {
 			}
 			authHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
 		} else {
-			tokenAuthentication = true;
 			loginInstanceUrl = conf.getBaseUrl();
 			loginAccessToken = conf.getToken();
 
@@ -240,10 +227,11 @@ public class CrudManagerScim {
 	 * @throws ConnectorException
 	 * @throws ConnectorIOException
 	 */
-	public void qeuery(Object query, String resourceEndPoint, ResultsHandler resultHandler) {
+	public void qeuery(Object query, String resourceEndPoint, ResultsHandler resultHandler,
+			ScimConnectorConfiguration conf) {
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService();
+		HashMap<String, Object> autoriazationData = logIntoService(conf);
 		HttpPost loginInstance = null;
 
 		for (String data : autoriazationData.keySet()) {
@@ -479,12 +467,13 @@ public class CrudManagerScim {
 	 * @return an instance of "ScimSchemaParser" containing the schema
 	 *         information of all endpoint.
 	 */
-	public ParserSchemaScim qeuerySchemas(String providerName, String resourceEndPoint) {
-		logIntoService();
+	public ParserSchemaScim qeuerySchemas(String providerName, String resourceEndPoint,
+			ScimConnectorConfiguration conf) {
+		logIntoService(conf);
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService();
+		HashMap<String, Object> autoriazationData = logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
@@ -651,11 +640,11 @@ public class CrudManagerScim {
 	 */
 
 	public Uid create(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
-			HashSet<Attribute> injectedAttributeSet) {
+			HashSet<Attribute> injectedAttributeSet, ScimConnectorConfiguration conf) {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService();
+		HashMap<String, Object> autoriazationData = logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
@@ -802,10 +791,10 @@ public class CrudManagerScim {
 	 *
 	 * @return the uid of the created object.
 	 */
-	public Uid update(Uid uid, String resourceEndPoint, JSONObject jsonObject) {
+	public Uid update(Uid uid, String resourceEndPoint, JSONObject jsonObject, ScimConnectorConfiguration conf) {
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService();
+		HashMap<String, Object> autoriazationData = logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
@@ -828,7 +817,7 @@ public class CrudManagerScim {
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		logIntoService();
+		logIntoService(conf);
 
 		HttpClient httpClient = HttpClientBuilder.create().build();
 
@@ -958,11 +947,11 @@ public class CrudManagerScim {
 	 * @throws ConnectionFailedException
 	 *
 	 */
-	public void delete(Uid uid, String resourceEndPoint) {
+	public void delete(Uid uid, String resourceEndPoint, ScimConnectorConfiguration conf) {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService();
+		HashMap<String, Object> autoriazationData = logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
@@ -1163,11 +1152,11 @@ public class CrudManagerScim {
 	}
 
 	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
-			String membershipResourceEndpoin) {
+			String membershipResourceEndpoin, ScimConnectorConfiguration conf) {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService();
+		HashMap<String, Object> autoriazationData = logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
@@ -1190,7 +1179,7 @@ public class CrudManagerScim {
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		logIntoService();
+		logIntoService(conf);
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String q;
 		q = ((Uid) uid).getUidValue();
@@ -1341,10 +1330,7 @@ public class CrudManagerScim {
 	}
 
 	public void logOut(HttpPost loginInstance) {
-		if (!tokenAuthentication) {
-			loginInstance.releaseConnection();
-			LOGGER.info("The connecion was released");
-		}
-
+		loginInstance.releaseConnection();
+		LOGGER.info("The connecion was released");
 	}
 }

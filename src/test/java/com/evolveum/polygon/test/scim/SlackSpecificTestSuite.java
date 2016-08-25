@@ -36,8 +36,6 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 	@DataProvider(name = "filterMethodProvider")
 	public static Object[][] filterMethodResourcesProvider() {
 
-		// TODO test issues with eq filter slack
-
 		return new Object[][] { { "users", "uid" }, { "groups", "uid" }, { "users", "contains" },
 				{ "groups", "contains" }, { "users", "startswith" }, { "groups", "startswith" }, { "users", "equals" },
 				{ "groups", "equals" }, { "groups", "containsall" } };
@@ -49,7 +47,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		pageSize = 1;
 		pageOffset = 1;
 
-		testNumber = 118;
+		testNumber = 119;
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("endpoint", "/scim");

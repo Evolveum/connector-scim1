@@ -32,6 +32,29 @@ import org.json.JSONObject;
 public class SlackHandlingStrategy implements HandlingStrategy {
 
 	private static final Log LOGGER = Log.getLog(SlackHandlingStrategy.class);
+	private static final String ID = "id";
+	private static final String TYPE = "type";
+	private static final String DEFAULT = "default";
+	private static final String MULTIVALUED = "multiValued";
+	private static final String CANONICALVALUES = "canonicalValues";
+	private static final String REFERENCETYPES = "referenceTypes";
+	private static final String SCHEMAVALUE = "urn:scim:schemas:core:1.0";
+	private static final String NAME = "name";
+	private static final String NICKNAME = "nickName";
+	private static final String USERNAME = "userName";
+	private static final String TITLE = "title";
+	private static final String SCHEMAS = "schemas";
+	private static final String PROFILEURL = "profileUrl";
+	private static final String DISPLAYNAME = "displayName";
+	private static final String TIMEZONE = "timezone";
+	private static final String EXTERNALID = "externalId";
+	private static final String ACTIVE = "active";
+	private static final String PHOTOS = "photos";
+	private static final String READONLY = "readOnly";
+	private static final String SCHEMA = "schema";
+	private static final String REQUIRED = "required";
+	private static final String CASEEXSACT = "caseExact";
+	private static final String STRING = "string";
 
 	@Override
 	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint)
@@ -47,23 +70,23 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 		}
 
 		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
-		cob.setUid(resourceJsonObject.getString("id"));
+		cob.setUid(resourceJsonObject.getString(ID));
 
 		if ("Users".equals(resourceEndPoint)) {
-			cob.setName(resourceJsonObject.getString("userName"));
+			cob.setName(resourceJsonObject.getString(USERNAME));
 		} else if ("Groups".equals(resourceEndPoint)) {
 
-			cob.setName(resourceJsonObject.getString("displayName"));
+			cob.setName(resourceJsonObject.getString(DISPLAYNAME));
 			cob.setObjectClass(ObjectClass.GROUP);
 		} else {
-			cob.setName(resourceJsonObject.getString("displayName"));
+			cob.setName(resourceJsonObject.getString(DISPLAYNAME));
 			ObjectClass objectClass = new ObjectClass(resourceEndPoint);
 			cob.setObjectClass(objectClass);
 
 		}
 		for (String key : resourceJsonObject.keySet()) {
 			Object attribute = resourceJsonObject.get(key);
-			if ("meta".equals(key.intern()) || "schemas".equals(key.intern()) || "photos".equals(key.intern())) {
+			if ("meta".equals(key.intern()) || SCHEMAS.equals(key.intern()) || PHOTOS.equals(key.intern())) {
 
 				LOGGER.warn(
 						"Processing trought \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.",
@@ -82,7 +105,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 					String objectKeyName = "";
 					if (o instanceof JSONObject) {
 						for (String s : ((JSONObject) o).keySet()) {
-							if ("type".equals(s.intern())) {
+							if (TYPE.equals(s.intern())) {
 								objectKeyName = objectNameBilder.append(".").append(((JSONObject) o).get(s)).toString();
 								objectNameBilder.delete(0, objectNameBilder.length());
 								break;
@@ -91,14 +114,14 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 						for (String s : ((JSONObject) o).keySet()) {
 
-							if ("type".equals(s.intern())) {
+							if (TYPE.equals(s.intern())) {
 							} else {
 
 								if (!"".equals(objectKeyName)) {
 									objectNameBilder = objectNameBilder.append(objectKeyName).append(".")
 											.append(s.intern());
 								} else {
-									objectKeyName = objectNameBilder.append(".").append("default").toString();
+									objectKeyName = objectNameBilder.append(".").append(DEFAULT).toString();
 									objectNameBilder = objectNameBilder.append(".").append(s.intern());
 								}
 
@@ -145,7 +168,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 			} else {
 
-				if ("active".equals(key)) {
+				if (ACTIVE.equals(key)) {
 					cob.addAttribute("__ENABLE__", resourceJsonObject.get(key));
 				} else {
 
@@ -208,25 +231,32 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 		Boolean isMultiValued = false;
 		Map<String, Object> attributeObjects = new HashMap<String, Object>();
 		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
-
-		if (attribute.has("subattributes")) {
+		
+		
+		if (attribute.has("subAttributes") || attribute.has("subattributes")) {
 			boolean hasTypeValues = false;
 			JSONArray subAttributes = new JSONArray();
-			LOGGER.warn(
-					"slack attribute \"subAttributes\" invalid naming workaround. The attribute name is defined as \"subattributes\"");
-			subAttributes = (JSONArray) attribute.get("subattributes");
+			
+			if (attribute.has("subAttributes")) {
+				subAttributes = (JSONArray) attribute.get("subAttributes");
+			} else if (attribute.has("subattributes")) {
+				LOGGER.warn(
+						"Slack attribute \"subAttributes\" invalid naming workaround. The attribute name is defined as \"subattributes\"");
+				subAttributes = (JSONArray) attribute.get("subattributes");
+			}
 
 			if (attributeName == null) {
 				for (String subAttributeNameKeys : attribute.keySet()) {
-					if ("name".equals(subAttributeNameKeys.intern())) {
+					if (NAME.equals(subAttributeNameKeys.intern())) {
 						attributeName = attribute.get(subAttributeNameKeys).toString();
+				LOGGER.info("The attribute which is being processed is: {0}", attributeName);	
 						break;
 					}
 				}
 			}
 
 			for (String nameKey : attribute.keySet()) {
-				if ("multiValued".equals(nameKey.intern())) {
+				if (MULTIVALUED.equals(nameKey.intern())) {
 					isMultiValued = (Boolean) attribute.get(nameKey);
 					break;
 				}
@@ -239,7 +269,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 				subAttributeMap = parser.parseSubAttribute(subAttribute, subAttributeMap);
 			}
 			for (String typeKey : subAttributeMap.keySet()) {
-				if ("type".equals(typeKey.intern())) {
+				if (TYPE.equals(typeKey.intern())) {
 					hasTypeValues = true;
 					break;
 				}
@@ -247,20 +277,20 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 			if (hasTypeValues) {
 				Map<String, Object> typeObject = new HashMap<String, Object>();
-				typeObject = (Map<String, Object>) subAttributeMap.get("type");
-				if (typeObject.containsKey("canonicalValues") || typeObject.containsKey("referenceTypes")) {
+				typeObject = (Map<String, Object>) subAttributeMap.get(TYPE);
+				if (typeObject.containsKey(CANONICALVALUES) || typeObject.containsKey(REFERENCETYPES)) {
 					JSONArray referenceValues = new JSONArray();
-					if (typeObject.containsKey("canonicalValues")) {
-						referenceValues = (JSONArray) typeObject.get("canonicalValues");
+					if (typeObject.containsKey(CANONICALVALUES)) {
+						referenceValues = (JSONArray) typeObject.get(CANONICALVALUES);
 					} else {
-						referenceValues = (JSONArray) typeObject.get("referenceTypes");
+						referenceValues = (JSONArray) typeObject.get(REFERENCETYPES);
 					}
 
 					for (int j = 0; j < referenceValues.length(); j++) {
 
 						String sringReferenceValue = (String) referenceValues.get(j);
 						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-							if (!"type".equals(subAttributeKeyNames.intern())) { // TODO
+							if (!TYPE.equals(subAttributeKeyNames.intern())) { // TODO
 								// some
 								// other
 								// complex
@@ -288,7 +318,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 					defaultReferenceTypeValues.add("uri");
 
 					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-						if (!"type".equals(subAttributeKeyNames.intern())) {
+						if (!TYPE.equals(subAttributeKeyNames.intern())) {
 							for (String defaultTypeReferenceValues : defaultReferenceTypeValues) {
 								StringBuilder complexAttrName = new StringBuilder(attributeName);
 								complexAttrName.append(".").append(defaultTypeReferenceValues);
@@ -319,12 +349,12 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 						for (String attributePropertie : subattributeKeyMap.keySet()) {
 
-							if ("multiValued".equals(attributePropertie)) {
-								subattributeKeyMap.put("multiValued", true);
+							if (MULTIVALUED.equals(attributePropertie)) {
+								subattributeKeyMap.put(MULTIVALUED, true);
 							}
 						}
 
-						attributeMap.put(complexAttrName.append(".").append("default").append(".")
+						attributeMap.put(complexAttrName.append(".").append(DEFAULT).append(".")
 								.append(subAttributeKeyNames).toString(), subattributeKeyMap);
 						isComplex = true;
 					}
@@ -336,7 +366,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 			for (String attributeNameKeys : attribute.keySet()) {
 
-				if ("name".equals(attributeNameKeys.intern())) {
+				if (NAME.equals(attributeNameKeys.intern())) {
 					attributeName = attribute.get(attributeNameKeys).toString();
 
 				} else {
@@ -357,12 +387,13 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 
-		if (!"active".equals(attributeName) && !(("emails.default.primary".equals(attributeName)
+		if (!ACTIVE.equals(attributeName) && !(("emails.default.primary".equals(attributeName)
 				|| "emails.default.value".equals(attributeName)))) {
 			Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
 			schemaSubPropertiesMap = attributeMap.get(attributeName);
 			for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
-				if ("subAttributes".equals(subPropertieName.intern())) {
+				if ("subattributes".equals(subPropertieName.intern())
+						|| "subAttributes".equals(subPropertieName.intern())) {
 					// TODO check positive cases
 					infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 					JSONArray jsonArray = new JSONArray();
@@ -379,7 +410,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 			}
 			builder.addAttributeInfo(infoBuilder.build());
 		} else {
-			if ("active".equals(attributeName)) {
+			if (ACTIVE.equals(attributeName)) {
 				builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
 			} else {
 				buildMissingAttributes(builder, attributeName, infoBuilder);
@@ -414,7 +445,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 			for (int i = 0; i < attributeMapList.size(); i++) {
 				Map<String, Map<String, Object>> resources = attributeMapList.get(i);
 
-				if (resources.containsKey("userName") && !resources.containsKey("emails.default.primary")
+				if (resources.containsKey(USERNAME) && !resources.containsKey("emails.default.primary")
 						&& !resources.containsKey("emails.default.value")) {
 
 					resources.put("emails.default.primary", null);
@@ -444,17 +475,17 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 		if ("Users".equals(resourceName)) {
 
 			HashMap<String, String> missingAttirbutes = new HashMap<String, String>();
-			missingAttirbutes.put("userName", "userName");
-			missingAttirbutes.put("nickName", "nickName");
-			missingAttirbutes.put("title", "title");
-			missingAttirbutes.put("schemas", "schemas");
+			missingAttirbutes.put(USERNAME, USERNAME);
+			missingAttirbutes.put(NICKNAME, NICKNAME);
+			missingAttirbutes.put(TITLE, TITLE);
+			missingAttirbutes.put(SCHEMAS, SCHEMAS);
 
-			missingAttirbutes.put("profileUrl", "profileUrl");
-			missingAttirbutes.put("displayName", "displayName");
-			missingAttirbutes.put("timezone", "timezone");
-			missingAttirbutes.put("externalId", "externalId");
-			missingAttirbutes.put("active", "active");
-			missingAttirbutes.put("photos", "photos");
+			missingAttirbutes.put(PROFILEURL, PROFILEURL);
+			missingAttirbutes.put(DISPLAYNAME, DISPLAYNAME);
+			missingAttirbutes.put(TIMEZONE, TIMEZONE);
+			missingAttirbutes.put(EXTERNALID, EXTERNALID);
+			missingAttirbutes.put(ACTIVE, ACTIVE);
+			missingAttirbutes.put(PHOTOS, PHOTOS);
 
 			if (jsonObject.has("attributes")) {
 
@@ -464,38 +495,38 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 				for (int indexValue = 0; indexValue < attributesArray.length(); indexValue++) {
 					JSONObject subAttributes = attributesArray.getJSONObject(indexValue);
 
-					if (subAttributes.has("name")) {
+					if (subAttributes.has(NAME)) {
 
-						if ("userName".equals(subAttributes.get("name"))) {
+						if (USERNAME.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove("userName");
-						} else if ("nickName".equals(subAttributes.get("name"))) {
+							missingAttirbutes.remove(USERNAME);
+						} else if (NICKNAME.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove("nickName");
-						} else if ("title".equals(subAttributes.get("name"))) {
+							missingAttirbutes.remove(NICKNAME);
+						} else if (TITLE.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove("title");
-						} else if ("schemas".equals(subAttributes.get("name"))) {
+							missingAttirbutes.remove(TITLE);
+						} else if (SCHEMAS.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove("schemas");
-						} else if ("profileUrl".equals(subAttributes.get("name"))) {
+							missingAttirbutes.remove(SCHEMAS);
+						} else if (PROFILEURL.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove("profileUrl");
-						} else if ("displayName".equals(subAttributes.get("name"))) {
+							missingAttirbutes.remove(PROFILEURL);
+						} else if (DISPLAYNAME.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove("displayName");
-						} else if ("timezone".equals(subAttributes.get("name"))) {
+							missingAttirbutes.remove(DISPLAYNAME);
+						} else if (TIMEZONE.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove("timezone");
-						} else if ("externalId".equals(subAttributes.get("name"))) {
+							missingAttirbutes.remove(TIMEZONE);
+						} else if (EXTERNALID.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove("externalId");
-						} else if ("active".equals(subAttributes.get("name"))) {
+							missingAttirbutes.remove(EXTERNALID);
+						} else if (ACTIVE.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove("active");
-						} else if ("photos".equals(subAttributes.get("name"))) {
+							missingAttirbutes.remove(ACTIVE);
+						} else if (PHOTOS.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove("photos");
+							missingAttirbutes.remove(PHOTOS);
 						}
 					}
 				}
@@ -504,119 +535,119 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 					LOGGER.warn("Building schema deffinition for the attribute: \"{0}\"", missingAttributeName);
 
-					if ("userName".equals(missingAttributeName)) {
+					if (USERNAME.equals(missingAttributeName)) {
 						JSONObject userName = new JSONObject();
 
-						userName.put("schema", "urn:scim:schemas:core:1.0");
-						userName.put("name", "userName");
-						userName.put("readOnly", false);
-						userName.put("type", "string");
-						userName.put("required", true);
-						userName.put("caseExact", false);
+						userName.put(SCHEMA, SCHEMAVALUE);
+						userName.put(NAME, USERNAME);
+						userName.put(READONLY, false);
+						userName.put(TYPE, STRING);
+						userName.put(REQUIRED, true);
+						userName.put(CASEEXSACT, false);
 
 						attributesArray.put(userName);
 
-					} else if ("active".equals(missingAttributeName)) {
+					} else if (ACTIVE.equals(missingAttributeName)) {
 						JSONObject active = new JSONObject();
 
-						active.put("schema", "urn:scim:schemas:core:1.0");
-						active.put("name", "active");
-						active.put("readOnly", false);
-						active.put("type", "boolean");
-						active.put("required", false);
-						active.put("caseExact", false);
+						active.put(SCHEMA, SCHEMAVALUE);
+						active.put(NAME, ACTIVE);
+						active.put(READONLY, false);
+						active.put(TYPE, "boolean");
+						active.put(REQUIRED, false);
+						active.put(CASEEXSACT, false);
 
 						attributesArray.put(active);
 
-					} else if ("externalId".equals(missingAttributeName)) {
+					} else if (EXTERNALID.equals(missingAttributeName)) {
 						JSONObject externalId = new JSONObject();
 
-						externalId.put("schema", "urn:scim:schemas:core:1.0");
-						externalId.put("name", "externalId");
-						externalId.put("readOnly", false);
-						externalId.put("type", "string");
-						externalId.put("required", false);
-						externalId.put("caseExact", true);
+						externalId.put(SCHEMA, SCHEMAVALUE);
+						externalId.put(NAME, EXTERNALID);
+						externalId.put(READONLY, false);
+						externalId.put(TYPE, STRING);
+						externalId.put(REQUIRED, false);
+						externalId.put(CASEEXSACT, true);
 
 						attributesArray.put(externalId);
 
-					} else if ("timezone".equals(missingAttributeName)) {
+					} else if (TIMEZONE.equals(missingAttributeName)) {
 						JSONObject timezone = new JSONObject();
 
-						timezone.put("schema", "urn:scim:schemas:core:1.0");
-						timezone.put("name", "timezone");
-						timezone.put("readOnly", false);
-						timezone.put("type", "string");
-						timezone.put("required", false);
-						timezone.put("caseExact", false);
+						timezone.put(SCHEMA, SCHEMAVALUE);
+						timezone.put(NAME, TIMEZONE);
+						timezone.put(READONLY, false);
+						timezone.put(TYPE, STRING);
+						timezone.put(REQUIRED, false);
+						timezone.put(CASEEXSACT, false);
 
 						attributesArray.put(timezone);
 
-					} else if ("displayName".equals(missingAttributeName)) {
+					} else if (DISPLAYNAME.equals(missingAttributeName)) {
 						JSONObject displayName = new JSONObject();
 
-						displayName.put("schema", "urn:scim:schemas:core:1.0");
-						displayName.put("name", "displayName");
-						displayName.put("readOnly", false);
-						displayName.put("type", "string");
-						displayName.put("required", false);
-						displayName.put("caseExact", false);
+						displayName.put(SCHEMA, SCHEMAVALUE);
+						displayName.put(NAME, DISPLAYNAME);
+						displayName.put(READONLY, false);
+						displayName.put(TYPE, STRING);
+						displayName.put(REQUIRED, false);
+						displayName.put(CASEEXSACT, false);
 
 						attributesArray.put(displayName);
 
-					} else if ("profileUrl".equals(missingAttributeName)) {
+					} else if (PROFILEURL.equals(missingAttributeName)) {
 						JSONObject profileUrl = new JSONObject();
 
-						profileUrl.put("schema", "urn:scim:schemas:core:1.0");
-						profileUrl.put("name", "profileUrl");
-						profileUrl.put("readOnly", false);
-						profileUrl.put("type", "string");
-						profileUrl.put("required", false);
-						profileUrl.put("caseExact", false);
+						profileUrl.put(SCHEMA, SCHEMAVALUE);
+						profileUrl.put(NAME, PROFILEURL);
+						profileUrl.put(READONLY, false);
+						profileUrl.put(TYPE, STRING);
+						profileUrl.put(REQUIRED, false);
+						profileUrl.put(CASEEXSACT, false);
 
 						attributesArray.put(profileUrl);
 
-					} else if ("nickName".equals(missingAttributeName)) {
+					} else if (NICKNAME.equals(missingAttributeName)) {
 						JSONObject nickName = new JSONObject();
 
-						nickName.put("schema", "urn:scim:schemas:core:1.0");
-						nickName.put("name", "nickName");
-						nickName.put("readOnly", false);
-						nickName.put("type", "string");
-						nickName.put("required", true);
-						nickName.put("caseExact", false);
+						nickName.put(SCHEMA, SCHEMAVALUE);
+						nickName.put(NAME, NICKNAME);
+						nickName.put(READONLY, false);
+						nickName.put(TYPE, STRING);
+						nickName.put(REQUIRED, true);
+						nickName.put(CASEEXSACT, false);
 
 						attributesArray.put(nickName);
 
-					} else if ("title".equals(missingAttributeName)) {
+					} else if (TITLE.equals(missingAttributeName)) {
 						JSONObject title = new JSONObject();
 
-						title.put("schema", "urn:scim:schemas:core:1.0");
-						title.put("name", "title");
-						title.put("readOnly", false);
-						title.put("type", "string");
-						title.put("required", false);
-						title.put("caseExact", false);
+						title.put(SCHEMA, SCHEMAVALUE);
+						title.put(NAME, TITLE);
+						title.put(READONLY, false);
+						title.put(TYPE, STRING);
+						title.put(REQUIRED, false);
+						title.put(CASEEXSACT, false);
 
 						attributesArray.put(title);
-					} else if ("schemas".equals(missingAttributeName)) {
+					} else if (SCHEMAS.equals(missingAttributeName)) {
 						JSONObject schemas = new JSONObject();
 						JSONArray subattributeArray = new JSONArray();
 
 						JSONObject valueBlank = new JSONObject();
 
-						schemas.put("schema", "urn:scim:schemas:core:1.0");
-						schemas.put("name", "schemas");
-						schemas.put("readOnly", false);
-						schemas.put("type", "complex");
-						schemas.put("multiValued", true);
-						schemas.put("required", false);
-						schemas.put("caseExact", false);
+						schemas.put(SCHEMA, SCHEMAVALUE);
+						schemas.put(NAME, SCHEMAS);
+						schemas.put(READONLY, false);
+						schemas.put(TYPE, "complex");
+						schemas.put(MULTIVALUED, true);
+						schemas.put(REQUIRED, false);
+						schemas.put(CASEEXSACT, false);
 
-						valueBlank.put("name", "blank");
-						valueBlank.put("readOnly", true);
-						valueBlank.put("required", false);
-						valueBlank.put("multiValued", false);
+						valueBlank.put(NAME, "blank");
+						valueBlank.put(READONLY, true);
+						valueBlank.put(REQUIRED, false);
+						valueBlank.put(MULTIVALUED, false);
 
 						subattributeArray.put(valueBlank);
 
@@ -668,7 +699,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 	@Override
 	public HashSet<Attribute> addAttributeToInject(HashSet<Attribute> injectetAttributeSet) {
-		Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank", "urn:scim:schemas:core:1.0");
+		Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank", SCHEMAVALUE);
 		injectetAttributeSet.add(schemaAttribute);
 		return injectetAttributeSet;
 	}

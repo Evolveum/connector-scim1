@@ -1133,13 +1133,13 @@ public class CrudManagerScim {
 	public ParserSchemaScim processResponse(JSONObject responseObject, String providerName) {
 
 		LOGGER.info("The resources json representation: {0}", responseObject.toString(1));
-		ParserSchemaScim scimParser = new ParserSchemaScim(providerName);
+		ParserSchemaScim scimParser = new ParserSchemaScim();
 		for (int i = 0; i < responseObject.getJSONArray("Resources").length(); i++) {
 			JSONObject minResourceJson = new JSONObject();
 			minResourceJson = responseObject.getJSONArray("Resources").getJSONObject(i);
 
 			if (minResourceJson.has("endpoint")) {
-				scimParser.parseSchema(minResourceJson);
+				scimParser.parseSchema(minResourceJson, providerName);
 
 			} else {
 				LOGGER.error("No uid present in fetched object: {0}", minResourceJson);

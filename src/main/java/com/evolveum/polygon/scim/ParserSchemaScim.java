@@ -19,20 +19,12 @@ public class ParserSchemaScim {
 
 	private static final Log LOGGER = Log.getLog(ParserSchemaScim.class);
 
-	private String providerName;
-
-	public ParserSchemaScim(String providerName) {
-		this.providerName = providerName;
-
-	}
-
-	public void parseSchema(JSONObject schemaJson) {
+	public void parseSchema(JSONObject schemaJson, String providerName) {
 		hlAttributeMap = new HashMap<String, String>();
 		attributeMap = new HashMap<String, Map<String, Object>>();
-		for (String key : schemaJson.keySet()) {
-
+		for (String attributeName : schemaJson.keySet()) {
 			// Iterating trough higher layer attributes
-			Object hlAttribute = schemaJson.get(key);
+			Object hlAttribute = schemaJson.get(attributeName);
 			if (hlAttribute instanceof JSONArray) {
 
 				StrategyFetcher fetcher = new StrategyFetcher();
@@ -46,14 +38,14 @@ public class ParserSchemaScim {
 				}
 
 			} else {
-				hlAttributeMap.put(key, hlAttribute.toString());
+				hlAttributeMap.put(attributeName, hlAttribute.toString());
 			}
 		}
 		hlAttributeMapList.add(hlAttributeMap);
 		attributeMapList.add(attributeMap);
 	}
 
-	public List<Map<String, Map<String, Object>>> getAttributeMapList() {
+	public List<Map<String, Map<String, Object>>> getAttributeMapList(String providerName) {
 		StrategyFetcher fetch = new StrategyFetcher();
 		HandlingStrategy strategy = fetch.fetchStrategy(providerName);
 
@@ -68,13 +60,15 @@ public class ParserSchemaScim {
 	public Map<String, Object> parseSubAttribute(JSONObject subAttribute, Map<String, Object> subAttributeMap) {
 		HashMap<String, Object> attributeObjects = new HashMap<String, Object>();
 		String subAttributeName = null;
-		for (String subAttributeKeyNames : subAttribute.keySet()) {
-			if ("name".equals(subAttributeKeyNames.intern())) {
-				subAttributeName = subAttribute.get(subAttributeKeyNames).toString();
+		for (String subAttrName : subAttribute.keySet()) {
+
+			if ("name".equals(subAttrName.intern())) {
+				subAttributeName = subAttribute.get(subAttrName).toString();
 			} else {
-				attributeObjects.put(subAttributeKeyNames, subAttribute.get(subAttributeKeyNames));
+				attributeObjects.put(subAttrName, subAttribute.get(subAttrName));
 			}
 		}
+		LOGGER.info("The sub attribute which is being processed: {0}", subAttributeName);
 		subAttributeMap.put(subAttributeName, attributeObjects);
 
 		return subAttributeMap;

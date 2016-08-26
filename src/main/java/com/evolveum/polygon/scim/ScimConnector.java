@@ -52,6 +52,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	private Schema schema = null;
 	private String providerName = "";
 
+	private static final char QUERYCHAR = '?';
+	private static final char QUERYDELIMITER = '&';
+
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 
 	@Override
@@ -373,17 +376,19 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					crudManager.logOut(instance);
 				} else {
 
-					LOGGER.warn("Connection was not established while testing");
+					LOGGER.error(
+							"Error with establishing connection while testing. The login instance was not created.");
 				}
 
 			} else {
 
-				LOGGER.warn("Connection was not established while testing");
+				LOGGER.error("Error with establishing connection while testing. No authorization data were provided.");
 			}
 
 		} else {
 
-			LOGGER.warn("Connection was not established while testing");
+			LOGGER.error(
+					"Error with establishing connection while testing. No instance of the configuration class or CRUD+L communication class was created");
 		}
 
 	}
@@ -571,11 +576,11 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		char prefixChar;
 
 		if (queryUriSnippet.toString().isEmpty()) {
-			prefixChar = '?';
+			prefixChar = QUERYCHAR;
 
 		} else {
 
-			prefixChar = '&';
+			prefixChar = QUERYDELIMITER;
 		}
 
 		StrategyFetcher fetch = new StrategyFetcher();
@@ -601,7 +606,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		SchemaObjectBuilderGeneric schemaObjectBuilder = new SchemaObjectBuilderGeneric();
 		int iterator = 0;
 		Map<String, String> hlAtrribute = new HashMap<String, String>();
-		for (Map<String, Map<String, Object>> attributeMap : schemaParser.getAttributeMapList()) {
+		for (Map<String, Map<String, Object>> attributeMap : schemaParser.getAttributeMapList(providerName)) {
 			hlAtrribute = schemaParser.gethlAttributeMapList().get(iterator);
 
 			for (String key : hlAtrribute.keySet()) {
@@ -632,8 +637,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		Integer pageSize = options.getPageSize();
 		Integer PagedResultsOffset = options.getPagedResultsOffset();
 		if (pageSize != null && PagedResultsOffset != null) {
-			queryBuilder.append("?startIndex=").append(PagedResultsOffset).append("&").append("count=")
-					.append(pageSize);
+			queryBuilder.append(QUERYCHAR).append("startIndex=").append(PagedResultsOffset).append(QUERYDELIMITER)
+					.append("count=").append(pageSize);
 
 			return queryBuilder;
 		}

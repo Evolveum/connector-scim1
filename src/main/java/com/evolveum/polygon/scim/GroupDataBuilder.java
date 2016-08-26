@@ -28,9 +28,12 @@ import org.json.JSONObject;
 public class GroupDataBuilder implements ObjectTranslator {
 
 	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
-	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
 
+	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
 	private static final String DELETE = "delete";
+	private static final String DELIMITER = "\\.";
+	private static final String DEFAULT = "default";
+	private static final String TYPE = "type";
 
 	private String operation;
 
@@ -41,14 +44,14 @@ public class GroupDataBuilder implements ObjectTranslator {
 	static {
 		objectNameDictionary.put("displayName", "displayName");
 
-		objectNameDictionary.put("members.User.value", "value");
-		objectNameDictionary.put("members.User.display", "display");
-		objectNameDictionary.put("members.Group.value", "value");
-		objectNameDictionary.put("members.Group.display", "display");
+		objectNameDictionary.put("members.User.value", "");
+		objectNameDictionary.put("members.User.display", "");
+		objectNameDictionary.put("members.Group.value", "");
+		objectNameDictionary.put("members.Group.display", "");
 
 		objectNameDictionary.put("schemas", "schemas");
-		objectNameDictionary.put("members.default.value", "value");
-		objectNameDictionary.put("members.default.display", "display");
+		objectNameDictionary.put("members.default.value", "");
+		objectNameDictionary.put("members.default.display", "");
 
 	}
 
@@ -94,7 +97,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 			if (objectNameDictionary.containsKey(attributeName)) {
 				if (attributeName.contains(".")) {
 
-					String[] keyParts = attributeName.split("\\."); // e.g.
+					String[] keyParts = attributeName.split(DELIMITER); // e.g.
 					// emails.work.value
 					if (keyParts.length == 3) {
 						multiLayerAttribute.add(attribute);
@@ -141,7 +144,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 		for (Attribute i : multiLayerAttribute) {
 
 			String attributeName = i.getName();
-			String[] attributeNameParts = attributeName.split("\\."); // e.q.
+			String[] attributeNameParts = attributeName.split(DELIMITER); // e.q.
 			// email.work.value
 
 			if (checkedNames.contains(attributeNameParts[0])) {
@@ -153,7 +156,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 				for (Attribute j : multiLayerAttribute) {
 
 					String secondLoopAttributeName = j.getName();
-					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.q.
+					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split(DELIMITER); // e.q.
 					// email.work.value
 
 					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)) {
@@ -169,7 +172,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 				for (Attribute k : subAttributeLayerSet) {
 
 					String nameFromSubSet = k.getName();
-					String[] nameFromSubSetParts = nameFromSubSet.split("\\."); // e.q.
+					String[] nameFromSubSetParts = nameFromSubSet.split(DELIMITER); // e.q.
 					// email.work.value
 
 					if (checkedTypeNames.contains(nameFromSubSetParts[1].intern())) {
@@ -180,7 +183,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 						checkedTypeNames.add(canonicaltypeName);
 						for (Attribute subSetAttribute : subAttributeLayerSet) {
 							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
-							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
+							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split(DELIMITER); // e.q.
 							// email.work.value
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
 
@@ -192,8 +195,8 @@ public class GroupDataBuilder implements ObjectTranslator {
 										multivalueObject = new JSONObject();
 										multivalueObject.put(finalSubAttributeNameParts[2].intern(), attributeValue);
 
-										if (!"default".equals(nameFromSubSetParts[1].intern())) {
-											multivalueObject.put("type", nameFromSubSetParts[1].intern());
+										if (!DEFAULT.equals(nameFromSubSetParts[1].intern())) {
+											multivalueObject.put(TYPE, nameFromSubSetParts[1].intern());
 										}
 										if (operation != null) {
 											if (DELETE.equals(operation)) {
@@ -215,8 +218,8 @@ public class GroupDataBuilder implements ObjectTranslator {
 										writeToArray = false;
 									}
 
-									if (!"default".equals(nameFromSubSetParts[1].intern())) {
-										multivalueObject.put("type", nameFromSubSetParts[1].intern());
+									if (!DEFAULT.equals(nameFromSubSetParts[1].intern())) {
+										multivalueObject.put(TYPE, nameFromSubSetParts[1].intern());
 									}
 									if (operation != null) {
 										if (DELETE.equals(operation)) {

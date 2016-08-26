@@ -37,30 +37,22 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	private static final Log LOGGER = Log.getLog(FilterHandler.class);
 
 	private static final String SPACE = "%20";
-
 	private static final String QUOTATION = "%22";
-
 	private static final String EQUALS = "eq";
-
 	private static final String CONTAINS = "co";
-
 	private static final String STARTSWITH = "sw";
-
 	private static final String ENDSWITH = "ew";
-
 	private static final String GREATERTHAN = "gt";
-
 	private static final String GREATEROREQ = "ge";
-
 	private static final String LESSTHAN = "lt";
-
 	private static final String LESSOREQ = "le";
-
 	private static final String AND = "and";
-
 	private static final String OR = "or";
-
 	private static final String NOT = "not";
+	private static final String TYPE = "type";
+	private static final String DELIMITER = "\\.";
+	private static final String LEFTPAR = "(";
+	private static final String RIGHTPAR = "(";
 
 	/**
 	 * Implementation of the "visitAndFilter" filter method.
@@ -77,7 +69,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	public StringBuilder visitAndFilter(String p, AndFilter filter) {
 		LOGGER.info("Processing request trought AND filter");
 
-		String[] samePathIdParts = p.split("\\.");// e.g valuePath.members
+		String[] samePathIdParts = p.split(DELIMITER);// e.g valuePath.members
 
 		if (samePathIdParts.length > 1) {
 			p = samePathIdParts[1];
@@ -111,9 +103,9 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 				completeQuery.append(AND);
 				completeQuery.append(SPACE);
 				if (f instanceof OrFilter || f instanceof AndFilter) {
-					completeQuery.append("(");
+					completeQuery.append(LEFTPAR);
 					completeQuery.append(f.accept(this, p).toString());
-					completeQuery.append(")");
+					completeQuery.append(RIGHTPAR);
 				} else {
 					completeQuery.append(f.accept(this, p).toString());
 				}
@@ -416,9 +408,9 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 				completeQuery.append(SPACE);
 				if (f instanceof OrFilter || f instanceof AndFilter) {
-					completeQuery.append("(");
+					completeQuery.append(LEFTPAR);
 					completeQuery.append(f.accept(this, p).toString());
-					completeQuery.append(")");
+					completeQuery.append(RIGHTPAR);
 				} else {
 
 					completeQuery.append(f.accept(this, p).toString());
@@ -541,7 +533,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	public StringBuilder processArrayQ(AttributeFilter filter, String p) {
 		if (filter.getName().contains(".")) {
 
-			String[] keyParts = filter.getName().split("\\."); // eq.
+			String[] keyParts = filter.getName().split(DELIMITER); // eq.
 			// email.work.value
 			if (keyParts.length == 3) {
 
@@ -553,7 +545,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 					EqualsFilter eqfilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder
 							.build(keyName.toString(), AttributeUtil.getAsStringValue(filter.getAttribute())));
 
-					StringBuilder type = new StringBuilder(keyParts[0]).append(".").append("type");
+					StringBuilder type = new StringBuilder(keyParts[0]).append(".").append(TYPE);
 
 					EqualsFilter eq = (EqualsFilter) FilterBuilder
 							.equalTo(AttributeBuilder.build(type.toString(), keyParts[1]));
@@ -566,7 +558,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 					filterList = buildValueList((ContainsAllValuesFilter) filter, keyParts[2]);
 
-					EqualsFilter eq = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build("type", keyParts[1]));
+					EqualsFilter eq = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(TYPE, keyParts[1]));
 					filterList.add(eq);
 
 				} else {

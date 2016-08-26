@@ -39,6 +39,15 @@ import com.evolveum.polygon.scim.common.HttpPatch;
 public class SalesforceHandlingStrategy implements HandlingStrategy {
 
 	private static final Log LOGGER = Log.getLog(SalesforceHandlingStrategy.class);
+	private static final String ID = "id";
+	private static final String TYPE = "type";
+	private static final String DEFAULT = "default";
+	private static final String SCHEMATYPE = "urn:scim:schemas:extension:enterprise:1.0";
+	private static final String SUBATTRIBUTES = "subAttributes";
+	private static final String MULTIVALUED = "multiValued";
+	private static final String CANONICALVALUES = "canonicalValues";
+	private static final String REFERENCETYPES = "referenceTypes";
+	private static final String CONTENTTYPE = "application/json";
 
 	@Override
 	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint)
@@ -54,7 +63,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 		}
 
 		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
-		cob.setUid(resourceJsonObject.getString("id"));
+		cob.setUid(resourceJsonObject.getString(ID));
 
 		if ("Users".equals(resourceEndPoint)) {
 			cob.setName(resourceJsonObject.getString("userName"));
@@ -90,7 +99,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 					String objectKeyName = "";
 					if (o instanceof JSONObject) {
 						for (String s : ((JSONObject) o).keySet()) {
-							if ("type".equals(s.intern())) {
+							if (TYPE.equals(s.intern())) {
 								objectKeyName = objectNameBilder.append(".").append(((JSONObject) o).get(s)).toString();
 								objectNameBilder.delete(0, objectNameBilder.length());
 								break;
@@ -99,14 +108,14 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 
 						for (String s : ((JSONObject) o).keySet()) {
 
-							if ("type".equals(s.intern())) {
+							if (TYPE.equals(s.intern())) {
 							} else {
 
 								if (!"".equals(objectKeyName)) {
 									objectNameBilder = objectNameBilder.append(objectKeyName).append(".")
 											.append(s.intern());
 								} else {
-									objectKeyName = objectNameBilder.append(".").append("default").toString();
+									objectKeyName = objectNameBilder.append(".").append(DEFAULT).toString();
 									objectNameBilder = objectNameBilder.append(".").append(s.intern());
 								}
 
@@ -186,8 +195,8 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 		}
 
 		if (loginObject != null) {
-			if (loginObject.has("id")) {
-				orgID = loginObject.getString("id");
+			if (loginObject.has(ID)) {
+				orgID = loginObject.getString(ID);
 				String idParts[] = orgID.split("\\/");
 				orgID = idParts[4];
 			}
@@ -200,8 +209,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 			LOGGER.info("The organization ID is: {0}", orgID);
 
 			// TODO schema version might change
-			injectedAttributeSet
-					.add(AttributeBuilder.build("schema.type", "urn:scim:schemas:extension:enterprise:1.0"));
+			injectedAttributeSet.add(AttributeBuilder.build("schema.type", SCHEMATYPE));
 
 			injectedAttributeSet.add(AttributeBuilder.build("schema.organization", orgID));
 		} else {
@@ -227,10 +235,10 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 		Map<String, Object> attributeObjects = new HashMap<String, Object>();
 		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
 
-		if (attribute.has("subAttributes")) {
+		if (attribute.has(SUBATTRIBUTES)) {
 			boolean hasTypeValues = false;
 			JSONArray subAttributes = new JSONArray();
-			subAttributes = (JSONArray) attribute.get("subAttributes");
+			subAttributes = (JSONArray) attribute.get(SUBATTRIBUTES);
 			if (attributeName == null) {
 				for (String subAttributeNameKeys : attribute.keySet()) {
 					if ("name".equals(subAttributeNameKeys.intern())) {
@@ -240,7 +248,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 				}
 			}
 			for (String nameKey : attribute.keySet()) {
-				if ("multiValued".equals(nameKey.intern())) {
+				if (MULTIVALUED.equals(nameKey.intern())) {
 					isMultiValued = (Boolean) attribute.get(nameKey);
 					break;
 				}
@@ -253,7 +261,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 				subAttributeMap = parser.parseSubAttribute(subAttribute, subAttributeMap);
 			}
 			for (String typeKey : subAttributeMap.keySet()) {
-				if ("type".equals(typeKey.intern())) {
+				if (TYPE.equals(typeKey.intern())) {
 					hasTypeValues = true;
 					break;
 				}
@@ -261,13 +269,13 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 
 			if (hasTypeValues) {
 				Map<String, Object> typeObject = new HashMap<String, Object>();
-				typeObject = (Map<String, Object>) subAttributeMap.get("type");
-				if (typeObject.containsKey("canonicalValues") || typeObject.containsKey("referenceTypes")) {
+				typeObject = (Map<String, Object>) subAttributeMap.get(TYPE);
+				if (typeObject.containsKey(CANONICALVALUES) || typeObject.containsKey(REFERENCETYPES)) {
 					JSONArray referenceValues = new JSONArray();
-					if (typeObject.containsKey("canonicalValues")) {
-						referenceValues = (JSONArray) typeObject.get("canonicalValues");
+					if (typeObject.containsKey(CANONICALVALUES)) {
+						referenceValues = (JSONArray) typeObject.get(CANONICALVALUES);
 					} else {
-						referenceValues = (JSONArray) typeObject.get("referenceTypes");
+						referenceValues = (JSONArray) typeObject.get(REFERENCETYPES);
 					}
 
 					for (int j = 0; j < referenceValues.length(); j++) {
@@ -283,7 +291,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 								"Processing trought Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes) ");
 						referenceValue = ((JSONArray) referenceValues).getJSONObject(j);
 						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-							if (!"type".equals(subAttributeKeyNames.intern())) { // TODO
+							if (!TYPE.equals(subAttributeKeyNames.intern())) { // TODO
 								// some
 								// other
 								// complex
@@ -311,7 +319,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 					defaultReferenceTypeValues.add("uri");
 
 					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-						if (!"type".equals(subAttributeKeyNames.intern())) {
+						if (!TYPE.equals(subAttributeKeyNames.intern())) {
 							for (String defaultTypeReferenceValues : defaultReferenceTypeValues) {
 								StringBuilder complexAttrName = new StringBuilder(attributeName);
 								complexAttrName.append(".").append(defaultTypeReferenceValues);
@@ -351,12 +359,12 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 
 						for (String attributePropertie : subattributeKeyMap.keySet()) {
 
-							if ("multiValued".equals(attributePropertie)) {
-								subattributeKeyMap.put("multiValued", true);
+							if (MULTIVALUED.equals(attributePropertie)) {
+								subattributeKeyMap.put(MULTIVALUED, true);
 							}
 						}
 
-						attributeMap.put(complexAttrName.append(".").append("default").append(".")
+						attributeMap.put(complexAttrName.append(".").append(DEFAULT).append(".")
 								.append(subAttributeKeyNames).toString(), subattributeKeyMap);
 						isComplex = true;
 					}
@@ -417,7 +425,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 					}
 
 					StringEntity bodyContent = new StringEntity(json.toString(1));
-					bodyContent.setContentType("application/json");
+					bodyContent.setContentType(CONTENTTYPE);
 
 					HttpPatch httpPatch = new HttpPatch(uri);
 					httpPatch.addHeader(authHeader);
@@ -431,7 +439,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 						LOGGER.info("Update of resource was succesfull");
 						responseString = EntityUtils.toString(response.getEntity());
 						json = new JSONObject(responseString);
-						id = new Uid(json.getString("id"));
+						id = new Uid(json.getString(ID));
 						LOGGER.ok("Json response: {0}", json.toString(1));
 						return id;
 					} else {
@@ -480,7 +488,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 			Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
 			schemaSubPropertiesMap = attributeMap.get(attributeName);
 			for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
-				if ("subAttributes".equals(subPropertieName.intern())) {
+				if (SUBATTRIBUTES.equals(subPropertieName.intern())) {
 					// TODO check positive cases
 					infoBuilder = new AttributeInfoBuilder(attributeName.intern());
 					JSONArray jsonArray = new JSONArray();
@@ -535,7 +543,6 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 
 	@Override
 	public HashSet<Attribute> addAttributeToInject(HashSet<Attribute> injectetAttributeSet) {
-		// TODO Auto-generated method stub
-		return null;
+		return injectetAttributeSet;
 	}
 }

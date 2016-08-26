@@ -32,8 +32,11 @@ public class UserDataBuilder implements ObjectTranslator {
 
 	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
-
 	private static final String DELETE = "delete";
+	private static final String DELIMITER = "\\.";
+	private static final String DEFAULT = "default";
+	private static final String TYPE = "type";
+	private static final String SCHEMA = "schema";
 
 	private String operation;
 
@@ -151,7 +154,7 @@ public class UserDataBuilder implements ObjectTranslator {
 		objectNameDictionary.put("entitlements.default.value", "value");
 		objectNameDictionary.put("entitlements.default.primary", "primary");
 
-		objectNameDictionary.put("schema.type", "type");
+		objectNameDictionary.put("schema.type", TYPE);
 		objectNameDictionary.put("schema.organization", "organization");
 
 		objectNameDictionary.put("roles.default.value", "value");
@@ -192,7 +195,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 				if (attributeName.contains(".")) {
 
-					String[] keyParts = attributeName.split("\\."); // e.g.
+					String[] keyParts = attributeName.split(DELIMITER); // e.g.
 					// schemas.default.blank
 					if (keyParts.length == 2) {
 
@@ -221,7 +224,7 @@ public class UserDataBuilder implements ObjectTranslator {
 			if (objectNameDictionary.containsKey(attributeName)) {
 				if (attributeName.contains(".")) {
 
-					String[] keyParts = attributeName.split("\\.");
+					String[] keyParts = attributeName.split(DELIMITER);
 					if (keyParts.length == 2) {
 
 						multiValueAttribute.add(attribute);
@@ -273,7 +276,7 @@ public class UserDataBuilder implements ObjectTranslator {
 		for (Attribute i : multiLayerAttribute) {
 
 			String attributeName = i.getName();
-			String[] attributeNameParts = attributeName.split("\\."); // e.q.
+			String[] attributeNameParts = attributeName.split(DELIMITER); // e.q.
 			// email.work.value
 
 			if (checkedNames.contains(attributeNameParts[0])) {
@@ -285,7 +288,7 @@ public class UserDataBuilder implements ObjectTranslator {
 				for (Attribute j : multiLayerAttribute) {
 
 					String secondLoopAttributeName = j.getName();
-					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.q.
+					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split(DELIMITER); // e.q.
 					// email.work.value
 
 					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)) {
@@ -301,7 +304,7 @@ public class UserDataBuilder implements ObjectTranslator {
 				for (Attribute k : subAttributeLayerSet) {
 
 					String nameFromSubSet = k.getName();
-					String[] nameFromSubSetParts = nameFromSubSet.split("\\."); // e.q.
+					String[] nameFromSubSetParts = nameFromSubSet.split(DELIMITER); // e.q.
 					// email.work.value
 
 					if (checkedTypeNames.contains(nameFromSubSetParts[1].intern())) {
@@ -312,7 +315,7 @@ public class UserDataBuilder implements ObjectTranslator {
 						checkedTypeNames.add(canonicaltypeName);
 						for (Attribute subSetAttribute : subAttributeLayerSet) {
 							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
-							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
+							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split(DELIMITER); // e.q.
 							// email.work.value
 							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
 
@@ -324,8 +327,8 @@ public class UserDataBuilder implements ObjectTranslator {
 										multivalueObject = new JSONObject();
 										multivalueObject.put(finalSubAttributeNameParts[2].intern(), attributeValue);
 
-										if (!"default".equals(nameFromSubSetParts[1].intern())) {
-											multivalueObject.put("type", nameFromSubSetParts[1].intern());
+										if (!DEFAULT.equals(nameFromSubSetParts[1].intern())) {
+											multivalueObject.put(TYPE, nameFromSubSetParts[1].intern());
 										}
 										if (operation != null) {
 											if (DELETE.equals(operation)) {
@@ -347,8 +350,8 @@ public class UserDataBuilder implements ObjectTranslator {
 										writeToArray = false;
 									}
 
-									if (!"default".equals(nameFromSubSetParts[1].intern())) {
-										multivalueObject.put("type", nameFromSubSetParts[1].intern());
+									if (!DEFAULT.equals(nameFromSubSetParts[1].intern())) {
+										multivalueObject.put(TYPE, nameFromSubSetParts[1].intern());
 									}
 									if (operation != null) {
 										if (DELETE.equals(operation)) {
@@ -394,7 +397,7 @@ public class UserDataBuilder implements ObjectTranslator {
 		Set<Attribute> specialMlAttributes = new HashSet<Attribute>();
 		for (Attribute i : multiValueAttribute) {
 			String attributeName = i.getName();
-			String[] attributeNameParts = attributeName.split("\\."); // e.g.
+			String[] attributeNameParts = attributeName.split(DELIMITER); // e.g.
 			// name.givenName
 
 			if (checkedNames.contains(attributeNameParts[0].intern())) {
@@ -404,13 +407,13 @@ public class UserDataBuilder implements ObjectTranslator {
 				checkedNames.add(mainAttributeName);
 				for (Attribute j : multiValueAttribute) {
 					String secondLoopAttributeName = j.getName();
-					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.g.
+					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split(DELIMITER); // e.g.
 					// name.givenName
 					if (secondLoopAttributeNameParts[0].intern().equals(mainAttributeName)
-							&& !mainAttributeName.equals("schema")) {
+							&& !mainAttributeName.equals(SCHEMA)) {
 						jObject.put(secondLoopAttributeNameParts[1], AttributeUtil.getSingleValue(j));
 					} else if (secondLoopAttributeNameParts[0].intern().equals(mainAttributeName)
-							&& mainAttributeName.equals("schema")) {
+							&& mainAttributeName.equals(SCHEMA)) {
 						specialMlAttributes.add(j);
 
 					}
@@ -425,12 +428,12 @@ public class UserDataBuilder implements ObjectTranslator {
 
 					for (Attribute specialAtribute : specialMlAttributes) {
 						String innerName = specialAtribute.getName();
-						String[] innerKeyParts = innerName.split("\\."); // e.g.
+						String[] innerKeyParts = innerName.split(DELIMITER); // e.g.
 						// name.givenName
-						if (innerKeyParts[1].intern().equals("type") && !nameWasSet) {
+						if (innerKeyParts[1].intern().equals(TYPE) && !nameWasSet) {
 							sMlAttributeName = AttributeUtil.getAsStringValue(specialAtribute);
 							nameWasSet = true;
-						} else if (!innerKeyParts[1].intern().equals("type")) {
+						} else if (!innerKeyParts[1].intern().equals(TYPE)) {
 
 							jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(specialAtribute));
 						}

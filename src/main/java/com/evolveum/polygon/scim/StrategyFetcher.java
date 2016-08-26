@@ -2,6 +2,9 @@ package com.evolveum.polygon.scim;
 
 public class StrategyFetcher {
 
+	private static final String SALESFORCE = "salesforce";
+	private static final String SLACK = "slack";
+
 	public HandlingStrategy fetchStrategy(String providerName) {
 
 		HandlingStrategy strategy;
@@ -12,10 +15,10 @@ public class StrategyFetcher {
 
 			if (uriParts.length >= 2) {
 
-				if ("salesforce".equals(uriParts[1])) {
+				if (SALESFORCE.equals(uriParts[1])) {
 					strategy = new SalesforceHandlingStrategy();
 
-				} else if ("slack".equals(uriParts[1])) {
+				} else if (SLACK.equals(uriParts[1])) {
 
 					strategy = new SlackHandlingStrategy();
 
@@ -30,10 +33,10 @@ public class StrategyFetcher {
 
 		} else {
 
-			if ("salesforce".equals(providerName)) {
+			if (SALESFORCE.equals(providerName)) {
 				strategy = new SalesforceHandlingStrategy();
 
-			} else if ("slack".equals(providerName)) {
+			} else if (SLACK.equals(providerName)) {
 
 				strategy = new SlackHandlingStrategy();
 

@@ -351,6 +351,8 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 
 	@Override
 	public void release() {
+		LOGGER.info("The release of configuration resources is being performed");
+
 		this.LOGINURL = null;
 		this.SCIM_VERSION = null;
 		this.SCIM_ENDPOINT = null;

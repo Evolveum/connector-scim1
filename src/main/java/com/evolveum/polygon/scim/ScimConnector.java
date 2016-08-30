@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.http.client.methods.HttpPost;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -370,7 +371,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				if (autoriazationData.containsKey("loginInstance")) {
 
-					HttpPatch instance = (HttpPatch) autoriazationData.get("loginInstance");
+					HttpPost instance = (HttpPost) autoriazationData.get("loginInstance");
 
 					LOGGER.info("Test was succesfull");
 					crudManager.logOut(instance);

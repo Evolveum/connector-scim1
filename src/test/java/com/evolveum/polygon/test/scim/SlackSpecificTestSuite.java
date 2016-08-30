@@ -47,7 +47,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		pageSize = 1;
 		pageOffset = 1;
 
-		testNumber = 122;
+		testNumber = 123;
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("endpoint", "/scim");
@@ -95,6 +95,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 			connector = new ScimConnector();
 			connector.init(configuration);
+			connector.test();
 			connector.schema();
 		}
 

@@ -107,6 +107,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 
 			connector = new ScimConnector();
 			connector.init(configuration);
+			connector.test();
 			connector.schema();
 		}
 

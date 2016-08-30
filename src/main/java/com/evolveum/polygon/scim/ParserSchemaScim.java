@@ -23,7 +23,6 @@ public class ParserSchemaScim {
 		hlAttributeMap = new HashMap<String, String>();
 		attributeMap = new HashMap<String, Map<String, Object>>();
 		for (String attributeName : schemaJson.keySet()) {
-			// Iterating trough higher layer attributes
 			Object hlAttribute = schemaJson.get(attributeName);
 			if (hlAttribute instanceof JSONArray) {
 

@@ -268,8 +268,8 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 			}
 
 			if (hasTypeValues) {
-				Map<String, Object> typeObject = new HashMap<String, Object>();
-				typeObject = (Map<String, Object>) subAttributeMap.get(TYPE);
+				HashMap<String, Object> typeObject = new HashMap<String, Object>();
+				typeObject = (HashMap<String, Object>) subAttributeMap.get(TYPE);
 				if (typeObject.containsKey(CANONICALVALUES) || typeObject.containsKey(REFERENCETYPES)) {
 					JSONArray referenceValues = new JSONArray();
 					if (typeObject.containsKey(CANONICALVALUES)) {

@@ -231,12 +231,11 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 		Boolean isMultiValued = false;
 		Map<String, Object> attributeObjects = new HashMap<String, Object>();
 		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
-		
-		
+
 		if (attribute.has("subAttributes") || attribute.has("subattributes")) {
 			boolean hasTypeValues = false;
 			JSONArray subAttributes = new JSONArray();
-			
+
 			if (attribute.has("subAttributes")) {
 				subAttributes = (JSONArray) attribute.get("subAttributes");
 			} else if (attribute.has("subattributes")) {
@@ -249,7 +248,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 				for (String subAttributeNameKeys : attribute.keySet()) {
 					if (NAME.equals(subAttributeNameKeys.intern())) {
 						attributeName = attribute.get(subAttributeNameKeys).toString();
-				LOGGER.info("The attribute which is being processed is: {0}", attributeName);	
+						LOGGER.info("The attribute which is being processed is: {0}", attributeName);
 						break;
 					}
 				}

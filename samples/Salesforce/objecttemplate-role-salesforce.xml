@@ -5,7 +5,7 @@
                 xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                 oid="ab990258-38a5-44ba-ae6d-981424c2ca53"
-                version="10">
+                version="12">
    <name>Group and entitlement role template - Salesforce </name>
    <description>
             Template with the implementation of the automatic creation of roles while importing entitlement and role resource objects.

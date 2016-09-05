@@ -4,11 +4,11 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="a5bcd1cc-eb8a-469e-8ff2-3f5c6f97c463"
-      version="6">
-   <name>group metarole</name>
+      oid="bf4e629b-de8c-4af2-b58d-99e18e270ebb"
+      version="7">
+   <name>entitlement metarole</name>
    <metadata>
-      <createTimestamp>2016-07-14T13:31:38.481+02:00</createTimestamp>
+      <createTimestamp>2016-07-19T17:47:56.771+02:00</createTimestamp>
       <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
    </metadata>
@@ -17,19 +17,19 @@
    <inducement id="1">
       <construction>
          <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                      oid="13ba9c52-ce64-4385-989b-6ea2c5f42384"
+                      oid="daf6aa03-3971-4b87-a230-ef7d9c7dbffa"
                       type="tns:ResourceType"><!-- salesforce-scim-connector --></resourceRef>
          <kind>account</kind>
          <intent>default</intent>
          <association>
-            <c:ref>ri:groups</c:ref>
+            <c:ref>ri:entitlements</c:ref>
             <outbound>
                <strength>normal</strength>
                <expression>
                   <associationFromLink>
                      <projectionDiscriminator>
                         <kind>entitlement</kind>
-                        <intent>groups</intent>
+                        <intent>entitlements</intent>
                      </projectionDiscriminator>
                   </associationFromLink>
                </expression>

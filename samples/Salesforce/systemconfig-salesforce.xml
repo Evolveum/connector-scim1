@@ -5,12 +5,12 @@
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                      oid="00000000-0000-0000-0000-000000000001"
-                     version="26">
+                     version="31">
    <name>SystemConfiguration</name>
    <metadata>
       <createTimestamp>2016-05-25T16:15:56.179+02:00</createTimestamp>
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
-      <modifyTimestamp>2016-07-22T13:26:00.131+02:00</modifyTimestamp>
+      <modifyTimestamp>2016-08-26T14:12:51.173+02:00</modifyTimestamp>
       <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                    oid="00000000-0000-0000-0000-000000000002"
                    type="tns:UserType"><!-- administrator --></modifierRef>
@@ -22,19 +22,19 @@
                             type="tns:SecurityPolicyType"><!-- Default Security Policy --></globalSecurityPolicyRef>
    <logging>
       <classLogger>
-         <level>DEBUG</level>
+         <level>WARN</level>
          <package>com.evolveum.midpoint.model</package>
       </classLogger>
       <classLogger>
-         <level>DEBUG</level>
+         <level>WARN</level>
          <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
       </classLogger>
       <classLogger>
-         <level>DEBUG</level>
+         <level>WARN</level>
          <package>com.evolveum.midpoint.model.impl.lens.projector.Projector</package>
       </classLogger>
       <classLogger>
-         <level>DEBUG</level>
+         <level>WARN</level>
          <package>com.evolveum.midpoint.provisioning</package>
       </classLogger>
       <classLogger>
@@ -85,16 +85,16 @@
       </auditing>
    </logging>
    <objectTemplate>
-      <type>RoleType</type>
-      <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                         oid="ab990258-38a5-44ba-ae6d-981424c2ca53"
-                         type="tns:ObjectTemplateType"><!-- Group and entitlement role template - Salesforce  --></objectTemplateRef>
-   </objectTemplate>
-   <objectTemplate>
       <type>UserType</type>
       <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                          oid="7f656839-571d-4413-bcd2-932707f87a77"
                          type="tns:ObjectTemplateType"><!-- User template - Salesforce --></objectTemplateRef>
+   </objectTemplate>
+   <objectTemplate>
+      <type>RoleType</type>
+      <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                         oid="ab990258-38a5-44ba-ae6d-981424c2ca53"
+                         type="tns:ObjectTemplateType"><!-- Group and entitlement role template - Salesforce  --></objectTemplateRef>
    </objectTemplate>
    <notificationConfiguration>
       <mail>

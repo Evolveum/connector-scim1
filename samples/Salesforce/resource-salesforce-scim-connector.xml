@@ -4,11 +4,11 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          oid="13ba9c52-ce64-4385-989b-6ea2c5f42384"
-          version="98">
+          oid="daf6aa03-3971-4b87-a230-ef7d9c7dbffa"
+          version="16">
    <name>salesforce-scim-connector</name>
    <metadata>
-      <modifyTimestamp>2016-07-26T18:12:22.684+02:00</modifyTimestamp>
+      <modifyTimestamp>2016-08-26T16:20:50.005+02:00</modifyTimestamp>
       <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                    oid="00000000-0000-0000-0000-000000000002"
                    type="tns:UserType"/>
@@ -17,33 +17,11 @@
    <operationalState>
       <lastAvailabilityStatus>up</lastAvailabilityStatus>
    </operationalState>
-   <connectorRef oid="2fa6fbd1-1549-4f9e-99d1-01b5fce91cd0" type="c:ConnectorType"><!-- ICF com.evolveum.polygon.scim.ScimConnector v0.0.1.2-SNAPSHOT --></connectorRef>
+   <connectorRef oid="de0d0153-61b3-4505-a095-c0c88c0032b5" type="c:ConnectorType"><!-- ICF com.evolveum.polygon.scim.ScimConnector v0.1.0.1-SNAPSHOT --></connectorRef>
    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
       <icfc:resultsHandlerConfiguration>
          <icfc:filteredResultsHandlerInValidationMode>true</icfc:filteredResultsHandlerInValidationMode>
       </icfc:resultsHandlerConfiguration>
-      <icfc:configurationProperties xmlns:gen443="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.scim.ConnIdScimConnector/com.evolveum.polygon.scim.ScimConnector">
-         <gen443:userName></gen443:userName>
-         <gen443:password>
-            <t:encryptedData>
-               <t:encryptionMethod>
-                  <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
-               </t:encryptionMethod>
-               <t:keyInfo>
-                  <t:keyName>2Z/SQYgWVapuNTIU3bGrwHCi+04=</t:keyName>
-               </t:keyInfo>
-               <t:cipherData>
-                  <t:cipherValue>wIcrRk3mitH3J5AvEYkcJ6aXfOhbehCdmmev9QBibKt8Pv5ZAXVF9XYNUqdh1SCYJc6pS6eoaz485mTrn1AEuQ==</t:cipherValue>
-               </t:cipherData>
-            </t:encryptedData>
-         </gen443:password>
-         <gen443:clientSecret></gen443:clientSecret>
-         <gen443:clientID></gen443:clientID>
-         <gen443:endpoint></gen443:endpoint>
-         <gen443:version></gen443:version>
-         <gen443:loginURL></gen443:loginURL>
-         <gen443:service></gen443:service>
-      </icfc:configurationProperties>
    </connectorConfiguration>
    <schema>
       <cachingMetadata>
@@ -189,7 +167,6 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>250</a:displayOrder>
-                           <a:access>read</a:access>
                            <ra:frameworkAttributeName>roles.default.value</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -231,7 +208,6 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>300</a:displayOrder>
-                           <a:access>read</a:access>
                            <ra:frameworkAttributeName>emails.work.value</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -256,7 +232,6 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>330</a:displayOrder>
-                           <a:access>read</a:access>
                            <ra:frameworkAttributeName>photos.thumbnail.value</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -343,7 +318,6 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>430</a:displayOrder>
-                           <a:access>read</a:access>
                            <ra:frameworkAttributeName>photos.photo.value</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -481,7 +455,6 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>590</a:displayOrder>
-                           <a:access>read</a:access>
                            <ra:frameworkAttributeName>name.formatted</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -551,7 +524,6 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>660</a:displayOrder>
-                           <a:access>read</a:access>
                            <ra:frameworkAttributeName>entitlements.default.value</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -1149,6 +1121,21 @@
             </inbound>
          </attribute>
          <attribute>
+            <c:ref>ri:entitlements.default.value</c:ref>
+            <displayName>Entitlements id</displayName>
+            <description>The id of the entitlemetns which were granted to the user.</description>
+            <outbound>
+               <source>
+                  <c:path>$user/organizationalUnit</c:path>
+               </source>
+            </outbound>
+            <inbound>
+               <target>
+                  <c:path>$user/organizationalUnit</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
             <c:ref>ri:userType</c:ref>
             <displayName>User Type</displayName>
             <description>Definition of Lastname attribute handling.</description>
@@ -1222,7 +1209,7 @@
                         <code>
                                     import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
                                     if (legal) {
-            							if (admStatus?.value) {
+                						if (admStatus?.value) {
 											if (admStatus.value.toUpperCase().equals('DISABLED')) {
 												ActivationStatusType.DISABLED;
 											} else {

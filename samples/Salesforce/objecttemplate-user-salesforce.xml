@@ -5,7 +5,7 @@
                 xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                 oid="7f656839-571d-4413-bcd2-932707f87a77"
-                version="19">
+                version="21">
    <name>User template - Salesforce</name>
    <description>
             User template with the impementation of scripts for automatic assigment of roles to Salesforce users.
@@ -39,7 +39,7 @@
 			   
                 role = midpoint.searchObjectByName(RoleType.class, roleName);
 				if (role==null){
-				throw new SystemException("Exception while assigning the group defined in attribute to a role. Please make shure that all the group objects are already importet to Midpoint.");
+				throw new SystemException("Exception while assigning the group defined in attribute to a role. Please make sure that all the group objects are already importet to Midpoint.");
 				}
                 log.info("role {}" , role)
                 roleOrt = new ObjectReferenceType();
@@ -85,7 +85,7 @@
                 role = midpoint.searchObjectByName(RoleType.class, roleName);
 				
 				if (role==null){
-				throw new SystemException("Exception while assigning the entitlement defined in attribute to a role. Please make shure that all the entitlement objects are already importet to Midpoint.");
+				throw new SystemException("Exception while assigning the entitlement defined in attribute to a role. Please make sure that all the entitlement objects are already importet to Midpoint.");
 				}
 				
                 log.info("role {}" , role)
@@ -105,6 +105,27 @@
       </expression>
       <target>
          <c:path>assignment</c:path>
+      </target>
+   </mapping>
+   <mapping>
+      <name>User - Full name mapping</name>
+      <strength>weak</strength>
+      <source>
+         <c:path>$user/givenName</c:path>
+      </source>
+      <source>
+         <c:path>$user/familyName</c:path>
+      </source>
+      <expression>
+         <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            <code>
+    					givenName + ' ' + familyName
+			</code>
+         </script>
+      </expression>
+      <target>
+         <c:path>fullName</c:path>
       </target>
    </mapping>
 </objectTemplate>

@@ -420,6 +420,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Connector object execute query");
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
 		StringBuilder queryUriSnippet = new StringBuilder("");
+		String endpointName = objectClass.getObjectClassValue();
 
 		if (options != null) {
 			queryUriSnippet = processOptions(options);
@@ -434,13 +435,12 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			throw new ConnectorException("Result handler for queuery can not be null");
 		}
 
-		String flag = querryChecker(query);
+		String flag = querryChecker(query, endpointName);
 
 		if (flag.isEmpty()) {
 
 			if (genericsCanBeApplied) {
 
-				String endpointName = objectClass.getObjectClassValue();
 				if (endpointName.intern() == ObjectClass.ACCOUNT.getObjectClassValue().intern()) {
 					if (query == null) {
 
@@ -518,18 +518,12 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * @throws IllegalArgumentException
 	 *             if the provided filter is no supported.
 	 **/
-	public String querryChecker(Filter filter) {
+	public String querryChecker(Filter filter, String endpointName) {
 
-		if (filter == null || !(filter instanceof ContainsAllValuesFilter)) {
-
-			return "";
-		} else {
-			StrategyFetcher fetch = new StrategyFetcher();
-			HandlingStrategy strategy = fetch.fetchStrategy(providerName);
-			String flag = strategy.checkFilter(filter);
-			return flag;
-		}
-
+		StrategyFetcher fetch = new StrategyFetcher();
+		HandlingStrategy strategy = fetch.fetchStrategy(providerName);
+		String flag = strategy.checkFilter(filter, endpointName);
+		return flag;
 	}
 
 	/**

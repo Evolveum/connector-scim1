@@ -38,7 +38,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 		return new Object[][] { { "users", "uid" }, { "groups", "uid" }, { "users", "contains" },
 				{ "groups", "contains" }, { "users", "startswith" }, { "groups", "startswith" }, { "users", "equals" },
-				{ "groups", "equals" }, { "groups", "containsall" } };
+				{ "groups", "equals" }, { "groups", "userequals" }, { "groups", "containsall" } };
 	}
 
 	@DataProvider(name = "configTestProvider")
@@ -47,7 +47,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		pageSize = 1;
 		pageOffset = 1;
 
-		testNumber = 123;
+		testNumber = 132;
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("endpoint", "/scim");
@@ -132,6 +132,8 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 	@Test(priority = 2, dependsOnMethods = { "createObjectTest" }, dataProvider = "parameterConsistencyTestProvider")
 	private void parameterConsistencyTest(String resourceName, String filterType) {
 
+		LOGGER.info("Processing trought the \"parameter consistency\" for the resource: \"{0}\"", resourceName);
+
 		StringBuilder testType = new StringBuilder("createObject");
 
 		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
@@ -155,6 +157,10 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	@Test(priority = 6, dependsOnMethods = { "createObjectTest" }, dataProvider = "filterMethodProvider")
 	public void filterMethodTest(String resourceName, String filterType) {
+
+		LOGGER.info(
+				"Processing trought the \"filter methods test\" for the resource \"{0}\" and the evaluated filter is \"{1}\" ",
+				resourceName, filterType);
 
 		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
@@ -209,6 +215,8 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	@Test(priority = 4, dependsOnMethods = { "createObjectTest" }, dataProvider = "updateGroupProvider")
 	private void updateGroupTest(String updateType, Uid uid) {
+
+		LOGGER.info("Processing trought the \"updateGroupTest\" and the \"{0}\" update type.", updateType);
 
 		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest("groups", updateType, userUid, groupUid, testNumber,
 				connector);

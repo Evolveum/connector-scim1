@@ -25,6 +25,7 @@ import org.identityconnectors.framework.common.objects.OperationalAttributeInfos
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
+import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -665,30 +666,68 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 	}
 
+	// TODO simplify
 	@Override
-	public String checkFilter(Filter filter) {
+	public String checkFilter(Filter filter, String endpointName) {
 
-		List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
-		if (valueList.size() == 1) {
-			Object uidString = valueList.get(0);
-			if (uidString instanceof String) {
-				LOGGER.warn("Processing trough  \"contains all values\"  filter workaround.");
-				return (String) uidString;
+		if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
+			if (filter instanceof ContainsAllValuesFilter) {
+				List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
+				if (valueList.size() == 1) {
+					Object uidString = valueList.get(0);
+					if (uidString instanceof String) {
+						LOGGER.warn("Processing trough group object class \"contains all values\" filter workaround.");
+						return (String) uidString;
 
+					} else {
+
+						return "";
+					}
+				} else {
+
+					return "";
+
+				}
+			} else if (filter instanceof EqualsFilter) {
+				Attribute filterAttr = ((EqualsFilter) filter).getAttribute();
+				String attributeName = filterAttr.getName();
+				String attributeValue;
+
+				if ("members.default.value".equals(attributeName)) {
+					LOGGER.warn("Processing trough group object class \"equals\" filter workaround.");
+					List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
+					if (valueList.size() == 1) {
+						Object uidString = valueList.get(0);
+						if (uidString instanceof String) {
+							LOGGER.warn(
+									"Processing trough group object class \"contains all values\" filter workaround.");
+							return (String) uidString;
+
+						} else {
+
+							return "";
+						}
+					} else {
+
+						attributeValue = "";
+					}
+
+					return attributeValue;
+				} else {
+
+					return "";
+				}
 			} else {
 
 				return "";
 			}
-		} else {
-
-			return "";
-
 		}
+		return "";
 	}
 
 	@Override
 	public StringBuilder retrieveFilterQuery(StringBuilder queryUriSnippet, char prefixChar, Filter query) {
-		LOGGER.info("Processing trought the \" filter\" workaround for the provider: {0}", "slack");
+		LOGGER.info("Processing trought the \"filter\" workaround for the provider: {0}", "slack");
 
 		StringBuilder filterSnippet = new StringBuilder();
 		filterSnippet = query.accept(new FilterHandler(), "slack");

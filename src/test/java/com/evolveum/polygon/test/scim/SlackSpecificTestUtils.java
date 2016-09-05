@@ -39,7 +39,6 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 		testAttributeString = new StringBuilder(testNumber.toString()).append("testuser@testdomain.com");
 		attributeSet.add(AttributeBuilder.build("emails.work.value", testAttributeString.toString()));
 		attributeSet.add(AttributeBuilder.build("emails.work.primary", true));
-		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
 
 		attributeSet.add(AttributeBuilder.build("title", "Mr."));
 		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
@@ -142,6 +141,11 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 			if ("groups".equals(resourceName)) {
 				filter = (ContainsAllValuesFilter) FilterBuilder
 						.containsAllValues(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
+			}
+		}else if ("userequals".equalsIgnoreCase(filterType)) {
+			if ("groups".equals(resourceName)) {
+				filter = (EqualsFilter) FilterBuilder
+						.equalTo(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
 			}
 		}
 

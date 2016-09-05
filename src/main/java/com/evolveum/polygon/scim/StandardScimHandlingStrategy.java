@@ -403,7 +403,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public String checkFilter(Filter filter) {
+	public String checkFilter(Filter filter, String endpointName) {
 		return "";
 	}
 

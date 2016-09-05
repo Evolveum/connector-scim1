@@ -11,6 +11,7 @@ import org.apache.http.message.BasicHeader;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
@@ -44,7 +45,7 @@ public interface HandlingStrategy {
 
 	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject);
 
-	public String checkFilter(Filter filter);
+	public String checkFilter(Filter filter, String endpointName);
 
 	public StringBuilder retrieveFilterQuery(StringBuilder queryUriSnippet, char prefixChar, Filter query);
 

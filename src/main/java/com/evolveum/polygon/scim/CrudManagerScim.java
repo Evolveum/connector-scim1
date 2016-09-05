@@ -1331,6 +1331,6 @@ public class CrudManagerScim {
 
 	public void logOut(HttpPost loginInstance) {
 		loginInstance.releaseConnection();
-		LOGGER.info("The connecion was released");
+		LOGGER.info("The connection was released");
 	}
 }

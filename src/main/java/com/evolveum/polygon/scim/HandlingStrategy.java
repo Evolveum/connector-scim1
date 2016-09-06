@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -28,8 +29,8 @@ public interface HandlingStrategy {
 	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
 			CrudManagerScim manager);
 
-	public HashSet<Attribute> attributeInjection(HashSet<Attribute> injectedAttributeSet,
-			HashMap<String, Object> autoriazationData);
+	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
+			Map<String, Object> autoriazationData);
 
 	public StringBuilder processContainsAllValuesFilter(String p, ContainsAllValuesFilter filter,
 			FilterHandler filterHandler);
@@ -49,5 +50,5 @@ public interface HandlingStrategy {
 
 	public StringBuilder retrieveFilterQuery(StringBuilder queryUriSnippet, char prefixChar, Filter query);
 
-	public HashSet<Attribute> addAttributeToInject(HashSet<Attribute> injectetAttributeSet);
+	public Set<Attribute> addAttributeToInject(Set<Attribute> injectetAttributeSet);
 }

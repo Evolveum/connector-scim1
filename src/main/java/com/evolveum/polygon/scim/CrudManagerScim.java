@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
@@ -58,7 +59,7 @@ public class CrudManagerScim {
 	 * @throws ConnectionFailedException
 	 * @throws ConnectorIOException
 	 */
-	public HashMap<String, Object> logIntoService(ScimConnectorConfiguration conf) {
+	public Map<String, Object> logIntoService(ScimConnectorConfiguration conf) {
 
 		HttpPost loginInstance = new HttpPost();
 
@@ -200,7 +201,7 @@ public class CrudManagerScim {
 
 		LOGGER.info("Login Successful");
 
-		HashMap<String, Object> autoriazationData = new HashMap<String, Object>();
+		Map<String, Object> autoriazationData = new HashMap<String, Object>();
 		autoriazationData.put("uri", scimBaseUri);
 		autoriazationData.put("authHeader", authHeader);
 		autoriazationData.put("loginInstance", loginInstance);
@@ -231,7 +232,7 @@ public class CrudManagerScim {
 			ScimConnectorConfiguration conf) {
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService(conf);
+		Map<String, Object> autoriazationData = logIntoService(conf);
 		HttpPost loginInstance = null;
 
 		for (String data : autoriazationData.keySet()) {
@@ -473,7 +474,7 @@ public class CrudManagerScim {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService(conf);
+		Map<String, Object> autoriazationData = logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
@@ -640,11 +641,11 @@ public class CrudManagerScim {
 	 */
 
 	public Uid create(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
-			HashSet<Attribute> injectedAttributeSet, ScimConnectorConfiguration conf) {
+			Set<Attribute> injectedAttributeSet, ScimConnectorConfiguration conf) {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService(conf);
+		Map<String, Object> autoriazationData = logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
@@ -794,7 +795,7 @@ public class CrudManagerScim {
 	public Uid update(Uid uid, String resourceEndPoint, JSONObject jsonObject, ScimConnectorConfiguration conf) {
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService(conf);
+		Map<String, Object> autoriazationData = logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
@@ -951,7 +952,7 @@ public class CrudManagerScim {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService(conf);
+		Map<String, Object> autoriazationData = logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
@@ -1156,7 +1157,7 @@ public class CrudManagerScim {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		HashMap<String, Object> autoriazationData = logIntoService(conf);
+		Map<String, Object> autoriazationData = logIntoService(conf);
 
 		HttpPost loginInstance = null;
 

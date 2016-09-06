@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -74,17 +74,16 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 		} else {
 			cob.setName(resourceJsonObject.getString("displayName"));
 			ObjectClass objectClass = new ObjectClass(resourceEndPoint);
-			;
 			cob.setObjectClass(objectClass);
 
 		}
 		for (String key : resourceJsonObject.keySet()) {
 			Object attribute = resourceJsonObject.get(key);
-			if ("meta".equals(key.intern()) || "alias".equals(key.intern()) || "schemas".equals(key.intern())) {
+			if ("meta".equals(key) || "alias".equals(key) || "schemas".equals(key)) {
 
 				LOGGER.warn(
 						"Processing trought \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.",
-						key.intern());
+						key);
 			} else
 
 			if (attribute instanceof JSONArray) {
@@ -95,11 +94,11 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 				Collection<Object> attributeValues = new ArrayList<Object>();
 
 				for (Object o : jArray) {
-					StringBuilder objectNameBilder = new StringBuilder(key.intern());
+					StringBuilder objectNameBilder = new StringBuilder(key);
 					String objectKeyName = "";
 					if (o instanceof JSONObject) {
 						for (String s : ((JSONObject) o).keySet()) {
-							if (TYPE.equals(s.intern())) {
+							if (TYPE.equals(s)) {
 								objectKeyName = objectNameBilder.append(".").append(((JSONObject) o).get(s)).toString();
 								objectNameBilder.delete(0, objectNameBilder.length());
 								break;
@@ -108,15 +107,15 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 
 						for (String s : ((JSONObject) o).keySet()) {
 
-							if (TYPE.equals(s.intern())) {
+							if (TYPE.equals(s)) {
 							} else {
 
 								if (!"".equals(objectKeyName)) {
 									objectNameBilder = objectNameBilder.append(objectKeyName).append(".")
-											.append(s.intern());
+											.append(s);
 								} else {
 									objectKeyName = objectNameBilder.append(".").append(DEFAULT).toString();
-									objectNameBilder = objectNameBilder.append(".").append(s.intern());
+									objectNameBilder = objectNameBilder.append(".").append(s);
 								}
 
 								if (attributeValues.isEmpty()) {
@@ -154,7 +153,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 			} else if (attribute instanceof JSONObject) {
 				for (String s : ((JSONObject) attribute).keySet()) {
 
-					StringBuilder objectNameBilder = new StringBuilder(key.intern());
+					StringBuilder objectNameBilder = new StringBuilder(key);
 					cob.addAttribute(objectNameBilder.append(".").append(s).toString(),
 							((JSONObject) attribute).get(s));
 
@@ -168,9 +167,9 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 
 					if (!resourceJsonObject.get(key).equals(null)) {
 
-						cob.addAttribute(key.intern(), resourceJsonObject.get(key));
+						cob.addAttribute(key, resourceJsonObject.get(key));
 					} else {
-						cob.addAttribute(key.intern(), "");
+						cob.addAttribute(key, "");
 
 					}
 				}
@@ -183,8 +182,8 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public HashSet<Attribute> attributeInjection(HashSet<Attribute> injectedAttributeSet,
-			HashMap<String, Object> autoriazationData) {
+	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
+			Map<String, Object> autoriazationData) {
 
 		JSONObject loginObject = null;
 		String orgID = null;
@@ -241,14 +240,14 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 			subAttributes = (JSONArray) attribute.get(SUBATTRIBUTES);
 			if (attributeName == null) {
 				for (String subAttributeNameKeys : attribute.keySet()) {
-					if ("name".equals(subAttributeNameKeys.intern())) {
+					if ("name".equals(subAttributeNameKeys)) {
 						attributeName = attribute.get(subAttributeNameKeys).toString();
 						break;
 					}
 				}
 			}
 			for (String nameKey : attribute.keySet()) {
-				if (MULTIVALUED.equals(nameKey.intern())) {
+				if (MULTIVALUED.equals(nameKey)) {
 					isMultiValued = (Boolean) attribute.get(nameKey);
 					break;
 				}
@@ -261,14 +260,14 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 				subAttributeMap = parser.parseSubAttribute(subAttribute, subAttributeMap);
 			}
 			for (String typeKey : subAttributeMap.keySet()) {
-				if (TYPE.equals(typeKey.intern())) {
+				if (TYPE.equals(typeKey)) {
 					hasTypeValues = true;
 					break;
 				}
 			}
 
 			if (hasTypeValues) {
-				HashMap<String, Object> typeObject = new HashMap<String, Object>();
+				Map<String, Object> typeObject = new HashMap<String, Object>();
 				typeObject = (HashMap<String, Object>) subAttributeMap.get(TYPE);
 				if (typeObject.containsKey(CANONICALVALUES) || typeObject.containsKey(REFERENCETYPES)) {
 					JSONArray referenceValues = new JSONArray();
@@ -291,7 +290,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 								"Processing trought Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes) ");
 						referenceValue = ((JSONArray) referenceValues).getJSONObject(j);
 						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-							if (!TYPE.equals(subAttributeKeyNames.intern())) { // TODO
+							if (!TYPE.equals(subAttributeKeyNames)) { // TODO
 								// some
 								// other
 								// complex
@@ -311,7 +310,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 						}
 					}
 				} else {
-					ArrayList<String> defaultReferenceTypeValues = new ArrayList<String>();
+					List<String> defaultReferenceTypeValues = new ArrayList<String>();
 					defaultReferenceTypeValues.add("User");
 					defaultReferenceTypeValues.add("Group");
 
@@ -319,7 +318,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 					defaultReferenceTypeValues.add("uri");
 
 					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-						if (!TYPE.equals(subAttributeKeyNames.intern())) {
+						if (!TYPE.equals(subAttributeKeyNames)) {
 							for (String defaultTypeReferenceValues : defaultReferenceTypeValues) {
 								StringBuilder complexAttrName = new StringBuilder(attributeName);
 								complexAttrName.append(".").append(defaultTypeReferenceValues);
@@ -354,7 +353,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
 						StringBuilder complexAttrName = new StringBuilder(attributeName);
 
-						HashMap<String, Object> subattributeKeyMap = (HashMap<String, Object>) subAttributeMap
+						Map<String, Object> subattributeKeyMap = (HashMap<String, Object>) subAttributeMap
 								.get(subAttributeKeyNames);
 
 						for (String attributePropertie : subattributeKeyMap.keySet()) {
@@ -376,7 +375,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 
 			for (String attributeNameKeys : attribute.keySet()) {
 
-				if ("name".equals(attributeNameKeys.intern())) {
+				if ("name".equals(attributeNameKeys)) {
 					attributeName = attribute.get(attributeNameKeys).toString();
 
 				} else {
@@ -482,15 +481,15 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	@Override
 	public ObjectClassInfoBuilder schemaBuilder(String attributeName, Map<String, Map<String, Object>> attributeMap,
 			ObjectClassInfoBuilder builder, SchemaObjectBuilderGeneric schemaBuilder) {
-		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
+		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName);
 
 		if (!"active".equals(attributeName)) {
 			Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
 			schemaSubPropertiesMap = attributeMap.get(attributeName);
 			for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
-				if (SUBATTRIBUTES.equals(subPropertieName.intern())) {
+				if (SUBATTRIBUTES.equals(subPropertieName)) {
 					// TODO check positive cases
-					infoBuilder = new AttributeInfoBuilder(attributeName.intern());
+					infoBuilder = new AttributeInfoBuilder(attributeName);
 					JSONArray jsonArray = new JSONArray();
 
 					jsonArray = ((JSONArray) schemaSubPropertiesMap.get(subPropertieName));
@@ -542,7 +541,7 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public HashSet<Attribute> addAttributeToInject(HashSet<Attribute> injectetAttributeSet) {
+	public Set<Attribute> addAttributeToInject(Set<Attribute> injectetAttributeSet) {
 		return injectetAttributeSet;
 	}
 }

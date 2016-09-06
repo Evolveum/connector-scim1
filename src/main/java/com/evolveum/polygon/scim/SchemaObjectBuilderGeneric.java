@@ -45,10 +45,10 @@ public class SchemaObjectBuilderGeneric {
 
 		}
 
-		if ("/Users".equals(objectTypeName.intern())) {
+		if ("/Users".equals(objectTypeName)) {
 			builder.setType(ObjectClass.ACCOUNT_NAME);
 
-		} else if ("/Groups".equals(objectTypeName.intern())) {
+		} else if ("/Groups".equals(objectTypeName)) {
 			builder.setType(ObjectClass.GROUP_NAME);
 		} else {
 			String[] splitTypeMame = objectTypeName.split("\\/"); // e.q.
@@ -79,12 +79,12 @@ public class SchemaObjectBuilderGeneric {
 	public AttributeInfoBuilder subPropertiesChecker(AttributeInfoBuilder infoBuilder,
 			Map<String, Object> schemaAttributeMap, String subPropertieName) {
 
-		if ("readOnly".equals(subPropertieName.intern())) {
+		if ("readOnly".equals(subPropertieName)) {
 
 			infoBuilder.setUpdateable((!(Boolean) schemaAttributeMap.get(subPropertieName)));
 			infoBuilder.setCreateable((!(Boolean) schemaAttributeMap.get(subPropertieName)));
 
-		} else if ("mutability".equals(subPropertieName.intern())) {
+		} else if ("mutability".equals(subPropertieName)) {
 			String value = schemaAttributeMap.get(subPropertieName).toString();
 			if ("readWrite".equals(value)) {
 				infoBuilder.setUpdateable(true);
@@ -113,19 +113,19 @@ public class SchemaObjectBuilderGeneric {
 				}
 			}
 
-		} else if ("type".equals(subPropertieName.intern())) {
+		} else if ("type".equals(subPropertieName)) {
 
-			if ("string".equals(schemaAttributeMap.get(subPropertieName).toString().intern())) {
+			if ("string".equals(schemaAttributeMap.get(subPropertieName).toString())) {
 
 				infoBuilder.setType(String.class);
-			} else if ("boolean".equals(schemaAttributeMap.get(subPropertieName).toString().intern())) {
+			} else if ("boolean".equals(schemaAttributeMap.get(subPropertieName).toString())) {
 
 				infoBuilder.setType(Boolean.class);
 			}
 
-		} else if ("required".equals(subPropertieName.intern())) {
+		} else if ("required".equals(subPropertieName)) {
 			infoBuilder.setRequired(((Boolean) schemaAttributeMap.get(subPropertieName)));
-		} else if ("multiValued".equals(subPropertieName.intern())) {
+		} else if ("multiValued".equals(subPropertieName)) {
 			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(subPropertieName)));
 		}
 

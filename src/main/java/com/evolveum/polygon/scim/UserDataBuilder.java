@@ -272,7 +272,7 @@ public class UserDataBuilder implements ObjectTranslator {
 	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
 
 		String mainAttributeName = "";
-		ArrayList<String> checkedNames = new ArrayList<String>();
+		List<String> checkedNames = new ArrayList<String>();
 		for (Attribute i : multiLayerAttribute) {
 
 			String attributeName = i.getName();
@@ -283,7 +283,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 			} else {
 				Set<Attribute> subAttributeLayerSet = new HashSet<Attribute>();
-				mainAttributeName = attributeNameParts[0].intern();
+				mainAttributeName = attributeNameParts[0];
 				checkedNames.add(mainAttributeName);
 				for (Attribute j : multiLayerAttribute) {
 
@@ -300,24 +300,24 @@ public class UserDataBuilder implements ObjectTranslator {
 				boolean writeToArray = true;
 				JSONArray jArray = new JSONArray();
 
-				ArrayList<String> checkedTypeNames = new ArrayList<String>();
+				List<String> checkedTypeNames = new ArrayList<String>();
 				for (Attribute k : subAttributeLayerSet) {
 
 					String nameFromSubSet = k.getName();
 					String[] nameFromSubSetParts = nameFromSubSet.split(DELIMITER); // e.q.
 					// email.work.value
 
-					if (checkedTypeNames.contains(nameFromSubSetParts[1].intern())) {
+					if (checkedTypeNames.contains(nameFromSubSetParts[1])) {
 					} else {
 						JSONObject multivalueObject = new JSONObject();
-						canonicaltypeName = nameFromSubSetParts[1].intern();
+						canonicaltypeName = nameFromSubSetParts[1];
 
 						checkedTypeNames.add(canonicaltypeName);
 						for (Attribute subSetAttribute : subAttributeLayerSet) {
 							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split(DELIMITER); // e.q.
 							// email.work.value
-							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
+							if (finalSubAttributeNameParts[1].equals(canonicaltypeName)) {
 
 								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
 									writeToArray = false;
@@ -325,10 +325,10 @@ public class UserDataBuilder implements ObjectTranslator {
 
 									for (Object attributeValue : valueList) {
 										multivalueObject = new JSONObject();
-										multivalueObject.put(finalSubAttributeNameParts[2].intern(), attributeValue);
+										multivalueObject.put(finalSubAttributeNameParts[2], attributeValue);
 
-										if (!DEFAULT.equals(nameFromSubSetParts[1].intern())) {
-											multivalueObject.put(TYPE, nameFromSubSetParts[1].intern());
+										if (!DEFAULT.equals(nameFromSubSetParts[1])) {
+											multivalueObject.put(TYPE, nameFromSubSetParts[1]);
 										}
 										if (operation != null) {
 											if (DELETE.equals(operation)) {
@@ -341,8 +341,8 @@ public class UserDataBuilder implements ObjectTranslator {
 
 								} else {
 
-									if (!"blank".equals(finalSubAttributeNameParts[2].intern())) {
-										multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+									if (!"blank".equals(finalSubAttributeNameParts[2])) {
+										multivalueObject.put(finalSubAttributeNameParts[2],
 												AttributeUtil.getSingleValue(subSetAttribute));
 									} else {
 
@@ -350,8 +350,8 @@ public class UserDataBuilder implements ObjectTranslator {
 										writeToArray = false;
 									}
 
-									if (!DEFAULT.equals(nameFromSubSetParts[1].intern())) {
-										multivalueObject.put(TYPE, nameFromSubSetParts[1].intern());
+									if (!DEFAULT.equals(nameFromSubSetParts[1])) {
+										multivalueObject.put(TYPE, nameFromSubSetParts[1]);
 									}
 									if (operation != null) {
 										if (DELETE.equals(operation)) {
@@ -392,7 +392,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		String mainAttributeName = "";
 
-		ArrayList<String> checkedNames = new ArrayList<String>();
+		List<String> checkedNames = new ArrayList<String>();
 
 		Set<Attribute> specialMlAttributes = new HashSet<Attribute>();
 		for (Attribute i : multiValueAttribute) {
@@ -400,19 +400,19 @@ public class UserDataBuilder implements ObjectTranslator {
 			String[] attributeNameParts = attributeName.split(DELIMITER); // e.g.
 			// name.givenName
 
-			if (checkedNames.contains(attributeNameParts[0].intern())) {
+			if (checkedNames.contains(attributeNameParts[0])) {
 			} else {
 				JSONObject jObject = new JSONObject();
-				mainAttributeName = attributeNameParts[0].intern();
+				mainAttributeName = attributeNameParts[0];
 				checkedNames.add(mainAttributeName);
 				for (Attribute j : multiValueAttribute) {
 					String secondLoopAttributeName = j.getName();
 					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split(DELIMITER); // e.g.
 					// name.givenName
-					if (secondLoopAttributeNameParts[0].intern().equals(mainAttributeName)
+					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)
 							&& !mainAttributeName.equals(SCHEMA)) {
 						jObject.put(secondLoopAttributeNameParts[1], AttributeUtil.getSingleValue(j));
-					} else if (secondLoopAttributeNameParts[0].intern().equals(mainAttributeName)
+					} else if (secondLoopAttributeNameParts[0].equals(mainAttributeName)
 							&& mainAttributeName.equals(SCHEMA)) {
 						specialMlAttributes.add(j);
 
@@ -430,10 +430,10 @@ public class UserDataBuilder implements ObjectTranslator {
 						String innerName = specialAtribute.getName();
 						String[] innerKeyParts = innerName.split(DELIMITER); // e.g.
 						// name.givenName
-						if (innerKeyParts[1].intern().equals(TYPE) && !nameWasSet) {
+						if (innerKeyParts[1].equals(TYPE) && !nameWasSet) {
 							sMlAttributeName = AttributeUtil.getAsStringValue(specialAtribute);
 							nameWasSet = true;
-						} else if (!innerKeyParts[1].intern().equals(TYPE)) {
+						} else if (!innerKeyParts[1].equals(TYPE)) {
 
 							jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(specialAtribute));
 						}

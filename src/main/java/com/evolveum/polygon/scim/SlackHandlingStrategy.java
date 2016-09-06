@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -87,11 +87,11 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 		}
 		for (String key : resourceJsonObject.keySet()) {
 			Object attribute = resourceJsonObject.get(key);
-			if ("meta".equals(key.intern()) || SCHEMAS.equals(key.intern()) || PHOTOS.equals(key.intern())) {
+			if ("meta".equals(key) || SCHEMAS.equals(key) || PHOTOS.equals(key)) {
 
 				LOGGER.warn(
 						"Processing trought \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.",
-						key.intern());
+						key);
 			} else
 
 			if (attribute instanceof JSONArray) {
@@ -102,11 +102,11 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 				Collection<Object> attributeValues = new ArrayList<Object>();
 
 				for (Object o : jArray) {
-					StringBuilder objectNameBilder = new StringBuilder(key.intern());
+					StringBuilder objectNameBilder = new StringBuilder(key);
 					String objectKeyName = "";
 					if (o instanceof JSONObject) {
 						for (String s : ((JSONObject) o).keySet()) {
-							if (TYPE.equals(s.intern())) {
+							if (TYPE.equals(s)) {
 								objectKeyName = objectNameBilder.append(".").append(((JSONObject) o).get(s)).toString();
 								objectNameBilder.delete(0, objectNameBilder.length());
 								break;
@@ -115,15 +115,14 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 						for (String s : ((JSONObject) o).keySet()) {
 
-							if (TYPE.equals(s.intern())) {
+							if (TYPE.equals(s)) {
 							} else {
 
 								if (!"".equals(objectKeyName)) {
-									objectNameBilder = objectNameBilder.append(objectKeyName).append(".")
-											.append(s.intern());
+									objectNameBilder = objectNameBilder.append(objectKeyName).append(".").append(s);
 								} else {
 									objectKeyName = objectNameBilder.append(".").append(DEFAULT).toString();
-									objectNameBilder = objectNameBilder.append(".").append(s.intern());
+									objectNameBilder = objectNameBilder.append(".").append(s);
 								}
 
 								if (attributeValues.isEmpty()) {
@@ -161,7 +160,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 			} else if (attribute instanceof JSONObject) {
 				for (String s : ((JSONObject) attribute).keySet()) {
 
-					StringBuilder objectNameBilder = new StringBuilder(key.intern());
+					StringBuilder objectNameBilder = new StringBuilder(key);
 					cob.addAttribute(objectNameBilder.append(".").append(s).toString(),
 							((JSONObject) attribute).get(s));
 
@@ -175,9 +174,9 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 					if (!resourceJsonObject.get(key).equals(null)) {
 
-						cob.addAttribute(key.intern(), resourceJsonObject.get(key));
+						cob.addAttribute(key, resourceJsonObject.get(key));
 					} else {
-						cob.addAttribute(key.intern(), "");
+						cob.addAttribute(key, "");
 
 					}
 				}
@@ -247,7 +246,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 			if (attributeName == null) {
 				for (String subAttributeNameKeys : attribute.keySet()) {
-					if (NAME.equals(subAttributeNameKeys.intern())) {
+					if (NAME.equals(subAttributeNameKeys)) {
 						attributeName = attribute.get(subAttributeNameKeys).toString();
 						LOGGER.info("The attribute which is being processed is: {0}", attributeName);
 						break;
@@ -256,7 +255,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 			}
 
 			for (String nameKey : attribute.keySet()) {
-				if (MULTIVALUED.equals(nameKey.intern())) {
+				if (MULTIVALUED.equals(nameKey)) {
 					isMultiValued = (Boolean) attribute.get(nameKey);
 					break;
 				}
@@ -269,7 +268,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 				subAttributeMap = parser.parseSubAttribute(subAttribute, subAttributeMap);
 			}
 			for (String typeKey : subAttributeMap.keySet()) {
-				if (TYPE.equals(typeKey.intern())) {
+				if (TYPE.equals(typeKey)) {
 					hasTypeValues = true;
 					break;
 				}
@@ -290,7 +289,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 						String sringReferenceValue = (String) referenceValues.get(j);
 						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-							if (!TYPE.equals(subAttributeKeyNames.intern())) { // TODO
+							if (!TYPE.equals(subAttributeKeyNames)) { // TODO
 								// some
 								// other
 								// complex
@@ -310,7 +309,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 						}
 					}
 				} else {
-					ArrayList<String> defaultReferenceTypeValues = new ArrayList<String>();
+					List<String> defaultReferenceTypeValues = new ArrayList<String>();
 					defaultReferenceTypeValues.add("User");
 					defaultReferenceTypeValues.add("Group");
 
@@ -318,7 +317,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 					defaultReferenceTypeValues.add("uri");
 
 					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-						if (!TYPE.equals(subAttributeKeyNames.intern())) {
+						if (!TYPE.equals(subAttributeKeyNames)) {
 							for (String defaultTypeReferenceValues : defaultReferenceTypeValues) {
 								StringBuilder complexAttrName = new StringBuilder(attributeName);
 								complexAttrName.append(".").append(defaultTypeReferenceValues);
@@ -344,7 +343,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
 						StringBuilder complexAttrName = new StringBuilder(attributeName);
 
-						HashMap<String, Object> subattributeKeyMap = (HashMap<String, Object>) subAttributeMap
+						Map<String, Object> subattributeKeyMap = (HashMap<String, Object>) subAttributeMap
 								.get(subAttributeKeyNames);
 
 						for (String attributePropertie : subattributeKeyMap.keySet()) {
@@ -366,7 +365,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 			for (String attributeNameKeys : attribute.keySet()) {
 
-				if (NAME.equals(attributeNameKeys.intern())) {
+				if (NAME.equals(attributeNameKeys)) {
 					attributeName = attribute.get(attributeNameKeys).toString();
 
 				} else {
@@ -385,17 +384,16 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 	public ObjectClassInfoBuilder schemaBuilder(String attributeName, Map<String, Map<String, Object>> attributeMap,
 			ObjectClassInfoBuilder builder, SchemaObjectBuilderGeneric schemaBuilder) {
 
-		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
+		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName);
 
 		if (!ACTIVE.equals(attributeName) && !(("emails.default.primary".equals(attributeName)
 				|| "emails.default.value".equals(attributeName)))) {
 			Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
 			schemaSubPropertiesMap = attributeMap.get(attributeName);
 			for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
-				if ("subattributes".equals(subPropertieName.intern())
-						|| "subAttributes".equals(subPropertieName.intern())) {
+				if ("subattributes".equals(subPropertieName) || "subAttributes".equals(subPropertieName)) {
 					// TODO check positive cases
-					infoBuilder = new AttributeInfoBuilder(attributeName.intern());
+					infoBuilder = new AttributeInfoBuilder(attributeName);
 					JSONArray jsonArray = new JSONArray();
 
 					jsonArray = ((JSONArray) schemaSubPropertiesMap.get(subPropertieName));
@@ -462,8 +460,8 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public HashSet<Attribute> attributeInjection(HashSet<Attribute> injectedAttributeSet,
-			HashMap<String, Object> autoriazationData) {
+	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
+			Map<String, Object> autoriazationData) {
 		return injectedAttributeSet;
 	}
 
@@ -474,7 +472,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 				resourceName);
 		if ("Users".equals(resourceName)) {
 
-			HashMap<String, String> missingAttirbutes = new HashMap<String, String>();
+			Map<String, String> missingAttirbutes = new HashMap<String, String>();
 			missingAttirbutes.put(USERNAME, USERNAME);
 			missingAttirbutes.put(NICKNAME, NICKNAME);
 			missingAttirbutes.put(TITLE, TITLE);
@@ -736,7 +734,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public HashSet<Attribute> addAttributeToInject(HashSet<Attribute> injectetAttributeSet) {
+	public Set<Attribute> addAttributeToInject(Set<Attribute> injectetAttributeSet) {
 		Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank", SCHEMAVALUE);
 		injectetAttributeSet.add(schemaAttribute);
 		return injectetAttributeSet;

@@ -57,11 +57,11 @@ public class ParserSchemaScim {
 	}
 
 	public Map<String, Object> parseSubAttribute(JSONObject subAttribute, Map<String, Object> subAttributeMap) {
-		HashMap<String, Object> attributeObjects = new HashMap<String, Object>();
+		Map<String, Object> attributeObjects = new HashMap<String, Object>();
 		String subAttributeName = null;
 		for (String subAttrName : subAttribute.keySet()) {
 
-			if ("name".equals(subAttrName.intern())) {
+			if ("name".equals(subAttrName)) {
 				subAttributeName = subAttribute.get(subAttrName).toString();
 			} else {
 				attributeObjects.put(subAttrName, subAttribute.get(subAttrName));

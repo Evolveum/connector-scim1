@@ -151,7 +151,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	public Uid create(ObjectClass object, Set<Attribute> attribute, OperationOptions options) {
 		LOGGER.info("Resource object create");
 
-		HashSet<Attribute> injectetAttributeSet = new HashSet<Attribute>();
+		Set<Attribute> injectetAttributeSet = new HashSet<Attribute>();
 
 		if (attribute == null || attribute.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty", attribute);
@@ -365,7 +365,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Test");
 
 		if (crudManager != null && configuration != null) {
-			HashMap<String, Object> autoriazationData = crudManager.logIntoService(configuration);
+			Map<String, Object> autoriazationData = crudManager.logIntoService(configuration);
 
 			if (autoriazationData != null && !autoriazationData.isEmpty()) {
 
@@ -441,7 +441,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (genericsCanBeApplied) {
 
-				if (endpointName.intern() == ObjectClass.ACCOUNT.getObjectClassValue().intern()) {
+				if (ObjectClass.ACCOUNT.getObjectClassValue().equals(endpointName)) {
 					if (query == null) {
 
 						crudManager.qeuery(queryUriSnippet.toString(), USERS, handler, configuration);
@@ -452,7 +452,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 						qIsFilter(USERS, query, handler, queryUriSnippet);
 					}
-				} else if (endpointName.intern() == ObjectClass.GROUP.getObjectClassValue().intern()) {
+				} else if (ObjectClass.GROUP.getObjectClassValue().equals(endpointName)) {
 					if (query == null) {
 						crudManager.qeuery(queryUriSnippet.toString(), GROUPS, handler, configuration);
 
@@ -605,7 +605,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			hlAtrribute = schemaParser.gethlAttributeMapList().get(iterator);
 
 			for (String key : hlAtrribute.keySet()) {
-				if ("endpoint".equals(key.intern())) {
+				if ("endpoint".equals(key)) {
 					String schemaName = hlAtrribute.get(key);
 					ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap, schemaName,
 							providerName);

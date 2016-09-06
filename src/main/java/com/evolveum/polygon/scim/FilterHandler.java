@@ -180,7 +180,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 					return f.accept(this, p);
 				}
 			}
-			AndFilter andFilterTest = (AndFilter) FilterBuilder.and(filterList);
+			Filter andFilterTest = (AndFilter) FilterBuilder.and(filterList);
 
 			return andFilterTest.accept(this, p);
 
@@ -542,12 +542,12 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 				if (filter instanceof EqualsFilter) {
 
 					StringBuilder keyName = new StringBuilder(keyParts[0]).append(".").append(keyParts[2]);
-					EqualsFilter eqfilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder
-							.build(keyName.toString(), AttributeUtil.getAsStringValue(filter.getAttribute())));
+					Filter eqfilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(keyName.toString(),
+							AttributeUtil.getAsStringValue(filter.getAttribute())));
 
 					StringBuilder type = new StringBuilder(keyParts[0]).append(".").append(TYPE);
 
-					EqualsFilter eq = (EqualsFilter) FilterBuilder
+					Filter eq = (EqualsFilter) FilterBuilder
 							.equalTo(AttributeBuilder.build(type.toString(), keyParts[1]));
 					filterList.add(eqfilter);
 					filterList.add(eq);
@@ -558,7 +558,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 					filterList = buildValueList((ContainsAllValuesFilter) filter, keyParts[2]);
 
-					EqualsFilter eq = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(TYPE, keyParts[1]));
+					Filter eq = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(TYPE, keyParts[1]));
 					filterList.add(eq);
 
 				} else {
@@ -566,7 +566,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 							filter);
 					return null;
 				}
-				AndFilter and = (AndFilter) FilterBuilder.and(filterList);
+				Filter and = (AndFilter) FilterBuilder.and(filterList);
 
 				processedString = and.accept(this, p);
 				return processedString;
@@ -600,11 +600,11 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		for (Object value : valueList) {
 			if (attributeName.isEmpty()) {
 
-				ContainsFilter containsSingleAtribute = (ContainsFilter) FilterBuilder
+				Filter containsSingleAtribute = (ContainsFilter) FilterBuilder
 						.contains(AttributeBuilder.build(filter.getName(), value));
 				filterList.add(containsSingleAtribute);
 			} else {
-				EqualsFilter containsSingleAtribute = (EqualsFilter) FilterBuilder
+				Filter containsSingleAtribute = (EqualsFilter) FilterBuilder
 						.equalTo(AttributeBuilder.build(attributeName, value));
 				filterList.add(containsSingleAtribute);
 			}

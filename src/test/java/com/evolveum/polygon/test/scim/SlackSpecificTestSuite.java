@@ -47,7 +47,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		pageSize = 1;
 		pageOffset = 1;
 
-		testNumber = 133;
+		testNumber = 134;
 
 		HashMap<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("endpoint", "/scim");

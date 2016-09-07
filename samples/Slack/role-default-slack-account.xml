@@ -4,11 +4,11 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="056f714a-efac-476f-b38e-9588b4907e5b"
-      version="3">
+      oid="5ae47cad-f67d-4b34-a97b-03315666db68"
+      version="1">
    <name>Default slack account</name>
    <metadata>
-      <createTimestamp>2016-07-01T14:32:58.978+02:00</createTimestamp>
+      <createTimestamp>2016-09-05T13:20:30.302+02:00</createTimestamp>
       <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
    </metadata>
@@ -17,8 +17,8 @@
    <inducement id="1">
       <construction>
          <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                      oid="27ab4011-7671-437c-aa5d-f45e62ad73b0"
-                      type="tns:ResourceType"><!-- slack-scim-connector --></resourceRef>
+                      oid="6b72d438-503c-482b-a704-b3172a874264"
+                      type="tns:ResourceType"><!-- slack-connector-scim --></resourceRef>
          <kind>account</kind>
       </construction>
    </inducement>

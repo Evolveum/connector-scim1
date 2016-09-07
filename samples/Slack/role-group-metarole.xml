@@ -5,7 +5,7 @@
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       oid="1a641f93-0e91-4e23-9dc7-21523c7688ba"
-      version="6">
+      version="8">
    <name>group metarole slack</name>
    <metadata>
       <createTimestamp>2016-08-12T13:59:22.396+02:00</createTimestamp>
@@ -17,8 +17,8 @@
    <inducement id="1">
       <construction>
          <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                      oid="27ab4011-7671-437c-aa5d-f45e62ad73b0"
-                      type="tns:ResourceType"/>
+                      oid="6b72d438-503c-482b-a704-b3172a874264"
+                      type="tns:ResourceType"><!-- slack-connector-scim --></resourceRef>
          <kind>account</kind>
          <intent>default</intent>
          <association>

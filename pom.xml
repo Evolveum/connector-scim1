@@ -3,10 +3,9 @@
   <modelVersion>4.0.0</modelVersion>
 
 <parent>
-	<artifactId>polygon</artifactId>
         <groupId>com.evolveum.polygon</groupId>
         <version>1.4.2.16</version> 
-        <relativePath>../polygon/connector-parent/pom.xml</relativePath>
+        <artifactId>connector-parent</artifactId>
 </parent>
     
         

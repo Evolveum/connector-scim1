@@ -3,7 +3,6 @@ package com.evolveum.polygon.scim;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -298,13 +297,10 @@ public class CrudManagerScim {
 						try {
 							if (query instanceof Uid) {
 
-								StrategyFetcher fetcher = new StrategyFetcher();
+								BuilderConnectorObject builder = new BuilderConnectorObject();
 
-								HandlingStrategy strategy = fetcher.fetchStrategy(scimBaseUri);
-
-								ConnectorObject connectorObject = strategy.buildConnectorObject(jsonObject,
-										resourceEndPoint);
-
+								ConnectorObject connectorObject = builder.buildConnectorObject(jsonObject,
+										resourceEndPoint, scimBaseUri);
 								resultHandler.handle(connectorObject);
 
 							} else {
@@ -353,12 +349,9 @@ public class CrudManagerScim {
 															"The {0}. resource json object which was returned by the service provider: {1}",
 															i + 1, fullResourcejson);
 
-													StrategyFetcher fetcher = new StrategyFetcher();
-
-													HandlingStrategy strategy = fetcher.fetchStrategy(scimBaseUri);
-
-													ConnectorObject connectorObject = strategy
-															.buildConnectorObject(fullResourcejson, resourceEndPoint);
+													BuilderConnectorObject builder = new BuilderConnectorObject();
+													ConnectorObject connectorObject = builder.buildConnectorObject(
+															fullResourcejson, resourceEndPoint, scimBaseUri);
 
 													resultHandler.handle(connectorObject);
 
@@ -1248,13 +1241,9 @@ public class CrudManagerScim {
 														"The {0}. resource json object which was returned by the service provider: {1}",
 														i + 1, fullResourcejson.toString(1));
 
-												StrategyFetcher fetcher = new StrategyFetcher();
-
-												HandlingStrategy strategy = fetcher.fetchStrategy(scimBaseUri);
-
-												ConnectorObject connectorObject = strategy.buildConnectorObject(
-														fullResourcejson, membershipResourceEndpoin);
-
+												BuilderConnectorObject build = new BuilderConnectorObject();
+												ConnectorObject connectorObject = build.buildConnectorObject(
+														fullResourcejson, membershipResourceEndpoin, scimBaseUri);
 												resultHandler.handle(connectorObject);
 
 											} else {

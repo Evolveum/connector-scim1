@@ -2,7 +2,6 @@ package com.evolveum.polygon.scim;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,14 +17,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
-import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
-import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -48,138 +43,6 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	private static final String CANONICALVALUES = "canonicalValues";
 	private static final String REFERENCETYPES = "referenceTypes";
 	private static final String CONTENTTYPE = "application/json";
-
-	@Override
-	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint)
-			throws ConnectorException {
-
-		LOGGER.info("Building the connector object from provided json");
-
-		if (resourceJsonObject == null) {
-			LOGGER.error(
-					"Empty json object was passed from data provider. Error occurrence while building connector object");
-			throw new ConnectorException(
-					"Empty json object was passed from data provider. Error occurrence while building connector object");
-		}
-
-		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
-		cob.setUid(resourceJsonObject.getString(ID));
-
-		if ("Users".equals(resourceEndPoint)) {
-			cob.setName(resourceJsonObject.getString("userName"));
-		} else if ("Groups".equals(resourceEndPoint)) {
-
-			cob.setName(resourceJsonObject.getString("displayName"));
-			cob.setObjectClass(ObjectClass.GROUP);
-		} else {
-			cob.setName(resourceJsonObject.getString("displayName"));
-			ObjectClass objectClass = new ObjectClass(resourceEndPoint);
-			cob.setObjectClass(objectClass);
-
-		}
-		for (String key : resourceJsonObject.keySet()) {
-			Object attribute = resourceJsonObject.get(key);
-			if ("meta".equals(key) || "alias".equals(key) || "schemas".equals(key)) {
-
-				LOGGER.warn(
-						"Processing trought \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.",
-						key);
-			} else
-
-			if (attribute instanceof JSONArray) {
-
-				JSONArray jArray = (JSONArray) attribute;
-
-				Map<String, Collection<Object>> multivaluedAttributeMap = new HashMap<String, Collection<Object>>();
-				Collection<Object> attributeValues = new ArrayList<Object>();
-
-				for (Object o : jArray) {
-					StringBuilder objectNameBilder = new StringBuilder(key);
-					String objectKeyName = "";
-					if (o instanceof JSONObject) {
-						for (String s : ((JSONObject) o).keySet()) {
-							if (TYPE.equals(s)) {
-								objectKeyName = objectNameBilder.append(".").append(((JSONObject) o).get(s)).toString();
-								objectNameBilder.delete(0, objectNameBilder.length());
-								break;
-							}
-						}
-
-						for (String s : ((JSONObject) o).keySet()) {
-
-							if (TYPE.equals(s)) {
-							} else {
-
-								if (!"".equals(objectKeyName)) {
-									objectNameBilder = objectNameBilder.append(objectKeyName).append(".")
-											.append(s);
-								} else {
-									objectKeyName = objectNameBilder.append(".").append(DEFAULT).toString();
-									objectNameBilder = objectNameBilder.append(".").append(s);
-								}
-
-								if (attributeValues.isEmpty()) {
-									attributeValues.add(((JSONObject) o).get(s));
-									multivaluedAttributeMap.put(objectNameBilder.toString(), attributeValues);
-								} else {
-									if (multivaluedAttributeMap.containsKey(objectNameBilder.toString())) {
-										attributeValues = multivaluedAttributeMap.get(objectNameBilder.toString());
-										attributeValues.add(((JSONObject) o).get(s));
-									} else {
-										Collection<Object> newAttributeValues = new ArrayList<Object>();
-										newAttributeValues.add(((JSONObject) o).get(s));
-										multivaluedAttributeMap.put(objectNameBilder.toString(), newAttributeValues);
-									}
-
-								}
-								objectNameBilder.delete(0, objectNameBilder.length());
-
-							}
-						}
-
-					} else {
-						objectKeyName = objectNameBilder.append(".").append(o.toString()).toString();
-						cob.addAttribute(objectKeyName, o);
-					}
-				}
-
-				if (!multivaluedAttributeMap.isEmpty()) {
-					for (String attributeName : multivaluedAttributeMap.keySet()) {
-						cob.addAttribute(attributeName, multivaluedAttributeMap.get(attributeName));
-					}
-
-				}
-
-			} else if (attribute instanceof JSONObject) {
-				for (String s : ((JSONObject) attribute).keySet()) {
-
-					StringBuilder objectNameBilder = new StringBuilder(key);
-					cob.addAttribute(objectNameBilder.append(".").append(s).toString(),
-							((JSONObject) attribute).get(s));
-
-				}
-
-			} else {
-
-				if ("active".equals(key)) {
-					cob.addAttribute("__ENABLE__", resourceJsonObject.get(key));
-				} else {
-
-					if (!resourceJsonObject.get(key).equals(null)) {
-
-						cob.addAttribute(key, resourceJsonObject.get(key));
-					} else {
-						cob.addAttribute(key, "");
-
-					}
-				}
-			}
-		}
-		ConnectorObject finalConnectorObject = cob.build();
-		LOGGER.info("The connector object returned for the processed json: {0}", finalConnectorObject);
-		return finalConnectorObject;
-
-	}
 
 	@Override
 	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
@@ -543,5 +406,22 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	@Override
 	public Set<Attribute> addAttributeToInject(Set<Attribute> injectetAttributeSet) {
 		return injectetAttributeSet;
+	}
+
+	@Override
+	public List<String> excludeFromAssembly(List<String> excludedAttributes) {
+
+		excludedAttributes.add("schemas");
+		excludedAttributes.add("meta");
+		excludedAttributes.add("alias");
+
+		return excludedAttributes;
+	}
+
+	@Override
+	public Map<String, Object> translateReferenceValues(Map<String, Map<String, Object>> attributeMap,
+			JSONArray referenceValues, Map<String, Object> subAttributeMap, int position, String attributeName) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

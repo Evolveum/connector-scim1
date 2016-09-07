@@ -1,7 +1,5 @@
 package com.evolveum.polygon.scim;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,22 +7,19 @@ import java.util.Set;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.message.BasicHeader;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public interface HandlingStrategy {
 
 	Header PRETTYPRINTHEADER = new BasicHeader("X-PrettyPrint", "1");
 
-	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint)
-			throws ConnectorException;
+	public List<String> excludeFromAssembly(List<String> excludedAttributes);
 
 	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
 			CrudManagerScim manager);
@@ -34,6 +29,9 @@ public interface HandlingStrategy {
 
 	public StringBuilder processContainsAllValuesFilter(String p, ContainsAllValuesFilter filter,
 			FilterHandler filterHandler);
+
+	public Map<String, Object> translateReferenceValues(Map<String, Map<String, Object>> attributeMap,
+			JSONArray referenceValues, Map<String, Object> subAttributeMap, int position, String attributeName);
 
 	public Map<String, Map<String, Object>> parseAttribute(JSONObject attribute,
 			Map<String, Map<String, Object>> attributeMap, ParserSchemaScim parser);

@@ -1,28 +1,18 @@
 package com.evolveum.polygon.scim;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.ParseException;
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
-import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
-import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
-import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
@@ -30,10 +20,9 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class SlackHandlingStrategy implements HandlingStrategy {
+public class SlackHandlingStrategy extends StandardScimHandlingStrategy implements HandlingStrategy {
 
 	private static final Log LOGGER = Log.getLog(SlackHandlingStrategy.class);
-	private static final String ID = "id";
 	private static final String TYPE = "type";
 	private static final String DEFAULT = "default";
 	private static final String MULTIVALUED = "multiValued";
@@ -58,171 +47,12 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 	private static final String STRING = "string";
 
 	@Override
-	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint)
-			throws ConnectorException {
-
-		LOGGER.info("Building the connector object from provided json");
-
-		if (resourceJsonObject == null) {
-			LOGGER.error(
-					"Empty json object was passed from data provider. Error ocourance while building connector object");
-			throw new ConnectorException(
-					"Empty json object was passed from data provider. Error ocourance while building connector object");
-		}
-
-		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
-		cob.setUid(resourceJsonObject.getString(ID));
-
-		if ("Users".equals(resourceEndPoint)) {
-			cob.setName(resourceJsonObject.getString(USERNAME));
-		} else if ("Groups".equals(resourceEndPoint)) {
-
-			cob.setName(resourceJsonObject.getString(DISPLAYNAME));
-			cob.setObjectClass(ObjectClass.GROUP);
-		} else {
-			cob.setName(resourceJsonObject.getString(DISPLAYNAME));
-			ObjectClass objectClass = new ObjectClass(resourceEndPoint);
-			cob.setObjectClass(objectClass);
-
-		}
-		for (String key : resourceJsonObject.keySet()) {
-			Object attribute = resourceJsonObject.get(key);
-			if ("meta".equals(key) || SCHEMAS.equals(key) || PHOTOS.equals(key)) {
-
-				LOGGER.warn(
-						"Processing trought \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.",
-						key);
-			} else
-
-			if (attribute instanceof JSONArray) {
-
-				JSONArray jArray = (JSONArray) attribute;
-
-				Map<String, Collection<Object>> multivaluedAttributeMap = new HashMap<String, Collection<Object>>();
-				Collection<Object> attributeValues = new ArrayList<Object>();
-
-				for (Object o : jArray) {
-					StringBuilder objectNameBilder = new StringBuilder(key);
-					String objectKeyName = "";
-					if (o instanceof JSONObject) {
-						for (String s : ((JSONObject) o).keySet()) {
-							if (TYPE.equals(s)) {
-								objectKeyName = objectNameBilder.append(".").append(((JSONObject) o).get(s)).toString();
-								objectNameBilder.delete(0, objectNameBilder.length());
-								break;
-							}
-						}
-
-						for (String s : ((JSONObject) o).keySet()) {
-
-							if (TYPE.equals(s)) {
-							} else {
-
-								if (!"".equals(objectKeyName)) {
-									objectNameBilder = objectNameBilder.append(objectKeyName).append(".").append(s);
-								} else {
-									objectKeyName = objectNameBilder.append(".").append(DEFAULT).toString();
-									objectNameBilder = objectNameBilder.append(".").append(s);
-								}
-
-								if (attributeValues.isEmpty()) {
-									attributeValues.add(((JSONObject) o).get(s));
-									multivaluedAttributeMap.put(objectNameBilder.toString(), attributeValues);
-								} else {
-									if (multivaluedAttributeMap.containsKey(objectNameBilder.toString())) {
-										attributeValues = multivaluedAttributeMap.get(objectNameBilder.toString());
-										attributeValues.add(((JSONObject) o).get(s));
-									} else {
-										Collection<Object> newAttributeValues = new ArrayList<Object>();
-										newAttributeValues.add(((JSONObject) o).get(s));
-										multivaluedAttributeMap.put(objectNameBilder.toString(), newAttributeValues);
-									}
-
-								}
-								objectNameBilder.delete(0, objectNameBilder.length());
-
-							}
-						}
-
-					} else {
-						objectKeyName = objectNameBilder.append(".").append(o.toString()).toString();
-						cob.addAttribute(objectKeyName, o);
-					}
-				}
-
-				if (!multivaluedAttributeMap.isEmpty()) {
-					for (String attributeName : multivaluedAttributeMap.keySet()) {
-						cob.addAttribute(attributeName, multivaluedAttributeMap.get(attributeName));
-					}
-
-				}
-
-			} else if (attribute instanceof JSONObject) {
-				for (String s : ((JSONObject) attribute).keySet()) {
-
-					StringBuilder objectNameBilder = new StringBuilder(key);
-					cob.addAttribute(objectNameBilder.append(".").append(s).toString(),
-							((JSONObject) attribute).get(s));
-
-				}
-
-			} else {
-
-				if (ACTIVE.equals(key)) {
-					cob.addAttribute("__ENABLE__", resourceJsonObject.get(key));
-				} else {
-
-					if (!resourceJsonObject.get(key).equals(null)) {
-
-						cob.addAttribute(key, resourceJsonObject.get(key));
-					} else {
-						cob.addAttribute(key, "");
-
-					}
-				}
-			}
-		}
-		ConnectorObject finalConnectorObject = cob.build();
-		LOGGER.info("The connector object returned for the processed json: {0}", finalConnectorObject);
-		return finalConnectorObject;
-
-	}
-
-	@Override
-	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
-			CrudManagerScim manager) {
-		try {
-			manager.onNoSuccess(response, "updating object");
-		} catch (ParseException e) {
-
-			LOGGER.error("An exception has occurred while parsing the http response : {0}", e.getLocalizedMessage());
-			LOGGER.info("An exception has occurred while parsing the http response : {0}", e);
-
-			throw new ConnectorException("An exception has occurred while parsing the http response : {0}", e);
-
-		} catch (IOException e) {
-
-			LOGGER.error(
-					"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
-					e.getLocalizedMessage());
-			LOGGER.info(
-					"An error has occurred while processing the http response. Occurrence in the process of creating a resource object: {0}",
-					e);
-
-			throw new ConnectorIOException(
-					"An error has occurred while processing the http response. Occurrence in the process of creating a resource object",
-					e);
-
-		}
-		return null;
-	}
-
-	@Override
 	public StringBuilder processContainsAllValuesFilter(String p, ContainsAllValuesFilter filter,
 			FilterHandler handler) {
 		return null;
 	}
 
+	// TODO simplifi
 	@Override
 	public Map<String, Map<String, Object>> parseAttribute(JSONObject attribute,
 			Map<String, Map<String, Object>> attributeMap, ParserSchemaScim parser) {
@@ -276,7 +106,7 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 
 			if (hasTypeValues) {
 				Map<String, Object> typeObject = new HashMap<String, Object>();
-				typeObject = (Map<String, Object>) subAttributeMap.get(TYPE);
+				typeObject = (HashMap<String, Object>) subAttributeMap.get(TYPE);
 				if (typeObject.containsKey(CANONICALVALUES) || typeObject.containsKey(REFERENCETYPES)) {
 					JSONArray referenceValues = new JSONArray();
 					if (typeObject.containsKey(CANONICALVALUES)) {
@@ -738,6 +568,15 @@ public class SlackHandlingStrategy implements HandlingStrategy {
 		Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank", SCHEMAVALUE);
 		injectetAttributeSet.add(schemaAttribute);
 		return injectetAttributeSet;
+	}
+
+	@Override
+	public List<String> excludeFromAssembly(List<String> excludedAttributes) {
+		excludedAttributes.add("meta");
+		excludedAttributes.add("schemas");
+		excludedAttributes.add(PHOTOS);
+
+		return excludedAttributes;
 	}
 
 }

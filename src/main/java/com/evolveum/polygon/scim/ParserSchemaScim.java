@@ -59,22 +59,26 @@ public class ParserSchemaScim {
 		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
 
 		StrategyFetcher fetcher = new StrategyFetcher();
-		HandlingStrategy strategy = fetcher.fetchStrategy(providerName);
-
+		HandlingStrategy strategy=fetcher.fetchStrategy(providerName);
+		
 		List<String> dictionary = strategy.populateDictionary("schemaparser-workaround");
-
-		for (int position = 0; position < dictionary.size(); position++) {
-			nameFromDictionary = dictionary.get(position);
-
-			if (attribute.has(nameFromDictionary)) {
-
+					
+		
+		for(int position=0; position<dictionary.size();position++){
+			 nameFromDictionary =dictionary.get(position);
+			
+			
+			 
+			if(attribute.has(nameFromDictionary)){
+				
 				hasSubAttributes = true;
 				break;
 			}
-
+			
 		}
 		if (hasSubAttributes) {
-
+			
+			
 			boolean hasTypeValues = false;
 			JSONArray subAttributes = new JSONArray();
 			subAttributes = (JSONArray) attribute.get(nameFromDictionary);
@@ -86,7 +90,7 @@ public class ParserSchemaScim {
 					}
 				}
 			}
-
+			
 			for (String nameKey : attribute.keySet()) {
 				if (MULTIVALUED.equals(nameKey)) {
 					isMultiValued = (Boolean) attribute.get(nameKey);
@@ -136,8 +140,9 @@ public class ParserSchemaScim {
 
 					}
 				} else {
-					// default set of canonical values.
-
+					//default set of canonical values.
+					
+					
 					List<String> defaultReferenceTypeValues = new ArrayList<String>();
 					defaultReferenceTypeValues.add("User");
 					defaultReferenceTypeValues.add("Group");

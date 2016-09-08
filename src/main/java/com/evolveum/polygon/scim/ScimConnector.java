@@ -252,6 +252,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		this.crudManager = new CrudManagerScim();
 
 		// For workaround purposes
+		// TODO
 
 		if (this.configuration.getLoginURL() != null && !this.configuration.getLoginURL().isEmpty()) {
 

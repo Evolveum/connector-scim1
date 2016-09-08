@@ -523,7 +523,7 @@ public class CrudManagerScim {
 					JSONObject jsonObject = new JSONObject(responseString);
 
 					long startTime = System.currentTimeMillis();
-					ParserSchemaScim schemaParser = processSchemaResponse(jsonObject, providerName);
+					ParserSchemaScim schemaParser = processResponse(jsonObject, providerName);
 					long endTime = System.currentTimeMillis();
 
 					long time = (endTime - startTime);
@@ -573,7 +573,7 @@ public class CrudManagerScim {
 						}
 					}
 					responseObject.put("Resources", responseArray);
-					return processSchemaResponse(responseObject, providerName);
+					return processResponse(responseObject, providerName);
 
 				}
 
@@ -1124,7 +1124,7 @@ public class CrudManagerScim {
 	 * Method used to log out of the service.
 	 */
 
-	public ParserSchemaScim processSchemaResponse(JSONObject responseObject, String providerName) {
+	public ParserSchemaScim processResponse(JSONObject responseObject, String providerName) {
 
 		LOGGER.info("The resources json representation: {0}", responseObject.toString(1));
 		ParserSchemaScim scimParser = new ParserSchemaScim();
@@ -1319,7 +1319,7 @@ public class CrudManagerScim {
 
 	}
 
-	public static void logOut(HttpPost loginInstance) {
+	public void logOut(HttpPost loginInstance) {
 		loginInstance.releaseConnection();
 		LOGGER.info("The connection was released");
 	}

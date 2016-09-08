@@ -31,7 +31,7 @@ import org.json.JSONObject;
 
 import com.evolveum.polygon.scim.common.HttpPatch;
 
-public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy implements HandlingStrategy {
+public class SalesforceHandlingStrategy implements HandlingStrategy {
 
 	private static final Log LOGGER = Log.getLog(SalesforceHandlingStrategy.class);
 	private static final String ID = "id";

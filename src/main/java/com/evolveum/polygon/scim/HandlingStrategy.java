@@ -10,7 +10,6 @@ import org.apache.http.message.BasicHeader;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
-import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
@@ -20,24 +19,6 @@ import org.json.JSONObject;
 public interface HandlingStrategy {
 
 	Header PRETTYPRINTHEADER = new BasicHeader("X-PrettyPrint", "1");
-
-	public void qeuery(Object query, String resourceEndPoint, ResultsHandler resultHandler,
-			ScimConnectorConfiguration conf);
-
-	public ParserSchemaScim qeuerySchemas(String providerName, String resourceEndPoint,
-			ScimConnectorConfiguration conf);
-
-	public Uid create(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
-			Set<Attribute> injectedAttributeSet, ScimConnectorConfiguration conf);
-
-	public Uid update(Uid uid, String resourceEndPoint, JSONObject jsonObject, ScimConnectorConfiguration conf);
-
-	public void delete(Uid uid, String resourceEndPoint, ScimConnectorConfiguration conf);
-
-	public ParserSchemaScim processSchemaResponse(JSONObject responseObject, String providerName);
-
-	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
-			String membershipResourceEndpoin, ScimConnectorConfiguration conf);
 
 	public List<String> excludeFromAssembly(List<String> excludedAttributes);
 

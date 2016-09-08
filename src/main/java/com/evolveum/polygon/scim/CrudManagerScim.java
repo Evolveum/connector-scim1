@@ -58,7 +58,7 @@ public class CrudManagerScim {
 	 * @throws ConnectionFailedException
 	 * @throws ConnectorIOException
 	 */
-	public Map<String, Object> logIntoService(ScimConnectorConfiguration conf) {
+	public static Map<String, Object> logIntoService(ScimConnectorConfiguration conf) {
 
 		HttpPost loginInstance = new HttpPost();
 
@@ -1043,7 +1043,7 @@ public class CrudManagerScim {
 	 * @throws IOException
 	 * @throws ConnectorIOException
 	 */
-	public void onNoSuccess(HttpResponse response, String message) throws ParseException, IOException {
+	public static void onNoSuccess(HttpResponse response, String message) throws ParseException, IOException {
 
 		Integer statusCode = null;
 		StringBuilder exceptionStringBuilder = null;
@@ -1098,7 +1098,7 @@ public class CrudManagerScim {
 		throw new ConnectorIOException(exceptionString);
 	}
 
-	public StringBuilder buildErrorMessage(JSONObject responseObject, String message, int statusCode) {
+	public static StringBuilder buildErrorMessage(JSONObject responseObject, String message, int statusCode) {
 
 		String responseString = new String();
 

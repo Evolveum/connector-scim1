@@ -88,173 +88,6 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public Map<String, Map<String, Object>> parseAttribute(JSONObject attribute,
-			Map<String, Map<String, Object>> attributeMap, ParserSchemaScim parser) {
-
-		String attributeName = null;
-		Boolean isComplex = false;
-		Boolean isMultiValued = false;
-		Map<String, Object> attributeObjects = new HashMap<String, Object>();
-		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
-
-		if (attribute.has(SUBATTRIBUTES)) {
-			boolean hasTypeValues = false;
-			JSONArray subAttributes = new JSONArray();
-			subAttributes = (JSONArray) attribute.get(SUBATTRIBUTES);
-			if (attributeName == null) {
-				for (String subAttributeNameKeys : attribute.keySet()) {
-					if ("name".equals(subAttributeNameKeys)) {
-						attributeName = attribute.get(subAttributeNameKeys).toString();
-						break;
-					}
-				}
-			}
-			for (String nameKey : attribute.keySet()) {
-				if (MULTIVALUED.equals(nameKey)) {
-					isMultiValued = (Boolean) attribute.get(nameKey);
-					break;
-				}
-
-			}
-
-			for (int i = 0; i < subAttributes.length(); i++) {
-				JSONObject subAttribute = new JSONObject();
-				subAttribute = subAttributes.getJSONObject(i);
-				subAttributeMap = parser.parseSubAttribute(subAttribute, subAttributeMap);
-			}
-			for (String typeKey : subAttributeMap.keySet()) {
-				if (TYPE.equals(typeKey)) {
-					hasTypeValues = true;
-					break;
-				}
-			}
-
-			if (hasTypeValues) {
-				Map<String, Object> typeObject = new HashMap<String, Object>();
-				typeObject = (HashMap<String, Object>) subAttributeMap.get(TYPE);
-				if (typeObject.containsKey(CANONICALVALUES) || typeObject.containsKey(REFERENCETYPES)) {
-					JSONArray referenceValues = new JSONArray();
-					if (typeObject.containsKey(CANONICALVALUES)) {
-						referenceValues = (JSONArray) typeObject.get(CANONICALVALUES);
-					} else {
-						referenceValues = (JSONArray) typeObject.get(REFERENCETYPES);
-					}
-
-					for (int j = 0; j < referenceValues.length(); j++) {
-						JSONObject referenceValue = new JSONObject();
-
-						/*
-						 * Salesforce scim schema inconsistencies workaround
-						 * (canonicalValues,referenceTypes) defined as array of
-						 * json objects -> should be defined as array of string
-						 * values
-						 */
-						LOGGER.warn(
-								"Processing trought Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes) ");
-						referenceValue = ((JSONArray) referenceValues).getJSONObject(j);
-						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-							if (!TYPE.equals(subAttributeKeyNames)) { // TODO
-								// some
-								// other
-								// complex
-								// attribute
-								// names
-								// may
-								// be
-								// used
-								StringBuilder complexAttrName = new StringBuilder(attributeName);
-								attributeMap.put(
-										complexAttrName.append(".").append(referenceValue.get("value")).append(".")
-												.append(subAttributeKeyNames).toString(),
-										(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
-								isComplex = true;
-
-							}
-						}
-					}
-				} else {
-					List<String> defaultReferenceTypeValues = new ArrayList<String>();
-					defaultReferenceTypeValues.add("User");
-					defaultReferenceTypeValues.add("Group");
-
-					defaultReferenceTypeValues.add("external");
-					defaultReferenceTypeValues.add("uri");
-
-					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-						if (!TYPE.equals(subAttributeKeyNames)) {
-							for (String defaultTypeReferenceValues : defaultReferenceTypeValues) {
-								StringBuilder complexAttrName = new StringBuilder(attributeName);
-								complexAttrName.append(".").append(defaultTypeReferenceValues);
-								attributeMap.put(complexAttrName.append(".").append(subAttributeKeyNames).toString(),
-										(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
-								isComplex = true;
-							}
-						}
-
-					}
-
-				}
-
-			} else {
-				if ("roles".equals(attributeName)) {
-
-					LOGGER.warn(
-							"Processing trought salesforce \"schema inconsistencies\" workaround. Because of the \"{0}\" resoure attribute.",
-							attributeName);
-
-					isMultiValued = true;
-				}
-
-				if (!isMultiValued) {
-					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-						StringBuilder complexAttrName = new StringBuilder(attributeName);
-						attributeMap.put(complexAttrName.append(".").append(subAttributeKeyNames).toString(),
-								(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
-						isComplex = true;
-					}
-				} else {
-					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-						StringBuilder complexAttrName = new StringBuilder(attributeName);
-
-						Map<String, Object> subattributeKeyMap = (HashMap<String, Object>) subAttributeMap
-								.get(subAttributeKeyNames);
-
-						for (String attributePropertie : subattributeKeyMap.keySet()) {
-
-							if (MULTIVALUED.equals(attributePropertie)) {
-								subattributeKeyMap.put(MULTIVALUED, true);
-							}
-						}
-
-						attributeMap.put(complexAttrName.append(".").append(DEFAULT).append(".")
-								.append(subAttributeKeyNames).toString(), subattributeKeyMap);
-						isComplex = true;
-					}
-
-				}
-			}
-
-		} else {
-
-			for (String attributeNameKeys : attribute.keySet()) {
-
-				if ("name".equals(attributeNameKeys)) {
-					attributeName = attribute.get(attributeNameKeys).toString();
-
-				} else {
-					attributeObjects.put(attributeNameKeys, attribute.get(attributeNameKeys));
-				}
-
-			}
-		}
-		if (!isComplex) {
-			attributeMap.put(attributeName, attributeObjects);
-		}
-		return attributeMap;
-
-	}
-
-	@Override
 	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
 			CrudManagerScim manager) {
 
@@ -421,7 +254,62 @@ public class SalesforceHandlingStrategy implements HandlingStrategy {
 	@Override
 	public Map<String, Object> translateReferenceValues(Map<String, Map<String, Object>> attributeMap,
 			JSONArray referenceValues, Map<String, Object> subAttributeMap, int position, String attributeName) {
-		// TODO Auto-generated method stub
-		return null;
+
+		JSONObject referenceValue = new JSONObject();
+		Boolean isComplex = null;
+		Map<String, Object> processedParameters = new HashMap<String, Object>();
+
+		/*
+		 * Salesforce scim schema inconsistencies workaround
+		 * (canonicalValues,referenceTypes) defined as array of json objects ->
+		 * should be defined as array of string values
+		 */
+		LOGGER.warn(
+				"Processing trought Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes) ");
+		referenceValue = ((JSONArray) referenceValues).getJSONObject(position);
+		for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+			if (!TYPE.equals(subAttributeKeyNames)) {
+				StringBuilder complexAttrName = new StringBuilder(attributeName);
+				attributeMap.put(
+						complexAttrName.append(".").append(referenceValue.get("value")).append(".")
+								.append(subAttributeKeyNames).toString(),
+						(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+				isComplex = true;
+
+			}
+		}
+		if (isComplex != null) {
+			processedParameters.put("isComplex", isComplex);
+		}
+		processedParameters.put("attributeMap", attributeMap);
+
+		return processedParameters;
+	}
+
+	@Override
+	public List<String> populateDictionary(String flag) {
+		List<String> dictionary = new ArrayList<String>();
+
+		dictionary.add("subAttributes");
+
+		return dictionary;
+	}
+
+	@Override
+	public ObjectClassInfoBuilder injectObjectClassInfoBuilderData(ObjectClassInfoBuilder builder, String attributeName,
+			AttributeInfoBuilder infoBuilder) {
+		builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+		return builder;
+	}
+
+	@Override
+	public AttributeInfoBuilder injectAttributeInfoBuilderData(AttributeInfoBuilder infoBuilder, String attributeName) {
+
+		if ("members.User.value".equals(attributeName) || "members.Group.value".equals(attributeName)
+				|| "members.default.value".equals(attributeName) || "members.default.display".equals(attributeName)) {
+			infoBuilder.setMultiValued(true);
+		}
+
+		return infoBuilder;
 	}
 }

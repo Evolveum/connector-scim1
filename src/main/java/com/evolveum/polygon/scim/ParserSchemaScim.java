@@ -11,7 +11,6 @@ import org.json.JSONObject;
 
 public class ParserSchemaScim {
 
-	private static final String SUBATTRIBUTES = "subAttributes";
 	private static final String MULTIVALUED = "multiValued";
 	private static final String TYPE = "type";
 	private static final String CANONICALVALUES = "canonicalValues";
@@ -54,13 +53,31 @@ public class ParserSchemaScim {
 		String attributeName = null;
 		Boolean isComplex = false;
 		Boolean isMultiValued = false;
+		Boolean hasSubAttributes = false;
+		String nameFromDictionary = "";
 		Map<String, Object> attributeObjects = new HashMap<String, Object>();
 		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
 
-		if (attribute.has(SUBATTRIBUTES)) {
+		StrategyFetcher fetcher = new StrategyFetcher();
+		HandlingStrategy strategy = fetcher.fetchStrategy(providerName);
+
+		List<String> dictionary = strategy.populateDictionary("schemaparser-workaround");
+
+		for (int position = 0; position < dictionary.size(); position++) {
+			nameFromDictionary = dictionary.get(position);
+
+			if (attribute.has(nameFromDictionary)) {
+
+				hasSubAttributes = true;
+				break;
+			}
+
+		}
+		if (hasSubAttributes) {
+
 			boolean hasTypeValues = false;
 			JSONArray subAttributes = new JSONArray();
-			subAttributes = (JSONArray) attribute.get(SUBATTRIBUTES);
+			subAttributes = (JSONArray) attribute.get(nameFromDictionary);
 			if (attributeName == null) {
 				for (String subAttributeNameKeys : attribute.keySet()) {
 					if ("name".equals(subAttributeNameKeys)) {
@@ -100,9 +117,6 @@ public class ParserSchemaScim {
 						referenceValues = (JSONArray) typeObject.get(REFERENCETYPES);
 					}
 
-					StrategyFetcher fetcher = new StrategyFetcher();
-					HandlingStrategy strategy = fetcher.fetchStrategy(providerName);
-
 					for (int position = 0; position < referenceValues.length(); position++) {
 
 						Map<String, Object> processedParameters = strategy.translateReferenceValues(attributeMap,
@@ -122,6 +136,8 @@ public class ParserSchemaScim {
 
 					}
 				} else {
+					// default set of canonical values.
+
 					List<String> defaultReferenceTypeValues = new ArrayList<String>();
 					defaultReferenceTypeValues.add("User");
 					defaultReferenceTypeValues.add("Group");

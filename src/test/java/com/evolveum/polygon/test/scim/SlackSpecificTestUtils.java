@@ -3,6 +3,8 @@ package com.evolveum.polygon.test.scim;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.identityconnectors.common.logging.Log;
@@ -142,7 +144,7 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 				filter = (ContainsAllValuesFilter) FilterBuilder
 						.containsAllValues(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
 			}
-		}else if ("userequals".equalsIgnoreCase(filterType)) {
+		} else if ("userequals".equalsIgnoreCase(filterType)) {
 			if ("groups".equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder
 						.equalTo(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
@@ -167,8 +169,8 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 		return attributeSet;
 	}
 
-	public static HashMap<String, String> processResult(ArrayList<ConnectorObject> results, String resourceName,
-			String testType, Uid userTestUid, Integer testNumber) {
+	public static Map<String, String> processResult(List<ConnectorObject> result2, String resourceName, String testType,
+			Uid userTestUid, Integer testNumber) {
 
 		HashMap<String, String> evaluationResult = new HashMap<String, String>();
 
@@ -204,7 +206,7 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 
 			evaluationResult.put(createAttributeName, "#AttributeNameNotFound#");
 		}
-		for (ConnectorObject result : results) {
+		for (ConnectorObject result : result2) {
 			Set<Attribute> returnedAttributeSet = new HashSet<Attribute>();
 
 			returnedAttributeSet = result.getAttributes();

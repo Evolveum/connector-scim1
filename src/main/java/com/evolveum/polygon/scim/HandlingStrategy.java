@@ -8,6 +8,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.message.BasicHeader;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
@@ -33,8 +34,12 @@ public interface HandlingStrategy {
 	public Map<String, Object> translateReferenceValues(Map<String, Map<String, Object>> attributeMap,
 			JSONArray referenceValues, Map<String, Object> subAttributeMap, int position, String attributeName);
 
-	public Map<String, Map<String, Object>> parseAttribute(JSONObject attribute,
-			Map<String, Map<String, Object>> attributeMap, ParserSchemaScim parser);
+	public List<String> populateDictionary(String flag);
+
+	public ObjectClassInfoBuilder injectObjectClassInfoBuilderData(ObjectClassInfoBuilder builder, String attributeName,
+			AttributeInfoBuilder infoBuilder);
+
+	public AttributeInfoBuilder injectAttributeInfoBuilderData(AttributeInfoBuilder infoBuilder, String attributeName);
 
 	public ObjectClassInfoBuilder schemaBuilder(String attributeName, Map<String, Map<String, Object>> attributeMap,
 			ObjectClassInfoBuilder builder, SchemaObjectBuilderGeneric schemaBuilder);

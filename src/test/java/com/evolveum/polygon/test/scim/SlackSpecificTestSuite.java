@@ -2,6 +2,8 @@ package com.evolveum.polygon.test.scim;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -47,9 +49,9 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		pageSize = 1;
 		pageOffset = 1;
 
-		testNumber = 136;
+		testNumber = 144;
 
-		HashMap<String, String> configurationParameters = new HashMap<String, String>();
+		Map<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("endpoint", "/scim");
 		configurationParameters.put("version", "/v1");
 		configurationParameters.put("authentication", "token");
@@ -136,14 +138,14 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 		StringBuilder testType = new StringBuilder("createObject");
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
 		result = SlackSpecificTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
 				options);
 
-		HashMap<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, resourceName,
+		Map<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, resourceName,
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -175,7 +177,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	@Test(priority = 5, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllfromResourcesProvider")
 	private void listAllTest(int numberOfResources, String resourceName) {
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
@@ -191,7 +193,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest("users", updateType, userUid, groupUid, testNumber,
 				connector);
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
 
@@ -199,7 +201,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 		result = SlackSpecificTestUtils.filter("uid", "users", testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "users",
+		Map<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "users",
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -221,7 +223,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest("groups", updateType, userUid, groupUid, testNumber,
 				connector);
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
 
@@ -229,7 +231,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 		result = SlackSpecificTestUtils.filter("uid", "groups", testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "groups",
+		Map<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "groups",
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -246,7 +248,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 	@Test(priority = 7, dependsOnMethods = { "createObjectTest" }, dataProvider = "deleteProvider")
 	private void deleteObjectTest(String resourceName, Uid uid) {
 
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 

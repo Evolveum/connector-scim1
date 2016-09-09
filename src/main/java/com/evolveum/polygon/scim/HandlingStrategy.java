@@ -7,8 +7,10 @@ import java.util.Set;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.message.BasicHeader;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -34,15 +36,20 @@ public interface HandlingStrategy {
 
 	public void delete(Uid uid, String resourceEndPoint, ScimConnectorConfiguration conf);
 
-	public ParserSchemaScim processSchemaResponse(JSONObject responseObject, String providerName);
+	public ParserSchemaScim processSchemaResponse(JSONObject responseObject);
 
 	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
 			String membershipResourceEndpoin, ScimConnectorConfiguration conf);
 
 	public List<String> excludeFromAssembly(List<String> excludedAttributes);
 
-	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
-			CrudManagerScim manager);
+	public Map<String, Map<String, Object>> parseAttribute(JSONObject attribute,
+			Map<String, Map<String, Object>> attributeMap, ParserSchemaScim parser);
+
+	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint,
+			String providerName) throws ConnectorException;
+
+	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader);
 
 	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
 			Map<String, Object> autoriazationData);
@@ -69,8 +76,6 @@ public interface HandlingStrategy {
 	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject);
 
 	public String checkFilter(Filter filter, String endpointName);
-
-	public StringBuilder retrieveFilterQuery(StringBuilder queryUriSnippet, char prefixChar, Filter query);
 
 	public Set<Attribute> addAttributeToInject(Set<Attribute> injectetAttributeSet);
 }

@@ -34,8 +34,6 @@ import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 import org.json.JSONObject;
 
-import com.evolveum.polygon.scim.common.HttpPatch;
-
 @ConnectorClass(displayNameKey = "ScimConnector.connector.display", configurationClass = ScimConnectorConfiguration.class)
 
 public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp,
@@ -53,6 +51,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	private Schema schema = null;
 	private String providerName = "";
 
+	// TODO check if plausible
+	private HandlingStrategy strategy;
+
 	private static final char QUERYCHAR = '?';
 	private static final char QUERYDELIMITER = '&';
 
@@ -66,7 +67,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		if (schema == null) {
 			// test log delete
 			SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
-			ParserSchemaScim schemaParser = crudManager.qeuerySchemas(providerName, SCHEMAS, configuration);
+			ParserSchemaScim schemaParser = strategy.qeuerySchemas(providerName, SCHEMAS, configuration);
 
 			if (schemaParser != null) {
 
@@ -116,22 +117,22 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				crudManager.delete(uid, USERS, configuration);
+				strategy.delete(uid, USERS, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				crudManager.delete(uid, GROUPS, configuration);
+				strategy.delete(uid, GROUPS, configuration);
 			} else {
 
-				crudManager.delete(uid, endpointName, configuration);
+				strategy.delete(uid, endpointName, configuration);
 			}
 
 		} else {
 
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				crudManager.delete(uid, USERS, configuration);
+				strategy.delete(uid, USERS, configuration);
 			} else if (ObjectClass.GROUP.equals(object)) {
-				crudManager.delete(uid, GROUPS, configuration);
+				strategy.delete(uid, GROUPS, configuration);
 			} else {
 				LOGGER.error("Provided object value is not valid: {0}", object);
 				throw new IllegalArgumentException("Object value not valid");
@@ -164,28 +165,19 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			String endpointName = object.getObjectClassValue();
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
-
-				StrategyFetcher fetch = new StrategyFetcher();
-				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
 				strategy.addAttributeToInject(injectetAttributeSet);
 
-				uid = crudManager.create(USERS, jsonDataBuilder, attribute, injectetAttributeSet, configuration);
+				uid = strategy.create(USERS, jsonDataBuilder, attribute, injectetAttributeSet, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
-
-				StrategyFetcher fetch = new StrategyFetcher();
-				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
 				strategy.addAttributeToInject(injectetAttributeSet);
 
-				uid = crudManager.create(GROUPS, jsonDataBuilder, attribute, injectetAttributeSet, configuration);
+				uid = strategy.create(GROUPS, jsonDataBuilder, attribute, injectetAttributeSet, configuration);
 
 			} else {
-
-				StrategyFetcher fetch = new StrategyFetcher();
-				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
 				strategy.addAttributeToInject(injectetAttributeSet);
 
-				uid = crudManager.create(endpointName, jsonDataBuilder, attribute, injectetAttributeSet, configuration);
+				uid = strategy.create(endpointName, jsonDataBuilder, attribute, injectetAttributeSet, configuration);
 			}
 
 			return uid;
@@ -194,11 +186,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				ObjectTranslator userBuild = new UserDataBuilder("");
 
-				StrategyFetcher fetch = new StrategyFetcher();
-				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
 				strategy.addAttributeToInject(injectetAttributeSet);
 
-				Uid uid = crudManager.create(USERS, userBuild, attribute, injectetAttributeSet, configuration);
+				Uid uid = strategy.create(USERS, userBuild, attribute, injectetAttributeSet, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -215,7 +205,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
 				strategy.addAttributeToInject(injectetAttributeSet);
 
-				Uid uid = crudManager.create(GROUPS, groupBuild, attribute, injectetAttributeSet, configuration);
+				Uid uid = strategy.create(GROUPS, groupBuild, attribute, injectetAttributeSet, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -267,8 +257,14 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			providerName = loginUrlParts[1];
 		}
 		//
+
+		// TODO check if this is plausible
+		StrategyFetcher fetcher = new StrategyFetcher();
+		strategy = fetcher.fetchStrategy(providerName);
+
+		// TODO obsolete
 		LOGGER.info("The provider name is {0}", providerName);
-		ParserSchemaScim schemaParser = crudManager.qeuerySchemas(providerName, SCHEMAS, this.configuration);
+		ParserSchemaScim schemaParser = strategy.qeuerySchemas(providerName, SCHEMAS, this.configuration);
 
 		if (schemaParser != null) {
 
@@ -306,15 +302,15 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = crudManager.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null),
 						configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = crudManager.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null),
 						configuration);
 			} else {
-				uid = crudManager.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null),
 						configuration);
 
 			}
@@ -327,7 +323,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				userJsonObject = userJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.update(id, USERS, userJsonObject, configuration);
+				Uid uid = strategy.update(id, USERS, userJsonObject, configuration);
 
 				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
 
@@ -344,7 +340,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				groupJsonObject = groupJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.update(id, GROUPS, groupJsonObject, configuration);
+				Uid uid = strategy.update(id, GROUPS, groupJsonObject, configuration);
 
 				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
 
@@ -445,7 +441,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				if (ObjectClass.ACCOUNT.getObjectClassValue().equals(endpointName)) {
 					if (query == null) {
 
-						crudManager.qeuery(queryUriSnippet.toString(), USERS, handler, configuration);
+						strategy.qeuery(queryUriSnippet.toString(), USERS, handler, configuration);
 
 					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
@@ -455,7 +451,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					}
 				} else if (ObjectClass.GROUP.getObjectClassValue().equals(endpointName)) {
 					if (query == null) {
-						crudManager.qeuery(queryUriSnippet.toString(), GROUPS, handler, configuration);
+						strategy.qeuery(queryUriSnippet.toString(), GROUPS, handler, configuration);
 
 					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
 
@@ -466,7 +462,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 					if (query == null) {
 
-						crudManager.qeuery(queryUriSnippet.toString(), endpointName, handler, configuration);
+						strategy.qeuery(queryUriSnippet.toString(), endpointName, handler, configuration);
 					} else if (query instanceof EqualsFilter && qIsUid(endpointName, query, handler)) {
 
 					} else {
@@ -478,7 +474,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				if (ObjectClass.ACCOUNT.equals(objectClass)) {
 
 					if (query == null) {
-						crudManager.qeuery(queryUriSnippet.toString(), USERS, handler, configuration);
+						strategy.qeuery(queryUriSnippet.toString(), USERS, handler, configuration);
 					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
 					} else {
@@ -486,7 +482,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					}
 				} else if (ObjectClass.GROUP.equals(objectClass)) {
 					if (query == null) {
-						crudManager.qeuery(queryUriSnippet.toString(), GROUPS, handler, configuration);
+						strategy.qeuery(queryUriSnippet.toString(), GROUPS, handler, configuration);
 					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
 
 					} else {
@@ -503,7 +499,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			if (ObjectClass.GROUP.equals(objectClass)) {
 				Uid quieriedObject = new Uid(flag);
 
-				crudManager.queryMembershipData(quieriedObject, USERS, handler, GROUPS, configuration);
+				strategy.queryMembershipData(quieriedObject, USERS, handler, GROUPS, configuration);
 			}
 		}
 
@@ -521,8 +517,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 **/
 	public String querryChecker(Filter filter, String endpointName) {
 
-		StrategyFetcher fetch = new StrategyFetcher();
-		HandlingStrategy strategy = fetch.fetchStrategy(providerName);
 		String flag = strategy.checkFilter(filter, endpointName);
 		return flag;
 	}
@@ -545,7 +539,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		Attribute filterAttr = ((EqualsFilter) query).getAttribute();
 
 		if (filterAttr instanceof Uid) {
-			crudManager.qeuery((Uid) filterAttr, endPoint, resultHandler, configuration);
+			strategy.qeuery((Uid) filterAttr, endPoint, resultHandler, configuration);
 			return true;
 		} else
 			return false;
@@ -570,7 +564,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler, StringBuilder queryUriSnippet) {
 
 		char prefixChar;
-
+		StringBuilder filterSnippet = new StringBuilder();
 		if (queryUriSnippet.toString().isEmpty()) {
 			prefixChar = QUERYCHAR;
 
@@ -579,11 +573,10 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			prefixChar = QUERYDELIMITER;
 		}
 
-		StrategyFetcher fetch = new StrategyFetcher();
-		HandlingStrategy strategy = fetch.fetchStrategy(providerName);
-		strategy.retrieveFilterQuery(queryUriSnippet, prefixChar, query);
+		filterSnippet = query.accept(new FilterHandler(), providerName);
 
-		crudManager.qeuery(queryUriSnippet.toString(), endPoint, resultHandler, configuration);
+		queryUriSnippet.append(prefixChar).append("filter=").append(filterSnippet.toString());
+		strategy.qeuery(queryUriSnippet.toString(), endPoint, resultHandler, configuration);
 	}
 
 	/**
@@ -602,7 +595,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		SchemaObjectBuilderGeneric schemaObjectBuilder = new SchemaObjectBuilderGeneric();
 		int iterator = 0;
 		Map<String, String> hlAtrribute = new HashMap<String, String>();
-		for (Map<String, Map<String, Object>> attributeMap : schemaParser.getAttributeMapList(providerName)) {
+		List<Map<String, Map<String, Object>>> attributeMapList = schemaParser.getAttributeMapList(strategy);
+
+		for (Map<String, Map<String, Object>> attributeMap : attributeMapList) {
 			hlAtrribute = schemaParser.gethlAttributeMapList().get(iterator);
 
 			for (String key : hlAtrribute.keySet()) {
@@ -668,15 +663,15 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = crudManager.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null),
 						configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = crudManager.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null),
 						configuration);
 			} else {
-				uid = crudManager.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null),
 						configuration);
 			}
 
@@ -688,7 +683,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				userJsonObject = userJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.update(id, USERS, userJsonObject, configuration);
+				Uid uid = strategy.update(id, USERS, userJsonObject, configuration);
 
 				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
 
@@ -705,7 +700,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				groupJsonObject = groupJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.update(id, GROUPS, groupJsonObject, configuration);
+				Uid uid = strategy.update(id, GROUPS, groupJsonObject, configuration);
 
 				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
 
@@ -750,17 +745,17 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = crudManager.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null),
 						configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = crudManager.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null),
 						configuration);
 
 			} else {
 
-				uid = crudManager.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null),
 						configuration);
 			}
 
@@ -772,7 +767,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				userJsonObject = userJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.update(id, USERS, userJsonObject, configuration);
+				Uid uid = strategy.update(id, USERS, userJsonObject, configuration);
 
 				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
 
@@ -789,7 +784,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				groupJsonObject = groupJson.translateSetToJson(attributes, null);
 
-				Uid uid = crudManager.update(id, GROUPS, groupJsonObject, configuration);
+				Uid uid = strategy.update(id, GROUPS, groupJsonObject, configuration);
 
 				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
 

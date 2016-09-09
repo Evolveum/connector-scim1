@@ -1,7 +1,6 @@
 package com.evolveum.polygon.scim;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,11 +20,8 @@ import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
-import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
-import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
-import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -88,8 +84,7 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 	}
 
 	@Override
-	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader,
-			CrudManagerScim manager) {
+	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader) {
 
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		Uid id = null;
@@ -140,7 +135,7 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 					} else {
 						responseString = EntityUtils.toString(response.getEntity());
 
-						manager.onNoSuccess(response, "updating object");
+						CrudManagerScim.onNoSuccess(response, "updating object");
 					}
 
 				}
@@ -172,73 +167,6 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 		}
 
 		return id;
-	}
-
-	@Override
-	public ObjectClassInfoBuilder schemaBuilder(String attributeName, Map<String, Map<String, Object>> attributeMap,
-			ObjectClassInfoBuilder builder, SchemaObjectBuilderGeneric schemaBuilder) {
-		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName);
-
-		if (!"active".equals(attributeName)) {
-			Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
-			schemaSubPropertiesMap = attributeMap.get(attributeName);
-			for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
-				if (SUBATTRIBUTES.equals(subPropertieName)) {
-					// TODO check positive cases
-					infoBuilder = new AttributeInfoBuilder(attributeName);
-					JSONArray jsonArray = new JSONArray();
-
-					jsonArray = ((JSONArray) schemaSubPropertiesMap.get(subPropertieName));
-					for (int i = 0; i < jsonArray.length(); i++) {
-						JSONObject attribute = new JSONObject();
-						attribute = jsonArray.getJSONObject(i);
-					}
-					break;
-				} else {
-					schemaBuilder.subPropertiesChecker(infoBuilder, schemaSubPropertiesMap, subPropertieName);
-					if ("members.User.value".equals(attributeName) || "members.Group.value".equals(attributeName)
-							|| "members.default.value".equals(attributeName)
-							|| "members.default.display".equals(attributeName)) {
-						infoBuilder.setMultiValued(true);
-					}
-				}
-			}
-			builder.addAttributeInfo(infoBuilder.build());
-		} else {
-			builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-		}
-		return builder;
-	}
-
-	@Override
-	public List<Map<String, Map<String, Object>>> getAttributeMapList(
-			List<Map<String, Map<String, Object>>> attributeMapList) {
-		return attributeMapList;
-	}
-
-	@Override
-	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject) {
-		return jsonObject;
-	}
-
-	@Override
-	public String checkFilter(Filter filter, String endpointName) {
-		return "";
-	}
-
-	@Override
-	public StringBuilder retrieveFilterQuery(StringBuilder queryUriSnippet, char prefixChar, Filter query) {
-		LOGGER.info("Processing trought the \" filter\" workaround for the provider: {0}", "salesforce");
-
-		StringBuilder filterSnippet = new StringBuilder();
-		filterSnippet = query.accept(new FilterHandler(), "salesforce");
-
-		return queryUriSnippet.append(prefixChar).append("filter=").append(filterSnippet.toString());
-	}
-
-	@Override
-	public Set<Attribute> addAttributeToInject(Set<Attribute> injectetAttributeSet) {
-		return injectetAttributeSet;
 	}
 
 	@Override
@@ -284,22 +212,6 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 		processedParameters.put("attributeMap", attributeMap);
 
 		return processedParameters;
-	}
-
-	@Override
-	public List<String> populateDictionary(String flag) {
-		List<String> dictionary = new ArrayList<String>();
-
-		dictionary.add("subAttributes");
-
-		return dictionary;
-	}
-
-	@Override
-	public ObjectClassInfoBuilder injectObjectClassInfoBuilderData(ObjectClassInfoBuilder builder, String attributeName,
-			AttributeInfoBuilder infoBuilder) {
-		builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-		return builder;
 	}
 
 	@Override

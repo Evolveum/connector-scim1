@@ -21,7 +21,6 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	private String BASEURL;
 	private String GRANT;
 	private String CLIENTID;
-
 	private String TOKEN;
 	private String CLIENTSECRET;
 

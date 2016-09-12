@@ -30,57 +30,41 @@ import com.evolveum.polygon.scim.common.HttpPatch;
 public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy implements HandlingStrategy {
 
 	private static final Log LOGGER = Log.getLog(SalesforceHandlingStrategy.class);
-	private static final String ID = "id";
-	private static final String TYPE = "type";
-	private static final String DEFAULT = "default";
 	private static final String SCHEMATYPE = "urn:scim:schemas:extension:enterprise:1.0";
-	private static final String SUBATTRIBUTES = "subAttributes";
-	private static final String MULTIVALUED = "multiValued";
-	private static final String CANONICALVALUES = "canonicalValues";
-	private static final String REFERENCETYPES = "referenceTypes";
-	private static final String CONTENTTYPE = "application/json";
 
 	@Override
-	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
-			Map<String, Object> autoriazationData) {
+	public Map<String, Object> translateReferenceValues(Map<String, Map<String, Object>> attributeMap,
+			JSONArray referenceValues, Map<String, Object> subAttributeMap, int position, String attributeName) {
 
-		JSONObject loginObject = null;
-		String orgID = null;
+		JSONObject referenceValue = new JSONObject();
+		Boolean isComplex = null;
+		Map<String, Object> processedParameters = new HashMap<String, Object>();
 
-		if (autoriazationData.containsKey("json")) {
+		/*
+		 * Salesforce scim schema inconsistencies workaround
+		 * (canonicalValues,referenceTypes) defined as array of json objects ->
+		 * should be defined as array of string values
+		 */
+		LOGGER.warn(
+				"Processing trought Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes) ");
+		referenceValue = ((JSONArray) referenceValues).getJSONObject(position);
+		for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+			if (!TYPE.equals(subAttributeKeyNames)) {
+				StringBuilder complexAttrName = new StringBuilder(attributeName);
+				attributeMap.put(
+						complexAttrName.append(DOT).append(referenceValue.get("value")).append(DOT)
+								.append(subAttributeKeyNames).toString(),
+						(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+				isComplex = true;
 
-			loginObject = (JSONObject) autoriazationData.get("json");
-		}
-
-		if (loginObject != null) {
-			if (loginObject.has(ID)) {
-				orgID = loginObject.getString(ID);
-				String idParts[] = orgID.split("\\/");
-				orgID = idParts[4];
 			}
-		} else {
-
-			LOGGER.info("No json object returned after login");
 		}
-		// injection of organization ID into the set of attributes
-		if (orgID != null) {
-			LOGGER.info("The organization ID is: {0}", orgID);
-
-			// TODO schema version might change
-			injectedAttributeSet.add(AttributeBuilder.build("schema.type", SCHEMATYPE));
-
-			injectedAttributeSet.add(AttributeBuilder.build("schema.organization", orgID));
-		} else {
-			LOGGER.warn("No organization ID specified in instance URL");
+		if (isComplex != null) {
+			processedParameters.put(ISCOMPLEX, isComplex);
 		}
-		return injectedAttributeSet;
+		processedParameters.put("attributeMap", attributeMap);
 
-	}
-
-	@Override
-	public StringBuilder processContainsAllValuesFilter(String p, ContainsAllValuesFilter filter,
-			FilterHandler handler) {
-		return null;
+		return processedParameters;
 	}
 
 	@Override
@@ -173,45 +157,53 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 	public List<String> excludeFromAssembly(List<String> excludedAttributes) {
 
 		excludedAttributes.add("schemas");
-		excludedAttributes.add("meta");
+		excludedAttributes.add(META);
 		excludedAttributes.add("alias");
 
 		return excludedAttributes;
 	}
 
 	@Override
-	public Map<String, Object> translateReferenceValues(Map<String, Map<String, Object>> attributeMap,
-			JSONArray referenceValues, Map<String, Object> subAttributeMap, int position, String attributeName) {
+	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
+			Map<String, Object> autoriazationData) {
 
-		JSONObject referenceValue = new JSONObject();
-		Boolean isComplex = null;
-		Map<String, Object> processedParameters = new HashMap<String, Object>();
+		JSONObject loginObject = null;
+		String orgID = null;
 
-		/*
-		 * Salesforce scim schema inconsistencies workaround
-		 * (canonicalValues,referenceTypes) defined as array of json objects ->
-		 * should be defined as array of string values
-		 */
-		LOGGER.warn(
-				"Processing trought Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes) ");
-		referenceValue = ((JSONArray) referenceValues).getJSONObject(position);
-		for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-			if (!TYPE.equals(subAttributeKeyNames)) {
-				StringBuilder complexAttrName = new StringBuilder(attributeName);
-				attributeMap.put(
-						complexAttrName.append(".").append(referenceValue.get("value")).append(".")
-								.append(subAttributeKeyNames).toString(),
-						(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
-				isComplex = true;
+		if (autoriazationData.containsKey("json")) {
 
+			loginObject = (JSONObject) autoriazationData.get("json");
+		}
+
+		if (loginObject != null) {
+			if (loginObject.has(ID)) {
+				orgID = loginObject.getString(ID);
+				String idParts[] = orgID.split("\\/");
+				orgID = idParts[4];
 			}
-		}
-		if (isComplex != null) {
-			processedParameters.put("isComplex", isComplex);
-		}
-		processedParameters.put("attributeMap", attributeMap);
+		} else {
 
-		return processedParameters;
+			LOGGER.info("No json object returned after login");
+		}
+		// injection of organization ID into the set of attributes
+		if (orgID != null) {
+			LOGGER.info("The organization ID is: {0}", orgID);
+
+			// TODO schema version might change
+			injectedAttributeSet.add(AttributeBuilder.build("schema.type", SCHEMATYPE));
+
+			injectedAttributeSet.add(AttributeBuilder.build("schema.organization", orgID));
+		} else {
+			LOGGER.warn("No organization ID specified in instance URL");
+		}
+		return injectedAttributeSet;
+
+	}
+
+	@Override
+	public StringBuilder processContainsAllValuesFilter(String p, ContainsAllValuesFilter filter,
+			FilterHandler handler) {
+		return null;
 	}
 
 	@Override

@@ -37,22 +37,14 @@ import org.json.JSONObject;
 public class SlackHandlingStrategy extends StandardScimHandlingStrategy implements HandlingStrategy {
 
 	private static final Log LOGGER = Log.getLog(SlackHandlingStrategy.class);
-	private static final String TYPE = "type";
-	private static final String DEFAULT = "default";
-	private static final String MULTIVALUED = "multiValued";
-	private static final String CANONICALVALUES = "canonicalValues";
-	private static final String REFERENCETYPES = "referenceTypes";
 	private static final String SCHEMAVALUE = "urn:scim:schemas:core:1.0";
-	private static final String NAME = "name";
 	private static final String NICKNAME = "nickName";
 	private static final String USERNAME = "userName";
 	private static final String TITLE = "title";
 	private static final String SCHEMAS = "schemas";
 	private static final String PROFILEURL = "profileUrl";
-	private static final String DISPLAYNAME = "displayName";
 	private static final String TIMEZONE = "timezone";
 	private static final String EXTERNALID = "externalId";
-	private static final String ACTIVE = "active";
 	private static final String PHOTOS = "photos";
 	private static final String READONLY = "readOnly";
 	private static final String SCHEMA = "schema";
@@ -60,62 +52,14 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 	private static final String CASEEXSACT = "caseExact";
 	private static final String STRING = "string";
 
-	@Override
-	public StringBuilder processContainsAllValuesFilter(String p, ContainsAllValuesFilter filter,
-			FilterHandler handler) {
-		return null;
-	}
-
-	private ObjectClassInfoBuilder buildMissingAttributes(ObjectClassInfoBuilder builder, String attributeName,
-			AttributeInfoBuilder infoBuilder) {
-
-		if ("emails.default.value".equals(attributeName)) {
-			infoBuilder.setMultiValued(true);
-			infoBuilder.setRequired(true);
-			infoBuilder.setType(String.class);
-			builder.addAttributeInfo(infoBuilder.build());
-		} else {
-			infoBuilder.setMultiValued(false);
-			infoBuilder.setRequired(true);
-			infoBuilder.setType(Boolean.class);
-			builder.addAttributeInfo(infoBuilder.build());
-		}
-
-		return builder;
-
-	}
-
-	@Override
-	public List<Map<String, Map<String, Object>>> getAttributeMapList(
-			List<Map<String, Map<String, Object>>> attributeMapList) {
-
-		if (!attributeMapList.isEmpty()) {
-
-			for (int i = 0; i < attributeMapList.size(); i++) {
-				Map<String, Map<String, Object>> resources = attributeMapList.get(i);
-
-				if (resources.containsKey(USERNAME) && !resources.containsKey("emails.default.primary")
-						&& !resources.containsKey("emails.default.value")) {
-
-					resources.put("emails.default.primary", null);
-					resources.put("emails.default.value", null);
-
-					attributeMapList.remove(i);
-					attributeMapList.add(i, resources);
-				}
-
-			}
-		}
-		return attributeMapList;
-
-	}
+	private static final String GROUPS = "groups";
 
 	@Override
 	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject) {
 
 		LOGGER.warn("Processing trought slack missing schema attributes workaround for the resource: \"{0}\"",
 				resourceName);
-		if ("Users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 
 			Map<String, String> missingAttirbutes = new HashMap<String, String>();
 			missingAttirbutes.put(USERNAME, USERNAME);
@@ -294,7 +238,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 						subattributeArray.put(valueBlank);
 
-						schemas.put("subAttributes", subattributeArray);
+						schemas.put(SUBATTRIBUTES, subattributeArray);
 
 						attributesArray.put(schemas);
 					}
@@ -309,63 +253,29 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 	}
 
-	// TODO simplify
 	@Override
-	public String checkFilter(Filter filter, String endpointName) {
+	public List<Map<String, Map<String, Object>>> getAttributeMapList(
+			List<Map<String, Map<String, Object>>> attributeMapList) {
 
-		if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
-			if (filter instanceof ContainsAllValuesFilter) {
-				List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
-				if (valueList.size() == 1) {
-					Object uidString = valueList.get(0);
-					if (uidString instanceof String) {
-						LOGGER.warn("Processing trough group object class \"contains all values\" filter workaround.");
-						return (String) uidString;
+		if (!attributeMapList.isEmpty()) {
 
-					} else {
+			for (int i = 0; i < attributeMapList.size(); i++) {
+				Map<String, Map<String, Object>> resources = attributeMapList.get(i);
 
-						return "";
-					}
-				} else {
+				if (resources.containsKey(USERNAME) && !resources.containsKey("emails.default.primary")
+						&& !resources.containsKey("emails.default.value")) {
 
-					return "";
+					resources.put("emails.default.primary", null);
+					resources.put("emails.default.value", null);
 
+					attributeMapList.remove(i);
+					attributeMapList.add(i, resources);
 				}
-			} else if (filter instanceof EqualsFilter) {
-				Attribute filterAttr = ((EqualsFilter) filter).getAttribute();
-				String attributeName = filterAttr.getName();
-				String attributeValue;
 
-				if ("members.default.value".equals(attributeName)) {
-					LOGGER.warn("Processing trough group object class \"equals\" filter workaround.");
-					List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
-					if (valueList.size() == 1) {
-						Object uidString = valueList.get(0);
-						if (uidString instanceof String) {
-							LOGGER.warn(
-									"Processing trough group object class \"contains all values\" filter workaround.");
-							return (String) uidString;
-
-						} else {
-
-							return "";
-						}
-					} else {
-
-						attributeValue = "";
-					}
-
-					return attributeValue;
-				} else {
-
-					return "";
-				}
-			} else {
-
-				return "";
 			}
 		}
-		return "";
+		return attributeMapList;
+
 	}
 
 	@Override
@@ -373,48 +283,6 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank", SCHEMAVALUE);
 		injectetAttributeSet.add(schemaAttribute);
 		return injectetAttributeSet;
-	}
-
-	@Override
-	public List<String> excludeFromAssembly(List<String> excludedAttributes) {
-		excludedAttributes.add("meta");
-		excludedAttributes.add("schemas");
-		excludedAttributes.add(PHOTOS);
-
-		return excludedAttributes;
-	}
-
-	@Override
-	public List<String> populateDictionary(String flag) {
-		List<String> dictionary = new ArrayList<String>();
-
-		if ("schemaparser-workaround".equals(flag)) {
-			dictionary.add("subAttributes");
-			dictionary.add("subattributes");
-		} else if ("schemabuilder-workaround".equals(flag)) {
-
-			dictionary.add("active");
-			dictionary.add("emails.default.value");
-			dictionary.add("emails.default.primary");
-		} else {
-
-			LOGGER.warn("No such flag defined: {0}", flag);
-		}
-
-		return dictionary;
-	}
-
-	@Override
-	public ObjectClassInfoBuilder injectObjectClassInfoBuilderData(ObjectClassInfoBuilder builder, String attributeName,
-			AttributeInfoBuilder infoBuilder) {
-
-		if (ACTIVE.equals(attributeName)) {
-			builder = builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-		} else {
-			builder = buildMissingAttributes(builder, attributeName, infoBuilder);
-		}
-
-		return builder;
 	}
 
 	@Override
@@ -428,14 +296,14 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		HttpPost loginInstance = null;
 
 		for (String data : autoriazationData.keySet()) {
-			if ("authHeader".equals(data)) {
+			if (AUTHHEADER.equals(data)) {
 
 				authHeader = (Header) autoriazationData.get(data);
 
-			} else if ("uri".equals(data)) {
+			} else if (URI.equals(data)) {
 
 				scimBaseUri = (String) autoriazationData.get(data);
-			} else if ("loginInstance".equals(data)) {
+			} else if (LOGININSTANCE.equals(data)) {
 
 				loginInstance = (HttpPost) autoriazationData.get(data);
 			}
@@ -451,7 +319,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		String q;
 		q = ((Uid) uid).getUidValue();
 
-		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/").append(q)
+		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).append(q)
 				.toString();
 		LOGGER.info("Qeury url: {0}", uri);
 		HttpGet httpGet = new HttpGet(uri);
@@ -484,19 +352,19 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
 
-							if (jsonObject.has("groups")) {
-								int amountOfResources = jsonObject.getJSONArray("groups").length();
+							if (jsonObject.has(GROUPS)) {
+								int amountOfResources = jsonObject.getJSONArray(GROUPS).length();
 
 								for (int i = 0; i < amountOfResources; i++) {
 									JSONObject minResourceJson = new JSONObject();
-									minResourceJson = jsonObject.getJSONArray("groups").getJSONObject(i);
+									minResourceJson = jsonObject.getJSONArray(GROUPS).getJSONObject(i);
 									if (minResourceJson.has("value")) {
 
 										String groupUid = minResourceJson.getString("value");
 										if (groupUid != null && !groupUid.isEmpty()) {
 
-											StringBuilder groupUri = new StringBuilder(scimBaseUri).append("/")
-													.append(membershipResourceEndpoin).append("/").append(groupUid);
+											StringBuilder groupUri = new StringBuilder(scimBaseUri).append(SLASH)
+													.append(membershipResourceEndpoin).append(SLASH).append(groupUid);
 
 											LOGGER.info("The uri to which we are sending the queri {0}", groupUri);
 
@@ -589,6 +457,132 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 			CrudManagerScim.logOut(loginInstance);
 		}
 
+	}
+
+	@Override
+	public List<String> excludeFromAssembly(List<String> excludedAttributes) {
+		excludedAttributes.add(META);
+		excludedAttributes.add("schemas");
+		excludedAttributes.add(PHOTOS);
+
+		return excludedAttributes;
+	}
+
+	@Override
+	public StringBuilder processContainsAllValuesFilter(String p, ContainsAllValuesFilter filter,
+			FilterHandler handler) {
+		return null;
+	}
+
+	private ObjectClassInfoBuilder buildMissingAttributes(ObjectClassInfoBuilder builder, String attributeName,
+			AttributeInfoBuilder infoBuilder) {
+
+		if ("emails.default.value".equals(attributeName)) {
+			infoBuilder.setMultiValued(true);
+			infoBuilder.setRequired(true);
+			infoBuilder.setType(String.class);
+			builder.addAttributeInfo(infoBuilder.build());
+		} else {
+			infoBuilder.setMultiValued(false);
+			infoBuilder.setRequired(true);
+			infoBuilder.setType(Boolean.class);
+			builder.addAttributeInfo(infoBuilder.build());
+		}
+
+		return builder;
+
+	}
+
+	@Override
+	public ObjectClassInfoBuilder injectObjectClassInfoBuilderData(ObjectClassInfoBuilder builder, String attributeName,
+			AttributeInfoBuilder infoBuilder) {
+
+		if (ACTIVE.equals(attributeName)) {
+			builder = builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+		} else {
+			builder = buildMissingAttributes(builder, attributeName, infoBuilder);
+		}
+
+		return builder;
+	}
+
+	@Override
+	public List<String> populateDictionary(String flag) {
+		List<String> dictionary = new ArrayList<String>();
+
+		if (FIRSTFLAG.equals(flag)) {
+			dictionary.add(SUBATTRIBUTES);
+			dictionary.add("subattributes");
+		} else if (SECONDFLAG.equals(flag)) {
+
+			dictionary.add(ACTIVE);
+			dictionary.add("emails.default.value");
+			dictionary.add("emails.default.primary");
+		} else {
+
+			LOGGER.warn("No such flag defined: {0}", flag);
+		}
+
+		return dictionary;
+	}
+
+	// TODO simplify
+	@Override
+	public String checkFilter(Filter filter, String endpointName) {
+
+		if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
+			if (filter instanceof ContainsAllValuesFilter) {
+				List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
+				if (valueList.size() == 1) {
+					Object uidString = valueList.get(0);
+					if (uidString instanceof String) {
+						LOGGER.warn("Processing trough group object class \"contains all values\" filter workaround.");
+						return (String) uidString;
+
+					} else {
+
+						return "";
+					}
+				} else {
+
+					return "";
+
+				}
+			} else if (filter instanceof EqualsFilter) {
+				Attribute filterAttr = ((EqualsFilter) filter).getAttribute();
+				String attributeName = filterAttr.getName();
+				String attributeValue;
+
+				if ("members.default.value".equals(attributeName)) {
+					LOGGER.warn("Processing trough group object class \"equals\" filter workaround.");
+					List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
+					if (valueList.size() == 1) {
+						Object uidString = valueList.get(0);
+						if (uidString instanceof String) {
+							LOGGER.warn(
+									"Processing trough group object class \"contains all values\" filter workaround.");
+							return (String) uidString;
+
+						} else {
+
+							return "";
+						}
+					} else {
+
+						attributeValue = "";
+					}
+
+					return attributeValue;
+				} else {
+
+					return "";
+				}
+			} else {
+
+				return "";
+			}
+		}
+		return "";
 	}
 
 }

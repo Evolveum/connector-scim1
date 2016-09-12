@@ -13,8 +13,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -27,25 +25,18 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
-import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.framework.spi.SearchResultsHandler;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-
-import com.evolveum.polygon.scim.common.HttpPatch;
 
 /**
  * Holds the CRUD+L methods and other methods needed for interaction with the
  * service provider.
  */
 public class CrudManagerScim {
-
-	private Header prettyPrintHeader = new BasicHeader("X-PrettyPrint", "1");
 
 	private static final Log LOGGER = Log.getLog(CrudManagerScim.class);
 
@@ -156,6 +147,8 @@ public class CrudManagerScim {
 					throw new ConnectorIOException(
 							"An exception has occurred while parsing the http response to the login request.", e);
 				}
+			}else{
+				LOGGER.info("Login Successful");
 			}
 
 			String getResult = null;
@@ -198,7 +191,7 @@ public class CrudManagerScim {
 		String scimBaseUri = new StringBuilder(loginInstanceUrl).append(conf.getEndpoint()).append(conf.getVersion())
 				.toString();
 
-		LOGGER.info("Login Successful");
+		
 
 		Map<String, Object> autoriazationData = new HashMap<String, Object>();
 		autoriazationData.put("uri", scimBaseUri);
@@ -309,92 +302,7 @@ public class CrudManagerScim {
 	 * @throws ConnectionFailedException
 	 *
 	 */
-	public void delete(Uid uid, String resourceEndPoint, ScimConnectorConfiguration conf) {
-
-		Header authHeader = null;
-		String scimBaseUri = "";
-		Map<String, Object> autoriazationData = logIntoService(conf);
-
-		HttpPost loginInstance = null;
-
-		for (String data : autoriazationData.keySet()) {
-			if ("authHeader".equals(data)) {
-
-				authHeader = (Header) autoriazationData.get(data);
-
-			} else if ("uri".equals(data)) {
-
-				scimBaseUri = (String) autoriazationData.get(data);
-			} else if ("loginInstance".equals(data)) {
-
-				loginInstance = (HttpPost) autoriazationData.get(data);
-			}
-		}
-
-		if (authHeader == null || scimBaseUri.isEmpty()) {
-
-			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
-		}
-
-		HttpClient httpClient = HttpClientBuilder.create().build();
-
-		String uri = new StringBuilder(scimBaseUri).append("/").append(resourceEndPoint).append("/")
-				.append(uid.getUidValue()).toString();
-
-		LOGGER.info("The uri for the delete request: {0}", uri);
-		HttpDelete httpDelete = new HttpDelete(uri);
-		httpDelete.addHeader(authHeader);
-		httpDelete.addHeader(prettyPrintHeader);
-
-		try {
-			long providerStartTime = System.currentTimeMillis();
-			HttpResponse response = httpClient.execute(httpDelete);
-			long providerEndTime = System.currentTimeMillis();
-			long providerDuration = (providerEndTime - providerStartTime);
-
-			LOGGER.info(
-					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
-					providerDuration);
-			providerDuration = 0;
-
-			int statusCode = response.getStatusLine().getStatusCode();
-
-			if (statusCode == 204 || statusCode == 200) {
-				LOGGER.info("Deletion of resource was succesfull");
-			}
-
-			else if (statusCode == 404) {
-
-				LOGGER.info("Resource not found or resource was already deleted");
-			} else {
-				onNoSuccess(response, "deleting object");
-			}
-
-		} catch (ClientProtocolException e) {
-			LOGGER.error(
-					"An protocol exception has occurred while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
-					e.getLocalizedMessage());
-			LOGGER.info(
-					"An protocol exception has occurred while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification: {0}",
-					e);
-			throw new ConnectionFailedException(
-					"An protocol exception has occurred while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification.",
-					e);
-		} catch (IOException e) {
-			LOGGER.error(
-					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
-					e.getLocalizedMessage());
-			LOGGER.info(
-					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
-					e);
-
-			throw new ConnectorIOException(
-					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object.",
-					e);
-		} finally {
-			logOut(loginInstance);
-		}
-	}
+	public void delete(Uid uid, String resourceEndPoint, ScimConnectorConfiguration conf) {}
 
 	/**
 	 * Error handling method called in case of an exception situation. The

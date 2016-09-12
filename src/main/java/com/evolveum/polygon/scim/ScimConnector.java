@@ -18,7 +18,6 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
@@ -40,7 +39,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		UpdateAttributeValuesOp {
 
 	private ScimConnectorConfiguration configuration;
-	private CrudManagerScim crudManager;
 	private Boolean genericsCanBeApplied = false;
 
 	private static final String SCHEMAS = "Schemas/";
@@ -224,7 +222,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	public void dispose() {
 		LOGGER.info("Configuration cleanup");
 		configuration = null;
-		crudManager = null;
 	}
 
 	@Override
@@ -239,8 +236,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Initiation");
 		this.configuration = (ScimConnectorConfiguration) configuration;
 		this.configuration.validate();
-		this.crudManager = new CrudManagerScim();
-
 		// For workaround purposes
 		// TODO
 
@@ -361,8 +356,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 		LOGGER.info("Test");
 
-		if (crudManager != null && configuration != null) {
-			Map<String, Object> autoriazationData = crudManager.logIntoService(configuration);
+		if (configuration != null) {
+			Map<String, Object> autoriazationData = CrudManagerScim.logIntoService(configuration);
 
 			if (autoriazationData != null && !autoriazationData.isEmpty()) {
 
@@ -371,7 +366,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					HttpPost instance = (HttpPost) autoriazationData.get("loginInstance");
 
 					LOGGER.info("Test was succesfull");
-					crudManager.logOut(instance);
+					CrudManagerScim.logOut(instance);
 				} else {
 
 					LOGGER.error(

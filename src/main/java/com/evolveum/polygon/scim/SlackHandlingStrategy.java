@@ -52,33 +52,35 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 	private static final String CASEEXSACT = "caseExact";
 	private static final String STRING = "string";
 
+	private static final String EMAILSDEFAULTVALUE = "emails.default.value";
+	private static final String EMAILSDEFAULTPRIMARY = "emails.default.primary";
+	private static final String ATTRIBUTES = "attributes";
 	private static final String GROUPS = "groups";
 
 	@Override
 	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject) {
 
-		LOGGER.warn("Processing trought slack missing schema attributes workaround for the resource: \"{0}\"",
+		LOGGER.warn("Processing trough slack missing schema attributes workaround for the resource: \"{0}\"",
 				resourceName);
 		if (USERS.equals(resourceName)) {
 
-			Map<String, String> missingAttirbutes = new HashMap<String, String>();
-			missingAttirbutes.put(USERNAME, USERNAME);
-			missingAttirbutes.put(NICKNAME, NICKNAME);
-			missingAttirbutes.put(TITLE, TITLE);
-			missingAttirbutes.put(SCHEMAS, SCHEMAS);
+			Map<String, String> missingAttributes = new HashMap<String, String>();
+			missingAttributes.put(USERNAME, USERNAME);
+			missingAttributes.put(NICKNAME, NICKNAME);
+			missingAttributes.put(TITLE, TITLE);
+			missingAttributes.put(SCHEMAS, SCHEMAS);
+			missingAttributes.put(PROFILEURL, PROFILEURL);
+			missingAttributes.put(DISPLAYNAME, DISPLAYNAME);
+			missingAttributes.put(TIMEZONE, TIMEZONE);
+			missingAttributes.put(EXTERNALID, EXTERNALID);
+			missingAttributes.put(ACTIVE, ACTIVE);
+			missingAttributes.put(PHOTOS, PHOTOS);
 
-			missingAttirbutes.put(PROFILEURL, PROFILEURL);
-			missingAttirbutes.put(DISPLAYNAME, DISPLAYNAME);
-			missingAttirbutes.put(TIMEZONE, TIMEZONE);
-			missingAttirbutes.put(EXTERNALID, EXTERNALID);
-			missingAttirbutes.put(ACTIVE, ACTIVE);
-			missingAttirbutes.put(PHOTOS, PHOTOS);
-
-			if (jsonObject.has("attributes")) {
+			if (jsonObject.has(ATTRIBUTES)) {
 
 				JSONArray attributesArray = new JSONArray();
 
-				attributesArray = jsonObject.getJSONArray("attributes");
+				attributesArray = jsonObject.getJSONArray(ATTRIBUTES);
 				for (int indexValue = 0; indexValue < attributesArray.length(); indexValue++) {
 					JSONObject subAttributes = attributesArray.getJSONObject(indexValue);
 
@@ -86,41 +88,41 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 						if (USERNAME.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove(USERNAME);
+							missingAttributes.remove(USERNAME);
 						} else if (NICKNAME.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove(NICKNAME);
+							missingAttributes.remove(NICKNAME);
 						} else if (TITLE.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove(TITLE);
+							missingAttributes.remove(TITLE);
 						} else if (SCHEMAS.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove(SCHEMAS);
+							missingAttributes.remove(SCHEMAS);
 						} else if (PROFILEURL.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove(PROFILEURL);
+							missingAttributes.remove(PROFILEURL);
 						} else if (DISPLAYNAME.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove(DISPLAYNAME);
+							missingAttributes.remove(DISPLAYNAME);
 						} else if (TIMEZONE.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove(TIMEZONE);
+							missingAttributes.remove(TIMEZONE);
 						} else if (EXTERNALID.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove(EXTERNALID);
+							missingAttributes.remove(EXTERNALID);
 						} else if (ACTIVE.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove(ACTIVE);
+							missingAttributes.remove(ACTIVE);
 						} else if (PHOTOS.equals(subAttributes.get(NAME))) {
 
-							missingAttirbutes.remove(PHOTOS);
+							missingAttributes.remove(PHOTOS);
 						}
 					}
 				}
 
-				for (String missingAttributeName : missingAttirbutes.keySet()) {
+				for (String missingAttributeName : missingAttributes.keySet()) {
 
-					LOGGER.warn("Building schema deffinition for the attribute: \"{0}\"", missingAttributeName);
+					LOGGER.warn("Building schema definition for the attribute: \"{0}\"", missingAttributeName);
 
 					if (USERNAME.equals(missingAttributeName)) {
 						JSONObject userName = new JSONObject();
@@ -219,7 +221,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 						attributesArray.put(title);
 					} else if (SCHEMAS.equals(missingAttributeName)) {
 						JSONObject schemas = new JSONObject();
-						JSONArray subattributeArray = new JSONArray();
+						JSONArray subAttributeArray = new JSONArray();
 
 						JSONObject valueBlank = new JSONObject();
 
@@ -236,16 +238,16 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 						valueBlank.put(REQUIRED, false);
 						valueBlank.put(MULTIVALUED, false);
 
-						subattributeArray.put(valueBlank);
+						subAttributeArray.put(valueBlank);
 
-						schemas.put(SUBATTRIBUTES, subattributeArray);
+						schemas.put(SUBATTRIBUTES, subAttributeArray);
 
 						attributesArray.put(schemas);
 					}
 
 				}
 
-				jsonObject.put("attributes", attributesArray);
+				jsonObject.put(ATTRIBUTES, attributesArray);
 			}
 
 		}
@@ -259,17 +261,17 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 		if (!attributeMapList.isEmpty()) {
 
-			for (int i = 0; i < attributeMapList.size(); i++) {
-				Map<String, Map<String, Object>> resources = attributeMapList.get(i);
+			for (int position = 0; position < attributeMapList.size(); position++) {
+				Map<String, Map<String, Object>> resources = attributeMapList.get(position);
 
-				if (resources.containsKey(USERNAME) && !resources.containsKey("emails.default.primary")
-						&& !resources.containsKey("emails.default.value")) {
+				if (resources.containsKey(USERNAME) && !resources.containsKey(EMAILSDEFAULTPRIMARY)
+						&& !resources.containsKey(EMAILSDEFAULTVALUE)) {
 
-					resources.put("emails.default.primary", null);
-					resources.put("emails.default.value", null);
+					resources.put(EMAILSDEFAULTPRIMARY, null);
+					resources.put(EMAILSDEFAULTVALUE, null);
 
-					attributeMapList.remove(i);
-					attributeMapList.add(i, resources);
+					attributeMapList.remove(position);
+					attributeMapList.add(position, resources);
 				}
 
 			}
@@ -279,33 +281,33 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 	}
 
 	@Override
-	public Set<Attribute> addAttributesToInject(Set<Attribute> injectetAttributeSet) {
+	public Set<Attribute> addAttributesToInject(Set<Attribute> injectedAttributeSet) {
 		Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank", SCHEMAVALUE);
-		injectetAttributeSet.add(schemaAttribute);
-		return injectetAttributeSet;
+		injectedAttributeSet.add(schemaAttribute);
+		return injectedAttributeSet;
 	}
 
 	@Override
 	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
-			String membershipResourceEndpoin, ScimConnectorConfiguration conf) {
+			String membershipResourceEndpoint, ScimConnectorConfiguration conf) {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		Map<String, Object> autoriazationData = ServiceAcessManager.logIntoService(conf);
+		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
-		for (String data : autoriazationData.keySet()) {
+		for (String data : authorizationData.keySet()) {
 			if (AUTHHEADER.equals(data)) {
 
-				authHeader = (Header) autoriazationData.get(data);
+				authHeader = (Header) authorizationData.get(data);
 
 			} else if (URI.equals(data)) {
 
-				scimBaseUri = (String) autoriazationData.get(data);
+				scimBaseUri = (String) authorizationData.get(data);
 			} else if (LOGININSTANCE.equals(data)) {
 
-				loginInstance = (HttpPost) autoriazationData.get(data);
+				loginInstance = (HttpPost) authorizationData.get(data);
 			}
 		}
 
@@ -314,13 +316,13 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		ServiceAcessManager.logIntoService(conf);
+		ServiceAccessManager.logIntoService(conf);
 		HttpClient httpClient = HttpClientBuilder.create().build();
-		String q;
-		q = ((Uid) uid).getUidValue();
+		String queuedUid;
+		queuedUid = ((Uid) uid).getUidValue();
 
-		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).append(q)
-				.toString();
+		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH)
+				.append(queuedUid).toString();
 		LOGGER.info("Qeury url: {0}", uri);
 		HttpGet httpGet = new HttpGet(uri);
 		httpGet.addHeader(authHeader);
@@ -335,7 +337,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 			long providerDuration = (providerEndTime - providerStartTime);
 
 			LOGGER.info(
-					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
+					"The amount of time it took to get the response to the query from the provider : {0} milliseconds ",
 					providerDuration);
 
 			providerDuration = 0;
@@ -355,16 +357,16 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 							if (jsonObject.has(GROUPS)) {
 								int amountOfResources = jsonObject.getJSONArray(GROUPS).length();
 
-								for (int i = 0; i < amountOfResources; i++) {
+								for (int position = 0; position < amountOfResources; position++) {
 									JSONObject minResourceJson = new JSONObject();
-									minResourceJson = jsonObject.getJSONArray(GROUPS).getJSONObject(i);
-									if (minResourceJson.has("value")) {
+									minResourceJson = jsonObject.getJSONArray(GROUPS).getJSONObject(position);
+									if (minResourceJson.has(VALUE)) {
 
-										String groupUid = minResourceJson.getString("value");
+										String groupUid = minResourceJson.getString(VALUE);
 										if (groupUid != null && !groupUid.isEmpty()) {
 
 											StringBuilder groupUri = new StringBuilder(scimBaseUri).append(SLASH)
-													.append(membershipResourceEndpoin).append(SLASH).append(groupUid);
+													.append(membershipResourceEndpoint).append(SLASH).append(groupUid);
 
 											LOGGER.info("The uri to which we are sending the queri {0}", groupUri);
 
@@ -376,20 +378,19 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 											if (statusCode == 200) {
 												responseString = EntityUtils.toString(resourceResponse.getEntity());
-												JSONObject fullResourcejson = new JSONObject(responseString);
+												JSONObject fullResourceJson = new JSONObject(responseString);
 
 												LOGGER.info(
 														"The {0}. resource json object which was returned by the service provider: {1}",
-														i + 1, fullResourcejson.toString(1));
+														position + 1, fullResourceJson.toString(1));
 
-												ConnectorObject connectorObject = buildConnectorObject(fullResourcejson,
-														membershipResourceEndpoin, scimBaseUri);
+												ConnectorObject connectorObject = buildConnectorObject(fullResourceJson,
+														membershipResourceEndpoint, scimBaseUri);
 												resultHandler.handle(connectorObject);
 
 											} else {
 
-												ExceptionMessageBuilder.onNoSuccess(resourceResponse,
-														groupUri.toString());
+												ErrorHandler.onNoSuccess(resourceResponse, groupUri.toString());
 											}
 
 										}
@@ -397,7 +398,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 										LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
 
 										throw new ConnectorException(
-												"No uid present in fetchet object while processing queuery result");
+												"No uid present in fetched object while processing query result");
 
 									}
 								}
@@ -406,7 +407,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 								LOGGER.error("Resource object not present in provider response to the query");
 
 								throw new ConnectorException(
-										"No uid present in fetchet object while processing queuery result");
+										"No uid present in fetched object while processing query result");
 
 							}
 
@@ -414,48 +415,48 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 							LOGGER.error(
 									"Builder error. Error while building connId object. The exception message: {0}",
 									e.getLocalizedMessage());
-							LOGGER.info("Builder error. Error while building connId object. The excetion message: {0}",
+							LOGGER.info("Builder error. Error while building connId object. The exception message: {0}",
 									e);
 							throw new ConnectorException(e);
 						}
 
 					} catch (JSONException jsonException) {
-						if (q == null) {
-							q = "the full resource representation";
+						if (queuedUid == null) {
+							queuedUid = "the full resource representation";
 						}
 						LOGGER.error(
 								"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-								jsonException.getLocalizedMessage(), q);
+								jsonException.getLocalizedMessage(), queuedUid);
 						LOGGER.info(
 								"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-								jsonException, q);
+								jsonException, queuedUid);
 						throw new ConnectorException(
 								"An exception has occurred while setting the variable \"jsonObject\".", jsonException);
 					}
 
 				} else {
 
-					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", uri);
+					LOGGER.warn("Service provider response is empty, responce returned on query: {0}", uri);
 				}
 			} else {
-				ExceptionMessageBuilder.onNoSuccess(response, uri);
+				ErrorHandler.onNoSuccess(response, uri);
 			}
 
 		} catch (IOException e) {
 
-			if (q == null) {
-				q = "the full resource representation";
+			if (queuedUid == null) {
+				queuedUid = "the full resource representation";
 			}
 
 			LOGGER.error(
-					"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-					e.getLocalizedMessage(), q);
+					"An error occurred while processing the query http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+					e.getLocalizedMessage(), queuedUid);
 			LOGGER.info(
-					"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-					e, q);
-			throw new ConnectorIOException("An error occurred while processing the queuery http response.", e);
+					"An error occurred while processing the query http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+					e, queuedUid);
+			throw new ConnectorIOException("An error occurred while processing the query http response.", e);
 		} finally {
-			ServiceAcessManager.logOut(loginInstance);
+			ServiceAccessManager.logOut(loginInstance);
 		}
 
 	}
@@ -478,7 +479,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 	private ObjectClassInfoBuilder buildMissingAttributes(ObjectClassInfoBuilder builder, String attributeName,
 			AttributeInfoBuilder infoBuilder) {
 
-		if ("emails.default.value".equals(attributeName)) {
+		if (EMAILSDEFAULTVALUE.equals(attributeName)) {
 			infoBuilder.setMultiValued(true);
 			infoBuilder.setRequired(true);
 			infoBuilder.setType(String.class);
@@ -517,8 +518,8 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		} else if (SECONDFLAG.equals(flag)) {
 
 			dictionary.add(ACTIVE);
-			dictionary.add("emails.default.value");
-			dictionary.add("emails.default.primary");
+			dictionary.add(EMAILSDEFAULTVALUE);
+			dictionary.add(EMAILSDEFAULTPRIMARY);
 		} else {
 
 			LOGGER.warn("No such flag defined: {0}", flag);

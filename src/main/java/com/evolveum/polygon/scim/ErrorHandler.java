@@ -1,4 +1,5 @@
 package com.evolveum.polygon.scim;
+
 import java.io.IOException;
 
 import org.apache.http.HttpResponse;
@@ -9,11 +10,13 @@ import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class ExceptionMessageBuilder {
-	
+public class ErrorHandler {
 
-	private static final Log LOGGER = Log.getLog(ExceptionMessageBuilder.class);
-	
+	private static final String ERRORS = "Errors";
+	private static final String DESCRIPTION = "description";
+
+	private static final Log LOGGER = Log.getLog(ErrorHandler.class);
+
 	public static void onNoSuccess(HttpResponse response, String message) throws ParseException, IOException {
 
 		Integer statusCode = null;
@@ -22,14 +25,14 @@ public class ExceptionMessageBuilder {
 		if (response.getEntity() != null) {
 			String responseString = EntityUtils.toString(response.getEntity());
 			statusCode = response.getStatusLine().getStatusCode();
-			LOGGER.error("Full Error response from provider: {0}", responseString);
+			LOGGER.error("Full Error response from the provider: {0}", responseString);
 
 			JSONObject responseObject = new JSONObject(responseString);
 
-			if (responseObject.has("Errors")) {
+			if (responseObject.has(ERRORS)) {
 				Object returnedObject = new Object();
 
-				returnedObject = responseObject.get("Errors");
+				returnedObject = responseObject.get(ERRORS);
 
 				if (returnedObject instanceof JSONObject) {
 
@@ -62,7 +65,7 @@ public class ExceptionMessageBuilder {
 		}
 		LOGGER.error(exceptionString);
 		if (statusCode != null) {
-			LOGGER.info("An error has occured. Http status: \"{0}\"", statusCode);
+			LOGGER.info("An error has occurred. HTTP status: \"{0}\"", statusCode);
 		}
 		LOGGER.info(exceptionString);
 
@@ -75,8 +78,8 @@ public class ExceptionMessageBuilder {
 
 		StringBuilder exceptionStringBuilder = new StringBuilder();
 
-		if (responseObject.has("description")) {
-			responseString = responseObject.getString("description");
+		if (responseObject.has(DESCRIPTION)) {
+			responseString = responseObject.getString(DESCRIPTION);
 			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
 					.append(" was unsuccessful. Status code returned: ").append("\"").append(statusCode).append("\"")
 					.append(". Error response from provider: ").append("\"").append(responseString).append("\"");

@@ -31,6 +31,7 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 
 	private static final Log LOGGER = Log.getLog(SalesforceHandlingStrategy.class);
 	private static final String SCHEMATYPE = "urn:scim:schemas:extension:enterprise:1.0";
+	private static final String JSON = "json";
 
 	@Override
 	public Map<String, Object> translateReferenceValues(Map<String, Map<String, Object>> attributeMap,
@@ -46,13 +47,13 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 		 * should be defined as array of string values
 		 */
 		LOGGER.warn(
-				"Processing trought Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes) ");
+				"Processing trough Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes)");
 		referenceValue = ((JSONArray) referenceValues).getJSONObject(position);
 		for (String subAttributeKeyNames : subAttributeMap.keySet()) {
 			if (!TYPE.equals(subAttributeKeyNames)) {
 				StringBuilder complexAttrName = new StringBuilder(attributeName);
 				attributeMap.put(
-						complexAttrName.append(DOT).append(referenceValue.get("value")).append(DOT)
+						complexAttrName.append(DOT).append(referenceValue.get(VALUE)).append(DOT)
 								.append(subAttributeKeyNames).toString(),
 						(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
 				isComplex = true;
@@ -70,12 +71,12 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 	@Override
 	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader) {
 
-		HttpClient httpClient = HttpClientBuilder.create().build();
 		Uid id = null;
+		HttpClient httpClient = HttpClientBuilder.create().build();
 		Integer statusCode = response.getStatusLine().getStatusCode();
 
 		LOGGER.warn(
-				"Status code from first update query: {0}. Processing trought Salesforce \"group/member update\" workaround. ",
+				"Status code from first update query: {0}. Processing trough Salesforce \"group/member update\" workaround. ",
 				statusCode);
 		HttpGet httpGet = new HttpGet(uri);
 		httpGet.addHeader(authHeader);
@@ -110,7 +111,7 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 					statusCode = response.getStatusLine().getStatusCode();
 					LOGGER.info("status code: {0}", statusCode);
 					if (statusCode == 200 || statusCode == 201) {
-						LOGGER.info("Update of resource was succesfull");
+						LOGGER.info("Update of resource was successful");
 						responseString = EntityUtils.toString(response.getEntity());
 						json = new JSONObject(responseString);
 						id = new Uid(json.getString(ID));
@@ -119,7 +120,7 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 					} else {
 						responseString = EntityUtils.toString(response.getEntity());
 
-						ExceptionMessageBuilder.onNoSuccess(response, "updating object");
+						ErrorHandler.onNoSuccess(response, "updating object");
 
 					}
 
@@ -166,14 +167,14 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 
 	@Override
 	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
-			Map<String, Object> autoriazationData) {
+			Map<String, Object> authorizationData) {
 
 		JSONObject loginObject = null;
 		String orgID = null;
 
-		if (autoriazationData.containsKey("json")) {
+		if (authorizationData.containsKey(JSON)) {
 
-			loginObject = (JSONObject) autoriazationData.get("json");
+			loginObject = (JSONObject) authorizationData.get(JSON);
 		}
 
 		if (loginObject != null) {

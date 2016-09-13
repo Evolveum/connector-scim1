@@ -42,6 +42,7 @@ public interface HandlingStrategy {
 	String DOT = ".";
 	String DISPLAYNAME = "displayName";
 	String ACTIVE = "active";
+	String VALUE = "value";
 	String FIRSTFLAG = "schemaparser-workaround";
 	String SECONDFLAG = "schemabuilder-workaround";
 
@@ -88,7 +89,7 @@ public interface HandlingStrategy {
 	 * @throws ConnectorIOException
 	 */
 
-	public void qeuery(Object query, String resourceEndPoint, ResultsHandler resultHandler,
+	public void query(Object query, String resourceEndPoint, ResultsHandler resultHandler,
 			ScimConnectorConfiguration conf);
 
 	/**
@@ -147,8 +148,7 @@ public interface HandlingStrategy {
 	 *         information of all endpoint.
 	 */
 
-	public ParserSchemaScim qeuerySchemas(String providerName, String resourceEndPoint,
-			ScimConnectorConfiguration conf);
+	public ParserSchemaScim querySchemas(String providerName, String resourceEndPoint, ScimConnectorConfiguration conf);
 
 	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject);
 
@@ -163,12 +163,12 @@ public interface HandlingStrategy {
 	public Map<String, Object> translateReferenceValues(Map<String, Map<String, Object>> attributeMap,
 			JSONArray referenceValues, Map<String, Object> subAttributeMap, int position, String attributeName);
 
-	public Set<Attribute> addAttributesToInject(Set<Attribute> injectetAttributeSet);
+	public Set<Attribute> addAttributesToInject(Set<Attribute> injectedAttributeSet);
 
 	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader);
 
 	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
-			String membershipResourceEndpoin, ScimConnectorConfiguration conf);
+			String membershipResourceEndpoint, ScimConnectorConfiguration conf);
 
 	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint,
 			String providerName) throws ConnectorException;
@@ -176,7 +176,7 @@ public interface HandlingStrategy {
 	public List<String> excludeFromAssembly(List<String> excludedAttributes);
 
 	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
-			Map<String, Object> autoriazationData);
+			Map<String, Object> authoriazationData);
 
 	public StringBuilder processContainsAllValuesFilter(String p, ContainsAllValuesFilter filter,
 			FilterHandler filterHandler);

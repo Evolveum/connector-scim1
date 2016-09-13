@@ -2,6 +2,8 @@ package com.evolveum.polygon.test.scim;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -58,8 +60,8 @@ public class StandardScimTestSuite {
 		return new Object[][] { { "single", uid }, { "multi", uid } };
 	}
 
-	@DataProvider(name = "listAllfromResourcesProvider")
-	public static Object[][] listAllfromResourcesProvider() {
+	@DataProvider(name = "listAllFromResourcesProvider")
+	public static Object[][] listAllFromResourcesProvider() {
 		return new Object[][] { { 1, "users" }, { 1, "groups" } };
 	}
 
@@ -89,7 +91,7 @@ public class StandardScimTestSuite {
 
 		testNumber = 1;
 
-		HashMap<String, String> configurationParameters = new HashMap<String, String>();
+		Map<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("clientID", "**");
 		configurationParameters.put("clientSecret", "**");
 		configurationParameters.put("endpoint", "**");
@@ -160,14 +162,14 @@ public class StandardScimTestSuite {
 
 		StringBuilder testType = new StringBuilder("createObject");
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
 		result = StandardScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
 				options);
 
-		HashMap<String, String> evaluationResults = StandardScimTestUtils.processResult(result, resourceName,
+		Map<String, String> evaluationResults = StandardScimTestUtils.processResult(result, resourceName,
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -182,7 +184,7 @@ public class StandardScimTestSuite {
 	@Test(priority = 6, dependsOnMethods = { "createObjectTest" }, dataProvider = "filterMethodProvider")
 	public void filterMethodTest(String resourceName, String filterType) {
 
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
@@ -193,9 +195,9 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 5, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllfromResourcesProvider")
+	@Test(priority = 5, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllFromResourcesProvider")
 	private void listAllTest(int numberOfResources, String resourceName) {
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
@@ -211,7 +213,7 @@ public class StandardScimTestSuite {
 		Uid returnedUid = StandardScimTestUtils.updateResourceTest("users", updateType, userUid, groupUid, testNumber,
 				connector);
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
 
@@ -219,7 +221,7 @@ public class StandardScimTestSuite {
 
 		result = StandardScimTestUtils.filter("uid", "users", testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = StandardScimTestUtils.processResult(result, "users",
+		Map<String, String> evaluationResults = StandardScimTestUtils.processResult(result, "users",
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -239,7 +241,7 @@ public class StandardScimTestSuite {
 		Uid returnedUid = StandardScimTestUtils.updateResourceTest("groups", updateType, userUid, groupUid, testNumber,
 				connector);
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
 
@@ -247,7 +249,7 @@ public class StandardScimTestSuite {
 
 		result = StandardScimTestUtils.filter("uid", "groups", testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = StandardScimTestUtils.processResult(result, "groups",
+		Map<String, String> evaluationResults = StandardScimTestUtils.processResult(result, "groups",
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -264,7 +266,7 @@ public class StandardScimTestSuite {
 	@Test(priority = 7, dependsOnMethods = { "createObjectTest" }, dataProvider = "deleteProvider")
 	private void deleteObjectTest(String resourceName, Uid uid) {
 
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 

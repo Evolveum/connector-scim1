@@ -52,7 +52,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	private static final String TYPE = "type";
 	private static final String DELIMITER = "\\.";
 	private static final String LEFTPAR = "(";
-	private static final String RIGHTPAR = "(";
+	private static final String RIGHTPAR = ")";
 
 	/**
 	 * Implementation of the "visitAndFilter" filter method.
@@ -67,7 +67,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitAndFilter(String p, AndFilter filter) {
-		LOGGER.info("Processing request trought AND filter");
+		LOGGER.info("Processing request trough AND filter");
 
 		String[] samePathIdParts = p.split(DELIMITER);// e.g valuePath.members
 
@@ -76,40 +76,40 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		}
 
 		StringBuilder completeQuery = new StringBuilder();
-		int i = 0;
+		int position = 0;
 		int size = filter.getFilters().size();
 		boolean isFirst = true;
 
-		for (Filter f : filter.getFilters()) {
-			i++;
+		for (Filter processedFilter : filter.getFilters()) {
+			position++;
 
 			if (isFirst) {
 				if (!p.isEmpty() || samePathIdParts.length > 1) {
 					completeQuery.append(p);
 					completeQuery.append("[");
-					completeQuery.append(f.accept(this, p));
+					completeQuery.append(processedFilter.accept(this, p));
 					isFirst = false;
-					if (i == size) {
+					if (position == size) {
 						completeQuery.append("]");
 						isFirst = false;
 					}
 				} else {
 
-					completeQuery = f.accept(this, p);
+					completeQuery = processedFilter.accept(this, p);
 					isFirst = false;
 				}
 			} else {
 				completeQuery.append(SPACE);
 				completeQuery.append(AND);
 				completeQuery.append(SPACE);
-				if (f instanceof OrFilter || f instanceof AndFilter) {
+				if (processedFilter instanceof OrFilter || processedFilter instanceof AndFilter) {
 					completeQuery.append(LEFTPAR);
-					completeQuery.append(f.accept(this, p).toString());
+					completeQuery.append(processedFilter.accept(this, p).toString());
 					completeQuery.append(RIGHTPAR);
 				} else {
-					completeQuery.append(f.accept(this, p).toString());
+					completeQuery.append(processedFilter.accept(this, p).toString());
 				}
-				if (i == size) {
+				if (position == size) {
 					if (!p.isEmpty() || samePathIdParts.length > 1) {
 						completeQuery.append("]");
 					}
@@ -134,7 +134,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitContainsFilter(String p, ContainsFilter filter) {
-		LOGGER.info("Processing request trought CONTAINS filter");
+		LOGGER.info("Processing request trough CONTAINS filter");
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -145,8 +145,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			}
 		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY!");
-			throw new InvalidAttributeValueException("No atribute key name provided");
+			LOGGER.error("Filter attribute key name EMPTY!");
+			throw new InvalidAttributeValueException("No attribute key name provided");
 		}
 	}
 
@@ -201,7 +201,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitEqualsFilter(String p, EqualsFilter filter) {
-		LOGGER.info("Processing request trought EQUALS filter: {0}", filter);
+		LOGGER.info("Processing request trough EQUALS filter: {0}", filter);
 
 		if (!filter.getName().isEmpty()) {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -214,8 +214,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			}
 		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY");
-			throw new InvalidAttributeValueException("No atribute key name provided");
+			LOGGER.error("Filter attribute key name EMPTY");
+			throw new InvalidAttributeValueException("No attribute key name provided");
 		}
 	}
 
@@ -233,7 +233,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	@Override
 	public StringBuilder visitExtendedFilter(String p, Filter filter) {
 		LOGGER.error("Usuported filter: {0}", filter);
-		throw new NoSuchMethodError("Usuported queuery filter");
+		throw new NoSuchMethodError("Usuported query filter");
 	}
 
 	/**
@@ -249,7 +249,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitGreaterThanFilter(String p, GreaterThanFilter filter) {
-		LOGGER.info("Processing request trought GREATHERTHAN filter: {0}", filter);
+		LOGGER.info("Processing request trough GREATHERTHAN filter: {0}", filter);
 
 		if (!filter.getName().isEmpty()) {
 
@@ -263,8 +263,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			}
 		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY: {0}", filter);
-			throw new InvalidAttributeValueException("No atribute key name provided");
+			LOGGER.error("Filter attribute key name EMPTY: {0}", filter);
+			throw new InvalidAttributeValueException("No attribute key name provided");
 		}
 	}
 
@@ -281,7 +281,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitGreaterThanOrEqualFilter(String p, GreaterThanOrEqualFilter filter) {
-		LOGGER.info("Processing request trought GREATHERTHANOREQUAL filter: {0}", filter);
+		LOGGER.info("Processing request trough GREATHERTHANOREQUAL filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -293,8 +293,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			}
 		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY: {0}", filter);
-			throw new InvalidAttributeValueException("No atribute key name provided");
+			LOGGER.error("Filter attribute key name EMPTY: {0}", filter);
+			throw new InvalidAttributeValueException("No attribute key name provided");
 		}
 	}
 
@@ -311,7 +311,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitLessThanFilter(String p, LessThanFilter filter) {
-		LOGGER.info("Processing request trought LESSTHAN filter: {0}", filter);
+		LOGGER.info("Processing request trough LESSTHAN filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -323,8 +323,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			}
 		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY: {0}", filter);
-			throw new InvalidAttributeValueException("No atribute key name provided");
+			LOGGER.error("Filter attribute key name EMPTY: {0}", filter);
+			throw new InvalidAttributeValueException("No attribute key name provided");
 
 		}
 	}
@@ -342,7 +342,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitLessThanOrEqualFilter(String p, LessThanOrEqualFilter filter) {
-		LOGGER.info("Processing request trought LESSTHANOREQUAL filter: {0}", filter);
+		LOGGER.info("Processing request trough LESSTHANOREQUAL filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -354,8 +354,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			}
 		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY: {0}", filter);
-			throw new InvalidAttributeValueException("No atribute key name provided");
+			LOGGER.error("Filter attribute key name EMPTY: {0}", filter);
+			throw new InvalidAttributeValueException("No attribute key name provided");
 		}
 	}
 
@@ -371,7 +371,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitNotFilter(String p, NotFilter filter) {
-		LOGGER.info("Processing request trought NOT filter: {0}", filter);
+		LOGGER.info("Processing request trough NOT filter: {0}", filter);
 		StringBuilder completeQuery = new StringBuilder();
 
 		completeQuery.append(NOT).append(SPACE).append(filter.getFilter().accept(this, p));
@@ -391,15 +391,15 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitOrFilter(String p, OrFilter filter) {
-		LOGGER.info("Processing request trought OR filter: {0}", filter);
+		LOGGER.info("Processing request trough OR filter: {0}", filter);
 		StringBuilder completeQuery = new StringBuilder();
 
 		boolean isFirst = true;
 
-		for (Filter f : filter.getFilters()) {
+		for (Filter processedFilter : filter.getFilters()) {
 
 			if (isFirst) {
-				completeQuery = f.accept(this, p);
+				completeQuery = processedFilter.accept(this, p);
 				completeQuery.append(SPACE);
 				completeQuery.append(OR);
 				isFirst = false;
@@ -407,13 +407,13 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			} else {
 
 				completeQuery.append(SPACE);
-				if (f instanceof OrFilter || f instanceof AndFilter) {
+				if (processedFilter instanceof OrFilter || processedFilter instanceof AndFilter) {
 					completeQuery.append(LEFTPAR);
-					completeQuery.append(f.accept(this, p).toString());
+					completeQuery.append(processedFilter.accept(this, p).toString());
 					completeQuery.append(RIGHTPAR);
 				} else {
 
-					completeQuery.append(f.accept(this, p).toString());
+					completeQuery.append(processedFilter.accept(this, p).toString());
 				}
 
 			}
@@ -437,7 +437,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitStartsWithFilter(String p, StartsWithFilter filter) {
-		LOGGER.info("Processing request trought STARTSWITH filter: {0}", filter);
+		LOGGER.info("Processing request trough STARTSWITH filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -449,8 +449,8 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			}
 		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY: {0}", filter);
-			throw new InvalidAttributeValueException("No atribute key name provided");
+			LOGGER.error("Filter attribute key name EMPTY: {0}", filter);
+			throw new InvalidAttributeValueException("No attribute key name provided");
 		}
 	}
 
@@ -467,7 +467,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitEndsWithFilter(String p, EndsWithFilter filter) {
-		LOGGER.info("Processing request trought ENDSWITH filter: {0}", filter);
+		LOGGER.info("Processing request trough ENDSWITH filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -479,9 +479,9 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			}
 		} else {
 
-			LOGGER.error("Filter atribute key name EMPTY while processing an ends with filter: {0}", filter);
+			LOGGER.error("Filter attribute key name EMPTY while processing an ends with filter: {0}", filter);
 			throw new InvalidAttributeValueException(
-					"No atribute key name provided while processing an ends with filter");
+					"No attribute key name provided while processing an ends with filter");
 		}
 	}
 
@@ -505,9 +505,9 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		StringBuilder resultString = new StringBuilder();
 		if (attribute == null) {
 
-			LOGGER.error("Filter atribude value is EMPTY while building filter queuery, please provide atribute value ",
+			LOGGER.error("Filter attribute value is EMPTY while building filter query, please provide attribute value ",
 					attribute);
-			throw new InvalidAttributeValueException("No atribute value provided while building filter queuery");
+			throw new InvalidAttributeValueException("No attribute value provided while building filter query");
 		} else {
 			resultString.append(name).append(SPACE).append(operator).append(SPACE).append(QUOTATION)
 					.append(AttributeUtil.getAsStringValue(attribute)).append(QUOTATION);
@@ -572,7 +572,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 				return processedString;
 			}
 			LOGGER.info(
-					"The attribute {0} is not a \"complex\" attribute. The filter query will be processed accordingli.",
+					"The attribute {0} is not a \"complex\" attribute. The filter query will be processed accordingly.",
 					filter.getName());
 			return null;
 		}

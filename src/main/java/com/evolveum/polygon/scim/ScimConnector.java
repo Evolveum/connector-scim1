@@ -64,7 +64,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		if (schema == null) {
 			// test log delete
 			SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
-			ParserSchemaScim schemaParser = strategy.qeuerySchemas(providerName, SCHEMAS, configuration);
+			ParserSchemaScim schemaParser = strategy.querySchemas(providerName, SCHEMAS, configuration);
 
 			if (schemaParser != null) {
 
@@ -162,17 +162,17 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			String endpointName = object.getObjectClassValue();
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
-				strategy.addAttributesToInject(injectedAttributeSet);
+				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
 				uid = strategy.create(USERS, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
-				strategy.addAttributesToInject(injectedAttributeSet);
+				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
 				uid = strategy.create(GROUPS, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 
 			} else {
-				strategy.addAttributesToInject(injectedAttributeSet);
+				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
 				uid = strategy.create(endpointName, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 			}
@@ -183,7 +183,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				ObjectTranslator userBuild = new UserDataBuilder("");
 
-				strategy.addAttributesToInject(injectedAttributeSet);
+				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
 				Uid uid = strategy.create(USERS, userBuild, attribute, injectedAttributeSet, configuration);
 
@@ -200,7 +200,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				StrategyFetcher fetch = new StrategyFetcher();
 				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
-				strategy.addAttributesToInject(injectedAttributeSet);
+				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
 				Uid uid = strategy.create(GROUPS, groupBuild, attribute, injectedAttributeSet, configuration);
 
@@ -256,7 +256,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 		// TODO obsolete
 		LOGGER.info("The provider name is {0}", providerName);
-		ParserSchemaScim schemaParser = strategy.qeuerySchemas(providerName, SCHEMAS, this.configuration);
+		ParserSchemaScim schemaParser = strategy.querySchemas(providerName, SCHEMAS, this.configuration);
 
 		if (schemaParser != null) {
 
@@ -355,16 +355,16 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Test");
 
 		if (configuration != null) {
-			Map<String, Object> autoriazationData = ServiceAcessManager.logIntoService(configuration);
+			Map<String, Object> authoriazationData = ServiceAccessManager.logIntoService(configuration);
 
-			if (autoriazationData != null && !autoriazationData.isEmpty()) {
+			if (authoriazationData != null && !authoriazationData.isEmpty()) {
 
-				if (autoriazationData.containsKey("loginInstance")) {
+				if (authoriazationData.containsKey("loginInstance")) {
 
-					HttpPost instance = (HttpPost) autoriazationData.get("loginInstance");
+					HttpPost instance = (HttpPost) authoriazationData.get("loginInstance");
 
 					LOGGER.info("Test was succesfull");
-					ServiceAcessManager.logOut(instance);
+					ServiceAccessManager.logOut(instance);
 				} else {
 
 					LOGGER.error(
@@ -425,7 +425,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			throw new ConnectorException("Result handler for queuery can not be null");
 		}
 
-		String flag = querryChecker(query, endpointName);
+		String flag = queryChecker(query, endpointName);
 
 		if (flag.isEmpty()) {
 
@@ -434,7 +434,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				if (ObjectClass.ACCOUNT.getObjectClassValue().equals(endpointName)) {
 					if (query == null) {
 
-						strategy.qeuery(queryUriSnippet.toString(), USERS, handler, configuration);
+						strategy.query(queryUriSnippet.toString(), USERS, handler, configuration);
 
 					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
@@ -444,7 +444,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					}
 				} else if (ObjectClass.GROUP.getObjectClassValue().equals(endpointName)) {
 					if (query == null) {
-						strategy.qeuery(queryUriSnippet.toString(), GROUPS, handler, configuration);
+						strategy.query(queryUriSnippet.toString(), GROUPS, handler, configuration);
 
 					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
 
@@ -455,7 +455,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 					if (query == null) {
 
-						strategy.qeuery(queryUriSnippet.toString(), endpointName, handler, configuration);
+						strategy.query(queryUriSnippet.toString(), endpointName, handler, configuration);
 					} else if (query instanceof EqualsFilter && qIsUid(endpointName, query, handler)) {
 
 					} else {
@@ -467,7 +467,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				if (ObjectClass.ACCOUNT.equals(objectClass)) {
 
 					if (query == null) {
-						strategy.qeuery(queryUriSnippet.toString(), USERS, handler, configuration);
+						strategy.query(queryUriSnippet.toString(), USERS, handler, configuration);
 					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
 
 					} else {
@@ -475,7 +475,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					}
 				} else if (ObjectClass.GROUP.equals(objectClass)) {
 					if (query == null) {
-						strategy.qeuery(queryUriSnippet.toString(), GROUPS, handler, configuration);
+						strategy.query(queryUriSnippet.toString(), GROUPS, handler, configuration);
 					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
 
 					} else {
@@ -490,9 +490,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		} else {
 
 			if (ObjectClass.GROUP.equals(objectClass)) {
-				Uid quieriedObject = new Uid(flag);
+				Uid queriedObject = new Uid(flag);
 
-				strategy.queryMembershipData(quieriedObject, USERS, handler, GROUPS, configuration);
+				strategy.queryMembershipData(queriedObject, USERS, handler, GROUPS, configuration);
 			}
 		}
 
@@ -508,7 +508,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * @throws IllegalArgumentException
 	 *             if the provided filter is no supported.
 	 **/
-	public String querryChecker(Filter filter, String endpointName) {
+	public String queryChecker(Filter filter, String endpointName) {
 
 		String flag = strategy.checkFilter(filter, endpointName);
 		return flag;
@@ -532,7 +532,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		Attribute filterAttr = ((EqualsFilter) query).getAttribute();
 
 		if (filterAttr instanceof Uid) {
-			strategy.qeuery((Uid) filterAttr, endPoint, resultHandler, configuration);
+			strategy.query((Uid) filterAttr, endPoint, resultHandler, configuration);
 			return true;
 		} else
 			return false;
@@ -569,7 +569,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		filterSnippet = query.accept(new FilterHandler(), providerName);
 
 		queryUriSnippet.append(prefixChar).append("filter=").append(filterSnippet.toString());
-		strategy.qeuery(queryUriSnippet.toString(), endPoint, resultHandler, configuration);
+		strategy.query(queryUriSnippet.toString(), endPoint, resultHandler, configuration);
 	}
 
 	/**
@@ -591,7 +591,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		List<Map<String, Map<String, Object>>> attributeMapList = schemaParser.getAttributeMapList(strategy);
 
 		for (Map<String, Map<String, Object>> attributeMap : attributeMapList) {
-			hlAtrribute = schemaParser.gethlAttributeMapList().get(iterator);
+			hlAtrribute = schemaParser.getHlAttributeMapList().get(iterator);
 
 			for (String key : hlAtrribute.keySet()) {
 				if ("endpoint".equals(key)) {

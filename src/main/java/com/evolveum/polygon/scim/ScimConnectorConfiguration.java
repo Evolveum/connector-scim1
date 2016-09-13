@@ -43,7 +43,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	/**
 	 * Setter method for the "AUTHENTICATION" attribute.
 	 * 
-	 * @param username
+	 * @param authentication
 	 *            the authentication string value.
 	 */
 	public void setAuthentication(String authentication) {
@@ -64,7 +64,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	/**
 	 * Setter method for the "TOKEN" attribute.
 	 * 
-	 * @param username
+	 * @param token
 	 *            the token string value.
 	 */
 	public void setToken(String token) {
@@ -248,7 +248,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	/**
 	 * Setter method for the "BASEURL" attribute.
 	 * 
-	 * @param username
+	 * @param baseUrl
 	 *            the base url string value.
 	 */
 	public void setBaseUrl(String baseUrl) {
@@ -300,7 +300,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	@Override
 	public void validate() {
 
-		LOGGER.info("Processing trought configuration validation procedure.");
+		LOGGER.info("Processing trough configuration validation procedure.");
 
 		if (StringUtil.isBlank(AUTHENTICATION)) {
 			throw new IllegalArgumentException("Authentication cannot be empty.");

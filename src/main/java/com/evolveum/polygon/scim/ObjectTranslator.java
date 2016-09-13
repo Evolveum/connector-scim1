@@ -6,18 +6,28 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.json.JSONObject;
 
 public interface ObjectTranslator {
+
+	String DELETE = "delete";
+	String DELIMITER = "\\.";
+	String DEFAULT = "default";
+	String TYPE = "type";
+	String OPERATION = "operation";
+	String DOT = ".";
+	String BLANK = "blank";
+	String SCHEMA = "schema";
+
 	/**
 	 * Constructs a json object representation out of the provided data set and
 	 * schema dictionary. The json object representation will contain only
 	 * attributes which comply to the provided schema and operation attributes
 	 * as defined in the SCIM patch specification.
 	 * 
-	 * @param passedAttributeSet
+	 * @param imsAttributes
 	 *            A set of attributes provided by the identity management
 	 *            system.
-	 * @param orgIdAttributeset
+	 * @param injectedAttributes
 	 *            A set of attributes which are injected into the provided set.
 	 * @return The complete json representation of the provided data set.
 	 */
-	JSONObject translateSetToJson(Set<Attribute> passedAttributeSet, Set<Attribute> orgIdAttributeset);
+	JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes);
 }

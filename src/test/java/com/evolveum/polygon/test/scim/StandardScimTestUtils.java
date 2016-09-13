@@ -3,6 +3,7 @@ package com.evolveum.polygon.test.scim;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -174,10 +175,10 @@ public class StandardScimTestUtils {
 		return attributeSet;
 	}
 
-	public static ArrayList<ConnectorObject> listAllfromResourcesTestUtil(String resourceName, ScimConnector conn,
+	public static List<ConnectorObject> listAllfromResourcesTestUtil(String resourceName, ScimConnector conn,
 			OperationOptions options) {
 
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		TestSearchResultsHandler handler = new TestSearchResultsHandler();
 
@@ -321,7 +322,7 @@ public class StandardScimTestUtils {
 
 	}
 
-	public static ArrayList<ConnectorObject> filter(String filterType, String resourceName, Integer testNumber,
+	public static List<ConnectorObject> filter(String filterType, String resourceName, Integer testNumber,
 			Uid userTestUid, Uid groupTestUid, ScimConnector conn, OperationOptions options) {
 
 		TestSearchResultsHandler handler = new TestSearchResultsHandler();
@@ -427,10 +428,10 @@ public class StandardScimTestUtils {
 		return attributeSet;
 	}
 
-	public static HashMap<String, String> processResult(ArrayList<ConnectorObject> results, String resourceName,
-			String testType, Uid userTestUid, Integer testNumber) {
+	public static Map<String, String> processResult(List<ConnectorObject> results, String resourceName, String testType,
+			Uid userTestUid, Integer testNumber) {
 
-		HashMap<String, String> evaluationResult = new HashMap<String, String>();
+		Map<String, String> evaluationResult = new HashMap<String, String>();
 
 		Set<Attribute> createAttributeSet = new HashSet<Attribute>();
 

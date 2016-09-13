@@ -26,7 +26,7 @@ final class TestSearchResultsHandler implements SearchResultsHandler {
 
 	@Override
 	public void handleResult(SearchResult result) {
-		LOGGER.info("im handling {0}", result.getRemainingPagedResults());
+		LOGGER.info("Im handling {0}", result.getRemainingPagedResults());
 
 	}
 

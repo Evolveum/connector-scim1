@@ -30,9 +30,9 @@ import org.json.JSONTokener;
  * Holds the CRUD+L methods and other methods needed for interaction with the
  * service provider.
  */
-public class ServiceAcessManager {
+public class ServiceAccessManager {
 
-	private static final Log LOGGER = Log.getLog(ServiceAcessManager.class);
+	private static final Log LOGGER = Log.getLog(ServiceAccessManager.class);
 
 	/**
 	 * Used for login to the service. The data needed for this operation is
@@ -55,7 +55,7 @@ public class ServiceAcessManager {
 
 		if (!"token".equals(configuration.getAuthentication())) {
 
-			HttpClient httpclient;
+			HttpClient httpClient;
 
 			if (proxyUrl != null && !proxyUrl.isEmpty()) {
 
@@ -63,11 +63,11 @@ public class ServiceAcessManager {
 
 				DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
 
-				httpclient = HttpClientBuilder.create().setRoutePlanner(routePlanner).build();
+				httpClient = HttpClientBuilder.create().setRoutePlanner(routePlanner).build();
 
 			} else {
 
-				httpclient = HttpClientBuilder.create().build();
+				httpClient = HttpClientBuilder.create().build();
 
 			}
 			String loginURL = new StringBuilder(configuration.getLoginURL()).append(configuration.getService())
@@ -86,18 +86,18 @@ public class ServiceAcessManager {
 				bodyContent.setContentType("application/x-www-form-urlencoded");
 				loginInstance.setEntity(bodyContent);
 
-			} catch (UnsupportedEncodingException e1) {
+			} catch (UnsupportedEncodingException e) {
 				LOGGER.error("Unsupported encoding: {0}. Occurrence in the process of login into the service",
-						e1.getLocalizedMessage());
-				LOGGER.info("Unsupported encoding: {0}. Occurrence in the process of login into the service", e1);
+						e.getLocalizedMessage());
+				LOGGER.info("Unsupported encoding: {0}. Occurrence in the process of login into the service", e);
 
 				throw new ConnectorException(
-						"Unsupported encoding. Occurrence in the process of login into the service", e1);
+						"Unsupported encoding. Occurrence in the process of login into the service", e);
 			}
 
 			try {
 				long providerStartTime = System.currentTimeMillis();
-				response = httpclient.execute(loginInstance);
+				response = httpClient.execute(loginInstance);
 				long providerEndTime = System.currentTimeMillis();
 				long providerDuration = (providerEndTime - providerStartTime);
 				LOGGER.info(
@@ -120,13 +120,12 @@ public class ServiceAcessManager {
 
 			} catch (IOException ioException) {
 
-				LOGGER.error("An error occurred while processing the queuery http response to the login request : {0}",
+				LOGGER.error("An error occurred while processing the query http response to the login request : {0}",
 						ioException.getLocalizedMessage());
-				LOGGER.info("An error occurred while processing the queuery http response to the login request : {0}",
+				LOGGER.info("An error occurred while processing the query http response to the login request : {0}",
 						ioException);
 				throw new ConnectorIOException(
-						"An error occurred while processing the queuery http response to the login request",
-						ioException);
+						"An error occurred while processing the query http response to the login request", ioException);
 			}
 
 			final int statusCode = response.getStatusLine().getStatusCode();

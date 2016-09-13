@@ -26,9 +26,9 @@ public class ParserSchemaScim {
 			Object hlAttribute = schemaJson.get(attributeName);
 			if (hlAttribute instanceof JSONArray) {
 
-				for (int i = 0; i < ((JSONArray) hlAttribute).length(); i++) {
+				for (int position = 0; position < ((JSONArray) hlAttribute).length(); position++) {
 					JSONObject attribute = new JSONObject();
-					attribute = ((JSONArray) hlAttribute).getJSONObject(i);
+					attribute = ((JSONArray) hlAttribute).getJSONObject(position);
 
 					attributeMap = strategy.parseSchemaAttribute(attribute, attributeMap, this);
 				}
@@ -46,7 +46,7 @@ public class ParserSchemaScim {
 
 	}
 
-	public List<Map<String, String>> gethlAttributeMapList() {
+	public List<Map<String, String>> getHlAttributeMapList() {
 		return hlAttributeMapList;
 	}
 

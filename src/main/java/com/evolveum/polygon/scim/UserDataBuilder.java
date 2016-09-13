@@ -3,10 +3,8 @@ package com.evolveum.polygon.scim;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -30,136 +28,11 @@ import org.json.JSONObject;
 
 public class UserDataBuilder implements ObjectTranslator {
 
-	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
 	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
-	private static final String DELETE = "delete";
-	private static final String DELIMITER = "\\.";
-	private static final String DEFAULT = "default";
-	private static final String TYPE = "type";
-	private static final String SCHEMA = "schema";
+
+	private static final String SCHEMAS = "schemas";
 
 	private String operation;
-
-	static {
-		objectNameDictionary.put("userName", "userName");
-
-		objectNameDictionary.put("name.formatted", "formatted");
-		objectNameDictionary.put("name.familyName", "familyName");
-		objectNameDictionary.put("name.givenName", "givenName");
-		objectNameDictionary.put("name.middleName", "middleName");
-		objectNameDictionary.put("name.honorificPrefix", "honorificPrefix");
-		objectNameDictionary.put("name.honorificSuffix", "honorificSuffix");
-
-		objectNameDictionary.put("displayName", "displayName");
-		objectNameDictionary.put("nickName", "nickName");
-		objectNameDictionary.put("schemas", "schemas");
-
-		objectNameDictionary.put("emails.work.value", "value");
-		objectNameDictionary.put("emails.work.primary", "primary");
-
-		objectNameDictionary.put("emails.home.value", "value");
-		objectNameDictionary.put("emails.home.primary", "primary");
-
-		objectNameDictionary.put("emails.other.value", "value");
-		objectNameDictionary.put("emails.other.primary", "primary");
-
-		objectNameDictionary.put("addresses.work.streetAddress", "streetAddress");
-		objectNameDictionary.put("addresses.work.locality", "locality");
-		objectNameDictionary.put("addresses.work.region", "region");
-		objectNameDictionary.put("addresses.work.postalCode", "postalCode");
-		objectNameDictionary.put("addresses.work.country", "country");
-		objectNameDictionary.put("addresses.work.formatted", "formatted");
-		objectNameDictionary.put("addresses.work.primary", "primary");
-
-		objectNameDictionary.put("addresses.home.streetAddress", "streetAddress");
-		objectNameDictionary.put("addresses.home.locality", "locality");
-		objectNameDictionary.put("addresses.home.region", "region");
-		objectNameDictionary.put("addresses.home.postalCode", "postalCode");
-		objectNameDictionary.put("addresses.home.country", "country");
-		objectNameDictionary.put("addresses.home.formatted", "formatted");
-		objectNameDictionary.put("addresses.home.primary", "primary");
-
-		objectNameDictionary.put("addresses.other.streetAddress", "streetAddress");
-		objectNameDictionary.put("addresses.other.locality", "locality");
-		objectNameDictionary.put("addresses.other.region", "region");
-		objectNameDictionary.put("addresses.other.postalCode", "postalCode");
-		objectNameDictionary.put("addresses.other.country", "country");
-		objectNameDictionary.put("addresses.other.formatted", "formatted");
-		objectNameDictionary.put("addresses.other.primary", "primary");
-
-		objectNameDictionary.put("phoneNumbers.work.value", "value");
-		objectNameDictionary.put("phoneNumbers.work.primary", "primary");
-
-		objectNameDictionary.put("phoneNumbers.home.value", "value");
-		objectNameDictionary.put("phoneNumbers.home.primary", "primary");
-
-		objectNameDictionary.put("phoneNumbers.mobile.value", "value");
-		objectNameDictionary.put("phoneNumbers.mobile.primary", "primary");
-
-		objectNameDictionary.put("phoneNumbers.fax.value", "value");
-		objectNameDictionary.put("phoneNumbers.fax.primary", "primary");
-
-		objectNameDictionary.put("phoneNumbers.pager.value", "value");
-		objectNameDictionary.put("phoneNumbers.pager.primary", "primary");
-
-		objectNameDictionary.put("phoneNumbers.other.value", "value");
-		objectNameDictionary.put("phoneNumbers.other.primary", "primary");
-
-		objectNameDictionary.put("photos.photo.value", "value");
-		objectNameDictionary.put("photos.photo.primary", "primary");
-
-		objectNameDictionary.put("photos.thumbnail.value", "value");
-		objectNameDictionary.put("photos.thumbnail.primary", "primary");
-
-		objectNameDictionary.put("ims.aim.value", "value");
-		objectNameDictionary.put("ims.aim.primary", "primary");
-
-		objectNameDictionary.put("ims.gtalk.value", "value");
-		objectNameDictionary.put("ims.gtalk.primary", "primary");
-
-		objectNameDictionary.put("ims.icq.value", "value");
-		objectNameDictionary.put("ims.icq.primary", "primary");
-
-		objectNameDictionary.put("ims.msn.value", "value");
-		objectNameDictionary.put("ims.msn.primary", "primary");
-
-		objectNameDictionary.put("ims.xmpp.value", "value");
-		objectNameDictionary.put("ims.xmpp.primary", "primary");
-
-		objectNameDictionary.put("ims.skype.value", "value");
-		objectNameDictionary.put("ims.skype.primary", "primary");
-
-		objectNameDictionary.put("ims.qq.value", "value");
-		objectNameDictionary.put("ims.qq.primary", "primary");
-
-		objectNameDictionary.put("ims.yahoo.value", "value");
-		objectNameDictionary.put("ims.yahoo.primary", "primary");
-
-		objectNameDictionary.put("ims.other.value", "value");
-		objectNameDictionary.put("ims.other.primary", "primary");
-
-		objectNameDictionary.put("userType", "userType");
-		objectNameDictionary.put("title", "title");
-		objectNameDictionary.put("preferredLanguage", "preferredLanguage");
-		objectNameDictionary.put("locale", "locale");
-
-		objectNameDictionary.put("id", "id");
-		objectNameDictionary.put("externalId", "externalId");
-		objectNameDictionary.put("timezone", "timezone");
-		objectNameDictionary.put("password", "password");
-
-		objectNameDictionary.put("x509Certificates", "x509Certificates");
-		objectNameDictionary.put("x509Certificates.value", "value");
-
-		objectNameDictionary.put("entitlements.default.value", "value");
-		objectNameDictionary.put("entitlements.default.primary", "primary");
-
-		objectNameDictionary.put("schema.type", TYPE);
-		objectNameDictionary.put("schema.organization", "organization");
-
-		objectNameDictionary.put("roles.default.value", "value");
-		objectNameDictionary.put("roles.default.display", "value");
-	}
 
 	public UserDataBuilder(String operation) {
 		this.operation = operation;
@@ -193,7 +66,7 @@ public class UserDataBuilder implements ObjectTranslator {
 				String attributeName = injectedAttribute.getName();
 				multiValueAttribute.add(injectedAttribute);
 
-				if (attributeName.contains(".")) {
+				if (attributeName.contains(DOT)) {
 
 					String[] keyParts = attributeName.split(DELIMITER); // e.g.
 					// schemas.default.blank
@@ -215,34 +88,29 @@ public class UserDataBuilder implements ObjectTranslator {
 
 			String attributeName = attribute.getName();
 
-			if ("schemas".equals(attributeName)) {
+			if (SCHEMAS.equals(attributeName)) {
 
-				attributeName = "schemas";
+				attributeName = SCHEMAS;
 				attribute = AttributeBuilder.build("schemas.default.blank", attribute.getValue());
-			}
-
-			if (objectNameDictionary.containsKey(attributeName)) {
-				if (attributeName.contains(".")) {
-
-					String[] keyParts = attributeName.split(DELIMITER);
-					if (keyParts.length == 2) {
-
-						multiValueAttribute.add(attribute);
-					} else {
-						multiLayerAttribute.add(attribute);
-					}
-
-				} else {
-
-					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
-				}
 
 			} else if ("__ENABLE__".equals(attributeName)) {
 				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
 
+			} else if (attributeName.contains(DOT)) {
+
+				String[] keyParts = attributeName.split(DELIMITER);
+				if (keyParts.length == 2) {
+
+					multiValueAttribute.add(attribute);
+				} else {
+					multiLayerAttribute.add(attribute);
+				}
+
 			} else {
-				LOGGER.warn("Attribute name not defined in dictionary {0}", attributeName);
+
+				completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 			}
+
 		}
 
 		if (multiValueAttribute != null) {
@@ -250,7 +118,7 @@ public class UserDataBuilder implements ObjectTranslator {
 		}
 
 		if (multiLayerAttribute != null) {
-			buildLayeredAtrribute(multiLayerAttribute, completeJsonObj);
+			buildLayeredAttribute(multiLayerAttribute, completeJsonObj);
 		}
 		return completeJsonObj;
 
@@ -269,7 +137,7 @@ public class UserDataBuilder implements ObjectTranslator {
 	 * @return A json representation of the provided data set.
 	 */
 
-	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
+	private JSONObject buildLayeredAttribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
 
 		String mainAttributeName = "";
 		List<String> checkedNames = new ArrayList<String>();
@@ -296,7 +164,7 @@ public class UserDataBuilder implements ObjectTranslator {
 					}
 				}
 
-				String canonicaltypeName = "";
+				String canonicalTypeName = "";
 				boolean writeToArray = true;
 				JSONArray jArray = new JSONArray();
 
@@ -310,14 +178,14 @@ public class UserDataBuilder implements ObjectTranslator {
 					if (checkedTypeNames.contains(nameFromSubSetParts[1])) {
 					} else {
 						JSONObject multivalueObject = new JSONObject();
-						canonicaltypeName = nameFromSubSetParts[1];
+						canonicalTypeName = nameFromSubSetParts[1];
 
-						checkedTypeNames.add(canonicaltypeName);
+						checkedTypeNames.add(canonicalTypeName);
 						for (Attribute subSetAttribute : subAttributeLayerSet) {
 							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
 							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split(DELIMITER); // e.q.
 							// email.work.value
-							if (finalSubAttributeNameParts[1].equals(canonicaltypeName)) {
+							if (finalSubAttributeNameParts[1].equals(canonicalTypeName)) {
 
 								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
 									writeToArray = false;
@@ -332,7 +200,7 @@ public class UserDataBuilder implements ObjectTranslator {
 										}
 										if (operation != null) {
 											if (DELETE.equals(operation)) {
-												multivalueObject.put("operation", DELETE);
+												multivalueObject.put(OPERATION, DELETE);
 											}
 										}
 										jArray.put(multivalueObject);
@@ -341,7 +209,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 								} else {
 
-									if (!"blank".equals(finalSubAttributeNameParts[2])) {
+									if (!BLANK.equals(finalSubAttributeNameParts[2])) {
 										multivalueObject.put(finalSubAttributeNameParts[2],
 												AttributeUtil.getSingleValue(subSetAttribute));
 									} else {
@@ -355,7 +223,7 @@ public class UserDataBuilder implements ObjectTranslator {
 									}
 									if (operation != null) {
 										if (DELETE.equals(operation)) {
-											multivalueObject.put("operation", DELETE);
+											multivalueObject.put(OPERATION, DELETE);
 										}
 									}
 

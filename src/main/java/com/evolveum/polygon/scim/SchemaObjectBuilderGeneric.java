@@ -51,9 +51,9 @@ public class SchemaObjectBuilderGeneric {
 		} else if ("/Groups".equals(objectTypeName)) {
 			builder.setType(ObjectClass.GROUP_NAME);
 		} else {
-			String[] splitTypeMame = objectTypeName.split("\\/"); // e.q.
+			String[] splitTypeName = objectTypeName.split("\\/"); // e.q.
 			// /Entitlements
-			ObjectClass objectClass = new ObjectClass(splitTypeMame[1]);
+			ObjectClass objectClass = new ObjectClass(splitTypeName[1]);
 			builder.setType(objectClass.getObjectClassValue());
 		}
 		LOGGER.info("Schema: {0}", builder.build());
@@ -71,21 +71,21 @@ public class SchemaObjectBuilderGeneric {
 	 * @param schemaAttributeMap
 	 *            A map containing the sub properties of the evaluated
 	 *            attribute.
-	 * @param subPropertieName
-	 *            String which represents the name of the sub-propertie.
-	 * @return The "AttributeInfoBuilder" object populated with the
-	 *         sub-propertie values set.
+	 * @param subPropertyName
+	 *            String which represents the name of the sub-property.
+	 * @return The "AttributeInfoBuilder" object populated with the sub-property
+	 *         values set.
 	 **/
 	public AttributeInfoBuilder subPropertiesChecker(AttributeInfoBuilder infoBuilder,
-			Map<String, Object> schemaAttributeMap, String subPropertieName) {
+			Map<String, Object> schemaAttributeMap, String subPropertyName) {
 
-		if ("readOnly".equals(subPropertieName)) {
+		if ("readOnly".equals(subPropertyName)) {
 
-			infoBuilder.setUpdateable((!(Boolean) schemaAttributeMap.get(subPropertieName)));
-			infoBuilder.setCreateable((!(Boolean) schemaAttributeMap.get(subPropertieName)));
+			infoBuilder.setUpdateable((!(Boolean) schemaAttributeMap.get(subPropertyName)));
+			infoBuilder.setCreateable((!(Boolean) schemaAttributeMap.get(subPropertyName)));
 
-		} else if ("mutability".equals(subPropertieName)) {
-			String value = schemaAttributeMap.get(subPropertieName).toString();
+		} else if ("mutability".equals(subPropertyName)) {
+			String value = schemaAttributeMap.get(subPropertyName).toString();
 			if ("readWrite".equals(value)) {
 				infoBuilder.setUpdateable(true);
 				infoBuilder.setCreateable(true);
@@ -109,24 +109,24 @@ public class SchemaObjectBuilderGeneric {
 				if (value.isEmpty()) {
 
 				} else {
-					LOGGER.warn("Unknown nmutability attribute in schema translation: {0} ", value);
+					LOGGER.warn("Unknown mutability attribute in schema translation: {0} ", value);
 				}
 			}
 
-		} else if ("type".equals(subPropertieName)) {
+		} else if ("type".equals(subPropertyName)) {
 
-			if ("string".equals(schemaAttributeMap.get(subPropertieName).toString())) {
+			if ("string".equals(schemaAttributeMap.get(subPropertyName).toString())) {
 
 				infoBuilder.setType(String.class);
-			} else if ("boolean".equals(schemaAttributeMap.get(subPropertieName).toString())) {
+			} else if ("boolean".equals(schemaAttributeMap.get(subPropertyName).toString())) {
 
 				infoBuilder.setType(Boolean.class);
 			}
 
-		} else if ("required".equals(subPropertieName)) {
-			infoBuilder.setRequired(((Boolean) schemaAttributeMap.get(subPropertieName)));
-		} else if ("multiValued".equals(subPropertieName)) {
-			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(subPropertieName)));
+		} else if ("required".equals(subPropertyName)) {
+			infoBuilder.setRequired(((Boolean) schemaAttributeMap.get(subPropertyName)));
+		} else if ("multiValued".equals(subPropertyName)) {
+			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(subPropertyName)));
 		}
 
 		return infoBuilder;

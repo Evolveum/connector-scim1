@@ -2,6 +2,8 @@ package com.evolveum.polygon.test.scim;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -56,8 +58,8 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 		return new Object[][] { { "single", uid }, { "multi", uid } };
 	}
 
-	@DataProvider(name = "listAllfromResourcesProvider")
-	public static Object[][] listAllfromResourcesProvider() {
+	@DataProvider(name = "listAllFromResourcesProvider")
+	public static Object[][] listAllFromResourcesProvider() {
 		return new Object[][] { { 1, "users" }, { 1, "groups" }, { 1, "entitlements" } };
 	}
 
@@ -73,9 +75,9 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 		pageSize = 1;
 		pageOffset = 1;
 
-		testNumber = 81;
+		testNumber = 82;
 
-		HashMap<String, String> configurationParameters = new HashMap<String, String>();
+		Map<String, String> configurationParameters = new HashMap<String, String>();
 
 		configurationParameters.put("clientID", "");
 		configurationParameters.put("clientSecret", "");
@@ -146,14 +148,14 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 
 		StringBuilder testType = new StringBuilder("createObject");
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = SalesforceSpecificTestUtils.getOptions(pageSize, pageOffset);
 
 		result = SalesforceSpecificTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
 				options);
 
-		HashMap<String, String> evaluationResults = SalesforceSpecificTestUtils.processResult(result, resourceName,
+		Map<String, String> evaluationResults = SalesforceSpecificTestUtils.processResult(result, resourceName,
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -168,7 +170,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 	@Test(priority = 7, dependsOnMethods = { "createObjectTest" }, dataProvider = "filterMethodProvider")
 	public void filterMethodTest(String resourceName, String filterType) {
 
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = SalesforceSpecificTestUtils.getOptions(pageSize, pageOffset);
 
@@ -179,9 +181,9 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 6, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllfromResourcesProvider")
+	@Test(priority = 6, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllFromResourcesProvider")
 	private void listAllTest(int numberOfResources, String resourceName) {
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = SalesforceSpecificTestUtils.getOptions(pageSize, pageOffset);
 
@@ -197,7 +199,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 		Uid returnedUid = SalesforceSpecificTestUtils.updateResourceTest("users", updateType, userUid, groupUid,
 				entitlementUid, testNumber, connector);
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
 
@@ -205,7 +207,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 
 		result = SalesforceSpecificTestUtils.filter("uid", "users", testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = SalesforceSpecificTestUtils.processResult(result, "users",
+		Map<String, String> evaluationResults = SalesforceSpecificTestUtils.processResult(result, "users",
 				testType.toString(), userUid, testNumber);
 
 		if (!"disabled".equals(updateType)) {
@@ -227,7 +229,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 		Uid returnedUid = SalesforceSpecificTestUtils.updateResourceTest("groups", updateType, userUid, groupUid,
 				entitlementUid, testNumber, connector);
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
 
@@ -235,7 +237,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 
 		result = SalesforceSpecificTestUtils.filter("uid", "groups", testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = SalesforceSpecificTestUtils.processResult(result, "groups",
+		Map<String, String> evaluationResults = SalesforceSpecificTestUtils.processResult(result, "groups",
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -255,7 +257,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 		Uid returnedUid = SalesforceSpecificTestUtils.updateResourceTest("entitlements", "multi", userUid, groupUid,
 				entitlementUid, testNumber, connector);
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		StringBuilder testType = new StringBuilder("update").append("-").append("multi");
 
@@ -264,7 +266,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 		result = SalesforceSpecificTestUtils.filter("uid", "entitlements", testNumber, userUid, groupUid, connector,
 				options);
 
-		HashMap<String, String> evaluationResults = SalesforceSpecificTestUtils.processResult(result, "entitlements",
+		Map<String, String> evaluationResults = SalesforceSpecificTestUtils.processResult(result, "entitlements",
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -281,7 +283,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 	@Test(priority = 8, dependsOnMethods = { "createObjectTest" }, dataProvider = "deleteProvider")
 	private void deleteObjectTest(String resourceName, Uid uid) {
 
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = SalesforceSpecificTestUtils.getOptions(pageSize, pageOffset);
 

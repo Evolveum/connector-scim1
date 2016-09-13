@@ -20,16 +20,11 @@ import org.json.JSONObject;
  */
 public class GenericDataBuilder implements ObjectTranslator {
 
-	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
-	private static final String DELETE = "delete";
-	private static final String DELIMITER = "\\.";
-	private static final String DEFAULT = "default";
-	private static final String TYPE = "type";
-	private static final String SCHEMA = "schema";
+	private static final Log LOGGER = Log.getLog(GenericDataBuilder.class);
 	private String operation;
 
 	/**
-	 * Costructor used to populate the local variable "operation".
+	 * Constructor used to populate the local variable "operation".
 	 * 
 	 * @param operation
 	 *            String variable indicating that the "delete" operation
@@ -74,7 +69,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 				String attributeName = injectedAttribute.getName();
 				multiValueAttribute.add(injectedAttribute);
 
-				if (attributeName.contains(".")) {
+				if (attributeName.contains(DOT)) {
 
 					String[] keyParts = attributeName.split(DELIMITER); // e.g.
 					// schemas.default.blank
@@ -100,7 +95,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 			if ("__ENABLE__".equals(attributeName)) {
 				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
-			} else if (attributeName.contains(".")) {
+			} else if (attributeName.contains(DOT)) {
 
 				String[] keyParts = attributeName.split(DELIMITER); // e.g.
 				// emails.work.value
@@ -215,7 +210,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 								} else {
 
-									if (!"blank".equals(finalSubAttributeNameParts[2])) {
+									if (!BLANK.equals(finalSubAttributeNameParts[2])) {
 										multivalueObject.put(finalSubAttributeNameParts[2],
 												AttributeUtil.getSingleValue(subSetAttribute));
 									} else {
@@ -319,7 +314,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 					} else {
 						LOGGER.error(
-								"Schema type not speciffied {0}. Error ocourance while translating user object attribute set: {0}",
+								"Schema type not specified {0}. Error occurrence while translating user object attribute set: {0}",
 								sMlAttributeName);
 						throw new InvalidAttributeValueException(
 								"Schema type not speciffied. Error ocourance while translating user object attribute set");

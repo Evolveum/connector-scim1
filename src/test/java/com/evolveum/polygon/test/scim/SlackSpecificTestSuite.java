@@ -49,7 +49,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		pageSize = 1;
 		pageOffset = 1;
 
-		testNumber = 152;
+		testNumber = 153;
 
 		Map<String, String> configurationParameters = new HashMap<String, String>();
 		configurationParameters.put("endpoint", "/scim");
@@ -134,7 +134,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 	@Test(priority = 2, dependsOnMethods = { "createObjectTest" }, dataProvider = "parameterConsistencyTestProvider")
 	private void parameterConsistencyTest(String resourceName, String filterType) {
 
-		LOGGER.info("Processing trought the \"parameter consistency\" for the resource: \"{0}\"", resourceName);
+		LOGGER.info("Processing trough the \"parameter consistency\" for the resource: \"{0}\"", resourceName);
 
 		StringBuilder testType = new StringBuilder("createObject");
 
@@ -164,7 +164,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 				"Processing trought the \"filter methods test\" for the resource \"{0}\" and the evaluated filter is \"{1}\" ",
 				resourceName, filterType);
 
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
@@ -175,7 +175,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 5, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllfromResourcesProvider")
+	@Test(priority = 5, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllFromResourcesProvider")
 	private void listAllTest(int numberOfResources, String resourceName) {
 		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 

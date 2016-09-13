@@ -11,12 +11,6 @@ import org.json.JSONObject;
 
 public class ParserSchemaScim {
 
-	private static final String MULTIVALUED = "multiValued";
-	private static final String TYPE = "type";
-	private static final String CANONICALVALUES = "canonicalValues";
-	private static final String REFERENCETYPES = "referenceTypes";
-	private static final String DEFAULT = "default";
-
 	private Map<String, Map<String, Object>> attributeMap;
 	private Map<String, String> hlAttributeMap;
 
@@ -36,7 +30,7 @@ public class ParserSchemaScim {
 					JSONObject attribute = new JSONObject();
 					attribute = ((JSONArray) hlAttribute).getJSONObject(i);
 
-					attributeMap = strategy.parseAttribute(attribute, attributeMap, this);
+					attributeMap = strategy.parseSchemaAttribute(attribute, attributeMap, this);
 				}
 
 			} else {

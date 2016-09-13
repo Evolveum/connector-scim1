@@ -49,7 +49,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	private Schema schema = null;
 	private String providerName = "";
 
-	// TODO check if plausible
 	private HandlingStrategy strategy;
 
 	private static final char QUERYCHAR = '?';
@@ -150,7 +149,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	public Uid create(ObjectClass object, Set<Attribute> attribute, OperationOptions options) {
 		LOGGER.info("Resource object create");
 
-		Set<Attribute> injectetAttributeSet = new HashSet<Attribute>();
+		Set<Attribute> injectedAttributeSet = new HashSet<Attribute>();
 
 		if (attribute == null || attribute.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty", attribute);
@@ -163,19 +162,19 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			String endpointName = object.getObjectClassValue();
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
-				strategy.addAttributeToInject(injectetAttributeSet);
+				strategy.addAttributesToInject(injectedAttributeSet);
 
-				uid = strategy.create(USERS, jsonDataBuilder, attribute, injectetAttributeSet, configuration);
+				uid = strategy.create(USERS, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
-				strategy.addAttributeToInject(injectetAttributeSet);
+				strategy.addAttributesToInject(injectedAttributeSet);
 
-				uid = strategy.create(GROUPS, jsonDataBuilder, attribute, injectetAttributeSet, configuration);
+				uid = strategy.create(GROUPS, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 
 			} else {
-				strategy.addAttributeToInject(injectetAttributeSet);
+				strategy.addAttributesToInject(injectedAttributeSet);
 
-				uid = strategy.create(endpointName, jsonDataBuilder, attribute, injectetAttributeSet, configuration);
+				uid = strategy.create(endpointName, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 			}
 
 			return uid;
@@ -184,9 +183,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				ObjectTranslator userBuild = new UserDataBuilder("");
 
-				strategy.addAttributeToInject(injectetAttributeSet);
+				strategy.addAttributesToInject(injectedAttributeSet);
 
-				Uid uid = strategy.create(USERS, userBuild, attribute, injectetAttributeSet, configuration);
+				Uid uid = strategy.create(USERS, userBuild, attribute, injectedAttributeSet, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -201,9 +200,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				StrategyFetcher fetch = new StrategyFetcher();
 				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
-				strategy.addAttributeToInject(injectetAttributeSet);
+				strategy.addAttributesToInject(injectedAttributeSet);
 
-				Uid uid = strategy.create(GROUPS, groupBuild, attribute, injectetAttributeSet, configuration);
+				Uid uid = strategy.create(GROUPS, groupBuild, attribute, injectedAttributeSet, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -242,6 +241,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		if (this.configuration.getLoginURL() != null && !this.configuration.getLoginURL().isEmpty()) {
 
 			loginUrlParts = this.configuration.getLoginURL().split("\\."); // e.g.
+			// https://login.salesforce.com
 
 		} else {
 
@@ -251,9 +251,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		if (loginUrlParts.length >= 2) {
 			providerName = loginUrlParts[1];
 		}
-		//
-
-		// TODO check if this is plausible
 		StrategyFetcher fetcher = new StrategyFetcher();
 		strategy = fetcher.fetchStrategy(providerName);
 
@@ -282,6 +279,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 *             if the provided set of attributes is null or empty.
 	 * @return the Uid of the updated object.
 	 **/
+
 	@Override
 	public Uid update(ObjectClass object, Uid id, Set<Attribute> attributes, OperationOptions options) {
 		LOGGER.info("Resource object update");
@@ -357,7 +355,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Test");
 
 		if (configuration != null) {
-			Map<String, Object> autoriazationData = CrudManagerScim.logIntoService(configuration);
+			Map<String, Object> autoriazationData = ServiceAcessManager.logIntoService(configuration);
 
 			if (autoriazationData != null && !autoriazationData.isEmpty()) {
 
@@ -366,7 +364,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					HttpPost instance = (HttpPost) autoriazationData.get("loginInstance");
 
 					LOGGER.info("Test was succesfull");
-					CrudManagerScim.logOut(instance);
+					ServiceAcessManager.logOut(instance);
 				} else {
 
 					LOGGER.error(

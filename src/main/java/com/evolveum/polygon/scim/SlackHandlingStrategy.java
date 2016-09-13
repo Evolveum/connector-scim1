@@ -279,7 +279,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 	}
 
 	@Override
-	public Set<Attribute> addAttributeToInject(Set<Attribute> injectetAttributeSet) {
+	public Set<Attribute> addAttributesToInject(Set<Attribute> injectetAttributeSet) {
 		Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank", SCHEMAVALUE);
 		injectetAttributeSet.add(schemaAttribute);
 		return injectetAttributeSet;
@@ -291,7 +291,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		Map<String, Object> autoriazationData = CrudManagerScim.logIntoService(conf);
+		Map<String, Object> autoriazationData = ServiceAcessManager.logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
@@ -314,7 +314,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		CrudManagerScim.logIntoService(conf);
+		ServiceAcessManager.logIntoService(conf);
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String q;
 		q = ((Uid) uid).getUidValue();
@@ -388,7 +388,8 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 											} else {
 
-												CrudManagerScim.onNoSuccess(resourceResponse, groupUri.toString());
+												ExceptionMessageBuilder.onNoSuccess(resourceResponse,
+														groupUri.toString());
 											}
 
 										}
@@ -437,7 +438,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", uri);
 				}
 			} else {
-				CrudManagerScim.onNoSuccess(response, uri);
+				ExceptionMessageBuilder.onNoSuccess(response, uri);
 			}
 
 		} catch (IOException e) {
@@ -454,7 +455,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 					e, q);
 			throw new ConnectorIOException("An error occurred while processing the queuery http response.", e);
 		} finally {
-			CrudManagerScim.logOut(loginInstance);
+			ServiceAcessManager.logOut(loginInstance);
 		}
 
 	}

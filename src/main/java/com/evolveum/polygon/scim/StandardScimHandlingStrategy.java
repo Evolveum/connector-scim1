@@ -60,21 +60,21 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		Map<String, Object> autoriazationData = CrudManagerScim.logIntoService(conf);
+		Map<String, Object> authoriazationData = ServiceAcessManager.logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
-		for (String data : autoriazationData.keySet()) {
+		for (String data : authoriazationData.keySet()) {
 			if (AUTHHEADER.equals(data)) {
 
-				authHeader = (Header) autoriazationData.get(data);
+				authHeader = (Header) authoriazationData.get(data);
 
 			} else if (URI.equals(data)) {
 
-				scimBaseUri = (String) autoriazationData.get(data);
+				scimBaseUri = (String) authoriazationData.get(data);
 			} else if (LOGININSTANCE.equals(data)) {
 
-				loginInstance = (HttpPost) autoriazationData.get(data);
+				loginInstance = (HttpPost) authoriazationData.get(data);
 			}
 		}
 
@@ -83,7 +83,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		injectedAttributeSet = attributeInjection(injectedAttributeSet, autoriazationData);
+		injectedAttributeSet = attributeInjection(injectedAttributeSet, authoriazationData);
 
 		JSONObject jsonObject = new JSONObject();
 
@@ -131,7 +131,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					return uid;
 				} else {
 
-					CrudManagerScim.onNoSuccess(response, "creating a new object");
+					ExceptionMessageBuilder.onNoSuccess(response, "creating a new object");
 				}
 
 			} catch (ClientProtocolException e) {
@@ -178,7 +178,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			throw new ConnectorException(
 					"Unsupported encoding, Occurrence in the process of creating a new resource object ", e1);
 		} finally {
-			CrudManagerScim.logOut(loginInstance);
+			ServiceAcessManager.logOut(loginInstance);
 		}
 		throw new UnknownUidException("No uid returned in the process of resource creation");
 	}
@@ -188,20 +188,20 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			ScimConnectorConfiguration conf) {
 		Header authHeader = null;
 		String scimBaseUri = "";
-		Map<String, Object> autoriazationData = CrudManagerScim.logIntoService(conf);
+		Map<String, Object> authoriazationData = ServiceAcessManager.logIntoService(conf);
 		HttpPost loginInstance = null;
 
-		for (String data : autoriazationData.keySet()) {
+		for (String data : authoriazationData.keySet()) {
 			if (AUTHHEADER.equals(data)) {
 
-				authHeader = (Header) autoriazationData.get(data);
+				authHeader = (Header) authoriazationData.get(data);
 
 			} else if (URI.equals(data)) {
 
-				scimBaseUri = (String) autoriazationData.get(data);
+				scimBaseUri = (String) authoriazationData.get(data);
 			} else if (LOGININSTANCE.equals(data)) {
 
-				loginInstance = (HttpPost) autoriazationData.get(data);
+				loginInstance = (HttpPost) authoriazationData.get(data);
 			}
 		}
 
@@ -311,7 +311,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 												} else {
 
-													CrudManagerScim.onNoSuccess(resourceResponse, resourceUri);
+													ExceptionMessageBuilder.onNoSuccess(resourceResponse, resourceUri);
 												}
 
 											}
@@ -377,7 +377,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", query);
 				}
 			} else {
-				CrudManagerScim.onNoSuccess(response, uri);
+				ExceptionMessageBuilder.onNoSuccess(response, uri);
 			}
 
 		} catch (IOException e) {
@@ -394,7 +394,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					e, q);
 			throw new ConnectorIOException("An error occurred while processing the queuery http response.", e);
 		} finally {
-			CrudManagerScim.logOut(loginInstance);
+			ServiceAcessManager.logOut(loginInstance);
 		}
 	}
 
@@ -402,21 +402,21 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	public Uid update(Uid uid, String resourceEndPoint, JSONObject jsonObject, ScimConnectorConfiguration conf) {
 		Header authHeader = null;
 		String scimBaseUri = "";
-		Map<String, Object> autoriazationData = CrudManagerScim.logIntoService(conf);
+		Map<String, Object> authoriazationData = ServiceAcessManager.logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
-		for (String data : autoriazationData.keySet()) {
+		for (String data : authoriazationData.keySet()) {
 			if (AUTHHEADER.equals(data)) {
 
-				authHeader = (Header) autoriazationData.get(data);
+				authHeader = (Header) authoriazationData.get(data);
 
 			} else if (URI.equals(data)) {
 
-				scimBaseUri = (String) autoriazationData.get(data);
+				scimBaseUri = (String) authoriazationData.get(data);
 			} else if (LOGININSTANCE.equals(data)) {
 
-				loginInstance = (HttpPost) autoriazationData.get(data);
+				loginInstance = (HttpPost) authoriazationData.get(data);
 			}
 		}
 
@@ -425,7 +425,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		CrudManagerScim.logIntoService(conf);
+		ServiceAcessManager.logIntoService(conf);
 
 		HttpClient httpClient = HttpClientBuilder.create().build();
 
@@ -482,10 +482,10 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					return id;
 				} else {
-					CrudManagerScim.onNoSuccess(response, "updating object");
+					ExceptionMessageBuilder.onNoSuccess(response, "updating object");
 				}
 			} else {
-				CrudManagerScim.onNoSuccess(response, "updating object");
+				ExceptionMessageBuilder.onNoSuccess(response, "updating object");
 			}
 
 		} catch (UnsupportedEncodingException e) {
@@ -533,7 +533,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					e);
 
 		} finally {
-			CrudManagerScim.logOut(loginInstance);
+			ServiceAcessManager.logOut(loginInstance);
 		}
 		throw new UnknownUidException("No uid returned in the process of resource update");
 
@@ -544,21 +544,21 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		Map<String, Object> autoriazationData = CrudManagerScim.logIntoService(conf);
+		Map<String, Object> authoriazationData = ServiceAcessManager.logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
-		for (String data : autoriazationData.keySet()) {
+		for (String data : authoriazationData.keySet()) {
 			if (AUTHHEADER.equals(data)) {
 
-				authHeader = (Header) autoriazationData.get(data);
+				authHeader = (Header) authoriazationData.get(data);
 
 			} else if (URI.equals(data)) {
 
-				scimBaseUri = (String) autoriazationData.get(data);
+				scimBaseUri = (String) authoriazationData.get(data);
 			} else if (LOGININSTANCE.equals(data)) {
 
-				loginInstance = (HttpPost) autoriazationData.get(data);
+				loginInstance = (HttpPost) authoriazationData.get(data);
 			}
 		}
 
@@ -598,7 +598,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 				LOGGER.info("Resource not found or resource was already deleted");
 			} else {
-				CrudManagerScim.onNoSuccess(response, "deleting object");
+				ExceptionMessageBuilder.onNoSuccess(response, "deleting object");
 			}
 
 		} catch (ClientProtocolException e) {
@@ -623,7 +623,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object.",
 					e);
 		} finally {
-			CrudManagerScim.logOut(loginInstance);
+			ServiceAcessManager.logOut(loginInstance);
 		}
 	}
 
@@ -633,21 +633,21 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		Header authHeader = null;
 		String scimBaseUri = "";
-		Map<String, Object> autoriazationData = CrudManagerScim.logIntoService(conf);
+		Map<String, Object> authoriazationData = ServiceAcessManager.logIntoService(conf);
 
 		HttpPost loginInstance = null;
 
-		for (String data : autoriazationData.keySet()) {
+		for (String data : authoriazationData.keySet()) {
 			if (AUTHHEADER.equals(data)) {
 
-				authHeader = (Header) autoriazationData.get(data);
+				authHeader = (Header) authoriazationData.get(data);
 
 			} else if (URI.equals(data)) {
 
-				scimBaseUri = (String) autoriazationData.get(data);
+				scimBaseUri = (String) authoriazationData.get(data);
 			} else if (LOGININSTANCE.equals(data)) {
 
-				loginInstance = (HttpPost) autoriazationData.get(data);
+				loginInstance = (HttpPost) authoriazationData.get(data);
 			}
 		}
 
@@ -769,7 +769,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object",
 					e);
 		} finally {
-			CrudManagerScim.logOut(loginInstance);
+			ServiceAcessManager.logOut(loginInstance);
 		}
 
 	}
@@ -802,7 +802,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public Map<String, Map<String, Object>> parseAttribute(JSONObject attribute,
+	public Map<String, Map<String, Object>> parseSchemaAttribute(JSONObject attribute,
 			Map<String, Map<String, Object>> attributeMap, ParserSchemaScim parser) {
 
 		String attributeName = null;
@@ -992,14 +992,14 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public Set<Attribute> addAttributeToInject(Set<Attribute> injectetAttributeSet) {
+	public Set<Attribute> addAttributesToInject(Set<Attribute> injectetAttributeSet) {
 		return injectetAttributeSet;
 	}
 
 	@Override
 	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader) {
 		try {
-			CrudManagerScim.onNoSuccess(response, "updating object");
+			ExceptionMessageBuilder.onNoSuccess(response, "updating object");
 		} catch (ParseException e) {
 
 			LOGGER.error("An exception has occurred while parsing the http response : {0}", e.getLocalizedMessage());
@@ -1174,7 +1174,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 	@Override
 	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
-			Map<String, Object> autoriazationData) {
+			Map<String, Object> authoriazationData) {
 		return injectedAttributeSet;
 	}
 

@@ -119,7 +119,8 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 					} else {
 						responseString = EntityUtils.toString(response.getEntity());
 
-						CrudManagerScim.onNoSuccess(response, "updating object");
+						ExceptionMessageBuilder.onNoSuccess(response, "updating object");
+
 					}
 
 				}

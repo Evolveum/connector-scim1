@@ -254,8 +254,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						try {
 							if (query instanceof Uid) {
 
-								ConnectorObject connectorObject = buildConnectorObject(jsonObject, resourceEndPoint,
-										scimBaseUri);
+								ConnectorObject connectorObject = buildConnectorObject(jsonObject, resourceEndPoint);
 								resultHandler.handle(connectorObject);
 
 							} else {
@@ -305,7 +304,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 															i + 1, fullResourcejson);
 
 													ConnectorObject connectorObject = buildConnectorObject(
-															fullResourcejson, resourceEndPoint, scimBaseUri);
+															fullResourcejson, resourceEndPoint);
 
 													resultHandler.handle(connectorObject);
 
@@ -792,9 +791,10 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				scimParser.parseSchema(minResourceJson, this);
 
 			} else {
-				LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
+				LOGGER.error("No endpoint identifier present in fetched object: {0}", minResourceJson);
 
-				throw new ConnectorException("No uid present in fetchet object while processing queuery result");
+				throw new ConnectorException(
+						"No endpoint identifier present in fetchet object while processing queuery result");
 			}
 		}
 		return scimParser;
@@ -1030,8 +1030,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint,
-			String providerName) throws ConnectorException {
+	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint)
+			throws ConnectorException {
 
 		LOGGER.info("Building the connector object from provided json");
 
@@ -1061,10 +1061,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			Object attribute = resourceJsonObject.get(key);
 			List<String> excludedAttributes = new ArrayList<String>();
 
-			StrategyFetcher fetcher = new StrategyFetcher();
-			HandlingStrategy strategy = fetcher.fetchStrategy(providerName);
-
-			excludedAttributes = strategy.excludeFromAssembly(excludedAttributes);
+			excludedAttributes = excludeFromAssembly(excludedAttributes);
 
 			if (excludedAttributes.contains(key)) {
 				LOGGER.warn("The attribute \"{0}\" was omitted from the connId object build.", key);

@@ -385,7 +385,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 														position + 1, fullResourceJson.toString(1));
 
 												ConnectorObject connectorObject = buildConnectorObject(fullResourceJson,
-														membershipResourceEndpoint, scimBaseUri);
+														membershipResourceEndpoint);
 												resultHandler.handle(connectorObject);
 
 											} else {

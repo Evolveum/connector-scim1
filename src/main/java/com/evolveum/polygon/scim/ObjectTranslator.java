@@ -4,7 +4,12 @@ import java.util.Set;
 
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.json.JSONObject;
-
+/**
+ * 
+ * @author Matus
+ * 
+ *Interface which defines the basic json data builder method.   
+ */
 public interface ObjectTranslator {
 
 	String DELETE = "delete";

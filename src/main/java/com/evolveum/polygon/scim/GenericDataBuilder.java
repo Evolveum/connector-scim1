@@ -46,11 +46,6 @@ public class GenericDataBuilder implements ObjectTranslator {
 	 *            system.
 	 * @param injectedAttributes
 	 *            A set of attributes which are injected into the provided set.
-	 * @param attributeMap
-	 *            A dictionary containing the attributes translated from the
-	 *            provided schema. This dictionary is cross checked with the
-	 *            processed attribute set and non matching attributes are
-	 *            discarded.
 	 * @return The complete json representation of the provided data set.
 	 */
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {

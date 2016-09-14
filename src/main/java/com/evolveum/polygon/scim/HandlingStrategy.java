@@ -21,6 +21,12 @@ import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesF
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.json.JSONArray;
 import org.json.JSONObject;
+/**
+ * 
+ * @author Matus
+ *
+ *Interface which defines the mandatory handling strategy methods.
+ */
 
 public interface HandlingStrategy {
 
@@ -64,12 +70,8 @@ public interface HandlingStrategy {
 	 * @param injectedAttributeSet
 	 *            A set of attributes which are to be injected into an object.
 	 * @param conf
-	 *            Instance of the connecotr configuration class, which contains
+	 *            Instance of the connector configuration class, which contains
 	 *            the provided configuration parameters.
-	 * @throws ConnectorException
-	 * @throws ConnectorIOException
-	 * @throws ConnectionFailedException
-	 *
 	 * @return the uid of the created object.
 	 */
 
@@ -88,11 +90,9 @@ public interface HandlingStrategy {
 	 * @param resultHandler
 	 *            The provided result handler which handles results.
 	 * @param conf
-	 *            Instance of the connecotr configuration class, which contains
+	 *            Instance of the connector configuration class, which contains
 	 *            the provided configuration parameters.
 	 *
-	 * @throws ConnectorException
-	 * @throws ConnectorIOException
 	 */
 
 	public void query(Object query, String resourceEndPoint, ResultsHandler resultHandler,
@@ -111,13 +111,8 @@ public interface HandlingStrategy {
 	 *            The json object which carries the information which should be
 	 *            updated.
 	 * @param conf
-	 *            Instance of the connecotr configuration class, which contains
+	 *            Instance of the connector configuration class, which contains
 	 *            the provided configuration parameters.
-	 * @throws ConnectorException
-	 * @throws UnknownUidException
-	 * @throws ConnectorIOException
-	 * @throws ConnectionFailedException
-	 *
 	 * @return the uid of the created object.
 	 */
 
@@ -133,9 +128,6 @@ public interface HandlingStrategy {
 	 * @param conf
 	 *            Instance of the connector configuration class, which contains
 	 *            the provided configuration parameters.
-	 * @throws ConnectorIOException
-	 * @throws ConnectionFailedException
-	 *
 	 */
 
 	public void delete(Uid uid, String resourceEndPoint, ScimConnectorConfiguration conf);
@@ -152,11 +144,8 @@ public interface HandlingStrategy {
 	 * @param resourceEndPoint
 	 *            The resource endpoint name.
 	 * @param conf
-	 *            Instance of the connecotr configuration class, which contains
+	 *            Instance of the connector configuration class, which contains
 	 *            the provided configuration parameters.
-	 * @throws ConnectorException
-	 * @throws ConnectorIOException
-	 *
 	 * @return an instance of "ParserSchemaScim" containing the schema
 	 *         information of all endpoint.
 	 */
@@ -383,7 +372,7 @@ public interface HandlingStrategy {
 	 *            method.
 	 * @param schemaBuilder
 	 *            The instance of the schema builder from which this method is
-	 *            called. Used to acess helper methods.
+	 *            called. Used to access helper methods.
 	 * @return an object which contains the schema representation information
 	 *         for the processed attribute.
 	 */

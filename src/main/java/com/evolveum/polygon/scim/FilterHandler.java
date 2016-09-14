@@ -53,6 +53,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	private static final String DELIMITER = "\\.";
 	private static final String LEFTPAR = "(";
 	private static final String RIGHTPAR = ")";
+	private static final String DOT = ".";
 
 	/**
 	 * Implementation of the "visitAndFilter" filter method.
@@ -67,7 +68,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitAndFilter(String p, AndFilter filter) {
-		LOGGER.info("Processing request trough AND filter");
+		LOGGER.info("Processing request trough \"and\" filter");
 
 		String[] samePathIdParts = p.split(DELIMITER);// e.g valuePath.members
 
@@ -130,11 +131,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 * @param filter
 	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
-	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitContainsFilter(String p, ContainsFilter filter) {
-		LOGGER.info("Processing request trough CONTAINS filter");
+		LOGGER.info("Processing request trough \"contains\" filter");
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -159,7 +159,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 * @param filter
 	 *            The filter or list of filters being processed.
 	 * @return The final filter query.
-	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
@@ -197,11 +196,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 * @param filter
 	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
-	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitEqualsFilter(String p, EqualsFilter filter) {
-		LOGGER.info("Processing request trough EQUALS filter: {0}", filter);
+		LOGGER.info("Processing request trough \"equals\" filter: {0}", filter);
 
 		if (!filter.getName().isEmpty()) {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -228,7 +226,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 *            used for workaround purposes.
 	 * @param filter
 	 *            The filter or list of filters being processed.
-	 * @throws NoSuchMethodError
 	 */
 	@Override
 	public StringBuilder visitExtendedFilter(String p, Filter filter) {
@@ -245,11 +242,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 * @param filter
 	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
-	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitGreaterThanFilter(String p, GreaterThanFilter filter) {
-		LOGGER.info("Processing request trough GREATHERTHAN filter: {0}", filter);
+		LOGGER.info("Processing request trough \"greaterThan\" filter: {0}", filter);
 
 		if (!filter.getName().isEmpty()) {
 
@@ -277,11 +273,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 * @param filter
 	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
-	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitGreaterThanOrEqualFilter(String p, GreaterThanOrEqualFilter filter) {
-		LOGGER.info("Processing request trough GREATHERTHANOREQUAL filter: {0}", filter);
+		LOGGER.info("Processing request trough \"greaterThanOrEqual\" filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -307,11 +302,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 * @param filter
 	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
-	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitLessThanFilter(String p, LessThanFilter filter) {
-		LOGGER.info("Processing request trough LESSTHAN filter: {0}", filter);
+		LOGGER.info("Processing request trough \"lessThan\" filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -338,11 +332,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 * @param filter
 	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
-	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitLessThanOrEqualFilter(String p, LessThanOrEqualFilter filter) {
-		LOGGER.info("Processing request trough LESSTHANOREQUAL filter: {0}", filter);
+		LOGGER.info("Processing request trough \"lessThanOrEqual\" filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -371,7 +364,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitNotFilter(String p, NotFilter filter) {
-		LOGGER.info("Processing request trough NOT filter: {0}", filter);
+		LOGGER.info("Processing request trough \"not\" filter: {0}", filter);
 		StringBuilder completeQuery = new StringBuilder();
 
 		completeQuery.append(NOT).append(SPACE).append(filter.getFilter().accept(this, p));
@@ -391,7 +384,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitOrFilter(String p, OrFilter filter) {
-		LOGGER.info("Processing request trough OR filter: {0}", filter);
+		LOGGER.info("Processing request trough \"or\" filter: {0}", filter);
 		StringBuilder completeQuery = new StringBuilder();
 
 		boolean isFirst = true;
@@ -433,11 +426,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 * @param filter
 	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
-	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitStartsWithFilter(String p, StartsWithFilter filter) {
-		LOGGER.info("Processing request trough STARTSWITH filter: {0}", filter);
+		LOGGER.info("Processing request trough \"startsWith\" filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -463,11 +455,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 * @param filter
 	 *            The filter or list of filters being processed.
 	 * @return The processed filter.
-	 * @throws InvalidAttributeValueException
 	 */
 	@Override
 	public StringBuilder visitEndsWithFilter(String p, EndsWithFilter filter) {
-		LOGGER.info("Processing request trough ENDSWITH filter: {0}", filter);
+		LOGGER.info("Processing request trough \"endsWith\" filter: {0}", filter);
 		if (!filter.getName().isEmpty()) {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
@@ -496,7 +487,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 * @param name
 	 *            The name of the attribute which is being used.
 	 * @return The string representation of a filter.
-	 * @throws InvalidAttributeValueException
 	 */
 	private StringBuilder BuildString(Attribute attribute, String operator, String name) {
 
@@ -517,7 +507,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	}
 
 	/**
-	 * Processes through an filter query containing an complex attribute with
+	 * Processes through a filter query containing an complex attribute with
 	 * subattributes.
 	 * 
 	 * @param filter
@@ -531,7 +521,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 *         attribute is evaluated as non complex.
 	 */
 	public StringBuilder processArrayQ(AttributeFilter filter, String p) {
-		if (filter.getName().contains(".")) {
+		if (filter.getName().contains(DOT)) {
 
 			String[] keyParts = filter.getName().split(DELIMITER); // eq.
 			// email.work.value
@@ -541,11 +531,11 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 				Collection<Filter> filterList = new ArrayList<Filter>();
 				if (filter instanceof EqualsFilter) {
 
-					StringBuilder keyName = new StringBuilder(keyParts[0]).append(".").append(keyParts[2]);
+					StringBuilder keyName = new StringBuilder(keyParts[0]).append(DOT).append(keyParts[2]);
 					Filter eqfilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(keyName.toString(),
 							AttributeUtil.getAsStringValue(filter.getAttribute())));
 
-					StringBuilder type = new StringBuilder(keyParts[0]).append(".").append(TYPE);
+					StringBuilder type = new StringBuilder(keyParts[0]).append(DOT).append(TYPE);
 
 					Filter eq = (EqualsFilter) FilterBuilder
 							.equalTo(AttributeBuilder.build(type.toString(), keyParts[1]));
@@ -553,7 +543,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 					filterList.add(eq);
 
 				} else if (filter instanceof ContainsAllValuesFilter) {
-					StringBuilder pathName = new StringBuilder("valuePath").append(".").append(keyParts[0]);
+					StringBuilder pathName = new StringBuilder("valuePath").append(DOT).append(keyParts[0]);
 					p = pathName.toString();
 
 					filterList = buildValueList((ContainsAllValuesFilter) filter, keyParts[2]);

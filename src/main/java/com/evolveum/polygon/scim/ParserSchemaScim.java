@@ -9,6 +9,15 @@ import org.identityconnectors.common.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * 
+ * @author Matus
+ *
+ *         Contains a set of methods used for translation of json schema
+ *         representation objects. The schema representation objects are
+ *         translated into maps an lists of maps representing the specific
+ *         attributes, sub attributes and parameters for the service endpoints.
+ */
 public class ParserSchemaScim {
 
 	private Map<String, Map<String, Object>> attributeMap;

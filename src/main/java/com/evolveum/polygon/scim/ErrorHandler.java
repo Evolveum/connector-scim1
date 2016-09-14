@@ -10,6 +10,13 @@ import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * @author Matus
+ *
+ *         Contains methods used to create and build error messages and
+ *         exceptions in case of an error.
+ *
+ */
 public class ErrorHandler {
 
 	private static final String ERRORS = "Errors";
@@ -17,6 +24,19 @@ public class ErrorHandler {
 
 	private static final Log LOGGER = Log.getLog(ErrorHandler.class);
 
+	/**
+	 * Processes the provided parameters from which it creates error messages
+	 * describing the arisen error situation.
+	 * 
+	 * @param response
+	 *            The HTTP query response object returned from the service
+	 *            provider.
+	 * @param message
+	 *            Additional string message providing and description of the
+	 *            error.
+	 * @throws ParseException
+	 * @throws IOException
+	 */
 	public static void onNoSuccess(HttpResponse response, String message) throws ParseException, IOException {
 
 		Integer statusCode = null;
@@ -52,12 +72,10 @@ public class ErrorHandler {
 				exceptionStringBuilder = new StringBuilder("Query for ").append(message)
 						.append(" was unsuccessful. Status code returned: ").append(statusCode);
 			}
-
 		} else {
 			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
 					.append(" was unsuccessful. No response object was returned");
 		}
-
 		String exceptionString = exceptionStringBuilder.toString();
 
 		if (message == null) {
@@ -72,6 +90,20 @@ public class ErrorHandler {
 		throw new ConnectorIOException(exceptionString);
 	}
 
+	/**
+	 * Builds an error message depending on the response from the provider. If
+	 * there in no description in the response then the error message will
+	 * switch to a more generic content.
+	 * 
+	 * @param responseObject
+	 *            The json response from the resource provider.
+	 * @param message
+	 *            Additional string message providing and description of the
+	 *            error.
+	 * @param statusCode
+	 *            The response status code returned from the service provider.
+	 * @return the build error message.
+	 */
 	public static StringBuilder buildErrorMessage(JSONObject responseObject, String message, int statusCode) {
 
 		String responseString = new String();

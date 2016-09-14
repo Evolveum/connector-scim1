@@ -7,6 +7,8 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
 import org.identityconnectors.framework.spi.StatefulConfiguration;
 
 /**
+ * @author Matus
+ * 
  * Connector configuration class. It contains all the needed methods for
  * processing the connector configuration.
  */

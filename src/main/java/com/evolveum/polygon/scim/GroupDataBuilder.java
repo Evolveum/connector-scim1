@@ -29,6 +29,14 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 	private String operation;
 
+	
+	/**
+	 * Constructor used to populate the local variable "operation".
+	 * 
+	 * @param operation
+	 *            String variable indicating that the "delete" operation
+	 *            parameter should be added in the constructed json object.
+	 **/
 	public GroupDataBuilder(String operation) {
 		this.operation = operation;
 	}
@@ -80,7 +88,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 					multiLayerAttribute.add(attribute);
 				} else {
 					LOGGER.warn(
-							"Attribute name not defined in group dictionary: {0}. Error ocourance while translating attribute set.",
+							"Attribute name not defined in group dictionary: {0}. Error occurrence while translating attribute set.",
 							attributeName);
 				}
 

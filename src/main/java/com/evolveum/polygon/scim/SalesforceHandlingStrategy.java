@@ -27,6 +27,15 @@ import org.json.JSONObject;
 
 import com.evolveum.polygon.scim.common.HttpPatch;
 
+/**
+ * 
+ * @author Matus
+ *
+ *         Implementation of the "HandlingStrategy" methods for the Slack
+ *         service provider.
+ *
+ */
+
 public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy implements HandlingStrategy {
 
 	private static final Log LOGGER = Log.getLog(SalesforceHandlingStrategy.class);
@@ -41,11 +50,6 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 		Boolean isComplex = null;
 		Map<String, Object> processedParameters = new HashMap<String, Object>();
 
-		/*
-		 * Salesforce scim schema inconsistencies workaround
-		 * (canonicalValues,referenceTypes) defined as array of json objects ->
-		 * should be defined as array of string values
-		 */
 		LOGGER.warn(
 				"Processing trough Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes)");
 		referenceValue = ((JSONArray) referenceValues).getJSONObject(position);
@@ -149,7 +153,6 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 			throw new ConnectorIOException(
 					"An error has occurred while processing the http response. Occurrence in the process of creating a resource object",
 					e);
-
 		}
 
 		return id;
@@ -191,7 +194,6 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 		if (orgID != null) {
 			LOGGER.info("The organization ID is: {0}", orgID);
 
-			// TODO schema version might change
 			injectedAttributeSet.add(AttributeBuilder.build("schema.type", SCHEMATYPE));
 
 			injectedAttributeSet.add(AttributeBuilder.build("schema.organization", orgID));
@@ -215,7 +217,6 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 				|| "members.default.value".equals(attributeName) || "members.default.display".equals(attributeName)) {
 			infoBuilder.setMultiValued(true);
 		}
-
 		return infoBuilder;
 	}
 }

@@ -1,5 +1,13 @@
 package com.evolveum.polygon.scim;
 
+/**
+ *
+ * @author Matus
+ * 
+ * Implementation of the connId connector class for the scim standard.
+ * 
+ */
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -93,8 +101,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * generic methods can be applied to the query. If not the methods
 	 * implemented for core schema processing are applied.
 	 * 
-	 * @throws IllegalArgumentException
-	 *             if the object value is not provided.
 	 **/
 	@Override
 	public void delete(ObjectClass object, Uid uid, OperationOptions options) {
@@ -141,9 +147,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * Implementation of the connId create method. The method evaluates if
 	 * generic methods can be applied to the query. If not the methods
 	 * implemented for core schema processing are applied.
-	 * 
-	 * @throws IllegalArgumentException
-	 *             if the value of set is not provided.
 	 */
 	@Override
 	public Uid create(ObjectClass object, Set<Attribute> attribute, OperationOptions options) {
@@ -235,8 +238,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Initiation");
 		this.configuration = (ScimConnectorConfiguration) configuration;
 		this.configuration.validate();
-		// For workaround purposes
-		// TODO
 
 		if (this.configuration.getLoginURL() != null && !this.configuration.getLoginURL().isEmpty()) {
 
@@ -254,7 +255,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		StrategyFetcher fetcher = new StrategyFetcher();
 		strategy = fetcher.fetchStrategy(providerName);
 
-		// TODO obsolete
 		LOGGER.info("The provider name is {0}", providerName);
 		ParserSchemaScim schemaParser = strategy.querySchemas(providerName, SCHEMAS, this.configuration);
 
@@ -275,8 +275,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * implemented for core schema processing are applied. This method is used
 	 * to update singular and non complex attributes, e.g. name.familyname.
 	 * 
-	 * @throws IllegalArgumentException
-	 *             if the provided set of attributes is null or empty.
 	 * @return the Uid of the updated object.
 	 **/
 
@@ -504,9 +502,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * 
 	 * @param filter
 	 *            the provided filter query.
-	 * @return the boolean value of true is query is supported.
-	 * @throws IllegalArgumentException
-	 *             if the provided filter is no supported.
+	 * @param endpointName
+	 *            the name of the endpoint to which the query is addressed (e.g.
+	 *            "Users").
+	 * 
+	 * @return a string "flag" used to decide a conditional statement.
+	 * 
+	 * 
 	 **/
 	public String queryChecker(Filter filter, String endpointName) {
 
@@ -520,7 +522,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * called.
 	 * 
 	 * @param endPoint
-	 *            The name of the endpoint which should be queried.
+	 *            The name of the endpoint which should be queried (e.g.
+	 *            "Users").
 	 * @param query
 	 *            The provided filter query.
 	 * @param resultHandler
@@ -543,14 +546,12 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * type attribute.
 	 * 
 	 * @param endPoint
-	 *            The name of the endpoint which should be queried.
+	 *            The name of the endpoint which should be queried (e.g.
+	 *            "Users").
 	 * @param query
 	 *            The provided filter query.
 	 * @param resultHandler
 	 *            The provided result handler used to handle the query result.
-	 * @param schemaMap
-	 *            A map representation of the schema provided from the service
-	 *            provider.
 	 * @param queryUriSnippet
 	 *            A part of the query uri which will build a larger query.
 	 */
@@ -579,6 +580,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * @param schemaBuilder
 	 *            The "SchemaBuilder" object which will be populated with the
 	 *            data representing the schemas of resource objects.
+	 * @param schemaParser
+	 *            The "schemaParser" object which contains the map
+	 *            representation of the service schema data.
 	 * @return an the instance of "SchemaBuilder" populated with the data
 	 *         representing the schemas of resource objects.
 	 */
@@ -609,7 +613,11 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	/**
 	 * Evaluates if the options attribute contains information for pagination
-	 * configuration for the query.
+	 * configuration of query.
+	 * 
+	 * @param options
+	 *            Provided parameter which carries the data for pagination
+	 *            configuration.
 	 * 
 	 * @return a "StringBuilder" instance containing the query snippet with
 	 *         pagination information of or is no pagination information is
@@ -636,8 +644,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * is used to update multivalued and complex attributes, e.g.
 	 * members.default.value .
 	 * 
-	 * @throws IllegalArgumentException
-	 *             if the provided set of attributes is null or empty.
 	 * @return the Uid of the updated object.
 	 **/
 	@Override
@@ -718,8 +724,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * members.default.value . The updates are used for removal of attribute
 	 * values of multivalued and complex attributes.
 	 * 
-	 * @throws IllegalArgumentException
-	 *             if the provided set of attributes is null or empty.
 	 * @return the Uid of the updated object.
 	 **/
 	@Override

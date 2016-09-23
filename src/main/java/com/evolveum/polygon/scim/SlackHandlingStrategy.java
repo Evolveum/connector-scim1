@@ -34,6 +34,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * 
+ * @author Matus
+ *
+ *The "HandlingStrategy" methods implementation for the "Slack" service.
+ *
+ */
+
 public class SlackHandlingStrategy extends StandardScimHandlingStrategy implements HandlingStrategy {
 
 	private static final Log LOGGER = Log.getLog(SlackHandlingStrategy.class);
@@ -476,6 +484,19 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		return null;
 	}
 
+	
+	// TODO check if method not obsolete.
+	/**
+	 * 
+	 * Extends the "AttributeInfoBuilder" parameter which was provided with an attribute which this method builds.
+	 * 
+	 * @param builder
+	 * @param attributeName
+	 * @param infoBuilder
+	 * @return
+	 */
+	
+	
 	private ObjectClassInfoBuilder buildMissingAttributes(ObjectClassInfoBuilder builder, String attributeName,
 			AttributeInfoBuilder infoBuilder) {
 

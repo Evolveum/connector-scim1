@@ -27,8 +27,12 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 /**
- * Holds the CRUD+L methods and other methods needed for interaction with the
- * service provider.
+ * 
+ * @author Matus
+ *
+ *         Holds the basic methods for initiation and termination of the
+ *         communication with the service provider.
+ *
  */
 public class ServiceAccessManager {
 
@@ -38,10 +42,11 @@ public class ServiceAccessManager {
 	 * Used for login to the service. The data needed for this operation is
 	 * provided by the configuration.
 	 * 
-	 * @return a json object carrying meta information about the login session.
-	 * @throws ConnectorException
-	 * @throws ConnectionFailedException
-	 * @throws ConnectorIOException
+	 * @param configuration
+	 *            The instance of "ScimConnectorConfiguration" which holds all
+	 *            the provided configuration data.
+	 * 
+	 * @return a Map object carrying meta information about the login session.
 	 */
 	public static Map<String, Object> logIntoService(ScimConnectorConfiguration configuration) {
 
@@ -199,23 +204,12 @@ public class ServiceAccessManager {
 	}
 
 	/**
-	 * Error handling method called in case of an exception situation. The
-	 * method returns log messages and throws exceptions.
-	 * 
-	 * @param response
-	 *            The http response from the service provider.
-	 * @param statusCode
-	 *            The status code returned from the service provider.
-	 * @param message
-	 *            The generated message tailored for the thrown exception.
-	 * 
-	 * @throws ParseException
-	 * @throws IOException
-	 * @throws ConnectorIOException
-	 */
-
-	/**
 	 * Method used to log out of the service.
+	 * 
+	 * @param loginInstance
+	 *            Data representing the login instance of a communication
+	 *            session.
+	 * 
 	 */
 	public static void logOut(HttpPost loginInstance) {
 		loginInstance.releaseConnection();

@@ -10,6 +10,9 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 
 /**
+ * 
+ * @author Matus
+ * 
  * A class containing the methods used for building a schema representation
  * which will be published by the connector. The schema representation is
  * generated out of a Map object containing the attributes present in the schema
@@ -26,8 +29,9 @@ public class SchemaObjectBuilderGeneric {
 	 *            The map which carries the attribute present in the schema
 	 *            described by the service provider.
 	 * @param objectTypeName
-	 *            The name of the resource which is used to match the resource
-	 *            to a "objectType".
+	 *            The name of the endpoint resource which is used to match the
+	 *            resource to a "objectType". The string representation of an
+	 *            endpoint name (e.q. "/Users").
 	 * @return An instance of ObjectClassInfo with the constructed schema
 	 *         information.
 	 **/
@@ -52,7 +56,7 @@ public class SchemaObjectBuilderGeneric {
 			builder.setType(ObjectClass.GROUP_NAME);
 		} else {
 			String[] splitTypeName = objectTypeName.split("\\/"); // e.q.
-			// /Entitlements
+			// "/Entitlements"
 			ObjectClass objectClass = new ObjectClass(splitTypeName[1]);
 			builder.setType(objectClass.getObjectClassValue());
 		}
@@ -72,7 +76,22 @@ public class SchemaObjectBuilderGeneric {
 	 *            A map containing the sub properties of the evaluated
 	 *            attribute.
 	 * @param subPropertyName
-	 *            String which represents the name of the sub-property.
+	 *            String which represents the name of the sub-property. The
+	 *            values which this parameter can acquire are the following:
+	 *            <li>"readOnly" - The property contains a boolean value which
+	 *            refers to if the attribute is "readOnly".
+	 *            <li>"mutability" - The property contains a string value which
+	 *            refers to how the attribute value can be manipulated (e.q.
+	 *            "readWrite","writeOnly","immutable","readOnly" )
+	 *            <li>"type" - The property contains a string value which
+	 *            represents the type of the attribute value (e.q. String,
+	 *            Boolean)
+	 *            <li>"required" - The property contains a boolean value which
+	 *            refers to the fact if the attribute is required or not.
+	 *            <li>"multiValued" - The property contains a boolean value
+	 *            which refers to the fact if the attribute is multi valued or
+	 *            not.
+	 * 
 	 * @return The "AttributeInfoBuilder" object populated with the sub-property
 	 *         values set.
 	 **/

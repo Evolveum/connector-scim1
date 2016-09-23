@@ -53,6 +53,8 @@ public interface HandlingStrategy {
 
 	Header PRETTYPRINTHEADER = new BasicHeader("X-PrettyPrint", "1");
 
+	//TODO add throws statements
+	
 	/**
 	 * Sends queries for object creation to the service providers endpoints. If
 	 * successful the service provider returns a uid of the created object.
@@ -259,7 +261,7 @@ public interface HandlingStrategy {
 	 * 
 	 * @param injectedAttributeSet
 	 *            The set of attributes which should be extended.
-	 * @return The extended set of attributes.
+	 * @return the extended set of attributes.
 	 */
 	public Set<Attribute> addAttributesToInject(Set<Attribute> injectedAttributeSet);
 
@@ -316,7 +318,7 @@ public interface HandlingStrategy {
 	 * @param resourceEndPoint
 	 *            The resource endpoint name. A string value representing the
 	 *            endpoint name (e.q. "Groups").
-	 * @return The resource object connector object representation.
+	 * @return the resource object connector object representation.
 	 * @throws ConnectorException
 	 */
 

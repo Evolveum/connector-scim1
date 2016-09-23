@@ -28,6 +28,20 @@ public class ParserSchemaScim {
 
 	private static final Log LOGGER = Log.getLog(ParserSchemaScim.class);
 
+	/**
+	 * Iterates trough the provided json for attribute. If an attribute is an
+	 * instance of "JSONObject" then it's marked as a "higher layer" attribute
+	 * (e.g."endpoint": "/Users") else if the attribute is an instance of
+	 * "JSONArray" the attribute is processed further as a list of sub
+	 * attributes (e.g. "attributes": [{...}]).
+	 * 
+	 * @param schemaJson
+	 *            The provided "JSONObject" acquired from the service provider.
+	 * @param strategy
+	 *            The Handling strategy instance which should be used for
+	 *            processing.
+	 */
+
 	public void parseSchema(JSONObject schemaJson, HandlingStrategy strategy) {
 		hlAttributeMap = new HashMap<String, String>();
 		attributeMap = new HashMap<String, Map<String, Object>>();
@@ -50,14 +64,44 @@ public class ParserSchemaScim {
 		attributeMapList.add(attributeMap);
 	}
 
+	/**
+	 * Depending on the "handling strategy" the method returns a list of map
+	 * representations of attributes and their sub attributes.
+	 * 
+	 * @param strategy
+	 *            The handling strategy which should be used for processing.
+	 * @return a list of map representations of attributes and their sub
+	 *         attributes.
+	 */
+
 	public List<Map<String, Map<String, Object>>> getAttributeMapList(HandlingStrategy strategy) {
 		return strategy.getAttributeMapList(attributeMapList);
-
 	}
+
+	/**
+	 * A getter method which returns the list of map representations of higher
+	 * layer attributes (e.g."endpoint": "/Users") .
+	 * 
+	 * @return the list of map representations of higher layer attributes
+	 */
 
 	public List<Map<String, String>> getHlAttributeMapList() {
 		return hlAttributeMapList;
 	}
+
+	/**
+	 * Iterates trough a "JSONObject" which represents a sub attribute and
+	 * processes its parameters.
+	 * 
+	 * @param subAttribute
+	 *            The "JSONObject" representing the sub attribute.
+	 * 
+	 * @param subAttributeMap
+	 *            A map representation of all the processed sub attributes of
+	 *            the attribute to which the sub attribute belongs.
+	 * @return The provided "subAttributeMap" extended with the processed sub
+	 *         attribute.
+	 */
 
 	public Map<String, Object> parseSubAttribute(JSONObject subAttribute, Map<String, Object> subAttributeMap) {
 		Map<String, Object> attributeObjects = new HashMap<String, Object>();

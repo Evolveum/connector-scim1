@@ -13,10 +13,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * A class that contains the methods needed for construction of json object
- * representations of provided data sets. Attributes are translated to json
- * objects and arrays of json objects depending on the attributes and
- * dictionary.
+ * 
+ * @author Matus
+ * 
+ *         A class that contains the methods needed for construction of json
+ *         object representations of provided data sets. Attributes are
+ *         translated to json objects and arrays of json objects depending on
+ *         the attributes and dictionary.
  */
 public class GenericDataBuilder implements ObjectTranslator {
 
@@ -28,7 +31,10 @@ public class GenericDataBuilder implements ObjectTranslator {
 	 * 
 	 * @param operation
 	 *            String variable indicating that the "delete" operation
-	 *            parameter should be added in the constructed json object.
+	 *            parameter should be added in the constructed json object. The
+	 *            values which this parameter might acquire:
+	 *            <li>"delete"
+	 *            <li>"" - or empty string
 	 **/
 	public GenericDataBuilder(String operation) {
 		this.operation = operation;
@@ -133,7 +139,6 @@ public class GenericDataBuilder implements ObjectTranslator {
 	 *            methods.
 	 * @return A json representation of the provided data set.
 	 */
-	// TODO more efficient
 	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
 
 		String mainAttributeName = "";
@@ -290,16 +295,16 @@ public class GenericDataBuilder implements ObjectTranslator {
 					String sMlAttributeName = "No schema type";
 					Boolean nameWasSet = false;
 
-					for (Attribute specialAtribute : specialMlAttributes) {
-						String innerName = specialAtribute.getName();
+					for (Attribute specialAttribute : specialMlAttributes) {
+						String innerName = specialAttribute.getName();
 						String[] innerKeyParts = innerName.split(DELIMITER); // e.g.
 						// name.givenName
 						if (innerKeyParts[1].equals(TYPE) && !nameWasSet) {
-							sMlAttributeName = AttributeUtil.getAsStringValue(specialAtribute);
+							sMlAttributeName = AttributeUtil.getAsStringValue(specialAttribute);
 							nameWasSet = true;
 						} else if (!innerKeyParts[1].equals(TYPE)) {
 
-							jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(specialAtribute));
+							jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(specialAttribute));
 						}
 					}
 					if (nameWasSet) {
@@ -312,7 +317,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 								"Schema type not specified {0}. Error occurrence while translating user object attribute set: {0}",
 								sMlAttributeName);
 						throw new InvalidAttributeValueException(
-								"Schema type not speciffied. Error ocourance while translating user object attribute set");
+								"Schema type not specified. Error occurrence while translating user object attribute set");
 					}
 
 				}

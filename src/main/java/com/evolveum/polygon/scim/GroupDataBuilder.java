@@ -29,16 +29,19 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 	private String operation;
 
-	
 	/**
 	 * Constructor used to populate the local variable "operation".
 	 * 
 	 * @param operation
 	 *            String variable indicating that the "delete" operation
-	 *            parameter should be added in the constructed json object.
+	 *            parameter should be added in the constructed json object. The
+	 *            values which this parameter might acquire:
+	 *            <li>"delete"
+	 *            <li>"" - or empty string
 	 **/
 	public GroupDataBuilder(String operation) {
 		this.operation = operation;
+
 	}
 
 	/**

@@ -9,8 +9,8 @@ import org.identityconnectors.framework.spi.StatefulConfiguration;
 /**
  * @author Matus
  * 
- * Connector configuration class. It contains all the needed methods for
- * processing the connector configuration.
+ *         Connector configuration class. It contains all the needed methods for
+ *         processing the connector configuration.
  */
 public class ScimConnectorConfiguration extends AbstractConfiguration implements StatefulConfiguration {
 

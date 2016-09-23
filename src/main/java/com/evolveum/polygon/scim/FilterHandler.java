@@ -29,8 +29,10 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 // Missing filterVisitor methods/filters from SCIM v1 specification: not equal, present
 
 /**
- * Contains methods needed for building a "filter" query which is sent to the
- * resource provider as a more specific search query.
+ * @author Matus
+ * 
+ *         Contains methods needed for building a "filter" query which is sent
+ *         to the resource provider as a more specific search query.
  */
 public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
@@ -53,6 +55,10 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	private static final String DELIMITER = "\\.";
 	private static final String LEFTPAR = "(";
 	private static final String RIGHTPAR = ")";
+
+	private static final String OPENINGBRACKET = "[";
+	private static final String CLOSINGGBRACKET = "]";
+
 	private static final String DOT = ".";
 
 	/**
@@ -87,11 +93,11 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			if (isFirst) {
 				if (!p.isEmpty() || samePathIdParts.length > 1) {
 					completeQuery.append(p);
-					completeQuery.append("[");
+					completeQuery.append(OPENINGBRACKET);
 					completeQuery.append(processedFilter.accept(this, p));
 					isFirst = false;
 					if (position == size) {
-						completeQuery.append("]");
+						completeQuery.append(CLOSINGGBRACKET);
 						isFirst = false;
 					}
 				} else {
@@ -112,7 +118,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 				}
 				if (position == size) {
 					if (!p.isEmpty() || samePathIdParts.length > 1) {
-						completeQuery.append("]");
+						completeQuery.append(CLOSINGGBRACKET);
 					}
 				}
 			}
@@ -139,7 +145,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
-				return BuildString(filter.getAttribute(), CONTAINS, filter.getName());
+				return buildString(filter.getAttribute(), CONTAINS, filter.getName());
 			} else {
 				return preprocessedFilter;
 			}
@@ -205,7 +211,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				return BuildString(filter.getAttribute(), EQUALS, filter.getName());
+				return buildString(filter.getAttribute(), EQUALS, filter.getName());
 
 			} else {
 				return preprocessedFilter;
@@ -252,7 +258,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				return BuildString(filter.getAttribute(), GREATERTHAN, filter.getName());
+				return buildString(filter.getAttribute(), GREATERTHAN, filter.getName());
 
 			} else {
 				return preprocessedFilter;
@@ -282,7 +288,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				return BuildString(filter.getAttribute(), GREATEROREQ, filter.getName());
+				return buildString(filter.getAttribute(), GREATEROREQ, filter.getName());
 			} else {
 				return preprocessedFilter;
 			}
@@ -310,7 +316,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
-				return BuildString(filter.getAttribute(), LESSTHAN, filter.getName());
+				return buildString(filter.getAttribute(), LESSTHAN, filter.getName());
 
 			} else {
 				return preprocessedFilter;
@@ -341,7 +347,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				return BuildString(filter.getAttribute(), LESSOREQ, filter.getName());
+				return buildString(filter.getAttribute(), LESSOREQ, filter.getName());
 			} else {
 				return preprocessedFilter;
 			}
@@ -384,37 +390,58 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 */
 	@Override
 	public StringBuilder visitOrFilter(String p, OrFilter filter) {
-		LOGGER.info("Processing request trough \"or\" filter: {0}", filter);
-		StringBuilder completeQuery = new StringBuilder();
+		LOGGER.info("Processing request trough \"or\" filter");
 
+		String[] samePathIdParts = p.split(DELIMITER);// e.g valuePath.members
+
+		if (samePathIdParts.length > 1) {
+			p = samePathIdParts[1];
+		}
+
+		StringBuilder completeQuery = new StringBuilder();
+		int position = 0;
+		int size = filter.getFilters().size();
 		boolean isFirst = true;
 
 		for (Filter processedFilter : filter.getFilters()) {
+			position++;
 
 			if (isFirst) {
-				completeQuery = processedFilter.accept(this, p);
+				if (!p.isEmpty() || samePathIdParts.length > 1) {
+					completeQuery.append(p);
+					completeQuery.append(OPENINGBRACKET);
+					completeQuery.append(processedFilter.accept(this, p));
+					isFirst = false;
+					if (position == size) {
+						completeQuery.append(CLOSINGGBRACKET);
+						isFirst = false;
+					}
+				} else {
+
+					completeQuery = processedFilter.accept(this, p);
+					isFirst = false;
+				}
+			} else {
 				completeQuery.append(SPACE);
 				completeQuery.append(OR);
-				isFirst = false;
-
-			} else {
-
 				completeQuery.append(SPACE);
 				if (processedFilter instanceof OrFilter || processedFilter instanceof AndFilter) {
 					completeQuery.append(LEFTPAR);
 					completeQuery.append(processedFilter.accept(this, p).toString());
 					completeQuery.append(RIGHTPAR);
 				} else {
-
 					completeQuery.append(processedFilter.accept(this, p).toString());
 				}
-
+				if (position == size) {
+					if (!p.isEmpty() || samePathIdParts.length > 1) {
+						completeQuery.append(CLOSINGGBRACKET);
+					}
+				}
 			}
 
 		}
 
 		return completeQuery;
-
 	}
 
 	/**
@@ -435,7 +462,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				return BuildString(filter.getAttribute(), STARTSWITH, filter.getName());
+				return buildString(filter.getAttribute(), STARTSWITH, filter.getName());
 			} else {
 				return preprocessedFilter;
 			}
@@ -463,7 +490,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
-				return BuildString(filter.getAttribute(), ENDSWITH, filter.getName());
+				return buildString(filter.getAttribute(), ENDSWITH, filter.getName());
 
 			} else {
 				return preprocessedFilter;
@@ -476,6 +503,17 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		}
 	}
 
+	/*
+	 * private static final String EQUALS = "eq"; private static final String
+	 * CONTAINS = "co"; private static final String STARTSWITH = "sw"; private
+	 * static final String ENDSWITH = "ew"; private static final String
+	 * GREATERTHAN = "gt"; private static final String GREATEROREQ = "ge";
+	 * private static final String LESSTHAN = "lt"; private static final String
+	 * LESSOREQ = "le"; private static final String AND = "and"; private static
+	 * final String OR = "or"; private static final String NOT = "not"; private
+	 * static final String TYPE = "type";
+	 */
+
 	/**
 	 * Builds the string representation of an filter query.
 	 * 
@@ -483,12 +521,26 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	 *            The attribute on behalf of which the query result should be
 	 *            filtered out .
 	 * @param operator
-	 *            The operator which represents the type of filter used.
+	 *            The operator which represents the type of filter used. The
+	 *            supported parameter values are:
+	 *            <li>"eq" - "Equals" filter operator
+	 *            <li>"co" - "Contains" filter operator
+	 *            <li>"sw" - "Starts with" filter operator
+	 *            <li>"ew" - "Ends with" filter operator
+	 *            <li>"gt" - "Greater than" filter operator
+	 *            <li>"ge" - "Greater than or equal" filter operator
+	 *            <li>"lt" - "Less than" filter operator
+	 *            <li>"le" - "Less than or equal" filter operator
+	 *            <li>"and" - "And" filter operator
+	 *            <li>"or" - "Or" filter operator
+	 *            <li>"not" - "Not" filter operator
+	 * 
+	 * 
 	 * @param name
 	 *            The name of the attribute which is being used.
 	 * @return The string representation of a filter.
 	 */
-	private StringBuilder BuildString(Attribute attribute, String operator, String name) {
+	private StringBuilder buildString(Attribute attribute, String operator, String name) {
 
 		LOGGER.info("String builder processing filter: {0}", operator);
 

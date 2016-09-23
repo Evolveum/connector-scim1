@@ -7,10 +7,7 @@ import java.util.Set;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.message.BasicHeader;
-import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
-import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
-import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -21,11 +18,13 @@ import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesF
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 /**
  * 
  * @author Matus
  *
- *Interface which defines the mandatory handling strategy methods.
+ *         Interface which defines the mandatory handling strategy methods and
+ *         common variables.
  */
 
 public interface HandlingStrategy {
@@ -59,7 +58,8 @@ public interface HandlingStrategy {
 	 * successful the service provider returns a uid of the created object.
 	 * 
 	 * @param resourceEndPoint
-	 *            The resource endpoint name.
+	 *            The resource endpoint name. A string value representing the
+	 *            resource endpoint name (e.q. "Users")
 	 * @param objectTranslator
 	 *            Instance of object translator which contains methods for the
 	 *            creation of an json object out of a provided set of
@@ -106,7 +106,8 @@ public interface HandlingStrategy {
 	 * @param uid
 	 *            The uid of the resource object which should be updated.
 	 * @param resourceEndPoint
-	 *            The name of the resource endpoint.
+	 *            The name of the resource endpoint. A string value representing
+	 *            the resource endpoint name (e.q. "Users")
 	 * @param jsonObject
 	 *            The json object which carries the information which should be
 	 *            updated.
@@ -124,7 +125,8 @@ public interface HandlingStrategy {
 	 * @param uid
 	 *            The uid of the resource object which should be deleted.
 	 * @param resourceEndPoint
-	 *            The name of the resource endpoint.
+	 *            The name of the resource endpoint. A string value representing
+	 *            the resource endpoint name (e.q. "Users")
 	 * @param conf
 	 *            Instance of the connector configuration class, which contains
 	 *            the provided configuration parameters.
@@ -140,14 +142,16 @@ public interface HandlingStrategy {
 	 * services resources.
 	 * 
 	 * @param providerName
-	 *            The name of the provider.
+	 *            The name of the provider. A string value representing the
+	 *            service provider name (e.q. "slack")
 	 * @param resourceEndPoint
-	 *            The resource endpoint name.
+	 *            The resource endpoint name. A string value representing the
+	 *            resource endpoint name (e.q. "Users")
 	 * @param conf
 	 *            Instance of the connector configuration class, which contains
 	 *            the provided configuration parameters.
 	 * @return an instance of "ParserSchemaScim" containing the schema
-	 *         information of all endpoint.
+	 *         information of all endpoints.
 	 */
 
 	public ParserSchemaScim querySchemas(String providerName, String resourceEndPoint, ScimConnectorConfiguration conf);
@@ -160,7 +164,8 @@ public interface HandlingStrategy {
 	 * the service provider and later processed.
 	 * 
 	 * @param resourceName
-	 *            The name of the provider.
+	 *            The resource endpoint name. A string value representing the
+	 *            resource endpoint name (e.q. "Users")
 	 * @param jsonObject
 	 *            The processed json object.
 	 * @return an json object representing the full schema representation of the
@@ -238,7 +243,8 @@ public interface HandlingStrategy {
 	 *            The position of the processed reference value in the evaluated
 	 *            sub attribute json array.
 	 * @param attributeName
-	 *            The name of the processed attribute.
+	 *            The name of the processed attribute. A string value
+	 *            representing the attribute name (e.q. "Emails").
 	 * @return a map representation of all the attributes of the evaluated
 	 *         endpoint extended by the processed attribute.
 	 * 
@@ -270,7 +276,9 @@ public interface HandlingStrategy {
 	 * @param jsonObject
 	 *            The json object carrying the update for the group resource.
 	 * @param uri
-	 *            The uri of the queried resource object.
+	 *            The uri of the queried resource object (e.q.
+	 *            ".../services/scim/v1/Groups" ).
+	 * 
 	 * @param authHeader
 	 *            The authentication header provided by the login method.
 	 * @return if successful the uid of the updated resource.
@@ -290,7 +298,8 @@ public interface HandlingStrategy {
 	 *            The provided result handler.
 	 * @param membershipResourceEndpoint
 	 *            The endpoint name of the resource of which the user is a
-	 *            member.
+	 *            member. A string value representing the endpoint name (e.q.
+	 *            "Groups").
 	 * @param conf
 	 *            An instance of the connector configuration class which
 	 *            contains the provided configuration.
@@ -305,7 +314,8 @@ public interface HandlingStrategy {
 	 * @param resourceJsonObject
 	 *            The provided json object representing an resource object.
 	 * @param resourceEndPoint
-	 *            The resource endpoint name.
+	 *            The resource endpoint name. A string value representing the
+	 *            endpoint name (e.q. "Groups").
 	 * @return The resource object connector object representation.
 	 * @throws ConnectorException
 	 */
@@ -364,7 +374,8 @@ public interface HandlingStrategy {
 	 * map object.
 	 * 
 	 * @param attributeName
-	 *            The name of the processed attribute.
+	 *            The name of the processed attribute. A string value
+	 *            representing the attribute name (e.q. "groups").
 	 * @param attributeMap
 	 *            Map containing the sub properties of the processed attributes
 	 * @param builder
@@ -388,7 +399,8 @@ public interface HandlingStrategy {
 	 *            The object class info builder which is extended by this
 	 *            method.
 	 * @param attributeName
-	 *            The name of the processed attribute.
+	 *            The name of the processed attribute. A string value
+	 *            representing the attribute name (e.q. "groups").
 	 * @param infoBuilder
 	 *            An attribute info instance to extend the parameters of the
 	 *            processed attribute
@@ -404,7 +416,8 @@ public interface HandlingStrategy {
 	 * @param infoBuilder
 	 *            The attribute info builder object which is extended.
 	 * @param attributeName
-	 *            The name of the processed attribute.
+	 *            The name of the processed attribute. A string value
+	 *            representing the attribute name (e.q. "groups").
 	 * @return the extended attribute info builder object.
 	 */
 
@@ -416,7 +429,14 @@ public interface HandlingStrategy {
 	 * the provided flag.
 	 * 
 	 * @param flag
-	 *            The provided flag string.
+	 *            The provided flag string. A string value representing a flag
+	 *            used to resolve a conditional statement on which the method
+	 *            decides which values to add to an dictionary. The flag values:
+	 *            <li>"schemaparser-workaround" - Defined as the "FIRSTFLAG"
+	 *            variable
+	 *            <li>"schemabuilder-workaround" - Defined as the "SECONDFLAG"
+	 *            variable
+	 * 
 	 * @return the populated dictionary.
 	 */
 	public List<String> populateDictionary(String flag);
@@ -429,7 +449,9 @@ public interface HandlingStrategy {
 	 * @param filter
 	 *            The provided query filter.
 	 * @param endpointName
-	 *            The name of the queried endpoint.
+	 *            The name of the queried endpoint. A string value representing
+	 *            the endpoint name (e.q. "Groups").
+	 * 
 	 * @return a flag string value used for conditional evaluation.
 	 */
 

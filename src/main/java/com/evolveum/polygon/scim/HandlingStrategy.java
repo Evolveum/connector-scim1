@@ -75,6 +75,17 @@ public interface HandlingStrategy {
 	 *            Instance of the connector configuration class, which contains
 	 *            the provided configuration parameters.
 	 * @return the uid of the created object.
+	 * 
+	 * @throws ConnectorException is thrown when:
+	 * 
+	 * 	<li> the data needed for authorization of request to the provider was not found
+	 * 	<li> a JSONexception has occurred while processing an json object
+	 * 	<li> an Unsupported encoding exception has occurred while processing an json object.
+	 * 	
+	 * @throws ConnectionFailedException is thrown when a protocol exception has occurred while in the process of creating a new resource object.
+	 * 
+	 * 
+	 * @throws UnknownUidException  is thrown if no uid is returned in the process of resource creation.
 	 */
 
 	public Uid create(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
@@ -86,7 +97,7 @@ public interface HandlingStrategy {
 	 * result handler.
 	 * 
 	 * @param query
-	 *            The query object which can be a string or an Uid type object.
+	 *            The query object which can be a string or an UID type object.
 	 * @param resourceEndPoint
 	 *            The resource endpoint name.
 	 * @param resultHandler
@@ -94,7 +105,16 @@ public interface HandlingStrategy {
 	 * @param conf
 	 *            Instance of the connector configuration class, which contains
 	 *            the provided configuration parameters.
+	 *            
+	 * @throws ConnectorException is thrown when:
+	 * 
+	 * 	<li> the data needed for authorization of request to the provider was not found
+	 * 	<li> an error has occurred while building a connId object
+	 *  <li> a JSONException has occurred while processing an json object
 	 *
+	 * @throws UnknownUidException  is thrown if no UID is present in fetched object.
+	 * @throws ConnectorIOException is thrown when an IOException has occurred while processing of the HTTP query response. 
+	 * 
 	 */
 
 	public void query(Object query, String resourceEndPoint, ResultsHandler resultHandler,
@@ -117,6 +137,14 @@ public interface HandlingStrategy {
 	 *            Instance of the connector configuration class, which contains
 	 *            the provided configuration parameters.
 	 * @return the uid of the created object.
+	 * 
+	 * @throws ConnectorException is thrown when:
+	 * 
+	 * 	<li> the data needed for authorization of request to the provider was not found
+	 * 	<li> an UnsupportedEncodingException has occurred
+	 *  <li> a JSONException has occurred while processing an json object
+	 *  
+	 *  @throws ConnectionFailedException 
 	 */
 
 	public Uid update(Uid uid, String resourceEndPoint, JSONObject jsonObject, ScimConnectorConfiguration conf);

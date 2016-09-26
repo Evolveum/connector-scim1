@@ -317,7 +317,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 										} else {
 											LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
 
-											throw new ConnectorException(
+											throw new UnknownUidException(
 													"No uid present in fetchet object while processing queuery result");
 
 										}
@@ -342,7 +342,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 									LOGGER.error("Resource object not present in provider response to the query");
 
-									throw new ConnectorException(
+									throw new UnknownUidException(
 											"No uid present in fetchet object while processing queuery result");
 
 								}
@@ -354,7 +354,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 									e.getLocalizedMessage());
 							LOGGER.info("Builder error. Error while building connId object. The excetion message: {0}",
 									e);
-							throw new ConnectorException(e);
+							throw new ConnectorException("Builder error. Error while building connId object.", e);
 						}
 
 					} catch (JSONException jsonException) {

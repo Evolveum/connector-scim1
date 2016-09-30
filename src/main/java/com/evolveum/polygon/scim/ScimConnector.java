@@ -423,76 +423,18 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			throw new ConnectorException("Result handler for queuery can not be null");
 		}
 
-		String flag = queryChecker(query, endpointName);
-
-		if (flag.isEmpty()) {
-
-			if (genericsCanBeApplied) {
-
 				if (ObjectClass.ACCOUNT.getObjectClassValue().equals(endpointName)) {
-					if (query == null) {
 
-						strategy.query(queryUriSnippet.toString(), USERS, handler, configuration);
+					strategy.query(query, queryUriSnippet, USERS, handler, configuration);
 
-					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
-
-					} else {
-
-						qIsFilter(USERS, query, handler, queryUriSnippet);
-					}
 				} else if (ObjectClass.GROUP.getObjectClassValue().equals(endpointName)) {
-					if (query == null) {
-						strategy.query(queryUriSnippet.toString(), GROUPS, handler, configuration);
 
-					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
+					strategy.query(query, queryUriSnippet, GROUPS, handler, configuration);
 
-					} else {
-						qIsFilter(GROUPS, query, handler, queryUriSnippet);
-					}
 				} else {
 
-					if (query == null) {
-
-						strategy.query(queryUriSnippet.toString(), endpointName, handler, configuration);
-					} else if (query instanceof EqualsFilter && qIsUid(endpointName, query, handler)) {
-
-					} else {
-						qIsFilter(endpointName, query, handler, queryUriSnippet);
-					}
+					strategy.query(query, queryUriSnippet, endpointName, handler, configuration);
 				}
-			} else {
-
-				if (ObjectClass.ACCOUNT.equals(objectClass)) {
-
-					if (query == null) {
-						strategy.query(queryUriSnippet.toString(), USERS, handler, configuration);
-					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
-
-					} else {
-						qIsFilter(USERS, query, handler, queryUriSnippet);
-					}
-				} else if (ObjectClass.GROUP.equals(objectClass)) {
-					if (query == null) {
-						strategy.query(queryUriSnippet.toString(), GROUPS, handler, configuration);
-					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
-
-					} else {
-
-						qIsFilter(GROUPS, query, handler, queryUriSnippet);
-					}
-				} else {
-					LOGGER.error("The provided objectClass is not supported: {0}", objectClass.getDisplayNameKey());
-					throw new IllegalArgumentException("ObjectClass is not supported");
-				}
-			}
-		} else {
-
-			if (ObjectClass.GROUP.equals(objectClass)) {
-				Uid queriedObject = new Uid(flag);
-
-				strategy.queryMembershipData(queriedObject, USERS, handler, GROUPS, configuration);
-			}
-		}
 
 	}
 
@@ -510,68 +452,14 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * 
 	 * 
 	 **/
-	public String queryChecker(Filter filter, String endpointName) {
 
-		String flag = strategy.checkFilter(filter, endpointName);
-		return flag;
-	}
+	//TODO check
+	
+//	public String queryChecker(Filter filter, String endpointName) {
 
-	/**
-	 * Used to evaluate if the queried attribute in the provided filter query is
-	 * an instance of Uid. if yes, the method used to process such query is
-	 * called.
-	 * 
-	 * @param endPoint
-	 *            The name of the endpoint which should be queried (e.g.
-	 *            "Users").
-	 * @param query
-	 *            The provided filter query.
-	 * @param resultHandler
-	 *            The provided result handler used to handle the query result.
-	 * @return true if filter attribute value is an instance of uid and executes
-	 *         an successful query to the service provider. Else returns false.
-	 */
-	private boolean qIsUid(String endPoint, Filter query, ResultsHandler resultHandler) {
-		Attribute filterAttr = ((EqualsFilter) query).getAttribute();
-
-		if (filterAttr instanceof Uid) {
-			strategy.query((Uid) filterAttr, endPoint, resultHandler, configuration);
-			return true;
-		} else
-			return false;
-	}
-
-	/**
-	 * Called when the query is evaluated as an filter not containing an uid
-	 * type attribute.
-	 * 
-	 * @param endPoint
-	 *            The name of the endpoint which should be queried (e.g.
-	 *            "Users").
-	 * @param query
-	 *            The provided filter query.
-	 * @param resultHandler
-	 *            The provided result handler used to handle the query result.
-	 * @param queryUriSnippet
-	 *            A part of the query uri which will build a larger query.
-	 */
-	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler, StringBuilder queryUriSnippet) {
-
-		char prefixChar;
-		StringBuilder filterSnippet = new StringBuilder();
-		if (queryUriSnippet.toString().isEmpty()) {
-			prefixChar = QUERYCHAR;
-
-		} else {
-
-			prefixChar = QUERYDELIMITER;
-		}
-
-		filterSnippet = query.accept(new FilterHandler(), providerName);
-
-		queryUriSnippet.append(prefixChar).append("filter=").append(filterSnippet.toString());
-		strategy.query(queryUriSnippet.toString(), endPoint, resultHandler, configuration);
-	}
+		//String flag = strategy.checkFilter(filter, endpointName);
+		//return flag;
+	//}
 
 	/**
 	 * Calls the "schemaObjectbuilder" class "buildSchema" methods for all the

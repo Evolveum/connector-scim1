@@ -1,13 +1,16 @@
 package com.evolveum.polygon.scim;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.message.BasicHeader;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -53,7 +56,6 @@ public interface HandlingStrategy {
 
 	Header PRETTYPRINTHEADER = new BasicHeader("X-PrettyPrint", "1");
 
-	//TODO add throws statements
 	
 	/**
 	 * Sends queries for object creation to the service providers endpoints. If
@@ -61,31 +63,34 @@ public interface HandlingStrategy {
 	 * 
 	 * @param resourceEndPoint
 	 *            The resource endpoint name. A string value representing the
-	 *            resource endpoint name (e.q. "Users")
+	 *            resource endpoint name 
+	 *          <p>e.q. "Users"
 	 * @param objectTranslator
 	 *            Instance of object translator which contains methods for the
 	 *            creation of an json object out of a provided set of
-	 *            attributes.
+	 *            attributes
 	 * @param attributes
 	 *            The provided attributes set containing information for object
-	 *            creation.
+	 *            creation 
+	 *            <p>e.g. [Attribute: {Name=name.familyName, Value=[Watson]}, Attribute: {Name=name.givenName, Value=[John]}]
 	 * @param injectedAttributeSet
-	 *            A set of attributes which are to be injected into an object.
+	 *            A set of attributes which are to be injected into an object
+	 *            <p>e.g. [Attribute: {Name=name.middleName, Value=[Hamish]}]
 	 * @param conf
 	 *            Instance of the connector configuration class, which contains
-	 *            the provided configuration parameters.
-	 * @return the uid of the created object.
+	 *            the provided configuration parameters
 	 * 
 	 * @throws ConnectorException is thrown when:
 	 * 
 	 * 	<li> the data needed for authorization of request to the provider was not found
 	 * 	<li> a JSONexception has occurred while processing an json object
-	 * 	<li> an Unsupported encoding exception has occurred while processing an json object.
+	 * 	<li> an Unsupported encoding exception has occurred while processing an json object
 	 * 	
-	 * @throws ConnectionFailedException is thrown when a protocol exception has occurred while in the process of creating a new resource object.
-	 * 
-	 * 
-	 * @throws UnknownUidException  is thrown if no uid is returned in the process of resource creation.
+	 * @throws ConnectionFailedException 
+	 * 		is thrown when a protocol exception has occurred while in the process of creating a new resource object
+	 * @throws UnknownUidException  
+	 * 		is thrown if no uid is returned in the process of resource creation
+	 * @return the uid of the created object 
 	 */
 
 	public Uid create(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
@@ -97,14 +102,16 @@ public interface HandlingStrategy {
 	 * result handler.
 	 * 
 	 * @param query
-	 *            The query object which can be a string or an UID type object.
+	 *            The query object which is of the type "Filter".
+	 *            <p> e.g. EQUALS: Attribute: {Name=__UID__, Value=[007]
 	 * @param resourceEndPoint
-	 *            The resource endpoint name.
+	 *            The resource endpoint name. A string representation of the resource endpoint name. 
+	 *            <p> e.g. "Users"
 	 * @param resultHandler
-	 *            The provided result handler which handles results.
+	 *            The provided result handler which handles results
 	 * @param conf
 	 *            Instance of the connector configuration class, which contains
-	 *            the provided configuration parameters.
+	 *            the provided configuration parameters
 	 *            
 	 * @throws ConnectorException is thrown when:
 	 * 
@@ -112,12 +119,14 @@ public interface HandlingStrategy {
 	 * 	<li> an error has occurred while building a connId object
 	 *  <li> a JSONException has occurred while processing an json object
 	 *
-	 * @throws UnknownUidException  is thrown if no UID is present in fetched object.
-	 * @throws ConnectorIOException is thrown when an IOException has occurred while processing of the HTTP query response. 
+	 * @throws UnknownUidException  
+	 * 				is thrown if no UID is present in fetched object
+	 * @throws ConnectorIOException 
+	 * 				is thrown when an IOException has occurred while processing of the HTTP query response.
 	 * 
 	 */
 
-	public void query(Object query, String resourceEndPoint, ResultsHandler resultHandler,
+	public void query(Filter query,StringBuilder queryUriSnippet , String resourceEndPoint, ResultsHandler resultHandler,
 			ScimConnectorConfiguration conf);
 
 	/**
@@ -129,14 +138,27 @@ public interface HandlingStrategy {
 	 *            The uid of the resource object which should be updated.
 	 * @param resourceEndPoint
 	 *            The name of the resource endpoint. A string value representing
-	 *            the resource endpoint name (e.q. "Users")
+	 *            the resource endpoint name 
+	 *            <p> e.q. "Users"
 	 * @param jsonObject
 	 *            The json object which carries the information which should be
-	 *            updated.
+	 *            updated. 
+	 *<pre>{@code
+	 *e.g.
+	 *{ 
+	 *"name": {
+  	 *"givenName": "Test",
+  	 *"familyName": "User"
+ 	 *},
+ 	 *"active": true,
+ 	 *"userName": "175testuser",
+ 	 *"title": "Mr."
+	 *}
+	 *}</pre>          
 	 * @param conf
 	 *            Instance of the connector configuration class, which contains
-	 *            the provided configuration parameters.
-	 * @return the uid of the created object.
+	 *            the provided configuration parameters
+	 * @return the uid of the created object
 	 * 
 	 * @throws ConnectorException is thrown when:
 	 * 
@@ -145,6 +167,13 @@ public interface HandlingStrategy {
 	 *  <li> a JSONException has occurred while processing an json object
 	 *  
 	 *  @throws ConnectionFailedException 
+	 *  	a protocol exception has occurred while in the process of updating a resource object
+	 *  @throws ConnectorIOException 
+	 *  	is thrown when an IOException has occurred while processing of the HTTP query response
+	 *  
+	 *  @throws UnknownUidException
+	 *  	is thrown if no UID is present in fetched object
+	 *  	
 	 */
 
 	public Uid update(Uid uid, String resourceEndPoint, JSONObject jsonObject, ScimConnectorConfiguration conf);
@@ -156,10 +185,24 @@ public interface HandlingStrategy {
 	 *            The uid of the resource object which should be deleted.
 	 * @param resourceEndPoint
 	 *            The name of the resource endpoint. A string value representing
-	 *            the resource endpoint name (e.q. "Users")
+	 *            the resource endpoint name 
+	 *            
+	 *            <p>e.q. "Users"
+	 *            
 	 * @param conf
 	 *            Instance of the connector configuration class, which contains
-	 *            the provided configuration parameters.
+	 *            the provided configuration parameters
+	 *
+	 * @throws ConnectorException is thrown when:
+	 * 
+	 * 	<li> the data needed for authorization of request to the provider was not found 
+	 * 
+	 *  @throws ConnectionFailedException 
+	 *  	a protocol exception has occurred while in the process of deleting a resource object      
+	 *  
+	 *  @throws ConnectorIOException 
+	 *  	is thrown when an IOException has occurred while processing of the HTTP query response
+	 *  
 	 */
 
 	public void delete(Uid uid, String resourceEndPoint, ScimConnectorConfiguration conf);
@@ -173,15 +216,24 @@ public interface HandlingStrategy {
 	 * 
 	 * @param providerName
 	 *            The name of the provider. A string value representing the
-	 *            service provider name (e.q. "slack")
+	 *            service provider name 
+	 *            <p>e.q. "slack"
 	 * @param resourceEndPoint
 	 *            The resource endpoint name. A string value representing the
-	 *            resource endpoint name (e.q. "Users")
+	 *            resource endpoint name 
+	 *            <p>e.q. "Users"
 	 * @param conf
 	 *            Instance of the connector configuration class, which contains
-	 *            the provided configuration parameters.
+	 *            the provided configuration parameters
 	 * @return an instance of "ParserSchemaScim" containing the schema
-	 *         information of all endpoints.
+	 *         information of all endpoints
+	 * @throws ConnectorException is thrown when:
+	 * 
+	 * 	<li> the data needed for authorization of request to the provider was not found 
+	 *  <li> a protocol exception has occurred while in the process of querying the provider Schemas resource object
+	 *       
+	 * @throws ConnectorIOException
+	 * 		an error has occurred while processing the http response     
 	 */
 
 	public ParserSchemaScim querySchemas(String providerName, String resourceEndPoint, ScimConnectorConfiguration conf);
@@ -195,9 +247,36 @@ public interface HandlingStrategy {
 	 * 
 	 * @param resourceName
 	 *            The resource endpoint name. A string value representing the
-	 *            resource endpoint name (e.q. "Users")
+	 *            resource endpoint name 
+	 *            <p>e.q. "Users"
 	 * @param jsonObject
-	 *            The processed json object.
+	 *            The processed json object e.g.
+	 * <pre>{@code           
+	 * {
+     * "schema": "urn:scim:schemas:core:1.0",
+     * "name": "nickName",
+     * "readOnly": false,
+     * "type": "string",
+     * "caseExact": false,
+     * "required": true
+     * },
+     * {
+     * "schema": "urn:scim:schemas:core:1.0",
+     * "name": "userName",
+     * "readOnly": false,
+     * "type": "string",
+     * "caseExact": false,
+     *  "required": true
+     * },
+     * {
+     * "schema": "urn:scim:schemas:core:1.0",
+     * "name": "title",
+     * "readOnly": false,
+     * "type": "string",
+     * "caseExact": false,
+     * "required": false
+     *}}<pre>    
+     *       
 	 * @return an json object representing the full schema representation of the
 	 *         connected service endpoint.
 	 */
@@ -212,9 +291,38 @@ public interface HandlingStrategy {
 	 * for further processing.
 	 * 
 	 * @param responseObject
-	 *            The schema json response which will be processed.
+	 *            The schema json response which will be processed e.g.
+	 * <pre>{@code           
+	 * {
+     * "schema": "urn:scim:schemas:core:1.0",
+     * "name": "nickName",
+     * "readOnly": false,
+     * "type": "string",
+     * "caseExact": false,
+     * "required": true
+     * },
+     * {
+     * "schema": "urn:scim:schemas:core:1.0",
+     * "name": "userName",
+     * "readOnly": false,
+     * "type": "string",
+     * "caseExact": false,
+     *  "required": true
+     * },
+     * {
+     * "schema": "urn:scim:schemas:core:1.0",
+     * "name": "title",
+     * "readOnly": false,
+     * "type": "string",
+     * "caseExact": false,
+     * "required": false
+     *}}<pre>    
+     *                        
 	 * @return an instance of "ParserSchemaScim" containing the schema
-	 *         information of all endpoints.
+	 *         information of all endpoints
+	 *         
+	 * @throws ConnectorException 
+	 * 		if no endpoint identifier present in fetched object while processing query result
 	 */
 
 	public ParserSchemaScim processSchemaResponse(JSONObject responseObject);
@@ -228,15 +336,22 @@ public interface HandlingStrategy {
 	 * 
 	 * @param attribute
 	 *            A json representation of the attribute which will be
-	 *            processed.
+	 *            processed. e.g.
+	 *<pre>{@code           
+	 *"emails": [{
+     *"type": "work",
+     *"value": "175testuser@testdomain.com",
+     *"primary": true
+     *}]}          
+	 *<pre>         
 	 * @param attributeMap
 	 *            The map representation of all the attributes of an concrete
-	 *            endpoint which should be extended.
+	 *            endpoint which should be extended 
 	 * @param parser
 	 *            The instance of "ParserSchemaScim" from which this method was
-	 *            called and used to call additional helper methods.
+	 *            called and used to call additional helper methods
 	 * @return a map containing the parameters and subAttributes of all
-	 *         processed attributes.
+	 *         processed attributes
 	 */
 	public Map<String, Map<String, Object>> parseSchemaAttribute(JSONObject attribute,
 			Map<String, Map<String, Object>> attributeMap, ParserSchemaScim parser);
@@ -248,35 +363,70 @@ public interface HandlingStrategy {
 	 * 
 	 * @param attributeMapList
 	 *            The list of maps which represent the attributes and their
-	 *            parameters and sub attributes of all the resource endpoints .
+	 *            parameters and sub attributes of all the resource endpoints 
 	 * @return a list of map which represent the attributes and their parameters
-	 *         and sub attributes of all the resource endpoints .
+	 *         and sub attributes of all the resource endpoints 
 	 */
 	public List<Map<String, Map<String, Object>>> getAttributeMapList(
 			List<Map<String, Map<String, Object>>> attributeMapList);
 
 	/**
 	 * Method which is used to process the type sub attribute of complex
-	 * attributes. Changes the type flag of an complex attribute depending on
+	 * attributes. Appends a type flag of an complex attribute depending on
 	 * the "canonical value" or the "reference types" type sub attribute value.
+	 * The method populates a map with the attribute name of an complex attribute 
+	 * appended by the type value which represents a flag for the attribute and the sub attribute name.
+	 * This naming convention is used to identify different value entries of sub attributes for the same parent attribute.
+	 * 
+	 * A Json representation of an complex multivalue attribute:
+	 * <pre>{@code  
+	 * "emails": [{
+	 *"type": "work",
+  	 *"value": "testuser@work.com",
+  	 *"primary": true
+   	 *},
+ 	 *{
+  	 *"type": "home",
+  	 *"value": "testuser@home.com",
+  	 *"primary": true
+  	 *},
+  	 *{
+  	 *"type": "other",
+  	 *"value": "testuser@someotherplace.com",
+  	 *"primary": true
+  	 *}]}
+  	 *<pre>
+	 * 
+	 * And the corresponding map entry which will be created: 
+	 * emails.work.value: testuser@work.com
 	 * 
 	 * @param attributeMap
 	 *            The map representation of all the resources attributes which
-	 *            is to be extended by the processed attribute.
+	 *            is to be extended by the processed attribute
 	 * @param referenceValues
-	 *            An json array which contains the canonical values or reference
-	 *            type values of the processed attribute type sub attribute.
+	 *            A json array which contains the canonical values or reference
+	 *            type values of the processed attribute type sub attribute
+	 *            <p> e.g. [work,home,other]
 	 * @param subAttributeMap
 	 *            Map containing the sub attribute parameters and values of the
-	 *            processed attribute.
+	 *            processed attribute e.g.
+	 *<pre>{@code           
+	 *A map representing the sub attributes of the "Emails" attribute:
+	 *
+	 *type: work
+	 *value: testuser@work.com
+	 *primary: true
+	 *}
+	 *<pre>           
 	 * @param position
 	 *            The position of the processed reference value in the evaluated
-	 *            sub attribute json array.
+	 *            sub attribute json array
 	 * @param attributeName
 	 *            The name of the processed attribute. A string value
-	 *            representing the attribute name (e.q. "Emails").
+	 *            representing the attribute name 
+	 *            <p>e.q. "Emails"
 	 * @return a map representation of all the attributes of the evaluated
-	 *         endpoint extended by the processed attribute.
+	 *         endpoint extended by the processed attribute
 	 * 
 	 */
 
@@ -288,8 +438,10 @@ public interface HandlingStrategy {
 	 * attributes.
 	 * 
 	 * @param injectedAttributeSet
-	 *            The set of attributes which should be extended.
-	 * @return the extended set of attributes.
+	 *            The set of attributes which should be extended
+	 *            <p>e.g. [Attribute: {Name=schemas.default.blank, Value=[urn:scim:schemas:core:1.0]}]
+	 *            
+	 * @return the extended set of attributes
 	 */
 	public Set<Attribute> addAttributesToInject(Set<Attribute> injectedAttributeSet);
 
@@ -302,15 +454,24 @@ public interface HandlingStrategy {
 	 * update to the resource provider.
 	 * 
 	 * @param response
-	 *            The http response object of the first unsuccessful query.
+	 *            The http response object of the first unsuccessful query
 	 * @param jsonObject
-	 *            The json object carrying the update for the group resource.
+	 *            The json object carrying the update for the group resource
+	 *            <p> e.g. {"members": []}
 	 * @param uri
-	 *            The uri of the queried resource object (e.q.
-	 *            ".../services/scim/v1/Groups" ).
+	 *            The uri of the queried resource object 
+	 *            <p> e.g. ".../services/scim/v1/Groups" .
 	 * 
 	 * @param authHeader
-	 *            The authentication header provided by the login method.
+	 *            The authentication header provided by the login method
+	 * @throws ConnectorException
+	 * 			if an parse exception has occurred while parsing the http response
+	 * @throws ConnectorIOException
+	 * 			if an error has occurred while processing the http response. Occurrence in the process of creating a resource object            
+	 *            
+	 * @throws ConnectionFailedException
+	 * 			if an "ClientProtocolException" exception has occurred while in the process of updating a resource object          
+	 * 			
 	 * @return if successful the uid of the updated resource.
 	 */
 	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader);
@@ -324,15 +485,23 @@ public interface HandlingStrategy {
 	 *            The uid of the queried user.
 	 * @param resourceEndPoint
 	 *            The resource endpoint name.
+	 *            <p> e.g. "Users"
 	 * @param resultHandler
 	 *            The provided result handler.
 	 * @param membershipResourceEndpoint
 	 *            The endpoint name of the resource of which the user is a
-	 *            member. A string value representing the endpoint name (e.q.
-	 *            "Groups").
+	 *            member. A string value representing the endpoint name (
+	 *            <p> e.g. "Groups".
 	 * @param conf
 	 *            An instance of the connector configuration class which
 	 *            contains the provided configuration.
+	 *            
+	 * @throws ConnectorException is thrown when
+	 *               <li> no uid is present in fetched object while processing query result
+	 *               <li> the data needed for authorization of request to the provider were not found	
+	 *               <li> if an JSONexception has occurred while processing an json variable
+	 * @throws ConnectorIOException 
+	 * 			in an error occurred while processing the query http response           
 	 */
 
 	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
@@ -342,12 +511,28 @@ public interface HandlingStrategy {
 	 * Builds an connector object representation of the provided json object.
 	 * 
 	 * @param resourceJsonObject
-	 *            The provided json object representing an resource object.
+	 *            The provided json object representing an resource object. e.g.
+	 * <pre>{@code  
+	 *"nickName": "175testuser",
+	 *"displayName": "Test User",
+  	 *"timezone": "Pacific Daylight Time",
+  	 *"externalId": null,
+   	 *"active": true,
+ 	 *.
+ 	 *.
+ 	 *.
+ 	 *.}
+  	 *<pre>           
 	 * @param resourceEndPoint
 	 *            The resource endpoint name. A string value representing the
-	 *            endpoint name (e.q. "Groups").
+	 *            endpoint name 
+	 *           <p> e.q. "Groups"
+	 *            
+	 * @throws ConnectorException 
+	 * 			if an empty json object was passed from data provider
 	 * @return the resource object connector object representation.
-	 * @throws ConnectorException
+	 * 
+	 
 	 */
 
 	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint)
@@ -359,6 +544,7 @@ public interface HandlingStrategy {
 	 * 
 	 * @param excludedAttributes
 	 *            The list of excluded attributes.
+	 *            e.g. "meta","name","location"
 	 * @return The list of excluded attributes populated with attribute names.
 	 */
 
@@ -373,6 +559,7 @@ public interface HandlingStrategy {
 	 * @param injectedAttributeSet
 	 *            A provided set of attributes which should be injected into an
 	 *            json object representation of an resource.
+	 *            <p>e.g. [Attribute: {Name=name.familyName, Value=[Watson]}, Attribute: {Name=name.givenName, Value=[John]}]
 	 * @param authoriazationData
 	 *            The authorization data provided returned from the login
 	 *            method.
@@ -485,6 +672,26 @@ public interface HandlingStrategy {
 	 * @return a flag string value used for conditional evaluation.
 	 */
 
-	public String checkFilter(Filter filter, String endpointName);
+	public Boolean checkFilter(Filter filter, String endpointName);
+	
+	/** 
+	 * Handles a contains all values filter query to the "Slack" provider resource "Groups" endpoint.
+	 * The filter value is set into an equals filter query which is sent to the "Users" endpoint. The method 
+	 * then processes the returned json object, takes the UID values of the groups in which the user is a member of an
+	 * queries them. The query response is then processed an passed to the provided handler.
+	 * 
+	 * @param jsonObject the "User" json representation
+	 * @param resourceEndPoint the endpoint name of the object of which the user is a member of (e.g. group).
+	 * @param handler  the provided resource handler
+	 * @param scimBaseUri the base URI snippet which will be processed for message transfer.
+	 * @param authHeader the provided authentication header.
+	 * @throws ConnectorException
+	 * 			if no uid present in fetched object while processing query result
+	 * @throws ClientProtocolException
+	 * 			if an exception protocol exception has occurred
+	 * @throws IOException
+	 * 		n an error occurred while processing the query http response
+	 */
+	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler , String scimBaseUri, Header authHeader) throws ClientProtocolException, IOException;
 
 }

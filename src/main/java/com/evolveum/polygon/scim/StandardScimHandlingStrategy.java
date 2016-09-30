@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
@@ -35,7 +36,10 @@ import org.identityconnectors.framework.common.objects.OperationalAttributeInfos
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
+import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
+import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
 import org.json.JSONArray;
@@ -53,6 +57,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	private static final String STARTINDEX = "startIndex";
 	private static final String TOTALRESULTS = "totalResults";
 	private static final String ITEMSPERPAGE = "itemsPerPage";
+	
+	private static final char QUERYCHAR = '?';
+	private static final char QUERYDELIMITER = '&';
 
 	@Override
 	public Uid create(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
@@ -184,8 +191,14 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public void query(Object query, String resourceEndPoint, ResultsHandler resultHandler,
+	public void query(Filter query,StringBuilder queryUriSnippet , String resourceEndPoint, ResultsHandler resultHandler,
 			ScimConnectorConfiguration conf) {
+		
+		LOGGER.info("Processing query");
+		
+		Boolean isCAVGroupQuery = false; // is the query a ContainsAllValues filter query for the group endpoint?
+		Boolean valueIsUid = false;
+		
 		Header authHeader = null;
 		String scimBaseUri = "";
 		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
@@ -209,16 +222,64 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
+		
+		String q;
+		
+		String [] baseUrlParts = scimBaseUri.split("\\.");
+		String providerName = baseUrlParts[1];
+
+		if(query!=null){
+		if(query instanceof EqualsFilter){
+			Attribute filterAttr = ((EqualsFilter) query).getAttribute();
+			
+			if (filterAttr instanceof Uid){
+				
+				valueIsUid = true;
+				
+				isCAVGroupQuery = checkFilter(query, resourceEndPoint);
+				
+				if(!isCAVGroupQuery){
+				q = ((Uid) filterAttr).getUidValue();
+				}else {
+					q = ((Uid) filterAttr).getUidValue();
+					resourceEndPoint = "Users";
+				}
+			}else {
+				
+				isCAVGroupQuery = checkFilter(query, resourceEndPoint);
+				
+				if(!isCAVGroupQuery){
+				LOGGER.info("Attribute not instance of UID");
+				q = qIsFilter(query,queryUriSnippet,providerName);
+				}else {
+					q = (String) filterAttr.getValue().get(0);
+					resourceEndPoint = "Users";
+				}
+				
+			}
+			
+		}else{
+			
+			isCAVGroupQuery = checkFilter(query, resourceEndPoint);
+			
+			if (!isCAVGroupQuery){
+			q = qIsFilter(query,queryUriSnippet,providerName);
+			} else {
+				
+				Attribute filterAttr = ((AttributeFilter) query).getAttribute();
+				q = (String) filterAttr.getValue().get(0);
+				resourceEndPoint = "Users";
+			}
+		}
+		
+		} else {
+			LOGGER.info("No filter was defined, query will return all the resource values");
+			q = queryUriSnippet.toString();
+			
+			}
 
 		HttpClient httpClient = HttpClientBuilder.create().build();
-		String q;
-		if (query instanceof Uid) {
-
-			q = ((Uid) query).getUidValue();
-		} else {
-
-			q = (String) query;
-		}
+		
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).append(q)
 				.toString();
@@ -252,13 +313,21 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
-							if (query instanceof Uid) {
+
+							if (valueIsUid) {
 
 								ConnectorObject connectorObject = buildConnectorObject(jsonObject, resourceEndPoint);
 								resultHandler.handle(connectorObject);
 
 							} else {
-								if (jsonObject.has(RESOURCES)) {
+								
+								if(isCAVGroupQuery){
+									
+									LOGGER.info("##CAV QUERY");
+									handleCAVGroupQuery(jsonObject,"Groups",resultHandler,scimBaseUri,authHeader);
+						
+									
+								}else if (jsonObject.has(RESOURCES)) {
 									int amountOfResources = jsonObject.getJSONArray(RESOURCES).length();
 									int totalResults = 0;
 									int startIndex = 0;
@@ -302,11 +371,13 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 													LOGGER.info(
 															"The {0}. resource json object which was returned by the service provider: {1}",
 															i + 1, fullResourcejson);
-
+													
+													
+												
 													ConnectorObject connectorObject = buildConnectorObject(
 															fullResourcejson, resourceEndPoint);
 
-													resultHandler.handle(connectorObject);
+													resultHandler.handle(connectorObject);					
 
 												} else {
 
@@ -373,7 +444,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 				} else {
 
-					LOGGER.warn("Service provider response is empty, responce returned on queuery: {0}", query);
+					LOGGER.warn("Service provider response is empty, responce returned on query: {0}", q);
 				}
 			} else {
 				ErrorHandler.onNoSuccess(response, uri);
@@ -391,7 +462,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			LOGGER.info(
 					"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
 					e, q);
-			throw new ConnectorIOException("An error occurred while processing the queuery http response.", e);
+			throw new ConnectorIOException("An error occurred while processing the query http response.", e);
 		} finally {
 			ServiceAccessManager.logOut(loginInstance);
 		}
@@ -794,7 +865,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				LOGGER.error("No endpoint identifier present in fetched object: {0}", minResourceJson);
 
 				throw new ConnectorException(
-						"No endpoint identifier present in fetchet object while processing queuery result");
+						"No endpoint identifier present in fetched object while processing queuery result");
 			}
 		}
 		return scimParser;
@@ -1266,8 +1337,53 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public String checkFilter(Filter filter, String endpointName) {
-		return "";
+	public Boolean checkFilter(Filter filter, String endpointName) {
+		LOGGER.info("Check filter standard");
+		return false;
 	}
+	
+	/**
+	 * Called when the query is evaluated as an filter not containing an uid
+	 * type attribute.
+	 * 
+	 * @param endPoint
+	 *            The name of the endpoint which should be queried (e.g.
+	 *            "Users").
+	 * @param query
+	 *            The provided filter query.
+	 * @param resultHandler
+	 *            The provided result handler used to handle the query result.
+	 * @param queryUriSnippet
+	 *            A part of the query uri which will build a larger query.
+	 */
+	
+	private String qIsFilter(Filter query, StringBuilder queryUriSnippet, String providerName) {
 
+		char prefixChar;
+		StringBuilder filterSnippet = new StringBuilder();
+		if (queryUriSnippet.toString().isEmpty()) {
+			prefixChar = QUERYCHAR;
+
+		} else {
+
+			prefixChar = QUERYDELIMITER;
+		}
+
+		filterSnippet = query.accept(new FilterHandler(), providerName);
+
+		queryUriSnippet.append(prefixChar).append("filter=").append(filterSnippet.toString());
+		
+		return queryUriSnippet.toString();
+	}
+	
+	
+	@Override
+	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler , String scimBaseUri, Header authHeader) throws ClientProtocolException, IOException{
+	
+		ConnectorObject connectorObject = buildConnectorObject(
+				jsonObject, resourceEndPoint);
+
+		handler.handle(connectorObject);
+		
+	}
 }

@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -360,7 +361,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 						JSONObject jsonObject = new JSONObject(responseString);
 
 						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
-						try {
+						
 
 							if (jsonObject.has(GROUPS)) {
 								int amountOfResources = jsonObject.getJSONArray(GROUPS).length();
@@ -416,17 +417,8 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 								throw new ConnectorException(
 										"No uid present in fetched object while processing query result");
-
 							}
 
-						} catch (Exception e) {
-							LOGGER.error(
-									"Builder error. Error while building connId object. The exception message: {0}",
-									e.getLocalizedMessage());
-							LOGGER.info("Builder error. Error while building connId object. The exception message: {0}",
-									e);
-							throw new ConnectorException(e);
-						}
 
 					} catch (JSONException jsonException) {
 						if (queuedUid == null) {
@@ -549,63 +541,96 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		return dictionary;
 	}
 
-	// TODO simplify
 	@Override
-	public String checkFilter(Filter filter, String endpointName) {
+	public Boolean checkFilter(Filter filter, String endpointName) {
 
-		if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
-			if (filter instanceof ContainsAllValuesFilter) {
-				List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
-				if (valueList.size() == 1) {
-					Object uidString = valueList.get(0);
-					if (uidString instanceof String) {
-						LOGGER.warn("Processing trough group object class \"contains all values\" filter workaround.");
-						return (String) uidString;
+		LOGGER.info("Checking filter if contains all values handling is needed ");
+		
+		if (endpointName.equals("Groups")) {
+			if (filter instanceof EqualsFilter || filter instanceof ContainsAllValuesFilter) {
 
-					} else {
+					Attribute filterAttr = ((AttributeFilter) filter).getAttribute();
 
-						return "";
-					}
-				} else {
-
-					return "";
-
-				}
-			} else if (filter instanceof EqualsFilter) {
-				Attribute filterAttr = ((EqualsFilter) filter).getAttribute();
 				String attributeName = filterAttr.getName();
-				String attributeValue;
 
+				LOGGER.info("The attribute: {0}", attributeName);
+				LOGGER.info("The attribute value: {0}", filterAttr);
+				
 				if ("members.default.value".equals(attributeName)) {
 					LOGGER.warn("Processing trough group object class \"equals\" filter workaround.");
-					List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
-					if (valueList.size() == 1) {
-						Object uidString = valueList.get(0);
-						if (uidString instanceof String) {
-							LOGGER.warn(
-									"Processing trough group object class \"contains all values\" filter workaround.");
-							return (String) uidString;
+						return true;
+				} else {
+
+					return false;
+				}
+			} 
+			
+		}
+		return false;
+	}
+	
+	@Override
+	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler , String scimBaseUri, Header authHeader) throws ClientProtocolException, IOException{
+		String responseString = null;
+		HttpClient httpClient = HttpClientBuilder.create().build();
+		
+		if (jsonObject.has(GROUPS)) {
+			int amountOfResources = jsonObject.getJSONArray(GROUPS).length();
+
+			for (int position = 0; position < amountOfResources; position++) {
+				JSONObject minResourceJson = new JSONObject();
+				minResourceJson = jsonObject.getJSONArray(GROUPS).getJSONObject(position);
+				if (minResourceJson.has(VALUE)) {
+
+					String groupUid = minResourceJson.getString(VALUE);
+					if (groupUid != null && !groupUid.isEmpty()) {
+
+						StringBuilder groupUri = new StringBuilder(scimBaseUri).append(SLASH)
+								.append(resourceEndPoint).append(SLASH).append(groupUid);
+
+						LOGGER.info("The uri to which we are sending the queri {0}", groupUri);
+
+						HttpGet httpGetR = new HttpGet(groupUri.toString());
+						httpGetR.addHeader(authHeader);
+						httpGetR.addHeader(PRETTYPRINTHEADER);
+
+						HttpResponse resourceResponse = httpClient.execute(httpGetR);
+						int statusCode = resourceResponse.getStatusLine().getStatusCode();
+						
+						
+						if (statusCode == 200) {
+							responseString = EntityUtils.toString(resourceResponse.getEntity());
+							JSONObject fullResourceJson = new JSONObject(responseString);
+
+							LOGGER.info(
+									"The {0}. resource json object which was returned by the service provider: {1}",
+									position + 1, fullResourceJson.toString(1));
+
+							ConnectorObject connectorObject = buildConnectorObject(fullResourceJson,
+									resourceEndPoint);
+							handler.handle(connectorObject);
 
 						} else {
 
-							return "";
+							ErrorHandler.onNoSuccess(resourceResponse, groupUri.toString());
 						}
-					} else {
 
-						attributeValue = "";
 					}
-
-					return attributeValue;
 				} else {
+					LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
 
-					return "";
+					throw new ConnectorException(
+							"No uid present in fetched object while processing query result");
 				}
-			} else {
-
-				return "";
 			}
+		} else {
+
+			LOGGER.error("Resource object not present in provider response to the query");
+
+			throw new ConnectorException(
+					"No uid present in fetched object while processing query result");
 		}
-		return "";
+		
 	}
 
 }

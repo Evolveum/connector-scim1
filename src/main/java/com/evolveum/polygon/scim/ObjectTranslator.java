@@ -4,11 +4,12 @@ import java.util.Set;
 
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.json.JSONObject;
+
 /**
  * 
  * @author Matus
  * 
- *Interface which defines the basic json data builder method.   
+ *         Interface which defines the basic json data builder method.
  */
 public interface ObjectTranslator {
 
@@ -30,8 +31,13 @@ public interface ObjectTranslator {
 	 * @param imsAttributes
 	 *            A set of attributes provided by the identity management
 	 *            system.
+	 *            <p>
+	 *            e.g. [Attribute: {Name=name.familyName, Value=[Watson]},
+	 *            Attribute: {Name=name.givenName, Value=[John]}]
 	 * @param injectedAttributes
 	 *            A set of attributes which are injected into the provided set.
+	 *            <p>
+	 *            e.g. [Attribute: {Name=name.middleName, Value=[Hamish]}]
 	 * @return The complete json representation of the provided data set.
 	 */
 	JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes);

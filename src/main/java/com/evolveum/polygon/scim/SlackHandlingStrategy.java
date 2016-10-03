@@ -39,7 +39,8 @@ import org.json.JSONObject;
  * 
  * @author Matus
  *
- *The "HandlingStrategy" methods implementation for the "Slack" service.
+ *         The "HandlingStrategy" methods implementation for the "Slack"
+ *         service.
  *
  */
 
@@ -361,64 +362,62 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 						JSONObject jsonObject = new JSONObject(responseString);
 
 						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
-						
 
-							if (jsonObject.has(GROUPS)) {
-								int amountOfResources = jsonObject.getJSONArray(GROUPS).length();
+						if (jsonObject.has(GROUPS)) {
+							int amountOfResources = jsonObject.getJSONArray(GROUPS).length();
 
-								for (int position = 0; position < amountOfResources; position++) {
-									JSONObject minResourceJson = new JSONObject();
-									minResourceJson = jsonObject.getJSONArray(GROUPS).getJSONObject(position);
-									if (minResourceJson.has(VALUE)) {
+							for (int position = 0; position < amountOfResources; position++) {
+								JSONObject minResourceJson = new JSONObject();
+								minResourceJson = jsonObject.getJSONArray(GROUPS).getJSONObject(position);
+								if (minResourceJson.has(VALUE)) {
 
-										String groupUid = minResourceJson.getString(VALUE);
-										if (groupUid != null && !groupUid.isEmpty()) {
+									String groupUid = minResourceJson.getString(VALUE);
+									if (groupUid != null && !groupUid.isEmpty()) {
 
-											StringBuilder groupUri = new StringBuilder(scimBaseUri).append(SLASH)
-													.append(membershipResourceEndpoint).append(SLASH).append(groupUid);
+										StringBuilder groupUri = new StringBuilder(scimBaseUri).append(SLASH)
+												.append(membershipResourceEndpoint).append(SLASH).append(groupUid);
 
-											LOGGER.info("The uri to which we are sending the queri {0}", groupUri);
+										LOGGER.info("The uri to which we are sending the queri {0}", groupUri);
 
-											HttpGet httpGetR = new HttpGet(groupUri.toString());
-											httpGetR.addHeader(authHeader);
-											httpGetR.addHeader(PRETTYPRINTHEADER);
+										HttpGet httpGetR = new HttpGet(groupUri.toString());
+										httpGetR.addHeader(authHeader);
+										httpGetR.addHeader(PRETTYPRINTHEADER);
 
-											HttpResponse resourceResponse = httpClient.execute(httpGetR);
+										HttpResponse resourceResponse = httpClient.execute(httpGetR);
 
-											if (statusCode == 200) {
-												responseString = EntityUtils.toString(resourceResponse.getEntity());
-												JSONObject fullResourceJson = new JSONObject(responseString);
+										if (statusCode == 200) {
+											responseString = EntityUtils.toString(resourceResponse.getEntity());
+											JSONObject fullResourceJson = new JSONObject(responseString);
 
-												LOGGER.info(
-														"The {0}. resource json object which was returned by the service provider: {1}",
-														position + 1, fullResourceJson.toString(1));
+											LOGGER.info(
+													"The {0}. resource json object which was returned by the service provider: {1}",
+													position + 1, fullResourceJson.toString(1));
 
-												ConnectorObject connectorObject = buildConnectorObject(fullResourceJson,
-														membershipResourceEndpoint);
-												resultHandler.handle(connectorObject);
+											ConnectorObject connectorObject = buildConnectorObject(fullResourceJson,
+													membershipResourceEndpoint);
+											resultHandler.handle(connectorObject);
 
-											} else {
+										} else {
 
-												ErrorHandler.onNoSuccess(resourceResponse, groupUri.toString());
-											}
-
+											ErrorHandler.onNoSuccess(resourceResponse, groupUri.toString());
 										}
-									} else {
-										LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
-
-										throw new ConnectorException(
-												"No uid present in fetched object while processing query result");
 
 									}
+								} else {
+									LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
+
+									throw new ConnectorException(
+											"No uid present in fetched object while processing query result");
+
 								}
-							} else {
-
-								LOGGER.error("Resource object not present in provider response to the query");
-
-								throw new ConnectorException(
-										"No uid present in fetched object while processing query result");
 							}
+						} else {
 
+							LOGGER.error("Resource object not present in provider response to the query");
+
+							throw new ConnectorException(
+									"No uid present in fetched object while processing query result");
+						}
 
 					} catch (JSONException jsonException) {
 						if (queuedUid == null) {
@@ -476,19 +475,18 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		return null;
 	}
 
-	
 	// TODO check if method not obsolete.
 	/**
 	 * 
-	 * Extends the "AttributeInfoBuilder" parameter which was provided with an attribute which this method builds.
+	 * Extends the "AttributeInfoBuilder" parameter which was provided with an
+	 * attribute which this method builds.
 	 * 
 	 * @param builder
 	 * @param attributeName
 	 * @param infoBuilder
 	 * @return
 	 */
-	
-	
+
 	private ObjectClassInfoBuilder buildMissingAttributes(ObjectClassInfoBuilder builder, String attributeName,
 			AttributeInfoBuilder infoBuilder) {
 
@@ -509,7 +507,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 	}
 
 	@Override
-	public ObjectClassInfoBuilder injectObjectClassInfoBuilderData(ObjectClassInfoBuilder builder, String attributeName,
+	public ObjectClassInfoBuilder schemaObjectInjection(ObjectClassInfoBuilder builder, String attributeName,
 			AttributeInfoBuilder infoBuilder) {
 
 		if (ACTIVE.equals(attributeName)) {
@@ -522,13 +520,13 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 	}
 
 	@Override
-	public List<String> populateDictionary(String flag) {
+	public List<String> populateDictionary(WorkaroundFlags flag) {
 		List<String> dictionary = new ArrayList<String>();
 
-		if (FIRSTFLAG.equals(flag)) {
+		if (WorkaroundFlags.PARSERFLAG.getValue().equals(flag.getValue())) {
 			dictionary.add(SUBATTRIBUTES);
 			dictionary.add("subattributes");
-		} else if (SECONDFLAG.equals(flag)) {
+		} else if (WorkaroundFlags.BUILDERFLAG.getValue().equals(flag.getValue())) {
 
 			dictionary.add(ACTIVE);
 			dictionary.add(EMAILSDEFAULTVALUE);
@@ -545,35 +543,36 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 	public Boolean checkFilter(Filter filter, String endpointName) {
 
 		LOGGER.info("Checking filter if contains all values handling is needed ");
-		
+
 		if (endpointName.equals("Groups")) {
 			if (filter instanceof EqualsFilter || filter instanceof ContainsAllValuesFilter) {
 
-					Attribute filterAttr = ((AttributeFilter) filter).getAttribute();
+				Attribute filterAttr = ((AttributeFilter) filter).getAttribute();
 
 				String attributeName = filterAttr.getName();
 
 				LOGGER.info("The attribute: {0}", attributeName);
 				LOGGER.info("The attribute value: {0}", filterAttr);
-				
+
 				if ("members.default.value".equals(attributeName)) {
 					LOGGER.warn("Processing trough group object class \"equals\" filter workaround.");
-						return true;
+					return true;
 				} else {
 
 					return false;
 				}
-			} 
-			
+			}
+
 		}
 		return false;
 	}
-	
+
 	@Override
-	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler , String scimBaseUri, Header authHeader) throws ClientProtocolException, IOException{
+	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler,
+			String scimBaseUri, Header authHeader) throws ClientProtocolException, IOException {
 		String responseString = null;
 		HttpClient httpClient = HttpClientBuilder.create().build();
-		
+
 		if (jsonObject.has(GROUPS)) {
 			int amountOfResources = jsonObject.getJSONArray(GROUPS).length();
 
@@ -585,8 +584,8 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 					String groupUid = minResourceJson.getString(VALUE);
 					if (groupUid != null && !groupUid.isEmpty()) {
 
-						StringBuilder groupUri = new StringBuilder(scimBaseUri).append(SLASH)
-								.append(resourceEndPoint).append(SLASH).append(groupUid);
+						StringBuilder groupUri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint)
+								.append(SLASH).append(groupUid);
 
 						LOGGER.info("The uri to which we are sending the queri {0}", groupUri);
 
@@ -596,18 +595,15 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 						HttpResponse resourceResponse = httpClient.execute(httpGetR);
 						int statusCode = resourceResponse.getStatusLine().getStatusCode();
-						
-						
+
 						if (statusCode == 200) {
 							responseString = EntityUtils.toString(resourceResponse.getEntity());
 							JSONObject fullResourceJson = new JSONObject(responseString);
 
-							LOGGER.info(
-									"The {0}. resource json object which was returned by the service provider: {1}",
+							LOGGER.info("The {0}. resource json object which was returned by the service provider: {1}",
 									position + 1, fullResourceJson.toString(1));
 
-							ConnectorObject connectorObject = buildConnectorObject(fullResourceJson,
-									resourceEndPoint);
+							ConnectorObject connectorObject = buildConnectorObject(fullResourceJson, resourceEndPoint);
 							handler.handle(connectorObject);
 
 						} else {
@@ -619,18 +615,16 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 				} else {
 					LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
 
-					throw new ConnectorException(
-							"No uid present in fetched object while processing query result");
+					throw new ConnectorException("No uid present in fetched object while processing query result");
 				}
 			}
 		} else {
 
 			LOGGER.error("Resource object not present in provider response to the query");
 
-			throw new ConnectorException(
-					"No uid present in fetched object while processing query result");
+			throw new ConnectorException("No uid present in fetched object while processing query result");
 		}
-		
+
 	}
 
 }

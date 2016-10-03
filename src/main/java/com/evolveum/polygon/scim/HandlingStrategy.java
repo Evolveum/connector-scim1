@@ -51,8 +51,6 @@ public interface HandlingStrategy {
 	String DISPLAYNAME = "displayName";
 	String ACTIVE = "active";
 	String VALUE = "value";
-	String FIRSTFLAG = "schemaparser-workaround";
-	String SECONDFLAG = "schemabuilder-workaround";
 
 	Header PRETTYPRINTHEADER = new BasicHeader("X-PrettyPrint", "1");
 
@@ -279,15 +277,29 @@ public interface HandlingStrategy {
 	 * @param jsonObject
 	 *            The processed json object e.g.
 	 * 
-	 *            <pre>
-	 *            {@code { "schema": "urn:scim:schemas:core:1.0", "name":
-	 *            "nickName", "readOnly": false, "type": "string", "caseExact":
-	 *            false, "required": true }, { "schema":
-	 *            "urn:scim:schemas:core:1.0", "name": "userName", "readOnly":
-	 *            false, "type": "string", "caseExact": false, "required": true
-	 *            }, { "schema": "urn:scim:schemas:core:1.0", "name": "title",
-	 *            "readOnly": false, "type": "string", "caseExact": false,
-	 *            "required": false }}
+	*            <pre>
+	 *            {@code { 
+	 *            "schema": "urn:scim:schemas:core:1.0",
+	 *            "name":"nickName",
+	 *            "readOnly": false,
+	 *            "type": "string",
+	 *            "caseExact":false,
+	 *			  "required": true
+	 * 			  },{ 
+	 * 			  "schema":"urn:scim:schemas:core:1.0",
+	 *            "name": "userName",
+	 *            "readOnly":false,
+	 *            "type": "string",
+	 *            "caseExact": false,
+	 *            "required": true
+	 *            },{
+	 *            "schema": "urn:scim:schemas:core:1.0",
+	 *            "name": "title",
+	 *            "readOnly": false,
+	 *            "type": "string",
+	 *            "caseExact": false,
+	 *            "required": false
+	 *            }}
 	 * 
 	 *            <pre>
 	 * 
@@ -308,14 +320,28 @@ public interface HandlingStrategy {
 	 *            The schema json response which will be processed e.g.
 	 * 
 	 *            <pre>
-	 *            {@code { "schema": "urn:scim:schemas:core:1.0", "name":
-	 *            "nickName", "readOnly": false, "type": "string", "caseExact":
-	 *            false, "required": true }, { "schema":
-	 *            "urn:scim:schemas:core:1.0", "name": "userName", "readOnly":
-	 *            false, "type": "string", "caseExact": false, "required": true
-	 *            }, { "schema": "urn:scim:schemas:core:1.0", "name": "title",
-	 *            "readOnly": false, "type": "string", "caseExact": false,
-	 *            "required": false }}
+	 *            {@code { 
+	 *            "schema": "urn:scim:schemas:core:1.0",
+	 *            "name":"nickName",
+	 *            "readOnly": false,
+	 *            "type": "string",
+	 *            "caseExact":false,
+	 *			  "required": true
+	 * 			  },{ 
+	 * 			  "schema":"urn:scim:schemas:core:1.0",
+	 *            "name": "userName",
+	 *            "readOnly":false,
+	 *            "type": "string",
+	 *            "caseExact": false,
+	 *            "required": true
+	 *            },{
+	 *            "schema": "urn:scim:schemas:core:1.0",
+	 *            "name": "title",
+	 *            "readOnly": false,
+	 *            "type": "string",
+	 *            "caseExact": false,
+	 *            "required": false
+	 *            }}
 	 * 
 	 *            <pre>
 	 * 
@@ -341,8 +367,13 @@ public interface HandlingStrategy {
 	 *            processed. e.g.
 	 * 
 	 *            <pre>
-	 *            {@code "emails": [{ "type": "work", "value":
-	 *            "175testuser@testdomain.com", "primary": true }]}
+	 *            {@code 
+	 *            "emails": [{ 
+	 *            "type": "work",
+	 *            "value":"175testuser@testdomain.com",
+	 *            "primary": true 
+	 *            }]
+	 *            }
 	 * 
 	 *            <pre>
 	 * @param attributeMap
@@ -352,7 +383,22 @@ public interface HandlingStrategy {
 	 *            The instance of "ParserSchemaScim" from which this method was
 	 *            called and used to call additional helper methods
 	 * @return a map containing the parameters and subAttributes of all
-	 *         processed attributes
+	 *         processed attributes e.g.
+ 	 *<pre>
+	 *            {@code 
+	 *            username:{ 
+	 *            readOnly:false 
+	 *            type:string 
+	 *            multiValued:false 
+	 *            caseExact:false 
+	 *            required:false 
+	 *            } 
+	 *            }
+	 * 			  .
+	 * 			  .
+	 * 			  .
+	 *<pre>
+	 *           
 	 */
 	public Map<String, Map<String, Object>> parseSchemaAttribute(JSONObject attribute,
 			Map<String, Map<String, Object>> attributeMap, ParserSchemaScim parser);
@@ -366,7 +412,22 @@ public interface HandlingStrategy {
 	 *            The list of maps which represent the attributes and their
 	 *            parameters and sub attributes of all the resource endpoints
 	 * @return a list of map which represent the attributes and their parameters
-	 *         and sub attributes of all the resource endpoints
+	 *         and sub attributes of all the resource endpoints.
+	 *         An example of a map of maps inside the list:
+	 *<pre>
+	 *            {@code 
+	 *            username:{ 
+	 *            readOnly:false 
+	 *            type:string 
+	 *            multiValued:false 
+	 *            caseExact:false 
+	 *            required:false 
+	 *            } 
+	 *            }
+	 * 			  .
+	 * 			  .
+	 * 			  .
+	 *<pre>
 	 */
 	public List<Map<String, Map<String, Object>>> getAttributeMapList(
 			List<Map<String, Map<String, Object>>> attributeMapList);
@@ -383,10 +444,19 @@ public interface HandlingStrategy {
 	 * A Json representation of an complex multivalue attribute:
 	 * 
 	 * <pre>
-	 * {@code "emails": [{ "type": "work", "value": "testuser@work.com",
-	 * "primary": true }, { "type": "home", "value": "testuser@home.com",
-	 * "primary": true }, { "type": "other", "value":
-	 * "testuser@someotherplace.com", "primary": true }]}
+	 * {@code 
+	 * "emails": [{ 
+	 * "type": "work", 
+	 * "value": "testuser@work.com",
+	 * "primary": true 
+	 * },{
+	 * "type": "home", 
+	 * "value": "testuser@home.com",
+	 * "primary": true
+	 * },{
+	 * "type": "other",
+	 * "value": "testuser@someotherplace.com",
+	 * "primary": true }]}
 	 * 
 	 * <pre>
 	 * 
@@ -399,8 +469,7 @@ public interface HandlingStrategy {
 	 * @param referenceValues
 	 *            A json array which contains the canonical values or reference
 	 *            type values of the processed attribute type sub attribute
-	 *            <p>
-	 *            e.g. [work,home,other]
+	 *             <p>e.g. [work,home,other]
 	 * @param subAttributeMap
 	 *            Map containing the sub attribute parameters and values of the
 	 *            processed attribute e.g.
@@ -424,8 +493,15 @@ public interface HandlingStrategy {
 	 *            <p>
 	 *            e.q. "Emails"
 	 * @return a map representation of all the attributes of the evaluated
-	 *         endpoint extended by the processed attribute
-	 * 
+	 *         endpoint extended by the processed attribute e.g.
+	 *            <pre>
+	 *            {@code             
+	 *         emails.work.value: testuser@work.com,
+	 *         emails.work.primary: true,
+	 *         emails.home.value: testuser@home.com,
+	 *         emails.home.primary: false,
+	 *         }
+	 *         <pre>
 	 */
 
 	public Map<String, Object> translateReferenceValues(Map<String, Map<String, Object>> attributeMap,
@@ -447,11 +523,14 @@ public interface HandlingStrategy {
 
 	/**
 	 * A workaround method used to update the group object resource
-	 * representation on the Salesforce service. Method is called after and
+	 * representation on some specific services. Method is called after and
 	 * unsuccessful query response with the response status code "500". The
 	 * methods queries the group object which should be updated and changes the
 	 * "members" attribute of the returned object. Then such object is send as
 	 * update to the resource provider.
+	 * 
+	 * 
+	 * Used for example by the SalesForce service.
 	 * 
 	 * @param response
 	 *            The http response object of the first unsuccessful query
@@ -483,8 +562,10 @@ public interface HandlingStrategy {
 
 	/**
 	 * Method used as an workaround for the unsupported "contains all values"
-	 * query filter on the Slack service. The methods lists all the groups in
+	 * query filter on some specific services. The methods lists all the groups in
 	 * which the user is a member of.
+	 * 
+	 * Used for example by the Slack service.
 	 * 
 	 * @param uid
 	 *            The uid of the queried user.
@@ -619,8 +700,15 @@ public interface HandlingStrategy {
 	 *            Map containing the sub properties of the processed attributes
 	 * 
 	 *            <pre>
-	 *            {@code username:{ readOnly: false type: string multiValued:
-	 *            false caseExact: false required: false } }
+	 *            {@code 
+	 *            username:{ 
+	 *            readOnly: false 
+	 *            type: string
+	 *            multiValued:false 
+	 *            caseExact: false 
+	 *            required: false 
+	 *            }
+	 *            }
 	 * 
 	 *            <pre>
 	 * @param builder
@@ -652,7 +740,7 @@ public interface HandlingStrategy {
 	 * @return an object which contains the schema representation information
 	 *         for the processed attribute
 	 */
-	public ObjectClassInfoBuilder injectObjectClassInfoBuilderData(ObjectClassInfoBuilder builder, String attributeName,
+	public ObjectClassInfoBuilder schemaObjectInjection(ObjectClassInfoBuilder builder, String attributeName,
 			AttributeInfoBuilder infoBuilder);
 
 	/**
@@ -668,7 +756,7 @@ public interface HandlingStrategy {
 	 * @return the extended attribute info builder object
 	 */
 
-	public AttributeInfoBuilder injectAttributeInfoBuilderData(AttributeInfoBuilder infoBuilder, String attributeName);
+	public AttributeInfoBuilder schemaObjectparametersInjection(AttributeInfoBuilder infoBuilder, String attributeName);
 
 	/**
 	 * Method used to populate a list dictionary of strings. Those are used for
@@ -676,17 +764,17 @@ public interface HandlingStrategy {
 	 * the provided flag.
 	 * 
 	 * @param flag
-	 *            The provided flag string. A string value representing a flag
+	 *            The provided flag enumeration. A representation of a flag
 	 *            used to resolve a conditional statement on which the method
 	 *            decides which values to add to an dictionary. The flag values:
-	 *            <li>"schemaparser-workaround" - Defined as the "FIRSTFLAG"
-	 *            variable
-	 *            <li>"schemabuilder-workaround" - Defined as the "SECONDFLAG"
-	 *            variable
+	 *            <li>"schemaparser-workaround" - Defined as "PARSERFLAG"
+	 *            
+	 *            <li>"schemabuilder-workaround" - Defined as "BUILDERFLAG"
+	 *            
 	 * 
 	 * @return the populated dictionary
 	 */
-	public List<String> populateDictionary(String flag);
+	public List<String> populateDictionary(WorkaroundFlags flag);
 
 	/**
 	 * Method used to evaluate the provided query filter. Depending on the
@@ -707,12 +795,14 @@ public interface HandlingStrategy {
 	public Boolean checkFilter(Filter filter, String endpointName);
 
 	/**
-	 * Handles a contains all values filter query to the "Slack" provider
+	 * Handles a contains all values filter query for some specific provider
 	 * resource "Groups" endpoint. The filter value is set into an equals filter
 	 * query which is sent to the "Users" endpoint. The method then processes
 	 * the returned json object, takes the UID values of the groups in which the
 	 * user is a member of and queries them. The query response is then
 	 * processed an passed to the provided handler.
+	 * 
+	 * For example used by the Slack provider.
 	 * 
 	 * @param jsonObject
 	 *            the "User" json representation

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
@@ -57,7 +56,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	private static final String STARTINDEX = "startIndex";
 	private static final String TOTALRESULTS = "totalResults";
 	private static final String ITEMSPERPAGE = "itemsPerPage";
-	
+
 	private static final char QUERYCHAR = '?';
 	private static final char QUERYDELIMITER = '&';
 
@@ -191,14 +190,16 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public void query(Filter query,StringBuilder queryUriSnippet , String resourceEndPoint, ResultsHandler resultHandler,
-			ScimConnectorConfiguration conf) {
-		
+	public void query(Filter query, StringBuilder queryUriSnippet, String resourceEndPoint,
+			ResultsHandler resultHandler, ScimConnectorConfiguration conf) {
+
 		LOGGER.info("Processing query");
-		
-		Boolean isCAVGroupQuery = false; // is the query a ContainsAllValues filter query for the group endpoint?
+
+		Boolean isCAVGroupQuery = false; // is the query a ContainsAllValues
+											// filter query for the group
+											// endpoint?
 		Boolean valueIsUid = false;
-		
+
 		Header authHeader = null;
 		String scimBaseUri = "";
 		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
@@ -222,64 +223,63 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
-		
+
 		String q;
-		
-		String [] baseUrlParts = scimBaseUri.split("\\.");
+
+		String[] baseUrlParts = scimBaseUri.split("\\.");
 		String providerName = baseUrlParts[1];
 
-		if(query!=null){
-		if(query instanceof EqualsFilter){
-			Attribute filterAttr = ((EqualsFilter) query).getAttribute();
-			
-			if (filterAttr instanceof Uid){
-				
-				valueIsUid = true;
-				
-				isCAVGroupQuery = checkFilter(query, resourceEndPoint);
-				
-				if(!isCAVGroupQuery){
-				q = ((Uid) filterAttr).getUidValue();
-				}else {
-					q = ((Uid) filterAttr).getUidValue();
-					resourceEndPoint = "Users";
+		if (query != null) {
+			if (query instanceof EqualsFilter) {
+				Attribute filterAttr = ((EqualsFilter) query).getAttribute();
+
+				if (filterAttr instanceof Uid) {
+
+					valueIsUid = true;
+
+					isCAVGroupQuery = checkFilter(query, resourceEndPoint);
+
+					if (!isCAVGroupQuery) {
+						q = ((Uid) filterAttr).getUidValue();
+					} else {
+						q = ((Uid) filterAttr).getUidValue();
+						resourceEndPoint = "Users";
+					}
+				} else {
+
+					isCAVGroupQuery = checkFilter(query, resourceEndPoint);
+
+					if (!isCAVGroupQuery) {
+						LOGGER.info("Attribute not instance of UID");
+						q = qIsFilter(query, queryUriSnippet, providerName);
+					} else {
+						q = (String) filterAttr.getValue().get(0);
+						resourceEndPoint = "Users";
+					}
+
 				}
-			}else {
-				
+
+			} else {
+
 				isCAVGroupQuery = checkFilter(query, resourceEndPoint);
-				
-				if(!isCAVGroupQuery){
-				LOGGER.info("Attribute not instance of UID");
-				q = qIsFilter(query,queryUriSnippet,providerName);
-				}else {
+
+				if (!isCAVGroupQuery) {
+					q = qIsFilter(query, queryUriSnippet, providerName);
+				} else {
+
+					Attribute filterAttr = ((AttributeFilter) query).getAttribute();
 					q = (String) filterAttr.getValue().get(0);
 					resourceEndPoint = "Users";
 				}
-				
 			}
-			
-		}else{
-			
-			isCAVGroupQuery = checkFilter(query, resourceEndPoint);
-			
-			if (!isCAVGroupQuery){
-			q = qIsFilter(query,queryUriSnippet,providerName);
-			} else {
-				
-				Attribute filterAttr = ((AttributeFilter) query).getAttribute();
-				q = (String) filterAttr.getValue().get(0);
-				resourceEndPoint = "Users";
-			}
-		}
-		
+
 		} else {
 			LOGGER.info("No filter was defined, query will return all the resource values");
 			q = queryUriSnippet.toString();
-			
-			}
+
+		}
 
 		HttpClient httpClient = HttpClientBuilder.create().build();
-		
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).append(q)
 				.toString();
@@ -320,14 +320,13 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 								resultHandler.handle(connectorObject);
 
 							} else {
-								
-								if(isCAVGroupQuery){
-									
+
+								if (isCAVGroupQuery) {
+
 									LOGGER.info("##CAV QUERY");
-									handleCAVGroupQuery(jsonObject,"Groups",resultHandler,scimBaseUri,authHeader);
-						
-									
-								}else if (jsonObject.has(RESOURCES)) {
+									handleCAVGroupQuery(jsonObject, GROUPS, resultHandler, scimBaseUri, authHeader);
+
+								} else if (jsonObject.has(RESOURCES)) {
 									int amountOfResources = jsonObject.getJSONArray(RESOURCES).length();
 									int totalResults = 0;
 									int startIndex = 0;
@@ -371,13 +370,11 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 													LOGGER.info(
 															"The {0}. resource json object which was returned by the service provider: {1}",
 															i + 1, fullResourcejson);
-													
-													
-												
+
 													ConnectorObject connectorObject = buildConnectorObject(
 															fullResourcejson, resourceEndPoint);
 
-													resultHandler.handle(connectorObject);					
+													resultHandler.handle(connectorObject);
 
 												} else {
 
@@ -469,7 +466,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public Uid update(Uid uid, String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes, ScimConnectorConfiguration conf) {
+	public Uid update(Uid uid, String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
+			ScimConnectorConfiguration conf) {
 		Header authHeader = null;
 		String scimBaseUri = "";
 		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
@@ -885,7 +883,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		Map<String, Object> attributeObjects = new HashMap<String, Object>();
 		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
 
-		List<String> dictionary = populateDictionary(FIRSTFLAG);
+		List<String> dictionary = populateDictionary(WorkaroundFlags.PARSERFLAG);
 
 		for (int position = 0; position < dictionary.size(); position++) {
 			nameFromDictionary = dictionary.get(position);
@@ -1262,7 +1260,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName);
 		Boolean containsDictionaryValue = false;
 
-		List<String> dictionary = populateDictionary(SECONDFLAG);
+		List<String> dictionary = populateDictionary(WorkaroundFlags.BUILDERFLAG);
 
 		if (dictionary.contains(attributeName)) {
 			containsDictionaryValue = true;
@@ -1275,7 +1273,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 			for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
 				containsDictionaryValue = false;
-				dictionary = populateDictionary(FIRSTFLAG);
+				dictionary = populateDictionary(WorkaroundFlags.PARSERFLAG);
 				if (dictionary.contains(subPropertieName)) {
 					containsDictionaryValue = true;
 				}
@@ -1295,38 +1293,38 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					infoBuilder = schemaBuilder.subPropertiesChecker(infoBuilder, schemaSubPropertiesMap,
 							subPropertieName);
-					infoBuilder = injectAttributeInfoBuilderData(infoBuilder, attributeName);
+					infoBuilder = schemaObjectparametersInjection(infoBuilder, attributeName);
 
 				}
 
 			}
 			builder.addAttributeInfo(infoBuilder.build());
 		} else {
-			builder = injectObjectClassInfoBuilderData(builder, attributeName, infoBuilder);
+			builder = schemaObjectInjection(builder, attributeName, infoBuilder);
 		}
 		return builder;
 	}
 
 	@Override
-	public ObjectClassInfoBuilder injectObjectClassInfoBuilderData(ObjectClassInfoBuilder builder, String attributeName,
+	public ObjectClassInfoBuilder schemaObjectInjection(ObjectClassInfoBuilder builder, String attributeName,
 			AttributeInfoBuilder infoBuilder) {
 		builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
 		return builder;
 	}
 
 	@Override
-	public AttributeInfoBuilder injectAttributeInfoBuilderData(AttributeInfoBuilder infoBuilder, String attributeName) {
+	public AttributeInfoBuilder schemaObjectparametersInjection(AttributeInfoBuilder infoBuilder, String attributeName) {
 		return infoBuilder;
 	}
 
 	@Override
-	public List<String> populateDictionary(String flag) {
+	public List<String> populateDictionary(WorkaroundFlags flag) {
 
 		List<String> dictionary = new ArrayList<String>();
 
-		if (FIRSTFLAG.equals(flag)) {
+		if (WorkaroundFlags.PARSERFLAG.getValue().equals(flag.getValue())) {
 			dictionary.add(SUBATTRIBUTES);
-		} else if (SECONDFLAG.equals(flag)) {
+		} else if (WorkaroundFlags.BUILDERFLAG.getValue().equals(flag.getValue())) {
 
 			dictionary.add(ACTIVE);
 		} else {
@@ -1342,7 +1340,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		LOGGER.info("Check filter standard");
 		return false;
 	}
-	
+
 	/**
 	 * Called when the query is evaluated as an filter not containing an uid
 	 * type attribute.
@@ -1357,7 +1355,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	 * @param queryUriSnippet
 	 *            A part of the query uri which will build a larger query.
 	 */
-	
+
 	private String qIsFilter(Filter query, StringBuilder queryUriSnippet, String providerName) {
 
 		char prefixChar;
@@ -1373,18 +1371,17 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		filterSnippet = query.accept(new FilterHandler(), providerName);
 
 		queryUriSnippet.append(prefixChar).append("filter=").append(filterSnippet.toString());
-		
+
 		return queryUriSnippet.toString();
 	}
-	
-	
+
 	@Override
-	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler , String scimBaseUri, Header authHeader) throws ClientProtocolException, IOException{
-	
-		ConnectorObject connectorObject = buildConnectorObject(
-				jsonObject, resourceEndPoint);
+	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler,
+			String scimBaseUri, Header authHeader) throws ClientProtocolException, IOException {
+
+		ConnectorObject connectorObject = buildConnectorObject(jsonObject, resourceEndPoint);
 
 		handler.handle(connectorObject);
-		
+
 	}
 }

@@ -201,7 +201,7 @@ public interface HandlingStrategy {
 	 * 
 	 */
 
-	public Uid update(Uid uid, String resourceEndPoint, JSONObject jsonObject, ScimConnectorConfiguration conf);
+	public Uid update(Uid uid, String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes, ScimConnectorConfiguration conf);
 
 	/**
 	 * Sends queries for object deletion to the service providers endpoints.

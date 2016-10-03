@@ -469,7 +469,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public Uid update(Uid uid, String resourceEndPoint, JSONObject jsonObject, ScimConnectorConfiguration conf) {
+	public Uid update(Uid uid, String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes, ScimConnectorConfiguration conf) {
 		Header authHeader = null;
 		String scimBaseUri = "";
 		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
@@ -509,6 +509,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		String responseString = null;
 		try {
+			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null);
 			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
 			LOGGER.info("The update JSON object wich is being sent: {0}", jsonObject);
 			bodyContent.setContentType(CONTENTTYPE);

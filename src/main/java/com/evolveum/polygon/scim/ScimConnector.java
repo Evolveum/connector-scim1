@@ -26,7 +26,6 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.Configuration;
@@ -39,7 +38,6 @@ import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
-import org.json.JSONObject;
 
 @ConnectorClass(displayNameKey = "ScimConnector.connector.display", configurationClass = ScimConnectorConfiguration.class)
 
@@ -70,7 +68,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Building schema definition");
 
 		if (schema == null) {
-			// test log delete
 			SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
 			ParserSchemaScim schemaParser = strategy.querySchemas(providerName, SCHEMAS, configuration);
 
@@ -293,15 +290,15 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = strategy.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, USERS, genericDataBuilder,attributes,
 						configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = strategy.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, GROUPS, genericDataBuilder,attributes,
 						configuration);
 			} else {
-				uid = strategy.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, endpointName, genericDataBuilder,attributes,
 						configuration);
 
 			}
@@ -309,14 +306,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			return uid;
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userJson = new UserDataBuilder("");
-				JSONObject userJsonObject = new JSONObject();
-
-				userJsonObject = userJson.translateSetToJson(attributes, null);
-
-				Uid uid = strategy.update(id, USERS, userJsonObject, configuration);
-
-				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
+				UserDataBuilder userDataBuilder = new UserDataBuilder("");
+				Uid uid = strategy.update(id, USERS, userDataBuilder,attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -326,14 +317,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			} else if (ObjectClass.GROUP.equals(object)) {
 
-				GroupDataBuilder groupJson = new GroupDataBuilder("");
-				JSONObject groupJsonObject = new JSONObject();
+				GroupDataBuilder groupDataBuilder = new GroupDataBuilder("");
 
-				groupJsonObject = groupJson.translateSetToJson(attributes, null);
-
-				Uid uid = strategy.update(id, GROUPS, groupJsonObject, configuration);
-
-				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
+				Uid uid = strategy.update(id, GROUPS, groupDataBuilder,attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -439,29 +425,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	}
 
 	/**
-	 * Evaluates if the provided filter query is supported or in need of special
-	 * handling.
-	 * 
-	 * @param filter
-	 *            the provided filter query.
-	 * @param endpointName
-	 *            the name of the endpoint to which the query is addressed (e.g.
-	 *            "Users").
-	 * 
-	 * @return a string "flag" used to decide a conditional statement.
-	 * 
-	 * 
-	 **/
-
-	//TODO check
-	
-//	public String queryChecker(Filter filter, String endpointName) {
-
-		//String flag = strategy.checkFilter(filter, endpointName);
-		//return flag;
-	//}
-
-	/**
 	 * Calls the "schemaObjectbuilder" class "buildSchema" methods for all the
 	 * individual schema resource objects.
 	 * 
@@ -550,29 +513,25 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = strategy.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, USERS, genericDataBuilder,attributes,
 						configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = strategy.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, GROUPS,genericDataBuilder,attributes,
 						configuration);
 			} else {
-				uid = strategy.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, endpointName,genericDataBuilder,attributes,
 						configuration);
 			}
 
 			return uid;
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userJson = new UserDataBuilder("");
-				JSONObject userJsonObject = new JSONObject();
+				UserDataBuilder userDataBuilder = new UserDataBuilder("");
 
-				userJsonObject = userJson.translateSetToJson(attributes, null);
+				Uid uid = strategy.update(id, USERS, userDataBuilder,attributes, configuration);
 
-				Uid uid = strategy.update(id, USERS, userJsonObject, configuration);
-
-				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -582,14 +541,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			} else if (ObjectClass.GROUP.equals(object)) {
 
-				GroupDataBuilder groupJson = new GroupDataBuilder("");
-				JSONObject groupJsonObject = new JSONObject();
+				GroupDataBuilder groupDataBuilder = new GroupDataBuilder("");
 
-				groupJsonObject = groupJson.translateSetToJson(attributes, null);
-
-				Uid uid = strategy.update(id, GROUPS, groupJsonObject, configuration);
-
-				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
+				Uid uid = strategy.update(id, GROUPS, groupDataBuilder,attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -630,31 +584,26 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = strategy.update(id, USERS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, USERS, genericDataBuilder,attributes,
 						configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = strategy.update(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, GROUPS, genericDataBuilder,attributes,
 						configuration);
 
 			} else {
 
-				uid = strategy.update(id, endpointName, genericDataBuilder.translateSetToJson(attributes, null),
+				uid = strategy.update(id, endpointName,genericDataBuilder,attributes,
 						configuration);
 			}
 
 			return uid;
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userJson = new UserDataBuilder(DELETE);
-				JSONObject userJsonObject = new JSONObject();
+				UserDataBuilder userDataBuilder = new UserDataBuilder(DELETE);
 
-				userJsonObject = userJson.translateSetToJson(attributes, null);
-
-				Uid uid = strategy.update(id, USERS, userJsonObject, configuration);
-
-				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
+				Uid uid = strategy.update(id, USERS,userDataBuilder,attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -664,14 +613,9 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			} else if (ObjectClass.GROUP.equals(object)) {
 
-				GroupDataBuilder groupJson = new GroupDataBuilder(DELETE);
-				JSONObject groupJsonObject = new JSONObject();
+				GroupDataBuilder groupDataBuilder = new GroupDataBuilder(DELETE);
 
-				groupJsonObject = groupJson.translateSetToJson(attributes, null);
-
-				Uid uid = strategy.update(id, GROUPS, groupJsonObject, configuration);
-
-				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
+				Uid uid = strategy.update(id, GROUPS, groupDataBuilder,attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);

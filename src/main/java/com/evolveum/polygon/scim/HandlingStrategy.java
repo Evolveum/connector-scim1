@@ -156,25 +156,15 @@ public interface HandlingStrategy {
 	 *            the resource endpoint name
 	 *            <p>
 	 *            e.q. "Users"
-	 * @param jsonObject
-	 *            The json object which carries the information which should be
-	 *            updated.
-	 * 
-	 *            <pre>
-	 * {@code
-	 *e.g.
-	 *{ 
-	 *"name": {
-	 *"givenName": "Test",
-	 *"familyName": "User"
-	 *},
-	 *"active": true,
-	 *"userName": "175testuser",
-	 *"title": "Mr."
-	 *}
-	 *}
-	 *            </pre>
-	 * 
+	 * @param objectTranslator
+	 *            Instance of object translator which contains methods for the
+	 *            creation of an json object out of a provided set of attributes
+	 * @param attributes
+	 *            The provided attributes set containing information for object
+	 *            creation
+	 *            <p>
+	 *            e.g. [Attribute: {Name=name.familyName, Value=[Watson]},
+	 *            Attribute: {Name=name.givenName, Value=[John]}]
 	 * @param conf
 	 *            Instance of the connector configuration class, which contains
 	 *            the provided configuration parameters
@@ -201,7 +191,8 @@ public interface HandlingStrategy {
 	 * 
 	 */
 
-	public Uid update(Uid uid, String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes, ScimConnectorConfiguration conf);
+	public Uid update(Uid uid, String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
+			ScimConnectorConfiguration conf);
 
 	/**
 	 * Sends queries for object deletion to the service providers endpoints.
@@ -726,8 +717,9 @@ public interface HandlingStrategy {
 	 * @param jsonObject
 	 *            the "User" json representation
 	 * @param resourceEndPoint
-	 *            the endpoint name of the object of which the user is a member 
-	 *            <p> e.g. group
+	 *            the endpoint name of the object of which the user is a member
+	 *            <p>
+	 *            e.g. group
 	 * @param handler
 	 *            the provided resource handler
 	 * @param scimBaseUri

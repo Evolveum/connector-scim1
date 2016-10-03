@@ -290,16 +290,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = strategy.update(id, USERS, genericDataBuilder,attributes,
-						configuration);
+				uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = strategy.update(id, GROUPS, genericDataBuilder,attributes,
-						configuration);
+				uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
 			} else {
-				uid = strategy.update(id, endpointName, genericDataBuilder,attributes,
-						configuration);
+				uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
 
 			}
 
@@ -307,7 +304,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				UserDataBuilder userDataBuilder = new UserDataBuilder("");
-				Uid uid = strategy.update(id, USERS, userDataBuilder,attributes, configuration);
+				Uid uid = strategy.update(id, USERS, userDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -319,7 +316,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				GroupDataBuilder groupDataBuilder = new GroupDataBuilder("");
 
-				Uid uid = strategy.update(id, GROUPS, groupDataBuilder,attributes, configuration);
+				Uid uid = strategy.update(id, GROUPS, groupDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -409,18 +406,18 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			throw new ConnectorException("Result handler for queuery can not be null");
 		}
 
-				if (ObjectClass.ACCOUNT.getObjectClassValue().equals(endpointName)) {
+		if (ObjectClass.ACCOUNT.getObjectClassValue().equals(endpointName)) {
 
-					strategy.query(query, queryUriSnippet, USERS, handler, configuration);
+			strategy.query(query, queryUriSnippet, USERS, handler, configuration);
 
-				} else if (ObjectClass.GROUP.getObjectClassValue().equals(endpointName)) {
+		} else if (ObjectClass.GROUP.getObjectClassValue().equals(endpointName)) {
 
-					strategy.query(query, queryUriSnippet, GROUPS, handler, configuration);
+			strategy.query(query, queryUriSnippet, GROUPS, handler, configuration);
 
-				} else {
+		} else {
 
-					strategy.query(query, queryUriSnippet, endpointName, handler, configuration);
-				}
+			strategy.query(query, queryUriSnippet, endpointName, handler, configuration);
+		}
 
 	}
 
@@ -513,16 +510,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = strategy.update(id, USERS, genericDataBuilder,attributes,
-						configuration);
+				uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = strategy.update(id, GROUPS,genericDataBuilder,attributes,
-						configuration);
+				uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
 			} else {
-				uid = strategy.update(id, endpointName,genericDataBuilder,attributes,
-						configuration);
+				uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
 			}
 
 			return uid;
@@ -530,8 +524,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				UserDataBuilder userDataBuilder = new UserDataBuilder("");
 
-				Uid uid = strategy.update(id, USERS, userDataBuilder,attributes, configuration);
-
+				Uid uid = strategy.update(id, USERS, userDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -543,7 +536,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				GroupDataBuilder groupDataBuilder = new GroupDataBuilder("");
 
-				Uid uid = strategy.update(id, GROUPS, groupDataBuilder,attributes, configuration);
+				Uid uid = strategy.update(id, GROUPS, groupDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -584,18 +577,15 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = strategy.update(id, USERS, genericDataBuilder,attributes,
-						configuration);
+				uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = strategy.update(id, GROUPS, genericDataBuilder,attributes,
-						configuration);
+				uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
 
 			} else {
 
-				uid = strategy.update(id, endpointName,genericDataBuilder,attributes,
-						configuration);
+				uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
 			}
 
 			return uid;
@@ -603,7 +593,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				UserDataBuilder userDataBuilder = new UserDataBuilder(DELETE);
 
-				Uid uid = strategy.update(id, USERS,userDataBuilder,attributes, configuration);
+				Uid uid = strategy.update(id, USERS, userDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
@@ -615,7 +605,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				GroupDataBuilder groupDataBuilder = new GroupDataBuilder(DELETE);
 
-				Uid uid = strategy.update(id, GROUPS, groupDataBuilder,attributes, configuration);
+				Uid uid = strategy.update(id, GROUPS, groupDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);

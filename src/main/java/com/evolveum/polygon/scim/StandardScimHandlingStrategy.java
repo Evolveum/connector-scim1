@@ -32,6 +32,7 @@ import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -1210,7 +1211,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			} else {
 
 				if (ACTIVE.equals(key)) {
-					cob.addAttribute("__ENABLE__", resourceJsonObject.get(key));
+					cob.addAttribute(OperationalAttributes.ENABLE_NAME, resourceJsonObject.get(key));
 				} else {
 
 					if (!resourceJsonObject.get(key).equals(null)) {

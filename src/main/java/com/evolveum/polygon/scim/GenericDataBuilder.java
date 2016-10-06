@@ -9,6 +9,7 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -94,7 +95,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 			String attributeName = attribute.getName();
 
-			if ("__ENABLE__".equals(attributeName)) {
+			if (OperationalAttributes.ENABLE_NAME.equals(attributeName)) {
 				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
 			} else if (attributeName.contains(DOT)) {
 

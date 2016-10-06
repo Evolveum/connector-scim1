@@ -1,22 +1,9 @@
 package com.evolveum.polygon.test.scim;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Characters;
-import javax.xml.stream.events.EndElement;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -50,20 +37,20 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	public PropertiesParser parser = new PropertiesParser("../ConnIdScimConnector/testProperties/slackTest.properties");
 
-	@DataProvider(name = "configTestProvider")
+	@DataProvider(name = CONFIGTESTPROVIDER)
 	public Object[][] configurationResourcesProvider() {
 
 		int width = 2;
 
 		List<String> nonConnectionParameters = new ArrayList<String>();
 
-		nonConnectionParameters.add("pageSize");
-		nonConnectionParameters.add("pageOffset");
-		nonConnectionParameters.add("testNumber");
+		nonConnectionParameters.add(PAGESIZE);
+		nonConnectionParameters.add(PAGEOFFSET);
+		nonConnectionParameters.add(TESTNUMBER);
 
 		Map<String, String> configurationParameters = new HashMap<String, String>();
 
-		Object[][] object = parser.fetchTestData("configTestProvider");
+		Object[][] object = parser.fetchTestData(CONFIGTESTPROVIDER);
 		String name = "";
 		String value = "";
 		for (int i = 0; i < object.length; i++) {
@@ -78,16 +65,16 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 					if (!value.isEmpty()) {
 
-						if (name.equals("pageSize")) {
+						if (name.equals(PAGESIZE)) {
 
 							pageSize = Integer.parseInt(value);
 							name = "";
 							value = "";
-						} else if (name.equals("pageOffset")) {
+						} else if (name.equals(PAGEOFFSET)) {
 							pageOffset = Integer.parseInt(value);
 							name = "";
 							value = "";
-						} else if (name.equals("testNumber")) {
+						} else if (name.equals(TESTNUMBER)) {
 							testNumber = Integer.parseInt(value);
 							name = "";
 							value = "";
@@ -110,7 +97,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		return new Object[][] { { configurationParameters, true } };
 	}
 
-	@Test(priority = 1, dataProvider = "configTestProvider")
+	@Test(priority = 1, dataProvider = CONFIGTESTPROVIDER)
 	public void configurationTest(HashMap<String, String> configurationParameters, Boolean assertionVariable) {
 
 		groupUid = null;
@@ -132,17 +119,17 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 2, dependsOnMethods = { "configurationTest" }, dataProvider = "createTestProvider")
+	@Test(priority = 2, dependsOnMethods = { CONFIGURATIONTEST }, dataProvider = CREATEPROVIDER)
 	private void createObjectTest(String resourceName, Boolean assertParameter) {
 
 		Boolean resourceWasCreated = false;
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			userUid = SlackSpecificTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
 			if (userUid != null) {
 				resourceWasCreated = true;
 			}
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 
 			groupUid = SlackSpecificTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
 			if (groupUid != null) {
@@ -158,7 +145,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 2, dependsOnMethods = { "createObjectTest" }, dataProvider = "parameterConsistencyTestProvider")
+	@Test(priority = 2, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = CONSISTENCYTESTPROVIDER)
 	private void parameterConsistencyTest(String resourceName, String filterType) {
 
 		LOGGER.info("Processing trough the \"parameter consistency\" for the resource: \"{0}\"", resourceName);
@@ -184,7 +171,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 6, dependsOnMethods = { "createObjectTest" }, dataProvider = "filterMethodProvider")
+	@Test(priority = 6, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = FILTERMETHODTESTPROVIDER)
 	public void filterMethodTest(String filterType, String resourceName) {
 
 		LOGGER.info(
@@ -202,7 +189,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 5, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllFromResourcesProvider")
+	@Test(priority = 5, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = LISTALLPROVIDER)
 	private void listAllTest(String resourceName, int numberOfResources) {
 		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
@@ -214,22 +201,22 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 3, dependsOnMethods = { "createObjectTest" }, dataProvider = "updateUserProvider")
+	@Test(priority = 3, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = UPDATEUSERPROVIDER)
 	private void updateUserTest(String updateType, Uid uid) {
 
-		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest("users", updateType, userUid, groupUid, testNumber,
+		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest(USERS, updateType, userUid, groupUid, testNumber,
 				connector);
 
 		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
-		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
+		StringBuilder testType = new StringBuilder(UPDATE).append(MDASH).append(updateType);
 
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
-		result = SlackSpecificTestUtils.filter("uid", "users", testNumber, userUid, groupUid, connector, options);
+		result = SlackSpecificTestUtils.filter(UID, USERS, testNumber, userUid, groupUid, connector, options);
 
-		Map<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "users",
-				testType.toString(), userUid, testNumber);
+		Map<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, USERS, testType.toString(),
+				userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
 
@@ -242,23 +229,23 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 4, dependsOnMethods = { "createObjectTest" }, dataProvider = "updateGroupProvider")
+	@Test(priority = 4, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = UPDATEGROUPPROVIDER)
 	private void updateGroupTest(String updateType, Uid uid) {
 
 		LOGGER.info("Processing trought the \"updateGroupTest\" and the \"{0}\" update type.", updateType);
 
-		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest("groups", updateType, userUid, groupUid, testNumber,
+		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest(GROUPS, updateType, userUid, groupUid, testNumber,
 				connector);
 
 		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
-		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
+		StringBuilder testType = new StringBuilder(UPDATE).append(MDASH).append(updateType);
 
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
-		result = SlackSpecificTestUtils.filter("uid", "groups", testNumber, userUid, groupUid, connector, options);
+		result = SlackSpecificTestUtils.filter(UID, GROUPS, testNumber, userUid, groupUid, connector, options);
 
-		Map<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, "groups",
+		Map<String, String> evaluationResults = SlackSpecificTestUtils.processResult(result, GROUPS,
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -272,7 +259,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 7, dependsOnMethods = { "createObjectTest" }, dataProvider = "deleteProvider")
+	@Test(priority = 7, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = DELETEPROVIDER)
 	private void deleteObjectTest(String resourceName, Uid uid) {
 
 		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
@@ -280,7 +267,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
 
 		SlackSpecificTestUtils.deleteResourceTestHelper(resourceName, uid, connector);
-		returnedObjects = SlackSpecificTestUtils.filter("uid", resourceName, testNumber, userUid, groupUid, connector,
+		returnedObjects = SlackSpecificTestUtils.filter(UID, resourceName, testNumber, userUid, groupUid, connector,
 				options);
 
 		Assert.assertTrue(returnedObjects.isEmpty());
@@ -290,10 +277,10 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 	public Uid getUid(String resourceName) throws Exception {
 		Uid uid = null;
 
-		if ("user".equals(resourceName)) {
+		if (USER.equals(resourceName)) {
 			uid = userUid;
 
-		} else if ("group".equals(resourceName)) {
+		} else if (GROUP.equals(resourceName)) {
 
 			uid = groupUid;
 		} else {
@@ -319,15 +306,15 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 			if ("createObjectTest".equals(methodThatFailed)) {
 
 				if (userUid != null) {
-					LOGGER.warn("Atempting to delete resource: {0}", "users");
-					deleteObjectTest("users", userUid);
+					LOGGER.warn("Atempting to delete resource: {0}", USERS);
+					deleteObjectTest(USERS, userUid);
 				} else {
 					LOGGER.warn(
 							"Test failure, uid value of resource \"User\" is null. No resource deletion operation was atempted");
 				}
 				if (groupUid != null) {
-					LOGGER.warn("Atempting to delete resource: {0}", "groups");
-					deleteObjectTest("groups", groupUid);
+					LOGGER.warn("Atempting to delete resource: {0}", GROUPS);
+					deleteObjectTest(GROUPS, groupUid);
 				} else
 
 				{
@@ -339,13 +326,13 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 			} else if ("updateUserResourceObjectTest".equals(methodThatFailed)) {
 				if (userUid != null) {
-					LOGGER.warn("Atempting to delete resource: {0}", "users");
-					deleteObjectTest("users", userUid);
+					LOGGER.warn("Atempting to delete resource: {0}", USERS);
+					deleteObjectTest(USERS, userUid);
 				}
 
 				if (groupUid != null) {
-					LOGGER.warn("Atempting to delete resource: {0}", "groups");
-					deleteObjectTest("groups", groupUid);
+					LOGGER.warn("Atempting to delete resource: {0}", GROUPS);
+					deleteObjectTest(GROUPS, groupUid);
 				}
 
 				throw new Exception(
@@ -354,98 +341,6 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 		}
 
-	}
-
-	public static Object[][] fetchTestData(String testName) {
-
-		boolean isSearchedElement = false;
-		boolean boundariesWereSet = false;
-		String value = "";
-		String startName = "";
-		int iterator = 0;
-		int lenght = 0;
-		int width = 0;
-		Object[][] configurationObject = null;
-
-		XMLInputFactory factory = XMLInputFactory.newInstance();
-		try {
-			XMLEventReader eventReader = factory.createXMLEventReader(
-					new InputStreamReader(new FileInputStream("slackTestData.xml"), StandardCharsets.UTF_8));
-
-			while (eventReader.hasNext()) {
-				XMLEvent event = eventReader.nextEvent();
-				Integer code = event.getEventType();
-
-				if (boundariesWereSet) {
-					configurationObject = new Object[lenght][width];
-					boundariesWereSet = false;
-				}
-
-				if (code == XMLStreamConstants.START_ELEMENT) {
-					StartElement startElement = event.asStartElement();
-					startName = startElement.getName().getLocalPart();
-
-					if (testName.equals(startName)) {
-						isSearchedElement = true;
-					}
-				} else if (code == XMLStreamConstants.CHARACTERS) {
-
-					Characters characters = event.asCharacters();
-					if (isSearchedElement) {
-						if (!characters.isWhiteSpace()) {
-							if ("lenght".equals(startName)) {
-
-								value = characters.getData().toString();
-								lenght = Integer.parseInt(value);
-							} else if ("width".equals(startName)) {
-								value = characters.getData().toString();
-								width = Integer.parseInt(value);
-
-								boundariesWereSet = true;
-							} else {
-
-								value = characters.getData().toString();
-								configurationObject[iterator][0] = startName;
-								configurationObject[iterator][1] = value;
-								iterator++;
-							}
-						}
-					}
-
-				} else if (code == XMLStreamConstants.END_ELEMENT) {
-					EndElement endElement = event.asEndElement();
-
-					if ("filterMethodProvider".equals(endElement.getName().getLocalPart())) {
-
-						isSearchedElement = false;
-
-					}
-					/*
-					 * 
-					 * for(int a = 0;a <configurationObject.length; a++){
-					 * for(int b = 0; b<configurationObject[a].length; b++){
-					 * LOGGER.info(
-					 * "Parsed data possition L:{0}, W:{1}, the value: {2}",
-					 * a,b,configurationObject[a][b]);
-					 * 
-					 * }
-					 * 
-					 * 
-					 * } }
-					 */
-
-				}
-			}
-
-		} catch (FileNotFoundException e) {
-			LOGGER.error("File not found: {0}", e.getLocalizedMessage());
-			e.printStackTrace();
-		} catch (XMLStreamException e) {
-			LOGGER.error("XML stream exception has occured: {0}", e.getLocalizedMessage());
-			e.printStackTrace();
-		}
-
-		return configurationObject;
 	}
 
 	public PropertiesParser getParser() {

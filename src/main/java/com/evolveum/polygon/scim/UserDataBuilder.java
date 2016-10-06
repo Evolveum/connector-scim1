@@ -15,6 +15,7 @@ import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -93,7 +94,7 @@ public class UserDataBuilder implements ObjectTranslator {
 				attributeName = SCHEMAS;
 				attribute = AttributeBuilder.build("schemas.default.blank", attribute.getValue());
 
-			} else if ("__ENABLE__".equals(attributeName)) {
+			} else if (OperationalAttributes.ENABLE_NAME.equals(attributeName)) {
 				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
 
 			} else if (attributeName.contains(DOT)) {

@@ -14,6 +14,7 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
@@ -97,7 +98,7 @@ public class StandardScimTestUtils {
 		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 
-		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
+		attributeSet.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, true));
 
 		return attributeSet;
 	}
@@ -131,7 +132,7 @@ public class StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
+		attributeSet.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, true));
 
 		return attributeSet;
 	}
@@ -140,7 +141,7 @@ public class StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("__ENABLE__", false));
+		attributeSet.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, false));
 
 		return attributeSet;
 	}

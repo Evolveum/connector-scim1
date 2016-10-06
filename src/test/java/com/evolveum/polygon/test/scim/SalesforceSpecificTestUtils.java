@@ -13,6 +13,7 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
@@ -54,7 +55,7 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 
 		attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
 
-		attributeSet.add(AttributeBuilder.build("__ENABLE__", true));
+		attributeSet.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, true));
 
 		return attributeSet;
 	}

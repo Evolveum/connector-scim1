@@ -30,6 +30,22 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 public class StandardScimTestUtils {
 
+	protected static final String USERNAME = "userName";
+	protected static final String NICKNAME = "nickName";
+	protected static final String USERS = "users";
+	protected static final String GROUPS = "groups";
+	protected static final String SINGLE = "single";
+	protected static final String MULTI = "multi";
+	protected static final String UPDATESINGLE = "update-single";
+	protected static final String UPDATEMULTI = "update-multi";
+	protected static final String CREATE = "createObject";
+
+	protected static final String EMAILWORKVALUE = "emails.work.value";
+	protected static final String EMAILWORKPRIMARY = "emails.work.primary";
+	protected static final String FAMILYNAME = "name.familyName";
+	protected static final String DISPLAYNAME = "displayName";
+	protected static final String MEMBERSDEFAULT = "members.default.value";
+
 	private static final Log LOGGER = Log.getLog(StandardScimTestUtils.class);
 
 	protected static final ObjectClass userClass = ObjectClass.ACCOUNT;
@@ -52,7 +68,7 @@ public class StandardScimTestUtils {
 				scimConnectorConfiguration.setPassword(configuration.get(configurationParameter));
 			} else if ("service".equals(configurationParameter)) {
 				scimConnectorConfiguration.setService(configuration.get(configurationParameter));
-			} else if ("userName".equals(configurationParameter)) {
+			} else if (USERNAME.equals(configurationParameter)) {
 				scimConnectorConfiguration.setUserName(configuration.get(configurationParameter));
 			} else if ("version".equals(configurationParameter)) {
 				scimConnectorConfiguration.setVersion(configuration.get(configurationParameter));
@@ -88,14 +104,14 @@ public class StandardScimTestUtils {
 
 		testAttributeString.append(testNumber.toString()).append("testusertestuser@testdomain.com");
 
-		attributeSet.add(AttributeBuilder.build("userName", testAttributeString.toString()));
-		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build(USERNAME, testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build(NICKNAME, testAttributeString.toString()));
 
-		attributeSet.add(AttributeBuilder.build("emails.work.value", testAttributeString.toString()));
-		attributeSet.add(AttributeBuilder.build("emails.work.primary", true));
+		attributeSet.add(AttributeBuilder.build(EMAILWORKVALUE, testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build(EMAILWORKPRIMARY, true));
 
 		attributeSet.add(AttributeBuilder.build("title", "Mr."));
-		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
+		attributeSet.add(AttributeBuilder.build(FAMILYNAME, "User"));
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 
 		attributeSet.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, true));
@@ -107,9 +123,9 @@ public class StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("nickName", testNumber.toString()));
+		attributeSet.add(AttributeBuilder.build(NICKNAME, testNumber.toString()));
 
-		attributeSet.add(AttributeBuilder.build("name.familyName", "TestUpdate"));
+		attributeSet.add(AttributeBuilder.build(FAMILYNAME, "TestUpdate"));
 
 		return attributeSet;
 
@@ -122,8 +138,8 @@ public class StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("emails.work.value", buildUpdateEmailAdress.toString()));
-		attributeSet.add(AttributeBuilder.build("emails.work.primary", false));
+		attributeSet.add(AttributeBuilder.build(EMAILWORKVALUE, buildUpdateEmailAdress.toString()));
+		attributeSet.add(AttributeBuilder.build(EMAILWORKPRIMARY, false));
 
 		return attributeSet;
 	}
@@ -154,7 +170,7 @@ public class StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("displayName", testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build(DISPLAYNAME, testAttributeString.toString()));
 
 		return attributeSet;
 	}
@@ -163,7 +179,7 @@ public class StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("displayName", testNumber.toString()));
+		attributeSet.add(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 
 		return attributeSet;
 	}
@@ -172,7 +188,7 @@ public class StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
+		attributeSet.add(AttributeBuilder.build(MEMBERSDEFAULT, userTestUid.getUidValue()));
 		return attributeSet;
 	}
 
@@ -183,10 +199,10 @@ public class StandardScimTestUtils {
 
 		TestSearchResultsHandler handler = new TestSearchResultsHandler();
 
-		if ("users".equalsIgnoreCase(resourceName)) {
+		if (USERS.equalsIgnoreCase(resourceName)) {
 			conn.executeQuery(userClass, null, handler, options);
 
-		} else if ("groups".equalsIgnoreCase(resourceName)) {
+		} else if (GROUPS.equalsIgnoreCase(resourceName)) {
 			conn.executeQuery(groupClass, null, handler, options);
 
 		} else {
@@ -205,8 +221,8 @@ public class StandardScimTestUtils {
 		Map<String, Object> operationOptions = new HashMap<String, Object>();
 
 		operationOptions.put("ALLOW_PARTIAL_ATTRIBUTE_VALUES", true);
-		operationOptions.put("PAGED_RESULTS_OFFSET", pageOffset);
-		operationOptions.put("PAGE_SIZE", pageSize);
+		operationOptions.put(OperationOptions.OP_PAGED_RESULTS_OFFSET, pageOffset);
+		operationOptions.put(OperationOptions.OP_PAGE_SIZE, pageSize);
 
 		OperationOptions options = new OperationOptions(operationOptions);
 
@@ -215,10 +231,10 @@ public class StandardScimTestUtils {
 
 	public static void deleteResourceTestHelper(String resourceName, Uid uid, ScimConnector conn) {
 
-		if ("users".equalsIgnoreCase(resourceName)) {
+		if (USERS.equalsIgnoreCase(resourceName)) {
 			conn.delete(userClass, uid, null);
 
-		} else if ("groups".equalsIgnoreCase(resourceName)) {
+		} else if (GROUPS.equalsIgnoreCase(resourceName)) {
 			conn.delete(groupClass, uid, null);
 
 		} else {
@@ -232,9 +248,9 @@ public class StandardScimTestUtils {
 	public static Uid createResourceTestHelper(String resourceName, Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			uid = conn.create(userClass, userCreateBuilder(testNumber), null);
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 			uid = conn.create(groupClass, groupCreateBuilder(testNumber), null);
 		} else {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
@@ -249,11 +265,11 @@ public class StandardScimTestUtils {
 			Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
-		if ("users".equals(resourceName)) {
-			if ("single".equals(updateType)) {
+		if (USERS.equals(resourceName)) {
+			if (SINGLE.equals(updateType)) {
 
 				uid = conn.update(userClass, userTestUid, userSingleValUpdateBuilder(testNumber), null);
-			} else if ("multi".equals(updateType)) {
+			} else if (MULTI.equals(updateType)) {
 
 				uid = conn.update(userClass, userTestUid, userMultiValUpdateBuilder(testNumber), null);
 
@@ -267,11 +283,11 @@ public class StandardScimTestUtils {
 
 			}
 
-		} else if ("groups".equals(resourceName)) {
-			if ("single".equals(updateType)) {
+		} else if (GROUPS.equals(resourceName)) {
+			if (SINGLE.equals(updateType)) {
 
 				uid = conn.update(groupClass, groupTestUid, groupSingleValUpdateBuilder(testNumber), null);
-			} else if ("multi".equals(updateType)) {
+			} else if (MULTI.equals(updateType)) {
 				uid = conn.update(groupClass, groupTestUid, groupMultiValUpdateBuilder(testNumber, userTestUid), null);
 
 			}
@@ -280,27 +296,19 @@ public class StandardScimTestUtils {
 		}
 		return uid;
 
-		// conn.update(userClass, TEST_UID, updateTestUser(), null);
-		// conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
-		// conn.update(entitlementClass, ,attr, null);
-
 	}
 
 	public Uid addAttributeValuesTestHelper(String resourceName, Uid testUid, Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			uid = conn.update(userClass, testUid, userSingleValUpdateBuilder(testNumber), null);
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 			uid = conn.update(groupClass, testUid, groupCreateBuilder(testNumber), null);
 		} else {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 		}
 		return uid;
-
-		// conn.update(userClass, TEST_UID, updateTestUser(), null);
-		// conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
-		// conn.update(entitlementClass, ,attr, null);
 
 	}
 
@@ -308,18 +316,14 @@ public class StandardScimTestUtils {
 			ScimConnector conn) {
 		Uid uid = null;
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			uid = conn.update(userClass, testUid, userSingleValUpdateBuilder(testNumber), null);
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 			uid = conn.update(groupClass, testUid, groupCreateBuilder(testNumber), null);
 		} else {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 		}
 		return uid;
-
-		// conn.update(userClass, TEST_UID, updateTestUser(), null);
-		// conn.update(groupClass, BLANC_TEST_UID, BuilderTestGroup(), null);
-		// conn.update(entitlementClass, ,attr, null);
 
 	}
 
@@ -331,9 +335,9 @@ public class StandardScimTestUtils {
 		Filter filter = getFilter(filterType, resourceName, testNumber, userTestUid, groupTestUid);
 
 		try {
-			if ("users".equalsIgnoreCase(resourceName)) {
+			if (USERS.equalsIgnoreCase(resourceName)) {
 				conn.executeQuery(userClass, filter, handler, options);
-			} else if ("groups".equalsIgnoreCase(resourceName)) {
+			} else if (GROUPS.equalsIgnoreCase(resourceName)) {
 				conn.executeQuery(groupClass, filter, handler, options);
 			} else {
 				LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
@@ -352,52 +356,49 @@ public class StandardScimTestUtils {
 		AttributeFilter filter = null;
 
 		if ("contains".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
 				filter = (ContainsFilter) FilterBuilder
-						.contains(AttributeBuilder.build("userName", testNumber.toString()));
-			} else if ("groups".equals(resourceName)) {
+						.contains(AttributeBuilder.build(USERNAME, testNumber.toString()));
+			} else if (GROUPS.equals(resourceName)) {
 
 				filter = (ContainsFilter) FilterBuilder
-						.contains(AttributeBuilder.build("displayName", testNumber.toString()));
+						.contains(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("equals".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
+				filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, testNumber.toString()));
+			} else if (GROUPS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build("userName", testNumber.toString()));
-			} else if ("groups".equals(resourceName)) {
-				filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build("displayName", testNumber.toString()));
+						.equalTo(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("uid".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder.equalTo(userTestUid);
-			} else if ("groups".equals(resourceName)) {
+			} else if (GROUPS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder.equalTo(groupTestUid);
 			}
 		} else if ("startswith".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
 
 				filter = (StartsWithFilter) FilterBuilder
-						.startsWith(AttributeBuilder.build("userName", testNumber.toString()));
-			} else if ("groups".equals(resourceName)) {
+						.startsWith(AttributeBuilder.build(USERNAME, testNumber.toString()));
+			} else if (GROUPS.equals(resourceName)) {
 
 				filter = (StartsWithFilter) FilterBuilder
-						.startsWith(AttributeBuilder.build("displayName", testNumber.toString()));
+						.startsWith(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
-			// TODO not working with salesforce
-			// {"Errors":[{"description":"Unsupported Operator :
-			// ew","code":400}]}
+
 		} else if ("endswith".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
-				filter = (EndsWithFilter) FilterBuilder.endsWith(AttributeBuilder.build("userName", "testdomain.com"));
-			} else if ("groups".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
+				filter = (EndsWithFilter) FilterBuilder.endsWith(AttributeBuilder.build(USERNAME, "testdomain.com"));
+			} else if (GROUPS.equals(resourceName)) {
 				filter = (EndsWithFilter) FilterBuilder
-						.endsWith(AttributeBuilder.build("displayName", testNumber.toString()));
+						.endsWith(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("containsall".equalsIgnoreCase(filterType)) {
-			if ("groups".equals(resourceName)) {
+			if (GROUPS.equals(resourceName)) {
 				filter = (ContainsAllValuesFilter) FilterBuilder
-						.containsAllValues(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
+						.containsAllValues(AttributeBuilder.build(MEMBERSDEFAULT, userTestUid.getUidValue()));
 			}
 		}
 
@@ -418,10 +419,10 @@ public class StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<>();
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			attributeSet = userCreateBuilder(testNumber);
 
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 
 			attributeSet = groupCreateBuilder(testNumber);
 		}
@@ -438,12 +439,12 @@ public class StandardScimTestUtils {
 
 		String createAttributeName;
 
-		if ("users".equals(resourceName)) {
-			if ("createObject".equals(testType)) {
+		if (USERS.equals(resourceName)) {
+			if (CREATE.equals(testType)) {
 				createAttributeSet = userCreateBuilder(testNumber);
-			} else if ("update-single".equals(testType)) {
+			} else if (UPDATESINGLE.equals(testType)) {
 				createAttributeSet = userSingleValUpdateBuilder(testNumber);
-			} else if ("update-multi".equals(testType)) {
+			} else if (UPDATEMULTI.equals(testType)) {
 				createAttributeSet = userMultiValUpdateBuilder(testNumber);
 			} else if ("update-disabled".equals(testType)) {
 				createAttributeSet = userDisableUpdate();
@@ -451,12 +452,12 @@ public class StandardScimTestUtils {
 				createAttributeSet = userEnableUpdate();
 			}
 
-		} else if ("groups".equals(resourceName)) {
-			if ("createObject".equals(testType)) {
+		} else if (GROUPS.equals(resourceName)) {
+			if (CREATE.equals(testType)) {
 				createAttributeSet = groupCreateBuilder(testNumber);
-			} else if ("update-single".equals(testType)) {
+			} else if (UPDATESINGLE.equals(testType)) {
 				createAttributeSet = groupSingleValUpdateBuilder(testNumber);
-			} else if ("update-multi".equals(testType)) {
+			} else if (UPDATEMULTI.equals(testType)) {
 				groupMultiValUpdateBuilder(testNumber, userTestUid);
 			}
 		}

@@ -27,6 +27,7 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import com.evolveum.polygon.scim.ScimConnector;
 
 public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
+	private static final String ENTITLEMENTS = "entitlements";
 
 	private static final Log LOGGER = Log.getLog(SalesforceSpecificTestUtils.class);
 
@@ -42,15 +43,15 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 
 		testAttributeString.append(testNumber.toString()).append("testuser@testdomain.com");
 
-		attributeSet.add(AttributeBuilder.build("userName", testAttributeString.toString()));
-		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build(USERNAME, testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build(NICKNAME, testAttributeString.toString()));
 
-		attributeSet.add(AttributeBuilder.build("emails.work.value", testAttributeString.toString()));
-		attributeSet.add(AttributeBuilder.build("emails.work.primary", true));
-		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build(EMAILWORKVALUE, testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build(EMAILWORKPRIMARY, true));
+		attributeSet.add(AttributeBuilder.build(NICKNAME, testAttributeString.toString()));
 
 		attributeSet.add(AttributeBuilder.build("title", "Mr."));
-		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
+		attributeSet.add(AttributeBuilder.build(FAMILYNAME, "User"));
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 
 		attributeSet.add(AttributeBuilder.build("entitlements.default.value", "00e58000000qvhqAAA"));
@@ -73,7 +74,7 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 
-		attributeSet.add(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
+		attributeSet.add(AttributeBuilder.build(MEMBERSDEFAULT, userTestUid.getUidValue()));
 		return attributeSet;
 	}
 
@@ -84,13 +85,13 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 
 		TestSearchResultsHandler handler = new TestSearchResultsHandler();
 
-		if ("users".equalsIgnoreCase(resourceName)) {
+		if (USERS.equalsIgnoreCase(resourceName)) {
 			conn.executeQuery(userClass, null, handler, options);
 
-		} else if ("groups".equalsIgnoreCase(resourceName)) {
+		} else if (GROUPS.equalsIgnoreCase(resourceName)) {
 			conn.executeQuery(groupClass, null, handler, options);
 
-		} else if ("entitlements".equalsIgnoreCase(resourceName)) {
+		} else if (ENTITLEMENTS.equalsIgnoreCase(resourceName)) {
 
 			conn.executeQuery(entitlementClass, null, handler, options);
 		}
@@ -103,9 +104,9 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 	public static Uid createResourceTestHelper(String resourceName, Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			uid = conn.create(userClass, userCreateBuilder(testNumber), null);
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 			uid = conn.create(groupClass, groupCreateBuilder(testNumber), null);
 		} else {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
@@ -120,11 +121,11 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 			Uid entitlementTestUid, Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
-		if ("users".equals(resourceName)) {
-			if ("single".equals(updateType)) {
+		if (USERS.equals(resourceName)) {
+			if (SINGLE.equals(updateType)) {
 
 				uid = conn.update(userClass, userTestUid, userSingleValUpdateBuilder(testNumber), null);
-			} else if ("multi".equals(updateType)) {
+			} else if (MULTI.equals(updateType)) {
 
 				uid = conn.update(userClass, userTestUid, userMultiValUpdateBuilder(testNumber), null);
 
@@ -138,16 +139,16 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 
 			}
 
-		} else if ("groups".equals(resourceName)) {
-			if ("single".equals(updateType)) {
+		} else if (GROUPS.equals(resourceName)) {
+			if (SINGLE.equals(updateType)) {
 
 				uid = conn.update(groupClass, groupTestUid, groupSingleValUpdateBuilder(testNumber), null);
-			} else if ("multi".equals(updateType)) {
+			} else if (MULTI.equals(updateType)) {
 				uid = conn.update(groupClass, groupTestUid, groupMultiValUpdateBuilder(testNumber, userTestUid), null);
 
 			}
-		} else if ("entitlements".equals(resourceName)) {
-			if ("multi".equals(updateType)) {
+		} else if (ENTITLEMENTS.equals(resourceName)) {
+			if (MULTI.equals(updateType)) {
 				uid = conn.update(entitlementClass, entitlementTestUid,
 						entitlementMultiValUpdateBuilder(testNumber, userTestUid), null);
 
@@ -163,9 +164,9 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 	public Uid addAttributeValuesTestHelper(String resourceName, Uid testUid, Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			uid = conn.update(userClass, testUid, userSingleValUpdateBuilder(testNumber), null);
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 			uid = conn.update(groupClass, testUid, groupCreateBuilder(testNumber), null);
 		} else {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
@@ -177,9 +178,9 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 			ScimConnector conn) {
 		Uid uid = null;
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			uid = conn.update(userClass, testUid, userSingleValUpdateBuilder(testNumber), null);
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 			uid = conn.update(groupClass, testUid, groupCreateBuilder(testNumber), null);
 		} else {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
@@ -195,11 +196,11 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 		Filter filter = getFilter(filterType, resourceName, testNumber, userTestUid, groupTestUid);
 
 		try {
-			if ("users".equalsIgnoreCase(resourceName)) {
+			if (USERS.equalsIgnoreCase(resourceName)) {
 				conn.executeQuery(userClass, filter, handler, options);
-			} else if ("groups".equalsIgnoreCase(resourceName)) {
+			} else if (GROUPS.equalsIgnoreCase(resourceName)) {
 				conn.executeQuery(groupClass, filter, handler, options);
-			} else if ("entitlements".equalsIgnoreCase(resourceName)) {
+			} else if (ENTITLEMENTS.equalsIgnoreCase(resourceName)) {
 				conn.executeQuery(entitlementClass, filter, handler, options);
 			}
 		} catch (Exception e) {
@@ -215,49 +216,49 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 		AttributeFilter filter = null;
 
 		if ("contains".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
 				filter = (ContainsFilter) FilterBuilder
-						.contains(AttributeBuilder.build("userName", testNumber.toString()));
-			} else if ("groups".equals(resourceName)) {
+						.contains(AttributeBuilder.build(USERNAME, testNumber.toString()));
+			} else if (GROUPS.equals(resourceName)) {
 
 				filter = (ContainsFilter) FilterBuilder
-						.contains(AttributeBuilder.build("displayName", testNumber.toString()));
+						.contains(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("equals".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
 
 				StringBuilder userName = new StringBuilder(testNumber.toString()).append("testuser@testdomain.com");
 
-				filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build("userName", userName.toString()));
-			} else if ("groups".equals(resourceName)) {
+				filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, userName.toString()));
+			} else if (GROUPS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build("displayName", testNumber.toString()));
+						.equalTo(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("uid".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder.equalTo(userTestUid);
-			} else if ("groups".equals(resourceName)) {
+			} else if (GROUPS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder.equalTo(groupTestUid);
 			}
 		} else if ("startswith".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
 
 				filter = (StartsWithFilter) FilterBuilder
-						.startsWith(AttributeBuilder.build("userName", testNumber.toString()));
-			} else if ("groups".equals(resourceName)) {
+						.startsWith(AttributeBuilder.build(USERNAME, testNumber.toString()));
+			} else if (GROUPS.equals(resourceName)) {
 
 				filter = (StartsWithFilter) FilterBuilder
-						.startsWith(AttributeBuilder.build("displayName", testNumber.toString()));
+						.startsWith(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("endswith".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
-				filter = (EndsWithFilter) FilterBuilder.endsWith(AttributeBuilder.build("userName", "testdomain.com"));
-			} else if ("groups".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
+				filter = (EndsWithFilter) FilterBuilder.endsWith(AttributeBuilder.build(USERNAME, "testdomain.com"));
+			} else if (GROUPS.equals(resourceName)) {
 				filter = (EndsWithFilter) FilterBuilder
-						.endsWith(AttributeBuilder.build("displayName", testNumber.toString()));
+						.endsWith(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("containsall".equalsIgnoreCase(filterType)) {
-			if ("groups".equals(resourceName)) {
+			if (GROUPS.equals(resourceName)) {
 				filter = (ContainsAllValuesFilter) FilterBuilder
 						.containsAllValues(AttributeBuilder.build("members.User.value", userTestUid.getUidValue()));
 			}
@@ -270,10 +271,10 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<>();
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			attributeSet = userCreateBuilder(testNumber);
 
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 
 			attributeSet = groupCreateBuilder(testNumber);
 		}
@@ -290,12 +291,12 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 
 		String createAttributeName;
 
-		if ("users".equals(resourceName)) {
-			if ("createObject".equals(testType)) {
+		if (USERS.equals(resourceName)) {
+			if (CREATE.equals(testType)) {
 				createAttributeSet = userCreateBuilder(testNumber);
-			} else if ("update-single".equals(testType)) {
+			} else if (UPDATESINGLE.equals(testType)) {
 				createAttributeSet = userSingleValUpdateBuilder(testNumber);
-			} else if ("update-multi".equals(testType)) {
+			} else if (UPDATEMULTI.equals(testType)) {
 				createAttributeSet = userMultiValUpdateBuilder(testNumber);
 			} else if ("update-disabled".equals(testType)) {
 				createAttributeSet = userDisableUpdate();
@@ -303,16 +304,16 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 				createAttributeSet = userEnableUpdate();
 			}
 
-		} else if ("groups".equals(resourceName)) {
-			if ("createObject".equals(testType)) {
+		} else if (GROUPS.equals(resourceName)) {
+			if (CREATE.equals(testType)) {
 				createAttributeSet = groupCreateBuilder(testNumber);
-			} else if ("update-single".equals(testType)) {
+			} else if (UPDATESINGLE.equals(testType)) {
 				createAttributeSet = groupSingleValUpdateBuilder(testNumber);
-			} else if ("update-multi".equals(testType)) {
+			} else if (UPDATEMULTI.equals(testType)) {
 				groupMultiValUpdateBuilder(testNumber, userTestUid);
 			}
-		} else if ("entitlements".equals(resourceName)) {
-			if ("update-multi".equals(testType)) {
+		} else if (ENTITLEMENTS.equals(resourceName)) {
+			if (UPDATEMULTI.equals(testType)) {
 				groupMultiValUpdateBuilder(testNumber, userTestUid);
 			}
 		}

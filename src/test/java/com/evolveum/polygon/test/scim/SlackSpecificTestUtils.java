@@ -35,28 +35,28 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 
 		testAttributeString.append(testNumber.toString()).append("testuser");
 
-		attributeSet.add(AttributeBuilder.build("userName", testAttributeString.toString()));
-		attributeSet.add(AttributeBuilder.build("nickName", testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build(USERNAME, testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build(NICKNAME, testAttributeString.toString()));
 
 		testAttributeString = new StringBuilder(testNumber.toString()).append("testuser@testdomain.com");
-		attributeSet.add(AttributeBuilder.build("emails.work.value", testAttributeString.toString()));
-		attributeSet.add(AttributeBuilder.build("emails.work.primary", true));
+		attributeSet.add(AttributeBuilder.build(EMAILWORKVALUE, testAttributeString.toString()));
+		attributeSet.add(AttributeBuilder.build(EMAILWORKPRIMARY, true));
 
 		attributeSet.add(AttributeBuilder.build("title", "Mr."));
-		attributeSet.add(AttributeBuilder.build("name.familyName", "User"));
+		attributeSet.add(AttributeBuilder.build(FAMILYNAME, "User"));
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 
 		attributeSet.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, true));
-  System.out.println("the ## attr set: " + attributeSet.toString());
+		System.out.println("the ## attr set: " + attributeSet.toString());
 		return attributeSet;
 	}
 
 	public static Uid createResourceTestHelper(String resourceName, Integer testNumber, ScimConnector conn) {
 		Uid uid = null;
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			uid = conn.create(userClass, userCreateBuilder(testNumber), null);
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 			uid = conn.create(groupClass, groupCreateBuilder(testNumber), null);
 		} else {
 			LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
@@ -85,9 +85,9 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 		Filter filter = getFilter(filterType, resourceName, testNumber, userTestUid, groupTestUid);
 
 		try {
-			if ("users".equalsIgnoreCase(resourceName)) {
+			if (USERS.equalsIgnoreCase(resourceName)) {
 				conn.executeQuery(userClass, filter, handler, options);
-			} else if ("groups".equalsIgnoreCase(resourceName)) {
+			} else if (GROUPS.equalsIgnoreCase(resourceName)) {
 				conn.executeQuery(groupClass, filter, handler, options);
 			} else {
 				LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
@@ -106,48 +106,47 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 		AttributeFilter filter = null;
 
 		if ("contains".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
 				filter = (ContainsFilter) FilterBuilder
-						.contains(AttributeBuilder.build("userName", testNumber.toString()));
-			} else if ("groups".equals(resourceName)) {
+						.contains(AttributeBuilder.build(USERNAME, testNumber.toString()));
+			} else if (GROUPS.equals(resourceName)) {
 
 				filter = (ContainsFilter) FilterBuilder
-						.contains(AttributeBuilder.build("displayName", testNumber.toString()));
+						.contains(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("equals".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
+				filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, testNumber.toString()));
+			} else if (GROUPS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build("userName", testNumber.toString()));
-			} else if ("groups".equals(resourceName)) {
-				filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build("displayName", testNumber.toString()));
+						.equalTo(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("uid".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder.equalTo(userTestUid);
-			} else if ("groups".equals(resourceName)) {
+			} else if (GROUPS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder.equalTo(groupTestUid);
 			}
 		} else if ("startswith".equalsIgnoreCase(filterType)) {
-			if ("users".equals(resourceName)) {
+			if (USERS.equals(resourceName)) {
 
 				filter = (StartsWithFilter) FilterBuilder
-						.startsWith(AttributeBuilder.build("userName", testNumber.toString()));
-			} else if ("groups".equals(resourceName)) {
+						.startsWith(AttributeBuilder.build(USERNAME, testNumber.toString()));
+			} else if (GROUPS.equals(resourceName)) {
 
 				filter = (StartsWithFilter) FilterBuilder
-						.startsWith(AttributeBuilder.build("displayName", testNumber.toString()));
+						.startsWith(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 			// TODO check
 		} else if ("containsall".equalsIgnoreCase(filterType)) {
-			if ("groups".equals(resourceName)) {
+			if (GROUPS.equals(resourceName)) {
 				filter = (ContainsAllValuesFilter) FilterBuilder
-						.containsAllValues(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
+						.containsAllValues(AttributeBuilder.build(MEMBERSDEFAULT, userTestUid.getUidValue()));
 			}
 		} else if ("userequals".equalsIgnoreCase(filterType)) {
-			if ("groups".equals(resourceName)) {
+			if (GROUPS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build("members.default.value", userTestUid.getUidValue()));
+						.equalTo(AttributeBuilder.build(MEMBERSDEFAULT, userTestUid.getUidValue()));
 			}
 		}
 
@@ -158,10 +157,10 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 
 		Set<Attribute> attributeSet = new HashSet<>();
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			attributeSet = userCreateBuilder(testNumber);
 
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 
 			attributeSet = groupCreateBuilder(testNumber);
 		}
@@ -178,12 +177,12 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 
 		String createAttributeName;
 
-		if ("users".equals(resourceName)) {
-			if ("createObject".equals(testType)) {
+		if (USERS.equals(resourceName)) {
+			if (CREATE.equals(testType)) {
 				createAttributeSet = userCreateBuilder(testNumber);
-			} else if ("update-single".equals(testType)) {
+			} else if (UPDATESINGLE.equals(testType)) {
 				createAttributeSet = userSingleValUpdateBuilder(testNumber);
-			} else if ("update-multi".equals(testType)) {
+			} else if (UPDATEMULTI.equals(testType)) {
 				createAttributeSet = userMultiValUpdateBuilder(testNumber);
 			} else if ("update-disabled".equals(testType)) {
 				createAttributeSet = userDisableUpdate();
@@ -191,12 +190,12 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 				createAttributeSet = userEnableUpdate();
 			}
 
-		} else if ("groups".equals(resourceName)) {
-			if ("createObject".equals(testType)) {
+		} else if (GROUPS.equals(resourceName)) {
+			if (CREATE.equals(testType)) {
 				createAttributeSet = groupCreateBuilder(testNumber);
-			} else if ("update-single".equals(testType)) {
+			} else if (UPDATESINGLE.equals(testType)) {
 				createAttributeSet = groupSingleValUpdateBuilder(testNumber);
-			} else if ("update-multi".equals(testType)) {
+			} else if (UPDATEMULTI.equals(testType)) {
 				groupMultiValUpdateBuilder(testNumber, userTestUid);
 			}
 		}

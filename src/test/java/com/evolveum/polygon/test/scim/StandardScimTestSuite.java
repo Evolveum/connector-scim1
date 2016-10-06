@@ -20,92 +20,197 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 public class StandardScimTestSuite {
 
-	private static Uid userUid;
-	private static Uid groupUid;
+	private Uid userUid;
+	private Uid groupUid;
 
-	private static Integer pageSize;
+	private Integer pageSize;
 
-	private static Integer pageOffset;
+	private Integer pageOffset;
 
-	private static Integer testNumber = 0;
+	private Integer testNumber = 0;
 
-	private static ScimConnector connector;
+	private ScimConnector connector;
 
-	private static ScimConnectorConfiguration configuration;
+	private ScimConnectorConfiguration configuration;
 
-	private static final Log LOGGER = Log.getLog(StandardScimTestSuite.class);
+	private PropertiesParser parser = new PropertiesParser("../ConnIdScimConnector/testProperties/standardTest.properties");
+
+	private final Log LOGGER = Log.getLog(StandardScimTestSuite.class);
 
 	@DataProvider(name = "filterMethodProvider")
-	public static Object[][] filterMethodResourcesProvider() {
+	public Object[][] filterMethodResourcesProvider() {
 
-		// TODO test issues with eq filter slack
+		PropertiesParser parser = getParser();
 
-		return new Object[][] { { "users", "uid" }, { "groups", "uid" }, { "users", "contains" },
-				{ "groups", "contains" }, { "users", "startswith" }, { "groups", "startswith" },
-				{ "users", "endswith" }, { "groups", "endswith" }, { "users", "equals" }, { "groups", "equals" },
-				{ "groups", "containsall" } };
+		Object object[][] = parser.fetchTestData("filterMethodProvider");
+
+		return object;
 	}
 
 	@DataProvider(name = "updateUserProvider")
-	public static Object[][] updateUserResourceProvider() throws Exception {
+	public Object[][] updateUserResourceProvider() throws Exception {
 		Uid uid = getUid("user");
 
-		return new Object[][] { { "single", uid }, { "multi", uid }, { "disabled", uid }, { "enabled", uid } };
+		PropertiesParser parser = getParser();
+		Object[][] object = parser.fetchTestData("updateUserProvider");
+
+		for (int i = 0; i < object.length; i++) {
+			object[i][1] = uid;
+		}
+
+		return object;
 	}
 
 	@DataProvider(name = "updateGroupProvider")
-	public static Object[][] updateGroupResourceProvider() throws Exception {
+	public Object[][] updateGroupResourceProvider() throws Exception {
+
 		Uid uid = getUid("group");
 
-		return new Object[][] { { "single", uid }, { "multi", uid } };
+		PropertiesParser parser = getParser();
+		Object[][] object = parser.fetchTestData("updateGroupProvider");
+
+		for (int i = 0; i < object.length; i++) {
+			object[i][1] = uid;
+
+		}
+
+		return object;
 	}
 
 	@DataProvider(name = "listAllFromResourcesProvider")
-	public static Object[][] listAllFromResourcesProvider() {
-		return new Object[][] { { 1, "users" }, { 1, "groups" } };
+	public Object[][] listAllFromResourcesProvider() {
+
+		PropertiesParser parser = getParser();
+		Object[][] object = parser.fetchTestData("listAllFromResourcesProvider");
+
+		for (int i = 0; i < object.length; i++) {
+			object[i][1] = 1;
+
+		}
+		return object;
 	}
 
 	@DataProvider(name = "parameterConsistencyTestProvider")
-	public static Object[][] parameterConsistencyResourceProvider() {
+	public Object[][] parameterConsistencyResourceProvider() {
 
-		return new Object[][] { { "groups", "uid" }, { "users", "uid" } };
+		PropertiesParser parser = getParser();
+
+		Object object[][] = parser.fetchTestData("parameterConsistencyTestProvider");
+
+		return object;
 	}
 
 	@DataProvider(name = "deleteProvider")
-	public static Object[][] deleteResourceProvider() {
+	public Object[][] deleteResourceProvider() throws Exception {
 
-		return new Object[][] { { "users", userUid }, { "groups", groupUid } };
+		Uid user = getUid("user");
+		Uid group = getUid("group");
+
+		PropertiesParser parser = getParser();
+
+		Object[][] object = parser.fetchTestData("deleteProvider");
+
+		for (int i = 0; i < object.length; i++) {
+			String parameterName = (String) object[i][0];
+
+			if (parameterName.equals("users")) {
+
+				object[i][1] = user;
+
+			} else if (parameterName.equals("groups")) {
+
+				object[i][1] = group;
+			}
+
+		}
+
+		return object;
 	}
 
 	@DataProvider(name = "createTestProvider")
-	public static Object[][] createResourceProvider() {
+	public Object[][] createResourceProvider() {
 
-		return new Object[][] { { "users", true }, { "groups", true } };
+		Boolean notFalse = true;
+
+		PropertiesParser parser = getParser();
+
+		Object[][] object = parser.fetchTestData("deleteProvider");
+
+		for (int i = 0; i < object.length; i++) {
+			String parameterName = (String) object[i][0];
+
+			if (parameterName.equals("users")) {
+
+				object[i][1] = notFalse;
+
+			} else if (parameterName.equals("groups")) {
+
+				object[i][1] = notFalse;
+			}
+
+		}
+
+		return object;
 	}
 
 	@DataProvider(name = "configTestProvider")
-	public static Object[][] configurationResourcesProvider() {
+	public Object[][] configurationResourcesProvider() {
+		PropertiesParser parser = getParser();
 
-		pageSize = 1;
-		pageOffset = 1;
+		int width = 2;
 
-		testNumber = 1;
+		List<String> nonConnectionParameters = new ArrayList<String>();
+
+		nonConnectionParameters.add("pageSize");
+		nonConnectionParameters.add("pageOffset");
+		nonConnectionParameters.add("testNumber");
 
 		Map<String, String> configurationParameters = new HashMap<String, String>();
-		configurationParameters.put("clientID", "**");
-		configurationParameters.put("clientSecret", "**");
-		configurationParameters.put("endpoint", "**");
-		configurationParameters.put("loginUrl", "");
-		configurationParameters.put("password", "**");
-		configurationParameters.put("service", "**");
-		configurationParameters.put("userName", "**");
-		configurationParameters.put("version", "**");
-		configurationParameters.put("authentication", "**");
-		configurationParameters.put("baseurl", "**");
-		configurationParameters.put("token", "**");
-		configurationParameters.put("proxy", "**");
-		configurationParameters.put("proxy_port_number", "**");
 
+		Object[][] object = parser.fetchTestData("configTestProvider");
+		String name = "";
+		String value = "";
+		for (int i = 0; i < object.length; i++) {
+
+			for (int j = 0; j < width; j++) {
+				if (j == 0) {
+					name = (String) object[i][j];
+				} else {
+					value = (String) object[i][j];
+				}
+				if (nonConnectionParameters.contains(name)) {
+
+					if (!value.isEmpty()) {
+
+						if (name.equals("pageSize")) {
+
+							pageSize = Integer.parseInt(value);
+							name = "";
+							value = "";
+						} else if (name.equals("pageOffset")) {
+							pageOffset = Integer.parseInt(value);
+							name = "";
+							value = "";
+						} else if (name.equals("testNumber")) {
+							testNumber = Integer.parseInt(value);
+							name = "";
+							value = "";
+						}
+
+					}
+
+				} else {
+					if (!name.isEmpty() && !value.isEmpty()) {
+						configurationParameters.put(name, value);
+						name = "";
+						value = "";
+					}
+
+				}
+
+			}
+
+		}
 		return new Object[][] { { configurationParameters, true } };
 	}
 
@@ -182,7 +287,7 @@ public class StandardScimTestSuite {
 	}
 
 	@Test(priority = 6, dependsOnMethods = { "createObjectTest" }, dataProvider = "filterMethodProvider")
-	public void filterMethodTest(String resourceName, String filterType) {
+	public void filterMethodTest(String filterType, String resourceName) {
 
 		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
@@ -196,7 +301,7 @@ public class StandardScimTestSuite {
 	}
 
 	@Test(priority = 5, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllFromResourcesProvider")
-	private void listAllTest(int numberOfResources, String resourceName) {
+	private void listAllTest(String resourceName, int numberOfResources) {
 		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
@@ -278,7 +383,7 @@ public class StandardScimTestSuite {
 
 	}
 
-	public static Uid getUid(String resourceName) throws Exception {
+	public Uid getUid(String resourceName) throws Exception {
 		Uid uid = null;
 
 		if ("user".equals(resourceName)) {
@@ -341,6 +446,11 @@ public class StandardScimTestSuite {
 
 		}
 
+	}
+
+	public PropertiesParser getParser() {
+
+		return parser;
 	}
 
 }

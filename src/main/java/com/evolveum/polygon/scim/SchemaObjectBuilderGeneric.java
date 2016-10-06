@@ -13,10 +13,10 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
  * 
  * @author Matus
  * 
- * A class containing the methods used for building a schema representation
- * which will be published by the connector. The schema representation is
- * generated out of a Map object containing the attributes present in the schema
- * described by the service provider.
+ *         A class containing the methods used for building a schema
+ *         representation which will be published by the connector. The schema
+ *         representation is generated out of a Map object containing the
+ *         attributes present in the schema described by the service provider.
  **/
 public class SchemaObjectBuilderGeneric {
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);

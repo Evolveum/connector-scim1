@@ -211,7 +211,8 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 	}
 
 	@Override
-	public AttributeInfoBuilder schemaObjectparametersInjection(AttributeInfoBuilder infoBuilder, String attributeName) {
+	public AttributeInfoBuilder schemaObjectParametersInjection(AttributeInfoBuilder infoBuilder,
+			String attributeName) {
 
 		if ("members.User.value".equals(attributeName) || "members.Group.value".equals(attributeName)
 				|| "members.default.value".equals(attributeName) || "members.default.display".equals(attributeName)) {

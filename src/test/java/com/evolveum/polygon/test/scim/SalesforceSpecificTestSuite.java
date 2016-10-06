@@ -20,78 +20,88 @@ import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
 public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 
-	private static Uid userUid;
-	private static Uid groupUid;
-	private static Uid entitlementUid = new Uid("00e58000000cqxLAAQ");
+	private Uid userUid;
+	private Uid groupUid;
+	private Uid testEntitlementUid;
 
-	private static Integer pageSize;
+	private Integer pageSize;
 
-	private static Integer pageOffset;
+	private Integer pageOffset;
 
-	private static Integer testNumber = 0;
+	private Integer testNumber = 0;
 
-	private static ScimConnector connector;
+	private ScimConnector connector;
 
-	private static ScimConnectorConfiguration configuration;
+	private ScimConnectorConfiguration configuration;
 
-	private static final Log LOGGER = Log.getLog(SalesforceSpecificTestSuite.class);
+	private PropertiesParser parser = new PropertiesParser("../ConnIdScimConnector/testProperties/salesforceTest.properties");
 
-	@DataProvider(name = "filterMethodProvider")
-	public static Object[][] filterMethodResourcesProvider() {
-
-		return new Object[][] { { "users", "uid" }, { "groups", "uid" }, { "users", "contains" },
-				{ "groups", "contains" }, { "users", "startswith" }, { "groups", "startswith" }, { "users", "equals" },
-				{ "groups", "equals" }, { "groups", "containsall" } };
-	}
-
-	@DataProvider(name = "updateUserProvider")
-	public static Object[][] updateUserResourceProvider() throws Exception {
-		Uid uid = getUid("user");
-
-		return new Object[][] { { "single", uid }, { "multi", uid }, { "disabled", uid }, { "enabled", uid } };
-	}
-
-	@DataProvider(name = "updateGroupProvider")
-	public static Object[][] updateGroupResourceProvider() throws Exception {
-		Uid uid = getUid("group");
-
-		return new Object[][] { { "single", uid }, { "multi", uid } };
-	}
-
-	@DataProvider(name = "listAllFromResourcesProvider")
-	public static Object[][] listAllFromResourcesProvider() {
-		return new Object[][] { { 1, "users" }, { 1, "groups" }, { 1, "entitlements" } };
-	}
-
-	@DataProvider(name = "deleteProvider")
-	public static Object[][] deleteResourceProvider() {
-
-		return new Object[][] { { "users", userUid }, { "groups", groupUid } };
-	}
+	private final Log LOGGER = Log.getLog(SalesforceSpecificTestSuite.class);
 
 	@DataProvider(name = "configTestProvider")
-	public static Object[][] configurationResourcesProvider() {
+	public Object[][] configurationResourcesProvider() {
 
-		pageSize = 1;
-		pageOffset = 1;
+		PropertiesParser parser = getParser();
 
-		testNumber = 85;
+		int width = 2;
+
+		List<String> nonConnectionParameters = new ArrayList<String>();
+
+		nonConnectionParameters.add("pageSize");
+		nonConnectionParameters.add("pageOffset");
+		nonConnectionParameters.add("testNumber");
+		nonConnectionParameters.add("testEntitlementUid");
 
 		Map<String, String> configurationParameters = new HashMap<String, String>();
 
-		configurationParameters.put("clientID", "");
-		configurationParameters.put("clientSecret", "");
-		configurationParameters.put("endpoint", "/services/scim");
-		configurationParameters.put("loginUrl", "https://login.salesforce.com");
-		configurationParameters.put("password", "");
-		configurationParameters.put("service", "");
-		configurationParameters.put("userName", "");
-		configurationParameters.put("version", "/v1");
+		Object[][] object = parser.fetchTestData("configTestProvider");
+		String name = "";
+		String value = "";
+		for (int i = 0; i < object.length; i++) {
 
-		configurationParameters.put("authentication", "**");
-		configurationParameters.put("proxy", "");
-		configurationParameters.put("proxy_port_number", "");
+			for (int j = 0; j < width; j++) {
+				if (j == 0) {
+					name = (String) object[i][j];
+				} else {
+					value = (String) object[i][j];
+				}
+				if (nonConnectionParameters.contains(name)) {
 
+					if (!value.isEmpty()) {
+
+						if (name.equals("pageSize")) {
+
+							pageSize = Integer.parseInt(value);
+							name = "";
+							value = "";
+						} else if (name.equals("pageOffset")) {
+							pageOffset = Integer.parseInt(value);
+							name = "";
+							value = "";
+						} else if (name.equals("testNumber")) {
+							testNumber = Integer.parseInt(value);
+							name = "";
+							value = "";
+						} else if (name.equals("testEntitlementUid")) {
+							testEntitlementUid = new Uid((String) value);
+							name = "";
+							value = "";
+						}
+
+					}
+
+				} else {
+					if (!name.isEmpty() && !value.isEmpty()) {
+						configurationParameters.put(name, value);
+						name = "";
+						value = "";
+					}
+
+				}
+
+			}
+
+		}
 		return new Object[][] { { configurationParameters, true } };
 	}
 
@@ -168,7 +178,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 	}
 
 	@Test(priority = 7, dependsOnMethods = { "createObjectTest" }, dataProvider = "filterMethodProvider")
-	public void filterMethodTest(String resourceName, String filterType) {
+	public void filterMethodTest(String filterType, String resourceName) {
 
 		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
@@ -182,7 +192,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 	}
 
 	@Test(priority = 6, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllFromResourcesProvider")
-	private void listAllTest(int numberOfResources, String resourceName) {
+	private void listAllTest(String resourceName, int numberOfResources) {
 		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = SalesforceSpecificTestUtils.getOptions(pageSize, pageOffset);
@@ -197,7 +207,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 	private void updateUserTest(String updateType, Uid uid) {
 
 		Uid returnedUid = SalesforceSpecificTestUtils.updateResourceTest("users", updateType, userUid, groupUid,
-				entitlementUid, testNumber, connector);
+				testEntitlementUid, testNumber, connector);
 
 		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
@@ -227,7 +237,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 	private void updateGroupTest(String updateType, Uid uid) {
 
 		Uid returnedUid = SalesforceSpecificTestUtils.updateResourceTest("groups", updateType, userUid, groupUid,
-				entitlementUid, testNumber, connector);
+				testEntitlementUid, testNumber, connector);
 
 		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
@@ -255,7 +265,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 	private void updateEntitlemenTest() throws Exception {
 
 		Uid returnedUid = SalesforceSpecificTestUtils.updateResourceTest("entitlements", "multi", userUid, groupUid,
-				entitlementUid, testNumber, connector);
+				testEntitlementUid, testNumber, connector);
 
 		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
@@ -276,7 +286,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 			Assert.assertEquals(nameValue, attributeName);
 		}
 
-		Assert.assertEquals(returnedUid, entitlementUid);
+		Assert.assertEquals(returnedUid, testEntitlementUid);
 
 	}
 
@@ -295,7 +305,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 
 	}
 
-	public static Uid getUid(String resourceName) throws Exception {
+	public Uid getUid(String resourceName) throws Exception {
 		Uid uid = null;
 
 		if ("user".equals(resourceName)) {
@@ -306,7 +316,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 			uid = groupUid;
 		} else if ("entitlement".equals(resourceName)) {
 
-			uid = entitlementUid;
+			uid = testEntitlementUid;
 		} else {
 			LOGGER.warn("Resource name not defined: {0}", resourceName);
 		}
@@ -361,6 +371,11 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 
 		}
 
+	}
+
+	public PropertiesParser getParser() {
+
+		return parser;
 	}
 
 }

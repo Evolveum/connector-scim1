@@ -756,7 +756,7 @@ public interface HandlingStrategy {
 	 * @return the extended attribute info builder object
 	 */
 
-	public AttributeInfoBuilder schemaObjectparametersInjection(AttributeInfoBuilder infoBuilder, String attributeName);
+	public AttributeInfoBuilder schemaObjectParametersInjection(AttributeInfoBuilder infoBuilder, String attributeName);
 
 	/**
 	 * Method used to populate a list dictionary of strings. Those are used for

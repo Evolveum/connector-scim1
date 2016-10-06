@@ -36,7 +36,6 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
-import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
@@ -1293,7 +1292,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					infoBuilder = schemaBuilder.subPropertiesChecker(infoBuilder, schemaSubPropertiesMap,
 							subPropertieName);
-					infoBuilder = schemaObjectparametersInjection(infoBuilder, attributeName);
+					infoBuilder = schemaObjectParametersInjection(infoBuilder, attributeName);
 
 				}
 
@@ -1313,7 +1312,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public AttributeInfoBuilder schemaObjectparametersInjection(AttributeInfoBuilder infoBuilder, String attributeName) {
+	public AttributeInfoBuilder schemaObjectParametersInjection(AttributeInfoBuilder infoBuilder,
+			String attributeName) {
 		return infoBuilder;
 	}
 

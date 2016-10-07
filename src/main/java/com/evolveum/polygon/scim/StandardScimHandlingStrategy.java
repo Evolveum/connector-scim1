@@ -37,10 +37,10 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
-import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -152,7 +152,13 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					LOGGER.info("Json response: {0}", json.toString(1));
 					return uid;
-				} else {
+				} else if (statusCode == 409){
+					
+					//TODO check if status code 409 ok with spec
+					ErrorHandler.onNoSuccess(response, "creating a new object");
+					LOGGER.error("Conflict while resource creation, resource evaluated as already created");
+					throw new AlreadyExistsException("Conflict while resource creation, resource evaluated as already created");
+				} else{
 
 					ErrorHandler.onNoSuccess(response, "creating a new object");
 				}
@@ -203,7 +209,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		} finally {
 			ServiceAccessManager.logOut(loginInstance);
 		}
-		throw new UnknownUidException("No uid returned in the process of resource creation");
+		return null;
 	}
 
 	@Override
@@ -386,7 +392,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 										} else {
 											LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
 
-											throw new UnknownUidException(
+											throw new ConnectorException(
 													"No uid present in fetchet object while processing queuery result");
 
 										}
@@ -411,7 +417,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 									LOGGER.error("Resource object not present in provider response to the query");
 
-									throw new UnknownUidException(
+									throw new ConnectorException(
 											"No uid present in fetchet object while processing queuery result");
 
 								}
@@ -537,6 +543,10 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						statusCode);
 
 				return uid;
+			} else if(statusCode == 409) {
+				
+				ErrorHandler.onNoSuccess(response, "updating object");
+				throw new AlreadyExistsException ("Conflict while resource update"); 
 			} else if (statusCode == 500 && GROUPS.equals(resourceEndPoint)) {
 
 				Uid id = groupUpdateProcedure(response, jsonObject, uri, authHeader);
@@ -598,7 +608,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		} finally {
 			ServiceAccessManager.logOut(loginInstance);
 		}
-		throw new UnknownUidException("No uid returned in the process of resource update");
+		return null;
 
 	}
 

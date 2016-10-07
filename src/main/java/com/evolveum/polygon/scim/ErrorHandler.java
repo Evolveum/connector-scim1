@@ -102,8 +102,6 @@ public class ErrorHandler {
 			LOGGER.info("An error has occurred. HTTP status: \"{0}\"", statusCode);
 		}
 		LOGGER.info(exceptionString);
-
-		throw new ConnectorIOException(exceptionString);
 	}
 
 	/**

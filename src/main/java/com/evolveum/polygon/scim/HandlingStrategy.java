@@ -108,9 +108,9 @@ public interface HandlingStrategy {
 	 * @throws ConnectionFailedException
 	 *             is thrown when a protocol exception has occurred while in the
 	 *             process of creating a new resource object
-	 * @throws UnknownUidException
-	 *             is thrown if no uid is returned in the process of resource
-	 *             creation
+	 *             
+	 *@throws AlreadyExistsException
+	 *				when an "409" (CONFLICT) status code is returned by the service provider as an response to the create query.
 	 * @return the uid of the created object
 	 */
 
@@ -145,9 +145,8 @@ public interface HandlingStrategy {
 	 *             <li>an error has occurred while building a connId object
 	 *             <li>a JSONException has occurred while processing an json
 	 *             object
-	 *
-	 * @throws UnknownUidException
-	 *             is thrown if no UID is present in fetched object
+	 *             <li>is thrown if no uid is returned in the process of resource
+	 *             creation
 	 * @throws ConnectorIOException
 	 *             is thrown when an IOException has occurred while processing
 	 *             of the HTTP query response.

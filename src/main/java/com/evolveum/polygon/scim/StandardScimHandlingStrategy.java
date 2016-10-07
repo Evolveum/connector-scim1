@@ -114,15 +114,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			String responseString = null;
 			try {
 
-				long providerStartTime = System.currentTimeMillis();
 				HttpResponse response = httpClient.execute(httpPost);
-				long providerEndTime = System.currentTimeMillis();
-				long providerDuration = (providerEndTime - providerStartTime);
 
-				LOGGER.info(
-						"The amount of time it took to get the response to the query from the provider : {0} milliseconds ",
-						providerDuration);
-				providerDuration = 0;
 				int statusCode = response.getStatusLine().getStatusCode();
 				LOGGER.info("Status code: {0}", statusCode);
 				if (statusCode == 201) {
@@ -291,16 +284,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		String responseString = null;
 		HttpResponse response;
 		try {
-			long providerStartTime = System.currentTimeMillis();
 			response = httpClient.execute(httpGet);
-			long providerEndTime = System.currentTimeMillis();
-			long providerDuration = (providerEndTime - providerStartTime);
-
-			LOGGER.info(
-					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
-					providerDuration);
-
-			providerDuration = 0;
 
 			int statusCode = response.getStatusLine().getStatusCode();
 			LOGGER.info("Status code: {0}", statusCode);
@@ -352,14 +336,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 												httpGetR.addHeader(authHeader);
 												httpGetR.addHeader(PRETTYPRINTHEADER);
 
-												providerStartTime = System.currentTimeMillis();
-												HttpResponse resourceResponse = httpClient.execute(httpGetR);
-												providerEndTime = System.currentTimeMillis();
-												providerDuration = (providerEndTime - providerStartTime);
 
-												LOGGER.info(
-														"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
-														providerDuration);
+												HttpResponse resourceResponse = httpClient.execute(httpGetR);
 
 												statusCode = resourceResponse.getStatusLine().getStatusCode();
 
@@ -513,15 +491,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			bodyContent.setContentType(CONTENTTYPE);
 			httpPatch.setEntity(bodyContent);
 
-			long providerStartTime = System.currentTimeMillis();
 			HttpResponse response = httpClient.execute(httpPatch);
-			long providerEndTime = System.currentTimeMillis();
-			long providerDuration = (providerEndTime - providerStartTime);
 
-			LOGGER.info(
-					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
-					providerDuration);
-			providerDuration = 0;
 			int statusCode = response.getStatusLine().getStatusCode();
 
 			if (statusCode == 200 || statusCode == 201) {
@@ -647,16 +618,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		httpDelete.addHeader(PRETTYPRINTHEADER);
 
 		try {
-			long providerStartTime = System.currentTimeMillis();
+
 			HttpResponse response = httpClient.execute(httpDelete);
-			long providerEndTime = System.currentTimeMillis();
-			long providerDuration = (providerEndTime - providerStartTime);
-
-			LOGGER.info(
-					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
-					providerDuration);
-			providerDuration = 0;
-
 			int statusCode = response.getStatusLine().getStatusCode();
 
 			if (statusCode == 204 || statusCode == 200) {
@@ -734,17 +697,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		HttpResponse response;
 		try {
-
-			long providerStartTime = System.currentTimeMillis();
 			response = httpClient.execute(httpGet);
-			long providerEndTime = System.currentTimeMillis();
-
-			long providerDuration = (providerEndTime - providerStartTime);
-
-			LOGGER.info(
-					"The amouth of time it took to get the response to the query from the provider : {0} milliseconds ",
-					providerDuration);
-			providerDuration = 0;
 
 			int statusCode = response.getStatusLine().getStatusCode();
 			LOGGER.info("Schema query status code: {0} ", statusCode);
@@ -757,13 +710,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					JSONObject jsonObject = new JSONObject(responseString);
 
-					long startTime = System.currentTimeMillis();
 					ParserSchemaScim schemaParser = processSchemaResponse(jsonObject);
-					long endTime = System.currentTimeMillis();
-
-					long time = (endTime - startTime);
-
-					LOGGER.error("The process filter method Time: {0} milliseconds", time);
 					return schemaParser;
 
 				} else {
@@ -782,11 +729,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						httpGet.addHeader(authHeader);
 						httpGet.addHeader(PRETTYPRINTHEADER);
 
-						providerStartTime = System.currentTimeMillis();
 						response = httpClient.execute(httpGet);
-						providerEndTime = System.currentTimeMillis();
 
-						providerDuration = (providerEndTime - providerStartTime);
 						statusCode = response.getStatusLine().getStatusCode();
 
 						if (statusCode == 200) {

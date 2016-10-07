@@ -341,16 +341,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		String responseString = null;
 		HttpResponse response;
 		try {
-			long providerStartTime = System.currentTimeMillis();
 			response = httpClient.execute(httpGet);
-			long providerEndTime = System.currentTimeMillis();
-			long providerDuration = (providerEndTime - providerStartTime);
-
-			LOGGER.info(
-					"The amount of time it took to get the response to the query from the provider : {0} milliseconds ",
-					providerDuration);
-
-			providerDuration = 0;
 
 			int statusCode = response.getStatusLine().getStatusCode();
 			LOGGER.info("Status code: {0}", statusCode);

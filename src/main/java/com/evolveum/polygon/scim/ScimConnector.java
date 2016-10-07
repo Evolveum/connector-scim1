@@ -72,15 +72,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			ParserSchemaScim schemaParser = strategy.querySchemas(providerName, SCHEMAS, configuration);
 
 			if (schemaParser != null) {
-
-				long startTime = System.currentTimeMillis();
 				buildSchemas(schemaBuilder, schemaParser);
-				long endTime = System.currentTimeMillis();
-
-				long time = (endTime - startTime);
-
-				LOGGER.error("The buildSchemas methods Time: {0} milliseconds", time);
-
 			} else {
 
 				ObjectClassInfo userSchemaInfo = UserDataBuilder.getUserSchema();

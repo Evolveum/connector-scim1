@@ -101,14 +101,8 @@ public class ServiceAccessManager {
 			}
 
 			try {
-				long providerStartTime = System.currentTimeMillis();
+
 				response = httpClient.execute(loginInstance);
-				long providerEndTime = System.currentTimeMillis();
-				long providerDuration = (providerEndTime - providerStartTime);
-				LOGGER.info(
-						"The amouth of time it took to get the response to the login query from the provider : {0} milliseconds",
-						providerDuration);
-				providerDuration = 0;
 
 			} catch (ClientProtocolException e) {
 

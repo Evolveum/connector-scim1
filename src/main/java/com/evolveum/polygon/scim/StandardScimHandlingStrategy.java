@@ -66,7 +66,7 @@ import com.evolveum.polygon.scim.common.HttpPatch;
 /**
  * @author Macik
  * 
- *         An implementation of all strategie methods used for processing of
+ *         An implementation of all strategy methods used for processing of
  *         data.
  * 
  */

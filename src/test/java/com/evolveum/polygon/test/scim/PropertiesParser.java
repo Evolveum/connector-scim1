@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.identityconnectors.common.logging.Log;
+
 /**
  * 
  * @author Macik
@@ -97,30 +98,31 @@ public class PropertiesParser {
 
 		} else {
 			int position = 0;
+			String[] nameParts = null;
 
-			Map<String, String> completeMap = new HashMap<String, String>();
+			length = 0;
+			for (String filterType : fetchedAttributes.keySet()) {
 
-			for (String attributeName : fetchedAttributes.keySet()) {
+				String value = (String) fetchedAttributes.get(filterType);
 
-				String value = (String) fetchedAttributes.get(attributeName);
-
-				String[] nameParts = value.split("\\,");
-				for (String part : nameParts) {
-
-					completeMap.put(attributeName, part);
-				}
-
+				nameParts = value.split("\\,");
+				length = length + nameParts.length;
 			}
-			length = completeMap.size();
+
 			dataObject = new Object[length][2];
-			for (String st : completeMap.keySet()) {
-				dataObject[position][0] = st;
-				dataObject[position][1] = completeMap.get(st);
-				position++;
+
+			for (String filterType : fetchedAttributes.keySet()) {
+				String value = (String) fetchedAttributes.get(filterType);
+				nameParts = value.split("\\,");
+				for (String resourceName : nameParts) {
+					dataObject[position][0] = filterType;
+					dataObject[position][1] = resourceName;
+
+					position++;
+				}
 			}
 
 		}
-
 		return dataObject;
 	}
 

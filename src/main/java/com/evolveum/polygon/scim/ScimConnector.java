@@ -33,6 +33,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
@@ -111,12 +112,12 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Resource object delete");
 		if (uid.getUidValue() == null && uid.getUidValue().isEmpty()) {
 			LOGGER.error("Uid not provided or empty: {0} ", uid.getUidValue());
-			throw new IllegalArgumentException("Uid value not provided or empty");
+			throw new InvalidAttributeValueException("Uid value not provided or empty");
 		}
 
 		if (object == null) {
 			LOGGER.error("Object value not provided {0} ", object);
-			throw new IllegalArgumentException("Object value not provided");
+			throw new InvalidAttributeValueException("Object value not provided");
 		}
 
 		if (genericsCanBeApplied) {
@@ -142,7 +143,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				strategy.delete(uid, GROUPS, configuration);
 			} else {
 				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new IllegalArgumentException("Object value not valid");
+				throw new InvalidAttributeValueException("Object value not valid");
 			}
 		}
 	}
@@ -160,7 +161,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 		if (attribute == null || attribute.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty", attribute);
-			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
 
 		if (genericsCanBeApplied) {
@@ -196,7 +197,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 
 				return uid;
@@ -213,13 +214,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 			} else {
 
 				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new IllegalArgumentException("Object value not valid");
+				throw new ConnectorException("Object value not valid");
 			}
 		}
 	}
@@ -287,7 +288,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Resource object update");
 		if (attributes == null || attributes.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty: {0}", attributes);
-			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
 		if (genericsCanBeApplied) {
 			Uid uid = new Uid(DEFAULT);
@@ -315,7 +316,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 
@@ -327,12 +328,12 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 			} else {
 				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new IllegalArgumentException("Object value not valid");
+				throw new InvalidAttributeValueException("Object value not valid");
 			}
 		}
 	}
@@ -507,7 +508,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Resource object update for addition of values");
 		if (attributes == null || attributes.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty: {}", attributes);
-			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
 		if (genericsCanBeApplied) {
 			Uid uid = new Uid(DEFAULT);
@@ -535,7 +536,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 
@@ -547,12 +548,12 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 			} else {
 				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new IllegalArgumentException("Object value not valid");
+				throw new InvalidAttributeValueException("Object value not valid");
 			}
 		}
 
@@ -574,7 +575,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Resource object update for removal of attribute values");
 		if (attributes == null || attributes.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty: {0}", attributes);
-			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
 		if (genericsCanBeApplied) {
 			Uid uid = new Uid(DEFAULT);
@@ -604,7 +605,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 
@@ -616,12 +617,12 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 			} else {
 				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new IllegalArgumentException("Object value not valid");
+				throw new InvalidAttributeValueException("Object value not valid");
 			}
 		}
 

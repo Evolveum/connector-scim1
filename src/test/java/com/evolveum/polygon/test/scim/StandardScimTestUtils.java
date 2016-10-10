@@ -141,7 +141,7 @@ public class StandardScimTestUtils {
 	protected static Set<Attribute> userSingleValUpdateBuilder(Integer testNumber) {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
+		
 		attributeSet.add(AttributeBuilder.build(NICKNAME, testNumber.toString()));
 
 		attributeSet.add(AttributeBuilder.build(FAMILYNAME, "TestUpdate"));
@@ -426,11 +426,8 @@ public class StandardScimTestUtils {
 
 	public static boolean isConfigurationValid(ScimConnectorConfiguration connectorConfiguration) {
 
-		try {
 			connectorConfiguration.validate();
-		} catch (Exception e) {
-			return false;
-		}
+			
 		return true;
 	}
 

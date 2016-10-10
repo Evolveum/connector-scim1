@@ -67,7 +67,6 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
 
 		attributeSet.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, true));
-		System.out.println("the ## attr set: " + attributeSet.toString());
 		return attributeSet;
 	}
 

@@ -13,7 +13,7 @@
 	<version>1.4.2.16-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>ConnIdScimConnector</name>
+	<name>connector-scim</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
@@ -90,5 +90,5 @@
 
 
 	</dependencies>
-	<artifactId>ConnIdScimConnector</artifactId>
+	<artifactId>connector-scim</artifactId>
 </project>

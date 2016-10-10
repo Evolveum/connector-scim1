@@ -18,6 +18,7 @@ package com.evolveum.polygon.scim;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -41,6 +42,7 @@ import org.identityconnectors.framework.common.exceptions.AlreadyExistsException
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
+import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -152,13 +154,14 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					LOGGER.info("Json response: {0}", json.toString(1));
 					return uid;
-				} else if (statusCode == 409){
-					
-					//TODO check if status code 409 ok with spec
-					ErrorHandler.onNoSuccess(response, "creating a new object");
-					LOGGER.error("Conflict while resource creation, resource evaluated as already created");
-					throw new AlreadyExistsException("Conflict while resource creation, resource evaluated as already created");
-				} else{
+				} else if (statusCode == 409) {
+
+					// TODO check if status code 409 ok with spec
+					String error = ErrorHandler.onNoSuccess(response, "creating a new object");
+					StringBuilder errorString = new StringBuilder(
+							"Conflict while resource creation, resource evaluated as already created. ").append(error);
+					throw new AlreadyExistsException(errorString.toString());
+				} else {
 
 					ErrorHandler.onNoSuccess(response, "creating a new object");
 				}
@@ -175,16 +178,24 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						e);
 
 			} catch (IOException e) {
-				LOGGER.error(
-						"An error has occurred while processing the http response. Occurrence in the process of creating a new resource object: {0}",
-						e.getLocalizedMessage());
-				LOGGER.info(
-						"An error has occurred while processing the http response. Occurrence in the process of creating a new resource object: {0}",
-						e);
 
-				throw new ConnectorIOException(
-						"An error has occurred while processing the http response. Occurrence in the process of creating a new resource object",
-						e);
+				if ((e instanceof SocketTimeoutException)) {
+
+					throw new OperationTimeoutException(
+							"The connection timed out. Occurrence in the process of creating a new resource object", e);
+				} else {
+
+					LOGGER.error(
+							"An error has occurred while processing the http response. Occurrence in the process of creating a new resource object: {0}",
+							e.getLocalizedMessage());
+					LOGGER.info(
+							"An error has occurred while processing the http response. Occurrence in the process of creating a new resource object: {0}",
+							e);
+
+					throw new ConnectorIOException(
+							"An error has occurred while processing the http response. Occurrence in the process of creating a new resource object",
+							e);
+				}
 			}
 
 		} catch (JSONException e) {
@@ -337,7 +348,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 								if (isCAVGroupQuery) {
 
-									LOGGER.info("##CAV QUERY");
 									handleCAVGroupQuery(jsonObject, GROUPS, resultHandler, scimBaseUri, authHeader);
 
 								} else if (jsonObject.has(RESOURCES)) {
@@ -450,6 +460,13 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					LOGGER.warn("Service provider response is empty, responce returned on query: {0}", q);
 				}
+			} else if (valueIsUid) {
+				ErrorHandler.onNoSuccess(response, uri);
+
+				StringBuilder errorBuilder = new StringBuilder("The resource with the uid: ").append(q)
+						.append(" was not found.");
+
+				throw new ConnectorException(errorBuilder.toString());
 			} else {
 				ErrorHandler.onNoSuccess(response, uri);
 			}
@@ -460,13 +477,24 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				q = "the full resource representation";
 			}
 
-			LOGGER.error(
-					"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-					e.getLocalizedMessage(), q);
-			LOGGER.info(
-					"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-					e, q);
-			throw new ConnectorIOException("An error occurred while processing the query http response.", e);
+			StringBuilder errorBuilder = new StringBuilder(
+					"An error occurred while processing the query http response for ");
+			errorBuilder.append(q);
+			if ((e instanceof SocketTimeoutException)) {
+
+				errorBuilder.insert(0, "The connection timed out. ");
+
+				throw new OperationTimeoutException(errorBuilder.toString(), e);
+			} else {
+
+				LOGGER.error(
+						"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+						e.getLocalizedMessage(), q);
+				LOGGER.info(
+						"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+						e, q);
+				throw new ConnectorIOException(errorBuilder.toString(), e);
+			}
 		} finally {
 			ServiceAccessManager.logOut(loginInstance);
 		}
@@ -543,10 +571,11 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						statusCode);
 
 				return uid;
-			} else if(statusCode == 409) {
-				
-				ErrorHandler.onNoSuccess(response, "updating object");
-				throw new AlreadyExistsException ("Conflict while resource update"); 
+			} else if (statusCode == 409) {
+
+				String error = ErrorHandler.onNoSuccess(response, "updating object");
+				StringBuilder errorString = new StringBuilder("Conflict while resource update. ").append(error);
+				throw new AlreadyExistsException(errorString.toString());
 			} else if (statusCode == 500 && GROUPS.equals(resourceEndPoint)) {
 
 				Uid id = groupUpdateProcedure(response, jsonObject, uri, authHeader);
@@ -594,17 +623,26 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					e);
 		} catch (IOException e) {
 
-			LOGGER.error(
-					"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
-					e.getLocalizedMessage());
-			LOGGER.info(
-					"An error has occurred while processing the http response. Occurrence in the process of creating a resource object: {0}",
-					e);
+			StringBuilder errorBuilder = new StringBuilder(
+					"An error has occurred while processing the http response. Occurrence in the process of updating a resource object wit the Uid: ");
 
-			throw new ConnectorIOException(
-					"An error has occurred while processing the http response. Occurrence in the process of creating a resource object",
-					e);
+			errorBuilder.append(uid.toString());
 
+			if ((e instanceof SocketTimeoutException)) {
+				errorBuilder.insert(0, "The connection timed out. ");
+
+				throw new OperationTimeoutException(errorBuilder.toString(), e);
+			} else {
+
+				LOGGER.error(
+						"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
+						e.getLocalizedMessage());
+				LOGGER.info(
+						"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
+						e);
+
+				throw new ConnectorIOException(errorBuilder.toString(), e);
+			}
 		} finally {
 			ServiceAccessManager.logOut(loginInstance);
 		}
@@ -677,16 +715,28 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					"An protocol exception has occurred while in the process of deleting a resource object. Possible mismatch in the interpretation of the HTTP specification.",
 					e);
 		} catch (IOException e) {
-			LOGGER.error(
-					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
-					e.getLocalizedMessage());
-			LOGGER.info(
-					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
-					e);
 
-			throw new ConnectorIOException(
-					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object.",
-					e);
+			StringBuilder errorBuilder = new StringBuilder(
+					"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object with the Uid:  ");
+
+			errorBuilder.append(uid.toString());
+
+			if ((e instanceof SocketTimeoutException)) {
+
+				errorBuilder.insert(0, "Connection timed out. ");
+
+				throw new OperationTimeoutException(errorBuilder.toString(), e);
+			} else {
+
+				LOGGER.error(
+						"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
+						e.getLocalizedMessage());
+				LOGGER.info(
+						"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object: : {0}",
+						e);
+
+				throw new ConnectorIOException(errorBuilder.toString(), e);
+			}
 		} finally {
 			ServiceAccessManager.logOut(loginInstance);
 		}
@@ -787,8 +837,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				}
 
 			} else {
-				LOGGER.warn("Query for {1} was unsuccessful. Status code returned is {0}", statusCode,
-						resourceEndPoint);
+				ErrorHandler.onNoSuccess(response, "building schema");
 				LOGGER.warn(
 						"No definition for provided schemas was found, the connector will switch to default core schema configuration!");
 				return null;
@@ -804,16 +853,26 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					"An protocol exception has occurred while in the process of querying the provider Schemas resource object. Possible mismatch in interpretation of the HTTP specification",
 					e);
 		} catch (IOException e) {
-			LOGGER.error(
-					"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object: {0}",
-					e.getLocalizedMessage());
-			LOGGER.info(
-					"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object: {0}",
-					e);
 
-			throw new ConnectorIOException(
-					"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object",
-					e);
+			StringBuilder errorBuilder = new StringBuilder(
+					"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object");
+
+			if ((e instanceof SocketTimeoutException)) {
+
+				errorBuilder.insert(0, "The connection timed out. ");
+
+				throw new OperationTimeoutException(errorBuilder.toString(), e);
+			} else {
+
+				LOGGER.error(
+						"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object: {0}",
+						e.getLocalizedMessage());
+				LOGGER.info(
+						"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object: {0}",
+						e);
+
+				throw new ConnectorIOException(errorBuilder.toString(), e);
+			}
 		} finally {
 			ServiceAccessManager.logOut(loginInstance);
 		}
@@ -1056,17 +1115,25 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		} catch (IOException e) {
 
-			LOGGER.error(
-					"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
-					e.getLocalizedMessage());
-			LOGGER.info(
-					"An error has occurred while processing the http response. Occurrence in the process of creating a resource object: {0}",
-					e);
+			StringBuilder errorBuilder = new StringBuilder(
+					"An error has occurred while processing the http response. Occurrence in the process of updating a resource object");
 
-			throw new ConnectorIOException(
-					"An error has occurred while processing the http response. Occurrence in the process of creating a resource object",
-					e);
+			if ((e instanceof SocketTimeoutException)) {
 
+				errorBuilder.insert(0, "The connection timed out. ");
+
+				throw new OperationTimeoutException(errorBuilder.toString(), e);
+			} else {
+
+				LOGGER.error(
+						"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
+						e.getLocalizedMessage());
+				LOGGER.info(
+						"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
+						e);
+
+				throw new ConnectorIOException(errorBuilder.toString(), e);
+			}
 		}
 		return null;
 	}

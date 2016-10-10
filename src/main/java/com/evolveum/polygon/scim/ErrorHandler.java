@@ -24,7 +24,10 @@ import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import groovy.json.JsonException;
 
 /**
  * @author Macik
@@ -37,7 +40,9 @@ public class ErrorHandler {
 
 	private static final String ERRORS = "Errors";
 	private static final String DESCRIPTION = "description";
-
+	private static final String MESSAGE = "message";
+	
+	
 	private static final Log LOGGER = Log.getLog(ErrorHandler.class);
 
 	/**
@@ -53,8 +58,9 @@ public class ErrorHandler {
 	 * @throws ParseException
 	 * @throws IOException
 	 */
-	public static void onNoSuccess(HttpResponse response, String message) throws ParseException, IOException {
+	public static String onNoSuccess(HttpResponse response, String message) throws ParseException, IOException {
 
+		boolean isJsonObject = true;
 		Integer statusCode = null;
 		StringBuilder exceptionStringBuilder = null;
 
@@ -63,30 +69,56 @@ public class ErrorHandler {
 			statusCode = response.getStatusLine().getStatusCode();
 			LOGGER.error("Full Error response from the provider: {0}", responseString);
 
-			JSONObject responseObject = new JSONObject(responseString);
+			try {
+				new JSONObject(responseString);
+			} catch (JSONException ex) {
+				isJsonObject = false;
 
-			if (responseObject.has(ERRORS)) {
-				Object returnedObject = new Object();
+			}
+			try {
 
-				returnedObject = responseObject.get(ERRORS);
+				new JSONArray(responseString);
+			} catch (JSONException arrayE) {
 
-				if (returnedObject instanceof JSONObject) {
+				isJsonObject = true;
+			}
 
-					responseObject = (JSONObject) returnedObject;
+			if (isJsonObject) {
 
-					exceptionStringBuilder = buildErrorMessage(responseObject, message, statusCode);
-				} else if (returnedObject instanceof JSONArray) {
+				JSONObject responseObject = new JSONObject(responseString);
 
-					for (Object messageObject : (JSONArray) returnedObject) {
-						exceptionStringBuilder = buildErrorMessage((JSONObject) messageObject, message, statusCode);
+				if (responseObject.has(ERRORS)) {
+					Object returnedObject = new Object();
+
+					returnedObject = responseObject.get(ERRORS);
+
+					if (returnedObject instanceof JSONObject) {
+
+						responseObject = (JSONObject) returnedObject;
+
+						exceptionStringBuilder = buildErrorMessage(responseObject, message, statusCode);
+					} else if (returnedObject instanceof JSONArray) {
+
+						for (Object messageObject : (JSONArray) returnedObject) {
+							exceptionStringBuilder = buildErrorMessage((JSONObject) messageObject, message, statusCode);
+
+						}
 
 					}
 
-				}
+				} else {
 
+					exceptionStringBuilder = new StringBuilder("Query for ").append(message)
+							.append(" was unsuccessful. Status code returned: ").append(statusCode);
+				}
 			} else {
-				exceptionStringBuilder = new StringBuilder("Query for ").append(message)
-						.append(" was unsuccessful. Status code returned: ").append(statusCode);
+
+				JSONArray responseObject = new JSONArray(responseString);
+
+				for (Object messageObject : (JSONArray) responseObject) {
+					exceptionStringBuilder = buildErrorMessage((JSONObject) messageObject, message, statusCode);
+
+				}
 			}
 		} else {
 			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
@@ -102,6 +134,7 @@ public class ErrorHandler {
 			LOGGER.info("An error has occurred. HTTP status: \"{0}\"", statusCode);
 		}
 		LOGGER.info(exceptionString);
+		return exceptionString;
 	}
 
 	/**
@@ -130,7 +163,16 @@ public class ErrorHandler {
 					.append(" was unsuccessful. Status code returned: ").append("\"").append(statusCode).append("\"")
 					.append(". Error response from provider: ").append("\"").append(responseString).append("\"");
 
-		} else {
+		} else if (responseObject.has(MESSAGE)){
+
+			responseString = responseObject.getString(MESSAGE);
+			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
+					.append(" was unsuccessful. Status code returned: ").append("\"").append(statusCode).append("\"")
+					.append(". Error response from provider: ").append("\"").append(responseString).append("\"");
+
+		
+			
+		}else {
 			responseString = ". No description was provided from the provider";
 			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
 					.append(" was unsuccessful. Status code returned: ").append("\"").append(statusCode).append("\"")

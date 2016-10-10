@@ -190,6 +190,7 @@ public interface HandlingStrategy {
 	 *             <li>an UnsupportedEncodingException has occurred
 	 *             <li>a JSONException has occurred while processing an json
 	 *             object
+	 *             <li> a query for a concrete Uid value was unsuccessful
 	 * 
 	 * @throws ConnectionFailedException
 	 *             a protocol exception has occurred while in the process of

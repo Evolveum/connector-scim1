@@ -224,7 +224,6 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 			}
 		} catch (Exception e) {
 			LOGGER.warn("An exception has occurred while processing the filter method test: {0}", e.getMessage());
-			;
 		}
 
 		return handler.getResult();

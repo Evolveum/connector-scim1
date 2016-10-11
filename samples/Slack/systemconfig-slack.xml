@@ -5,12 +5,12 @@
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                      oid="00000000-0000-0000-0000-000000000001"
-                     version="26">
+                     version="38">
    <name>SystemConfiguration</name>
    <metadata>
       <createTimestamp>2016-05-25T16:15:56.179+02:00</createTimestamp>
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
-      <modifyTimestamp>2016-07-22T13:26:00.131+02:00</modifyTimestamp>
+      <modifyTimestamp>2016-09-06T12:31:38.442+02:00</modifyTimestamp>
       <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                    oid="00000000-0000-0000-0000-000000000002"
                    type="tns:UserType"><!-- administrator --></modifierRef>
@@ -23,18 +23,22 @@
    <logging>
       <classLogger>
          <level>DEBUG</level>
+         <package>com.evolveum.midpoint.gui</package>
+      </classLogger>
+      <classLogger>
+         <level>WARN</level>
          <package>com.evolveum.midpoint.model</package>
       </classLogger>
       <classLogger>
-         <level>DEBUG</level>
+         <level>WARN</level>
          <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
       </classLogger>
       <classLogger>
-         <level>DEBUG</level>
+         <level>WARN</level>
          <package>com.evolveum.midpoint.model.impl.lens.projector.Projector</package>
       </classLogger>
       <classLogger>
-         <level>DEBUG</level>
+         <level>WARN</level>
          <package>com.evolveum.midpoint.provisioning</package>
       </classLogger>
       <classLogger>
@@ -56,6 +60,10 @@
       <classLogger>
          <level>OFF</level>
          <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
+      </classLogger>
+      <classLogger>
+         <level>TRACE</level>
+         <package>org.identityconnectors.framework</package>
       </classLogger>
       <appender xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 name="IDM-PROFILE_LOG"
@@ -87,14 +95,14 @@
    <objectTemplate>
       <type>RoleType</type>
       <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                         oid="ab990258-38a5-44ba-ae6d-981424c2ca53"
-                         type="tns:ObjectTemplateType"><!-- Group and entitlement role template - Salesforce  --></objectTemplateRef>
+                         oid="bfeff922-de9c-49e9-afff-93574a7c7a09"
+                         type="tns:ObjectTemplateType"><!-- Group role template - Slack  --></objectTemplateRef>
    </objectTemplate>
    <objectTemplate>
       <type>UserType</type>
       <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                         oid="7f656839-571d-4413-bcd2-932707f87a77"
-                         type="tns:ObjectTemplateType"><!-- User template - Salesforce --></objectTemplateRef>
+                         oid="1e73da26-f4bb-4143-9ba2-5f873d519d80"
+                         type="tns:ObjectTemplateType"><!-- User template - Slack --></objectTemplateRef>
    </objectTemplate>
    <notificationConfiguration>
       <mail>

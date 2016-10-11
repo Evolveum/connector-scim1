@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.polygon.scim;
 
 import java.util.ArrayList;
@@ -9,29 +24,33 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * A class that contains the methods needed for construction of json object
- * representations of provided data sets. Attributes are translated to json
- * objects and arrays of json objects depending on the attributes and
- * dictionary.
+ * 
+ * @author Macik
+ * 
+ *         A class that contains the methods needed for construction of json
+ *         object representations of provided data sets. Attributes are
+ *         translated to json objects and arrays of json objects depending on
+ *         the attributes and dictionary.
  */
 public class GenericDataBuilder implements ObjectTranslator {
 
-	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
-
-	private static final String DELETE = "delete";
-
+	private static final Log LOGGER = Log.getLog(GenericDataBuilder.class);
 	private String operation;
 
 	/**
-	 * Costructor used to populate the local variable "operation".
+	 * Constructor used to populate the local variable "operation".
 	 * 
 	 * @param operation
 	 *            String variable indicating that the "delete" operation
-	 *            parameter should be added in the constructed json object.
+	 *            parameter should be added in the constructed json object. The
+	 *            values which this parameter might acquire:
+	 *            <li>"delete"
+	 *            <li>"" - or empty string
 	 **/
 	public GenericDataBuilder(String operation) {
 		this.operation = operation;
@@ -49,11 +68,6 @@ public class GenericDataBuilder implements ObjectTranslator {
 	 *            system.
 	 * @param injectedAttributes
 	 *            A set of attributes which are injected into the provided set.
-	 * @param attributeMap
-	 *            A dictionary containing the attributes translated from the
-	 *            provided schema. This dictionary is cross checked with the
-	 *            processed attribute set and non matching attributes are
-	 *            discarded.
 	 * @return The complete json representation of the provided data set.
 	 */
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
@@ -72,9 +86,9 @@ public class GenericDataBuilder implements ObjectTranslator {
 				String attributeName = injectedAttribute.getName();
 				multiValueAttribute.add(injectedAttribute);
 
-				if (attributeName.contains(".")) {
+				if (attributeName.contains(DOT)) {
 
-					String[] keyParts = attributeName.split("\\."); // e.g.
+					String[] keyParts = attributeName.split(DELIMITER); // e.g.
 					// schemas.default.blank
 					if (keyParts.length == 2) {
 
@@ -96,11 +110,11 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 			String attributeName = attribute.getName();
 
-			if ("__ENABLE__".equals(attributeName)) {
+			if (OperationalAttributes.ENABLE_NAME.equals(attributeName)) {
 				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
-			} else if (attributeName.contains(".")) {
+			} else if (attributeName.contains(DOT)) {
 
-				String[] keyParts = attributeName.split("\\."); // e.g.
+				String[] keyParts = attributeName.split(DELIMITER); // e.g.
 				// emails.work.value
 				if (keyParts.length == 2) {
 
@@ -141,27 +155,26 @@ public class GenericDataBuilder implements ObjectTranslator {
 	 *            methods.
 	 * @return A json representation of the provided data set.
 	 */
-	// TODO more efficient
 	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
 
 		String mainAttributeName = "";
-		ArrayList<String> checkedNames = new ArrayList<String>();
+		List<String> checkedNames = new ArrayList<String>();
 		for (Attribute i : multiLayerAttribute) {
 
 			String attributeName = i.getName();
-			String[] attributeNameParts = attributeName.split("\\."); // e.q.
+			String[] attributeNameParts = attributeName.split(DELIMITER); // e.q.
 			// email.work.value
 
 			if (checkedNames.contains(attributeNameParts[0])) {
 
 			} else {
 				Set<Attribute> subAttributeLayerSet = new HashSet<Attribute>();
-				mainAttributeName = attributeNameParts[0].intern();
+				mainAttributeName = attributeNameParts[0];
 				checkedNames.add(mainAttributeName);
 				for (Attribute j : multiLayerAttribute) {
 
 					String secondLoopAttributeName = j.getName();
-					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.q.
+					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split(DELIMITER); // e.q.
 					// email.work.value
 
 					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)) {
@@ -173,34 +186,34 @@ public class GenericDataBuilder implements ObjectTranslator {
 				boolean writeToArray = true;
 				JSONArray jArray = new JSONArray();
 
-				ArrayList<String> checkedTypeNames = new ArrayList<String>();
+				List<String> checkedTypeNames = new ArrayList<String>();
 				for (Attribute k : subAttributeLayerSet) {
 
 					String nameFromSubSet = k.getName();
-					String[] nameFromSubSetParts = nameFromSubSet.split("\\."); // e.q.
+					String[] nameFromSubSetParts = nameFromSubSet.split(DELIMITER); // e.q.
 					// email.work.value
 
-					if (checkedTypeNames.contains(nameFromSubSetParts[1].intern())) {
+					if (checkedTypeNames.contains(nameFromSubSetParts[1])) {
 					} else {
 						JSONObject multivalueObject = new JSONObject();
-						canonicaltypeName = nameFromSubSetParts[1].intern();
+						canonicaltypeName = nameFromSubSetParts[1];
 
 						checkedTypeNames.add(canonicaltypeName);
 						for (Attribute subSetAttribute : subAttributeLayerSet) {
 							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
-							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
+							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split(DELIMITER); // e.q.
 							// email.work.value
-							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
+							if (finalSubAttributeNameParts[1].equals(canonicaltypeName)) {
 								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
 									writeToArray = false;
 									List<Object> valueList = subSetAttribute.getValue();
 
 									for (Object attributeValue : valueList) {
 										multivalueObject = new JSONObject();
-										multivalueObject.put(finalSubAttributeNameParts[2].intern(), attributeValue);
+										multivalueObject.put(finalSubAttributeNameParts[2], attributeValue);
 
-										if (!"default".equals(nameFromSubSetParts[1].intern())) {
-											multivalueObject.put("type", nameFromSubSetParts[1].intern());
+										if (!DEFAULT.equals(nameFromSubSetParts[1])) {
+											multivalueObject.put(TYPE, nameFromSubSetParts[1]);
 										}
 										if (operation != null) {
 											if (DELETE.equals(operation)) {
@@ -213,8 +226,8 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 								} else {
 
-									if (!"blank".equals(finalSubAttributeNameParts[2].intern())) {
-										multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+									if (!BLANK.equals(finalSubAttributeNameParts[2])) {
+										multivalueObject.put(finalSubAttributeNameParts[2],
 												AttributeUtil.getSingleValue(subSetAttribute));
 									} else {
 
@@ -222,8 +235,8 @@ public class GenericDataBuilder implements ObjectTranslator {
 										writeToArray = false;
 									}
 
-									if (!"default".equals(nameFromSubSetParts[1].intern())) {
-										multivalueObject.put("type", nameFromSubSetParts[1].intern());
+									if (!DEFAULT.equals(nameFromSubSetParts[1])) {
+										multivalueObject.put(TYPE, nameFromSubSetParts[1]);
 									}
 									if (operation != null) {
 										if (DELETE.equals(operation)) {
@@ -264,28 +277,28 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 		String mainAttributeName = "";
 
-		ArrayList<String> checkedNames = new ArrayList<String>();
+		List<String> checkedNames = new ArrayList<String>();
 
 		Set<Attribute> specialMlAttributes = new HashSet<Attribute>();
 		for (Attribute i : multiValueAttribute) {
 			String attributeName = i.getName();
-			String[] attributeNameParts = attributeName.split("\\."); // e.g.
+			String[] attributeNameParts = attributeName.split(DELIMITER); // e.g.
 			// name.givenName
 
-			if (checkedNames.contains(attributeNameParts[0].intern())) {
+			if (checkedNames.contains(attributeNameParts[0])) {
 			} else {
 				JSONObject jObject = new JSONObject();
-				mainAttributeName = attributeNameParts[0].intern();
+				mainAttributeName = attributeNameParts[0];
 				checkedNames.add(mainAttributeName);
 				for (Attribute j : multiValueAttribute) {
 					String secondLoopAttributeName = j.getName();
-					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.g.
+					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split(DELIMITER); // e.g.
 					// name.givenName
-					if (secondLoopAttributeNameParts[0].intern().equals(mainAttributeName)
-							&& !mainAttributeName.equals("schema")) {
+					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)
+							&& !mainAttributeName.equals(SCHEMA)) {
 						jObject.put(secondLoopAttributeNameParts[1], AttributeUtil.getSingleValue(j));
-					} else if (secondLoopAttributeNameParts[0].intern().equals(mainAttributeName)
-							&& mainAttributeName.equals("schema")) {
+					} else if (secondLoopAttributeNameParts[0].equals(mainAttributeName)
+							&& mainAttributeName.equals(SCHEMA)) {
 						specialMlAttributes.add(j);
 
 					}
@@ -298,16 +311,16 @@ public class GenericDataBuilder implements ObjectTranslator {
 					String sMlAttributeName = "No schema type";
 					Boolean nameWasSet = false;
 
-					for (Attribute specialAtribute : specialMlAttributes) {
-						String innerName = specialAtribute.getName();
-						String[] innerKeyParts = innerName.split("\\."); // e.g.
+					for (Attribute specialAttribute : specialMlAttributes) {
+						String innerName = specialAttribute.getName();
+						String[] innerKeyParts = innerName.split(DELIMITER); // e.g.
 						// name.givenName
-						if (innerKeyParts[1].intern().equals("type") && !nameWasSet) {
-							sMlAttributeName = AttributeUtil.getAsStringValue(specialAtribute);
+						if (innerKeyParts[1].equals(TYPE) && !nameWasSet) {
+							sMlAttributeName = AttributeUtil.getAsStringValue(specialAttribute);
 							nameWasSet = true;
-						} else if (!innerKeyParts[1].intern().equals("type")) {
+						} else if (!innerKeyParts[1].equals(TYPE)) {
 
-							jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(specialAtribute));
+							jObject.put(innerKeyParts[1], AttributeUtil.getSingleValue(specialAttribute));
 						}
 					}
 					if (nameWasSet) {
@@ -317,10 +330,10 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 					} else {
 						LOGGER.error(
-								"Schema type not speciffied {0}. Error ocourance while translating user object attribute set: {0}",
+								"Schema type not specified {0}. Error occurrence while translating user object attribute set: {0}",
 								sMlAttributeName);
 						throw new InvalidAttributeValueException(
-								"Schema type not speciffied. Error ocourance while translating user object attribute set");
+								"Schema type not specified. Error occurrence while translating user object attribute set");
 					}
 
 				}

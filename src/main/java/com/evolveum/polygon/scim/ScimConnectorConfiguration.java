@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.polygon.scim;
 
 import org.identityconnectors.common.StringUtil;
@@ -7,343 +23,352 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
 import org.identityconnectors.framework.spi.StatefulConfiguration;
 
 /**
- * Connector configuration class. It contains all the needed methods for
- * processing the connector configuration.
+ * @author Macik
+ * 
+ *         Connector configuration class. It contains all the needed methods for
+ *         processing the connector configuration.
  */
 public class ScimConnectorConfiguration extends AbstractConfiguration implements StatefulConfiguration {
 
-	private String AUTHENTICATION;
-	private String SCIM_ENDPOINT;
-	private String SCIM_VERSION;
-	private String USERNAME ;
-	private String PASSWORD;
-	private String LOGINURL;
-	private String BASEURL;
-	private String GRANT ;
-	private String CLIENTID ;
-	
-	private String TOKEN;
-	private String CLIENTSECRET;
+	private String authentication;
+	private String scim_endpoint;
+	private String scim_version;
+	private String username;
+	private String password;
+	private String loginUrl;
+	private String baseUrl;
+	private String grant;
+	private String clientId;
+	private String token;
+	private String clientSecret;
 
-	private String PROXY;
-	private Integer PROXY_PORT_NUMBER;
+	private String proxy;
+	private Integer proxy_port_number;
 
 	private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
 
 	/**
-	 * Getter method for the "AUTHENTICATION" attribute.
+	 * Getter method for the "authentication" attribute.
 	 * 
 	 * @return the authentication string.
 	 */
 
-	@ConfigurationProperty(order = 1, displayMessageKey = "Authentication", groupMessageKey = "basic.group", helpMessageKey = "Please provide the type of authentication.", required = true, confidential = false)
+	@ConfigurationProperty(order = 1, displayMessageKey = "authentication.display", helpMessageKey = "authentication.help", required = true, confidential = false)
 	public String getAuthentication() {
-		return AUTHENTICATION;
+		return authentication;
 	}
 
 	/**
-	 * Setter method for the "AUTHENTICATION" attribute.
+	 * Setter method for the "authentication" attribute.
 	 * 
-	 * @param username
+	 * @param authentication
 	 *            the authentication string value.
 	 */
 	public void setAuthentication(String authentication) {
-		this.AUTHENTICATION = authentication;
-	}
-
-	@ConfigurationProperty(order = 2, displayMessageKey = "Username", groupMessageKey = "basic.group", helpMessageKey = "Please provide the administrator user name for the scim enabled service you are logging into", required = true, confidential = false)
-
-	public String getUserName() {
-		return USERNAME;
+		this.authentication = authentication;
 	}
 
 	/**
-	 * Setter method for the "USERNAME" attribute.
+	 * Getter method for the "token" attribute.
+	 * 
+	 * @return the token string value.
+	 */
+
+	@ConfigurationProperty(order = 2, displayMessageKey = "token.display", helpMessageKey = "token.help", required = false, confidential = true)
+	public String getToken() {
+		return token;
+	}
+
+	/**
+	 * Setter method for the "token" attribute.
+	 * 
+	 * @param token
+	 *            the token string value.
+	 */
+	public void setToken(String token) {
+		this.token = token;
+	}
+
+	/**
+	 * Getter method for the "username" attribute.
+	 * 
+	 * @return the username string value.
+	 */
+
+	@ConfigurationProperty(order = 3, displayMessageKey = "username.display", helpMessageKey = "username.help", required = false, confidential = false)
+
+	public String getUserName() {
+		return username;
+	}
+
+	/**
+	 * Setter method for the "username" attribute.
 	 * 
 	 * @param username
 	 *            the user name string value.
 	 */
 	public void setUserName(String username) {
-		this.USERNAME = username;
+		this.username = username;
 	}
 
 	/**
-	 * Getter method for the "PASSWORD" attribute.
+	 * Getter method for the "password" attribute.
 	 * 
 	 * @return the password.
 	 */
-	@ConfigurationProperty(order = 3, displayMessageKey = "Password", groupMessageKey = "basic.group", helpMessageKey = "Please provide the administrator password used to connect to the scim enabled service", required = true, confidential = true)
+	@ConfigurationProperty(order = 4, displayMessageKey = "password.display", helpMessageKey = "password.help", required = false, confidential = true)
 
 	public String getPassword() {
-		return PASSWORD;
+		return password;
 
 	}
 
 	/**
-	 * Setter method for the "PASSWORD" attribute.
+	 * Setter method for the "password" attribute.
 	 * 
 	 * @param passwd
 	 *            the password string value.
 	 */
 	public void setPassword(String passwd) {
-		this.PASSWORD = passwd;
+		this.password = passwd;
 	}
 
 	/**
-	 * Getter method for the "CLIENTSECRET" attribute.
+	 * Getter method for the "clientSecret" attribute.
 	 * 
 	 * @return the client secret.
 	 */
-	@ConfigurationProperty(order = 4, displayMessageKey = "Clientsecret", groupMessageKey = "basic.group", helpMessageKey = "Please provide the client token generated by the service endpoint for application interconnection", required = true, confidential = true)
+	@ConfigurationProperty(order = 5, displayMessageKey = "clientSecret.display", helpMessageKey = "clientSecret.help", required = false, confidential = true)
 
 	public String getClientSecret() {
-		return CLIENTSECRET;
+		return clientSecret;
 	}
 
 	/**
-	 * Setter method for the "CLIENTSECRET" attribute.
+	 * Setter method for the "clientSecret" attribute.
 	 * 
 	 * @param clientSecret
 	 *            the client secret string value.
 	 */
 	public void setClientSecret(String clientSecret) {
-		this.CLIENTSECRET = clientSecret;
+		this.clientSecret = clientSecret;
 	}
 
 	/**
-	 * Getter method for the "CLIENTID" attribute.
+	 * Getter method for the "clientId" attribute.
 	 * 
 	 * @return the client id.
 	 */
-	@ConfigurationProperty(order = 5, displayMessageKey = "Client ID", groupMessageKey = "basic.group", helpMessageKey = "Please provide the client ID generated by the service endpoint", required = true, confidential = false)
+	@ConfigurationProperty(order = 6, displayMessageKey = "clientId.display", helpMessageKey = "clientId.help", required = false, confidential = false)
 	public String getClientID() {
-		return CLIENTID;
+		return clientId;
 	}
 
 	/**
-	 * Setter method for the "CLIENTID" attribute.
+	 * Setter method for the "clientId" attribute.
 	 * 
 	 * @param clientID
 	 *            the client id string value.
 	 */
 	public void setClientID(String clientID) {
-		this.CLIENTID = clientID;
+		this.clientId = clientID;
 	}
 
 	/**
-	 * Getter method for the "SCIM_ENDPOINT" attribute.
+	 * Getter method for the "scim_endpoint" attribute.
 	 * 
 	 * @return the scim endpoint.
 	 */
-	@ConfigurationProperty(order = 6, displayMessageKey = "Scim endpoint", groupMessageKey = "basic.group", helpMessageKey = "Please provide the scim endpoint of the service provider (eg. /services/scim)", required = true, confidential = false)
+	@ConfigurationProperty(order = 7, displayMessageKey = "scim_endpoint.display", helpMessageKey = "scim_endpoint.help", required = true, confidential = false)
 
 	public String getEndpoint() {
-		return SCIM_ENDPOINT;
+		return scim_endpoint;
 	}
 
 	/**
-	 * Setter method for the "SCIM_ENDPOINT" attribute.
+	 * Setter method for the "scim_endpoint" attribute.
 	 * 
 	 * @param endpoint
 	 *            the scim endpoint string value.
 	 */
 	public void setEndpoint(String endpoint) {
-		this.SCIM_ENDPOINT = endpoint;
+		this.scim_endpoint = endpoint;
 	}
 
 	/**
-	 * Getter method for the "SCIM_VERSION" attribute.
+	 * Getter method for the "scim_version" attribute.
 	 * 
 	 * @return the scim version.
 	 */
-	@ConfigurationProperty(order = 7, displayMessageKey = "Scim version", groupMessageKey = "basic.group", helpMessageKey = "Please provide the scim version which is supported by the service provider (eq. /v1)", required = true, confidential = false)
+	@ConfigurationProperty(order = 8, displayMessageKey = "scim_version.display", helpMessageKey = "scim_version.help", required = true, confidential = false)
 
 	public String getVersion() {
-		return SCIM_VERSION;
+		return scim_version;
 	}
 
 	/**
-	 * Setter method for the "SCIM_VERSION" attribute.
+	 * Setter method for the "scim_version" attribute.
 	 * 
 	 * @param version
 	 *            the scim version string value.
 	 */
 	public void setVersion(String version) {
-		this.SCIM_VERSION = version;
+		this.scim_version = version;
 	}
 
 	/**
-	 * Getter method for the "LOGINURL" attribute.
+	 * Getter method for the "loginUrl" attribute.
 	 * 
 	 * @return the login url.
 	 */
-	@ConfigurationProperty(order = 8, displayMessageKey = "Login url", groupMessageKey = "basic.group", helpMessageKey = "Please provide the Url address for log in", required = true, confidential = false)
+	@ConfigurationProperty(order = 9, displayMessageKey = "loginUrl.display", helpMessageKey = "loginUrl.help", required = false, confidential = false)
 
 	public String getLoginURL() {
-		return LOGINURL;
+		return loginUrl;
 	}
 
 	/**
-	 * Setter method for the "LOGINURL" attribute.
+	 * Setter method for the "loginUrl" attribute.
 	 * 
 	 * @param loginURL
 	 *            the login url string value.
 	 */
 	public void setLoginURL(String loginURL) {
-		this.LOGINURL = loginURL;
+		this.loginUrl = loginURL;
 	}
 
 	/**
-	 * Getter method for the "SERVICEGRANT" attribute.
+	 * Getter method for the "grant" attribute.
 	 * 
 	 * @return the service grant.
 	 */
-	@ConfigurationProperty(order = 9, displayMessageKey = "Grant type", groupMessageKey = "basic.group", helpMessageKey = "Please provide the ulr snippet defining the service and grand type to log into the service (eg. /services/oauth2/token?grant_type=password)", required = true, confidential = false)
+	@ConfigurationProperty(order = 10, displayMessageKey = "grant.display", helpMessageKey = "grant.help", required = false, confidential = false)
 
 	public String getService() {
-		return GRANT;
+		return grant;
 	}
 
 	/**
-	 * Setter method for the "SERVICEGRANT" attribute.
+	 * Setter method for the "grant" attribute.
 	 * 
 	 * @param service
 	 *            the grant type string value.
 	 */
 	public void setService(String service) {
-		this.GRANT = service;
+		this.grant = service;
 	}
 
 	/**
-	 * Getter method for the "BASEURL" attribute.
+	 * Getter method for the "baseUrl" attribute.
 	 * 
-	 * @return the BASEURL string value.
+	 * @return the baseUrl string value.
 	 */
 
-	@ConfigurationProperty(order = 10, displayMessageKey = "Base URL", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the base url for a token type of authentication.", required = true, confidential = false)
+	@ConfigurationProperty(order = 11, displayMessageKey = "baseUrl.display", helpMessageKey = "baseUrl.help", required = false, confidential = false)
 	public String getBaseUrl() {
-		return BASEURL;
+		return baseUrl;
 	}
 
 	/**
-	 * Setter method for the "BASEURL" attribute.
+	 * Setter method for the "baseUrl" attribute.
 	 * 
-	 * @param username
+	 * @param baseUrl
 	 *            the base url string value.
 	 */
 	public void setBaseUrl(String baseUrl) {
-		this.BASEURL = baseUrl;
+		this.baseUrl = baseUrl;
 	}
 
 	/**
-	 * Getter method for the "TOKEN" attribute.
+	 * Getter method for the "proxy" attribute.
 	 * 
-	 * @return the TOKEN string value.
+	 * @return the proxy url string value.
 	 */
 
-	@ConfigurationProperty(order = 11, displayMessageKey = "Token", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the token for a token type of authentication.", required = false, confidential = true)
-	public String getToken() {
-		return TOKEN;
-	}
-
-	/**
-	 * Setter method for the "TOKEN" attribute.
-	 * 
-	 * @param username
-	 *            the token string value.
-	 */
-	public void setToken(String token) {
-		this.TOKEN = token;
-	}
-
-	/**
-	 * Getter method for the "PROXY" attribute.
-	 * 
-	 * @return the PROXY url string value.
-	 */
-
-	@ConfigurationProperty(order = 12, displayMessageKey = "Proxy adress", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the adress of the proxy host.", required = false, confidential = false)
+	@ConfigurationProperty(order = 12, displayMessageKey = "proxy.display", helpMessageKey = "proxy.help", required = false, confidential = false)
 	public String getProxyUrl() {
-		return PROXY;
+		return proxy;
 	}
 
 	/**
-	 * Setter method for the "PROXY" attribute.
+	 * Setter method for the "proxy" attribute.
 	 * 
 	 * @param proxy
 	 *            the proxy url string value.
 	 */
 	public void setProxyUrl(String proxy) {
-		this.PROXY = proxy;
+		this.proxy = proxy;
 	}
 
 	/**
-	 * Getter method for the "PROXY_PORT_NUMBER" attribute.
+	 * Getter method for the "proxy_port_number" attribute.
 	 * 
-	 * @return the PROXY_PORT_NUMBER integer value.
+	 * @return the proxy_port_number integer value.
 	 */
 
-	@ConfigurationProperty(order = 13, displayMessageKey = "Proxy port number", groupMessageKey = "advanced.group", helpMessageKey = "Please provide the port number of the proxy host.", required = false, confidential = false)
+	@ConfigurationProperty(order = 13, displayMessageKey = "proxy_port_number.display", helpMessageKey = "proxy_port_number.help", required = false, confidential = false)
 	public Integer getProxyPortNumber() {
-		return PROXY_PORT_NUMBER;
+		return proxy_port_number;
 	}
 
 	/**
-	 * Setter method for the "PROXY_PORT_NUMBER" attribute.
+	 * Setter method for the "proxy_port_number" attribute.
 	 * 
 	 * @param proxyPortNumber
 	 *            the proxy number integer value.
 	 */
 	public void setProxyPortNumber(Integer proxyPortNumber) {
-		this.PROXY_PORT_NUMBER = proxyPortNumber;
+		this.proxy_port_number = proxyPortNumber;
 	}
 
 	@Override
 	public void validate() {
 
-		if (StringUtil.isBlank(AUTHENTICATION)) {
+		LOGGER.info("Processing trough configuration validation procedure.");
+
+		if (StringUtil.isBlank(authentication)) {
 			throw new IllegalArgumentException("Authentication cannot be empty.");
 		}
 
-		if (!"token".equals(AUTHENTICATION)) {
+		if (!"token".equals(authentication)) {
 
-			if (StringUtil.isBlank(USERNAME)) {
-				throw new IllegalArgumentException("Username cannot be empty");
+			if (StringUtil.isBlank(username)) {
+				throw new IllegalArgumentException("Username cannot be empty.");
 			}
 
-			if (StringUtil.isBlank(PASSWORD)) {
+			if (StringUtil.isBlank(password)) {
 				throw new IllegalArgumentException("Password cannot be empty");
 			}
 
-			if (StringUtil.isBlank(CLIENTSECRET)) {
+			if (StringUtil.isBlank(clientSecret)) {
 				throw new IllegalArgumentException("Client Secret cannot be empty.");
 			}
 
-			if (StringUtil.isBlank(LOGINURL)) {
+			if (StringUtil.isBlank(loginUrl)) {
 				throw new IllegalArgumentException("Login url cannot be empty.");
 			}
-			if (StringUtil.isBlank(GRANT)) {
+			if (StringUtil.isBlank(grant)) {
 				throw new IllegalArgumentException("Grant type cannot be empty.");
 			}
-			if (StringUtil.isBlank(CLIENTID)) {
+			if (StringUtil.isBlank(clientId)) {
 				throw new IllegalArgumentException("Client id cannot be empty.");
 			}
 
 		} else {
 
-			if (StringUtil.isBlank(TOKEN)) {
+			if (StringUtil.isBlank(token)) {
 				throw new IllegalArgumentException("Token cannot be empty.");
 			}
-			if (StringUtil.isBlank(BASEURL)) {
+			if (StringUtil.isBlank(baseUrl)) {
 				throw new IllegalArgumentException("Base URL cannot be empty.");
 			}
 
 		}
 
-		if (StringUtil.isBlank(SCIM_ENDPOINT)) {
+		if (StringUtil.isBlank(scim_endpoint)) {
 			throw new IllegalArgumentException("Scim endpoint cannot be empty.");
 		}
-		if (StringUtil.isBlank(SCIM_VERSION)) {
+		if (StringUtil.isBlank(scim_version)) {
 			throw new IllegalArgumentException("Scim version cannot be empty.");
 		}
 		LOGGER.info("Configuration valid");
@@ -351,19 +376,21 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 
 	@Override
 	public void release() {
-		this.LOGINURL = null;
-		this.SCIM_VERSION = null;
-		this.SCIM_ENDPOINT = null;
-		this.CLIENTID = null;
-		this.CLIENTSECRET = null;
-		this.PASSWORD = null;
-		this.USERNAME = null;
-		this.GRANT = null;
-		this.AUTHENTICATION = null;
-		this.PROXY = null;
-		this.PROXY_PORT_NUMBER = null;
-		this.TOKEN = null;
-		this.BASEURL = null;
+		LOGGER.info("The release of configuration resources is being performed");
+
+		this.loginUrl = null;
+		this.scim_version = null;
+		this.scim_endpoint = null;
+		this.clientId = null;
+		this.clientSecret = null;
+		this.password = null;
+		this.username = null;
+		this.grant = null;
+		this.authentication = null;
+		this.proxy = null;
+		this.proxy_port_number = null;
+		this.token = null;
+		this.baseUrl = null;
 	}
 
 }

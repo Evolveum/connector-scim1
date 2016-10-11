@@ -1,6 +1,20 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.polygon.scim;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
@@ -9,31 +23,17 @@ import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
-import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
- * A class containing the methods used for building a schema representation
- * which will be published by the connector. The schema representation is
- * generated out of a Map object containing the attributes present in the schema
- * described by the service provider.
+ * 
+ * @author Macik
+ * 
+ *         A class containing the methods used for building a schema
+ *         representation which will be published by the connector. The schema
+ *         representation is generated out of a Map object containing the
+ *         attributes present in the schema described by the service provider.
  **/
 public class SchemaObjectBuilderGeneric {
-
-	private String providerName = "";
-
-	// Constructor for Salesforce workaround purposes
-
-	/**
-	 * Used to populate the variable "providerName" with the name of the service
-	 * provider. Used mainly for workaround purposes.
-	 **/
-	public SchemaObjectBuilderGeneric(String providerName) {
-		this.providerName = providerName;
-
-	}
-
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 
 	/**
@@ -44,76 +44,38 @@ public class SchemaObjectBuilderGeneric {
 	 *            The map which carries the attribute present in the schema
 	 *            described by the service provider.
 	 * @param objectTypeName
-	 *            The name of the resource which is used to match the resource
-	 *            to a "objectType".
+	 *            The name of the endpoint resource which is used to match the
+	 *            resource to a "objectType". The string representation of an
+	 *            endpoint name (e.q. "/Users").
 	 * @return An instance of ObjectClassInfo with the constructed schema
 	 *         information.
 	 **/
-	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName) {
+	public ObjectClassInfo buildSchema(Map<String, Map<String, Object>> attributeMap, String objectTypeName,
+			String providerName) {
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
 		builder.addAttributeInfo(Name.INFO);
+
+		StrategyFetcher fetch = new StrategyFetcher();
+		HandlingStrategy strategy = fetch.fetchStrategy(providerName);
+
 		for (String attributeName : attributeMap.keySet()) {
 
-			AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName.intern());
+			builder = strategy.schemaBuilder(attributeName, attributeMap, builder, this);
 
-			if ("emails.default.primary".equals(attributeName)) {
-
-			}
-			// modified for slack "invalid type name" workaround purposes
-			if (!"active".equals(attributeName) && !(("emails.default.primary".equals(attributeName)
-					|| "emails.default.value".equals(attributeName)) && "slack".equals(providerName))) {
-				Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
-				schemaSubPropertiesMap = attributeMap.get(attributeName);
-				for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
-					if ("subAttributes".equals(subPropertieName.intern())) {
-						// TODO check positive cases
-						infoBuilder = new AttributeInfoBuilder(attributeName.intern());
-						JSONArray jsonArray = new JSONArray();
-
-						jsonArray = ((JSONArray) schemaSubPropertiesMap.get(subPropertieName));
-						for (int i = 0; i < jsonArray.length(); i++) {
-							JSONObject attribute = new JSONObject();
-							attribute = jsonArray.getJSONObject(i);
-						}
-						break;
-					} else {
-						subPropertiesChecker(infoBuilder, schemaSubPropertiesMap, subPropertieName);
-						// Salesforce workaround
-						if ("salesforce".equals(providerName)) {
-
-							if ("members.User.value".equals(attributeName)
-									|| "members.Group.value".equals(attributeName)
-									|| "members.default.value".equals(attributeName)
-									|| "members.default.display".equals(attributeName)) {
-								infoBuilder.setMultiValued(true);
-							}
-						}
-
-					}
-
-				}
-				builder.addAttributeInfo(infoBuilder.build());
-			} else {
-				if ("active".equals(attributeName)) {
-					builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-				} else {
-					slackWorkaround(builder, attributeName, infoBuilder);
-				}
-			}
 		}
 
-		if ("/Users".equals(objectTypeName.intern())) {
+		if ("/Users".equals(objectTypeName)) {
 			builder.setType(ObjectClass.ACCOUNT_NAME);
 
-		} else if ("/Groups".equals(objectTypeName.intern())) {
+		} else if ("/Groups".equals(objectTypeName)) {
 			builder.setType(ObjectClass.GROUP_NAME);
 		} else {
-			String[] splitTypeMame = objectTypeName.split("\\/"); // e.q.
-			// /Entitlements
-			ObjectClass objectClass = new ObjectClass(splitTypeMame[1]);
+			String[] splitTypeName = objectTypeName.split("\\/"); // e.q.
+			// "/Entitlements"
+			ObjectClass objectClass = new ObjectClass(splitTypeName[1]);
 			builder.setType(objectClass.getObjectClassValue());
 		}
-		LOGGER.info("Schema: {0}", builder.build());
+		//LOGGER.info("Schema: {0}", builder.build());
 		return builder.build();
 	}
 
@@ -128,21 +90,36 @@ public class SchemaObjectBuilderGeneric {
 	 * @param schemaAttributeMap
 	 *            A map containing the sub properties of the evaluated
 	 *            attribute.
-	 * @param subPropertieName
-	 *            String which represents the name of the sub-propertie.
-	 * @return The "AttributeInfoBuilder" object populated with the
-	 *         sub-propertie values set.
+	 * @param subPropertyName
+	 *            String which represents the name of the sub-property. The
+	 *            values which this parameter can acquire are the following:
+	 *            <li>"readOnly" - The property contains a boolean value which
+	 *            refers to if the attribute is "readOnly".
+	 *            <li>"mutability" - The property contains a string value which
+	 *            refers to how the attribute value can be manipulated (e.q.
+	 *            "readWrite","writeOnly","immutable","readOnly" )
+	 *            <li>"type" - The property contains a string value which
+	 *            represents the type of the attribute value (e.q. String,
+	 *            Boolean)
+	 *            <li>"required" - The property contains a boolean value which
+	 *            refers to the fact if the attribute is required or not.
+	 *            <li>"multiValued" - The property contains a boolean value
+	 *            which refers to the fact if the attribute is multi valued or
+	 *            not.
+	 * 
+	 * @return The "AttributeInfoBuilder" object populated with the sub-property
+	 *         values set.
 	 **/
-	private AttributeInfoBuilder subPropertiesChecker(AttributeInfoBuilder infoBuilder,
-			Map<String, Object> schemaAttributeMap, String subPropertieName) {
+	public AttributeInfoBuilder subPropertiesChecker(AttributeInfoBuilder infoBuilder,
+			Map<String, Object> schemaAttributeMap, String subPropertyName) {
 
-		if ("readOnly".equals(subPropertieName.intern())) {
+		if ("readOnly".equals(subPropertyName)) {
 
-			infoBuilder.setUpdateable((!(Boolean) schemaAttributeMap.get(subPropertieName)));
-			infoBuilder.setCreateable((!(Boolean) schemaAttributeMap.get(subPropertieName)));
+			infoBuilder.setUpdateable((!(Boolean) schemaAttributeMap.get(subPropertyName)));
+			infoBuilder.setCreateable((!(Boolean) schemaAttributeMap.get(subPropertyName)));
 
-		} else if ("mutability".equals(subPropertieName.intern())) {
-			String value = schemaAttributeMap.get(subPropertieName).toString();
+		} else if ("mutability".equals(subPropertyName)) {
+			String value = schemaAttributeMap.get(subPropertyName).toString();
 			if ("readWrite".equals(value)) {
 				infoBuilder.setUpdateable(true);
 				infoBuilder.setCreateable(true);
@@ -166,43 +143,26 @@ public class SchemaObjectBuilderGeneric {
 				if (value.isEmpty()) {
 
 				} else {
-					LOGGER.warn("Unknown nmutability attribute in schema translation: {0} ", value);
+					LOGGER.warn("Unknown mutability attribute in schema translation: {0} ", value);
 				}
 			}
 
-		} else if ("type".equals(subPropertieName.intern())) {
+		} else if ("type".equals(subPropertyName)) {
 
-			if ("string".equals(schemaAttributeMap.get(subPropertieName).toString().intern())) {
+			if ("string".equals(schemaAttributeMap.get(subPropertyName).toString())) {
 
 				infoBuilder.setType(String.class);
-			} else if ("boolean".equals(schemaAttributeMap.get(subPropertieName).toString().intern())) {
+			} else if ("boolean".equals(schemaAttributeMap.get(subPropertyName).toString())) {
 
 				infoBuilder.setType(Boolean.class);
 			}
 
-		} else if ("required".equals(subPropertieName.intern())) {
-			infoBuilder.setRequired(((Boolean) schemaAttributeMap.get(subPropertieName)));
-		} else if ("multiValued".equals(subPropertieName.intern())) {
-			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(subPropertieName)));
+		} else if ("required".equals(subPropertyName)) {
+			infoBuilder.setRequired(((Boolean) schemaAttributeMap.get(subPropertyName)));
+		} else if ("multiValued".equals(subPropertyName)) {
+			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(subPropertyName)));
 		}
 
 		return infoBuilder;
-	}
-
-	private void slackWorkaround(ObjectClassInfoBuilder builder, String attributeName,
-			AttributeInfoBuilder infoBuilder) {
-
-		if ("emails.default.value".equals(attributeName)) {
-			infoBuilder.setMultiValued(true);
-			infoBuilder.setRequired(true);
-			infoBuilder.setType(String.class);
-			builder.addAttributeInfo(infoBuilder.build());
-		} else {
-			infoBuilder.setMultiValued(false);
-			infoBuilder.setRequired(true);
-			infoBuilder.setType(Boolean.class);
-			builder.addAttributeInfo(infoBuilder.build());
-		}
-
 	}
 }

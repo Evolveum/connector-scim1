@@ -1,7 +1,24 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.polygon.test.scim;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -16,98 +33,232 @@ import org.testng.annotations.Test;
 import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
+/**
+ * 
+ * @author Macik
+ *
+ */
 public class StandardScimTestSuite {
 
-	private static Uid userUid;
-	private static Uid groupUid;
+	protected static final String PAGESIZE = "pageSize";
+	protected static final String PAGEOFFSET = "pageOffset";
+	protected static final String TESTNUMBER = "testNumber";
+	protected static final String USER = "user";
+	protected static final String GROUP = "group";
+	protected static final String USERS = "users";
+	protected static final String GROUPS = "groups";
+	protected static final String UPDATE = "update";
+	protected static final String UID = "uid";
+	protected static final String MDASH = "-";
 
-	private static Integer pageSize;
+	protected static final String CONFIGTESTPROVIDER = "configTestProvider";
+	protected static final String FILTERMETHODTESTPROVIDER = "filterMethodProvider";
+	protected static final String UPDATEUSERPROVIDER = "updateUserProvider";
+	protected static final String UPDATEGROUPPROVIDER = "updateGroupProvider";
+	protected static final String LISTALLPROVIDER = "listAllFromResourcesProvider";
+	protected static final String CONSISTENCYTESTPROVIDER = "parameterConsistencyTestProvider";
+	protected static final String DELETEPROVIDER = "deleteProvider";
+	protected static final String CREATEPROVIDER = "createTestProvider";
 
-	private static Integer pageOffset;
+	protected static final String CREATEOBJECTTEST = "createObjectTest";
+	protected static final String CONFIGURATIONTEST = "configurationTest";
 
-	private static Integer testNumber = 0;
+	private Uid userUid;
+	private Uid groupUid;
 
-	private static ScimConnector connector;
+	private Integer pageSize;
 
-	private static ScimConnectorConfiguration configuration;
+	private Integer pageOffset;
 
-	private static final Log LOGGER = Log.getLog(StandardScimTestSuite.class);
+	private Integer testNumber = 0;
 
-	@DataProvider(name = "filterMethodProvider")
-	public static Object[][] filterMethodResourcesProvider() {
+	private ScimConnector connector;
 
-		// TODO test issues with eq filter slack
+	private ScimConnectorConfiguration configuration;
 
-		return new Object[][] { { "users", "uid" }, { "groups", "uid" }, { "users", "contains" },
-				{ "groups", "contains" }, { "users", "startswith" }, { "groups", "startswith" },
-				{ "users", "endswith" }, { "groups", "endswith" }, { "users", "equals" }, { "groups", "equals" },
-				{ "groups", "containsall" } };
+	private PropertiesParser parser = new PropertiesParser(
+			"../ConnIdScimConnector/testProperties/standardTest.properties");
+
+	private final Log LOGGER = Log.getLog(StandardScimTestSuite.class);
+
+	@DataProvider(name = FILTERMETHODTESTPROVIDER)
+	public Object[][] filterMethodResourcesProvider() {
+
+		PropertiesParser parser = getParser();
+
+		Object object[][] = parser.fetchTestData(FILTERMETHODTESTPROVIDER);
+
+		return object;
 	}
 
-	@DataProvider(name = "updateUserProvider")
-	public static Object[][] updateUserResourceProvider() throws Exception {
-		Uid uid = getUid("user");
+	@DataProvider(name = UPDATEUSERPROVIDER)
+	public Object[][] updateUserResourceProvider() throws Exception {
+		Uid uid = getUid(USER);
 
-		return new Object[][] { { "single", uid }, { "multi", uid }, { "disabled", uid }, { "enabled", uid } };
+		PropertiesParser parser = getParser();
+		Object[][] object = parser.fetchTestData(UPDATEUSERPROVIDER);
+
+		for (int i = 0; i < object.length; i++) {
+			object[i][1] = uid;
+		}
+
+		return object;
 	}
 
-	@DataProvider(name = "updateGroupProvider")
-	public static Object[][] updateGroupResourceProvider() throws Exception {
-		Uid uid = getUid("group");
+	@DataProvider(name = UPDATEGROUPPROVIDER)
+	public Object[][] updateGroupResourceProvider() throws Exception {
 
-		return new Object[][] { { "single", uid }, { "multi", uid } };
+		Uid uid = getUid(GROUP);
+
+		PropertiesParser parser = getParser();
+		Object[][] object = parser.fetchTestData(UPDATEGROUPPROVIDER);
+
+		for (int i = 0; i < object.length; i++) {
+			object[i][1] = uid;
+
+		}
+
+		return object;
 	}
 
-	@DataProvider(name = "listAllfromResourcesProvider")
-	public static Object[][] listAllfromResourcesProvider() {
-		return new Object[][] { { 1, "users" }, { 1, "groups" } };
+	@DataProvider(name = LISTALLPROVIDER)
+	public Object[][] listAllFromResourcesProvider() {
+
+		PropertiesParser parser = getParser();
+		Object[][] object = parser.fetchTestData(LISTALLPROVIDER);
+
+		for (int i = 0; i < object.length; i++) {
+			object[i][1] = 1;
+
+		}
+		return object;
 	}
 
-	@DataProvider(name = "parameterConsistencyTestProvider")
-	public static Object[][] parameterConsistencyResourceProvider() {
+	@DataProvider(name = CONSISTENCYTESTPROVIDER)
+	public Object[][] parameterConsistencyResourceProvider() {
 
-		return new Object[][] { { "groups", "uid" }, { "users", "uid" } };
+		PropertiesParser parser = getParser();
+
+		Object object[][] = parser.fetchTestData(CONSISTENCYTESTPROVIDER);
+
+		return object;
 	}
 
-	@DataProvider(name = "deleteProvider")
-	public static Object[][] deleteResourceProvider() {
+	@DataProvider(name = DELETEPROVIDER)
+	public Object[][] deleteResourceProvider() throws Exception {
 
-		return new Object[][] { { "users", userUid }, { "groups", groupUid } };
+		Uid user = getUid(USER);
+		Uid group = getUid(GROUP);
+
+		PropertiesParser parser = getParser();
+
+		Object[][] object = parser.fetchTestData(DELETEPROVIDER);
+
+		for (int i = 0; i < object.length; i++) {
+			String parameterName = (String) object[i][0];
+
+			if (parameterName.equals(USERS)) {
+
+				object[i][1] = user;
+
+			} else if (parameterName.equals(GROUPS)) {
+
+				object[i][1] = group;
+			}
+
+		}
+
+		return object;
 	}
 
-	@DataProvider(name = "createTestProvider")
-	public static Object[][] createResourceProvider() {
+	@DataProvider(name = CREATEPROVIDER)
+	public Object[][] createResourceProvider() {
 
-		return new Object[][] { { "users", true }, { "groups", true } };
+		Boolean notFalse = true;
+
+		PropertiesParser parser = getParser();
+
+		Object[][] object = parser.fetchTestData(DELETEPROVIDER);
+
+		for (int i = 0; i < object.length; i++) {
+			String parameterName = (String) object[i][0];
+
+			if (parameterName.equals(USERS)) {
+
+				object[i][1] = notFalse;
+
+			} else if (parameterName.equals(GROUPS)) {
+
+				object[i][1] = notFalse;
+			}
+
+		}
+
+		return object;
 	}
 
-	@DataProvider(name = "configTestProvider")
-	public static Object[][] configurationResourcesProvider() {
+	@DataProvider(name = CONFIGTESTPROVIDER)
+	public Object[][] configurationResourcesProvider() {
+		PropertiesParser parser = getParser();
 
-		pageSize = 1;
-		pageOffset = 1;
+		int width = 2;
 
-		testNumber = 1;
+		List<String> nonConnectionParameters = new ArrayList<String>();
 
-		HashMap<String, String> configurationParameters = new HashMap<String, String>();
-		configurationParameters.put("clientID", "**");
-		configurationParameters.put("clientSecret", "**");
-		configurationParameters.put("endpoint", "**");
-		configurationParameters.put("loginUrl", "");
-		configurationParameters.put("password", "**");
-		configurationParameters.put("service", "**");
-		configurationParameters.put("userName", "**");
-		configurationParameters.put("version", "**");
-		configurationParameters.put("authentication", "**");
-		configurationParameters.put("baseurl", "**");
-		configurationParameters.put("token", "**");
-		configurationParameters.put("proxy", "**");
-		configurationParameters.put("proxy_port_number", "**");
+		nonConnectionParameters.add(PAGESIZE);
+		nonConnectionParameters.add(PAGEOFFSET);
+		nonConnectionParameters.add(TESTNUMBER);
 
+		Map<String, String> configurationParameters = new HashMap<String, String>();
+
+		Object[][] object = parser.fetchTestData(CONFIGTESTPROVIDER);
+		String name = "";
+		String value = "";
+		for (int i = 0; i < object.length; i++) {
+
+			for (int j = 0; j < width; j++) {
+				if (j == 0) {
+					name = (String) object[i][j];
+				} else {
+					value = (String) object[i][j];
+				}
+				if (nonConnectionParameters.contains(name)) {
+
+					if (!value.isEmpty()) {
+
+						if (name.equals(PAGESIZE)) {
+
+							pageSize = Integer.parseInt(value);
+							name = "";
+							value = "";
+						} else if (name.equals(PAGEOFFSET)) {
+							pageOffset = Integer.parseInt(value);
+							name = "";
+							value = "";
+						} else if (name.equals(TESTNUMBER)) {
+							testNumber = Integer.parseInt(value);
+							name = "";
+							value = "";
+						}
+
+					}
+
+				} else {
+					if (!name.isEmpty() && !value.isEmpty()) {
+						configurationParameters.put(name, value);
+						name = "";
+						value = "";
+					}
+
+				}
+
+			}
+
+		}
 		return new Object[][] { { configurationParameters, true } };
 	}
 
-	@Test(priority = 1, dataProvider = "configTestProvider")
+	@Test(priority = 1, dataProvider = CONFIGTESTPROVIDER)
 	public void configurationTest(HashMap<String, String> configurationParameters, Boolean assertionVariable) {
 
 		groupUid = null;
@@ -121,6 +272,7 @@ public class StandardScimTestSuite {
 
 			connector = new ScimConnector();
 			connector.init(configuration);
+			connector.test();
 			connector.schema();
 		}
 
@@ -128,17 +280,17 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 2, dependsOnMethods = { "configurationTest" }, dataProvider = "createTestProvider")
+	@Test(priority = 2, dependsOnMethods = { CONFIGURATIONTEST }, dataProvider = CREATEPROVIDER)
 	private void createObjectTest(String resourceName, Boolean assertParameter) {
 
 		Boolean resourceWasCreated = false;
 
-		if ("users".equals(resourceName)) {
+		if (USERS.equals(resourceName)) {
 			userUid = StandardScimTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
 			if (userUid != null) {
 				resourceWasCreated = true;
 			}
-		} else if ("groups".equals(resourceName)) {
+		} else if (GROUPS.equals(resourceName)) {
 
 			groupUid = StandardScimTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
 			if (groupUid != null) {
@@ -154,19 +306,19 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 2, dependsOnMethods = { "createObjectTest" }, dataProvider = "parameterConsistencyTestProvider")
+	@Test(priority = 2, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = CONSISTENCYTESTPROVIDER)
 	private void parameterConsistencyTest(String resourceName, String filterType) {
 
 		StringBuilder testType = new StringBuilder("createObject");
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
 		result = StandardScimTestUtils.filter(filterType, resourceName, testNumber, userUid, groupUid, connector,
 				options);
 
-		HashMap<String, String> evaluationResults = StandardScimTestUtils.processResult(result, resourceName,
+		Map<String, String> evaluationResults = StandardScimTestUtils.processResult(result, resourceName,
 				testType.toString(), userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
@@ -178,10 +330,10 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 6, dependsOnMethods = { "createObjectTest" }, dataProvider = "filterMethodProvider")
-	public void filterMethodTest(String resourceName, String filterType) {
+	@Test(priority = 6, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = FILTERMETHODTESTPROVIDER)
+	public void filterMethodTest(String filterType, String resourceName) {
 
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
@@ -192,9 +344,9 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 5, dependsOnMethods = { "createObjectTest" }, dataProvider = "listAllfromResourcesProvider")
-	private void listAllTest(int numberOfResources, String resourceName) {
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+	@Test(priority = 5, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = LISTALLPROVIDER)
+	private void listAllTest(String resourceName, int numberOfResources) {
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
@@ -204,22 +356,22 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 3, dependsOnMethods = { "createObjectTest" }, dataProvider = "updateUserProvider")
+	@Test(priority = 3, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = UPDATEUSERPROVIDER)
 	private void updateUserTest(String updateType, Uid uid) {
 
-		Uid returnedUid = StandardScimTestUtils.updateResourceTest("users", updateType, userUid, groupUid, testNumber,
+		Uid returnedUid = StandardScimTestUtils.updateResourceTest(USERS, updateType, userUid, groupUid, testNumber,
 				connector);
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
-		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
+		StringBuilder testType = new StringBuilder(UPDATE).append(MDASH).append(updateType);
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
-		result = StandardScimTestUtils.filter("uid", "users", testNumber, userUid, groupUid, connector, options);
+		result = StandardScimTestUtils.filter(UID, USERS, testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = StandardScimTestUtils.processResult(result, "users",
-				testType.toString(), userUid, testNumber);
+		Map<String, String> evaluationResults = StandardScimTestUtils.processResult(result, USERS, testType.toString(),
+				userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
 
@@ -232,22 +384,22 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 4, dependsOnMethods = { "createObjectTest" }, dataProvider = "updateGroupProvider")
+	@Test(priority = 4, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = UPDATEGROUPPROVIDER)
 	private void updateGroupTest(String updateType, Uid uid) {
 
-		Uid returnedUid = StandardScimTestUtils.updateResourceTest("groups", updateType, userUid, groupUid, testNumber,
+		Uid returnedUid = StandardScimTestUtils.updateResourceTest(GROUPS, updateType, userUid, groupUid, testNumber,
 				connector);
 
-		ArrayList<ConnectorObject> result = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
-		StringBuilder testType = new StringBuilder("update").append("-").append(updateType);
+		StringBuilder testType = new StringBuilder(UPDATE).append(MDASH).append(updateType);
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
-		result = StandardScimTestUtils.filter("uid", "groups", testNumber, userUid, groupUid, connector, options);
+		result = StandardScimTestUtils.filter(UID, GROUPS, testNumber, userUid, groupUid, connector, options);
 
-		HashMap<String, String> evaluationResults = StandardScimTestUtils.processResult(result, "groups",
-				testType.toString(), userUid, testNumber);
+		Map<String, String> evaluationResults = StandardScimTestUtils.processResult(result, GROUPS, testType.toString(),
+				userUid, testNumber);
 
 		for (String attributeName : evaluationResults.keySet()) {
 
@@ -260,28 +412,28 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 7, dependsOnMethods = { "createObjectTest" }, dataProvider = "deleteProvider")
+	@Test(priority = 7, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = DELETEPROVIDER)
 	private void deleteObjectTest(String resourceName, Uid uid) {
 
-		ArrayList<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
+		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
 		StandardScimTestUtils.deleteResourceTestHelper(resourceName, uid, connector);
-		returnedObjects = StandardScimTestUtils.filter("uid", resourceName, testNumber, userUid, groupUid, connector,
+		returnedObjects = StandardScimTestUtils.filter(UID, resourceName, testNumber, userUid, groupUid, connector,
 				options);
 
 		Assert.assertTrue(returnedObjects.isEmpty());
 
 	}
 
-	public static Uid getUid(String resourceName) throws Exception {
+	public Uid getUid(String resourceName) throws Exception {
 		Uid uid = null;
 
-		if ("user".equals(resourceName)) {
+		if (USER.equals(resourceName)) {
 			uid = userUid;
 
-		} else if ("group".equals(resourceName)) {
+		} else if (GROUP.equals(resourceName)) {
 
 			uid = groupUid;
 		} else {
@@ -300,18 +452,18 @@ public class StandardScimTestSuite {
 
 			String methodThatFailed = result.getMethod().getMethodName();
 
-			if ("createObjectTest".equals(methodThatFailed)) {
+			if (CREATEOBJECTTEST.equals(methodThatFailed)) {
 
 				if (userUid != null) {
-					LOGGER.warn("Atempting to delete resource: {0}", "users");
-					deleteObjectTest("users", userUid);
+					LOGGER.warn("Atempting to delete resource: {0}", USERS);
+					deleteObjectTest(USERS, userUid);
 				} else {
 					LOGGER.warn(
 							"Test failure, uid value of resource \"User\" is null. No resource deletion operation was atempted");
 				}
 				if (groupUid != null) {
-					LOGGER.warn("Atempting to delete resource: {0}", "groups");
-					deleteObjectTest("groups", groupUid);
+					LOGGER.warn("Atempting to delete resource: {0}", GROUPS);
+					deleteObjectTest(GROUPS, groupUid);
 				} else
 
 				{
@@ -323,13 +475,13 @@ public class StandardScimTestSuite {
 
 			} else if ("updateUserTest".equals(methodThatFailed)) {
 				if (userUid != null) {
-					LOGGER.warn("Atempting to delete resource: {0}", "users");
-					deleteObjectTest("users", userUid);
+					LOGGER.warn("Atempting to delete resource: {0}", USERS);
+					deleteObjectTest(USERS, userUid);
 				}
 
 				if (groupUid != null) {
-					LOGGER.warn("Atempting to delete resource: {0}", "groups");
-					deleteObjectTest("groups", groupUid);
+					LOGGER.warn("Atempting to delete resource: {0}", GROUPS);
+					deleteObjectTest(GROUPS, groupUid);
 				}
 
 				throw new Exception(
@@ -338,6 +490,11 @@ public class StandardScimTestSuite {
 
 		}
 
+	}
+
+	public PropertiesParser getParser() {
+
+		return parser;
 	}
 
 }

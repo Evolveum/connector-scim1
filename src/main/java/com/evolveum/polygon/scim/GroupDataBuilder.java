@@ -1,12 +1,25 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.polygon.scim;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
@@ -19,36 +32,32 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * A class that contains the methods needed for construction of json object
- * representations of provided data sets. Attributes are translated to json
- * objects and arrays of json objects depending on the attributes and
- * dictionary. The dictionary is set to translate the attributes to correspond
- * to the SCIM group core schema representation
+ * @author Macik
+ * 
+ *         A class that contains the methods needed for construction of json
+ *         object representations of provided data sets. Attributes are
+ *         translated to json objects and arrays of json objects depending on
+ *         the attributes and dictionary. The dictionary is set to translate the
+ *         attributes to correspond to the SCIM group core schema representation
  */
 public class GroupDataBuilder implements ObjectTranslator {
 
-	private static Map<String, String> objectNameDictionary = CollectionUtil.newCaseInsensitiveMap();
-	private static final Log LOGGER = Log.getLog(UserDataBuilder.class);
-
-	private static final String DELETE = "delete";
+	private static final Log LOGGER = Log.getLog(GroupDataBuilder.class);
 
 	private String operation;
 
+	/**
+	 * Constructor used to populate the local variable "operation".
+	 * 
+	 * @param operation
+	 *            String variable indicating that the "delete" operation
+	 *            parameter should be added in the constructed json object. The
+	 *            values which this parameter might acquire:
+	 *            <li>"delete"
+	 *            <li>"" - or empty string
+	 **/
 	public GroupDataBuilder(String operation) {
 		this.operation = operation;
-	}
-
-	static {
-		objectNameDictionary.put("displayName", "displayName");
-
-		objectNameDictionary.put("members.User.value", "value");
-		objectNameDictionary.put("members.User.display", "display");
-		objectNameDictionary.put("members.Group.value", "value");
-		objectNameDictionary.put("members.Group.display", "display");
-
-		objectNameDictionary.put("schemas", "schemas");
-		objectNameDictionary.put("members.default.value", "value");
-		objectNameDictionary.put("members.default.display", "display");
 
 	}
 
@@ -76,7 +85,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 			for (Attribute injectedAttribute : injectedAttributes) {
 				String attributeName = injectedAttribute.getName();
 
-				if (attributeName.contains(".")) {
+				if (attributeName.contains(DOT)) {
 
 					multiLayerAttribute.add(injectedAttribute);
 				} else {
@@ -91,30 +100,25 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 			String attributeName = attribute.getName();
 
-			if (objectNameDictionary.containsKey(attributeName)) {
-				if (attributeName.contains(".")) {
+			if (attributeName.contains(DOT)) {
 
-					String[] keyParts = attributeName.split("\\."); // e.g.
-					// emails.work.value
-					if (keyParts.length == 3) {
-						multiLayerAttribute.add(attribute);
-					} else {
-						LOGGER.warn(
-								"Attribute name not defined in group dictionary: {0}. Error ocourance while translating attribute set.",
-								attributeName);
-					}
-
+				String[] keyParts = attributeName.split(DELIMITER); // e.g.
+				// emails.work.value
+				if (keyParts.length == 3) {
+					multiLayerAttribute.add(attribute);
 				} else {
-
-					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
+					LOGGER.warn(
+							"Attribute name not defined in group dictionary: {0}. Error occurrence while translating attribute set.",
+							attributeName);
 				}
 
 			} else {
-				LOGGER.warn(
-						"Attribute name not defined in group dictionary: {0}. Error ocourance while translating attribute set.",
-						attributeName);
+
+				completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 			}
+
 		}
+
 		if (multiLayerAttribute != null) {
 			buildLayeredAtrribute(multiLayerAttribute, completeJsonObj);
 		}
@@ -137,23 +141,23 @@ public class GroupDataBuilder implements ObjectTranslator {
 	private JSONObject buildLayeredAtrribute(Set<Attribute> multiLayerAttribute, JSONObject json) {
 
 		String mainAttributeName = "";
-		ArrayList<String> checkedNames = new ArrayList<String>();
+		List<String> checkedNames = new ArrayList<String>();
 		for (Attribute i : multiLayerAttribute) {
 
 			String attributeName = i.getName();
-			String[] attributeNameParts = attributeName.split("\\."); // e.q.
+			String[] attributeNameParts = attributeName.split(DELIMITER); // e.q.
 			// email.work.value
 
 			if (checkedNames.contains(attributeNameParts[0])) {
 
 			} else {
 				Set<Attribute> subAttributeLayerSet = new HashSet<Attribute>();
-				mainAttributeName = attributeNameParts[0].intern();
+				mainAttributeName = attributeNameParts[0];
 				checkedNames.add(mainAttributeName);
 				for (Attribute j : multiLayerAttribute) {
 
 					String secondLoopAttributeName = j.getName();
-					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split("\\."); // e.q.
+					String[] secondLoopAttributeNameParts = secondLoopAttributeName.split(DELIMITER); // e.q.
 					// email.work.value
 
 					if (secondLoopAttributeNameParts[0].equals(mainAttributeName)) {
@@ -161,28 +165,28 @@ public class GroupDataBuilder implements ObjectTranslator {
 					}
 				}
 
-				String canonicaltypeName = "";
+				String canonicalTypeName = "";
 				boolean writeToArray = true;
 				JSONArray jArray = new JSONArray();
 
-				ArrayList<String> checkedTypeNames = new ArrayList<String>();
+				List<String> checkedTypeNames = new ArrayList<String>();
 				for (Attribute k : subAttributeLayerSet) {
 
 					String nameFromSubSet = k.getName();
-					String[] nameFromSubSetParts = nameFromSubSet.split("\\."); // e.q.
+					String[] nameFromSubSetParts = nameFromSubSet.split(DELIMITER); // e.q.
 					// email.work.value
 
-					if (checkedTypeNames.contains(nameFromSubSetParts[1].intern())) {
+					if (checkedTypeNames.contains(nameFromSubSetParts[1])) {
 					} else {
 						JSONObject multivalueObject = new JSONObject();
-						canonicaltypeName = nameFromSubSetParts[1].intern();
+						canonicalTypeName = nameFromSubSetParts[1];
 
-						checkedTypeNames.add(canonicaltypeName);
+						checkedTypeNames.add(canonicalTypeName);
 						for (Attribute subSetAttribute : subAttributeLayerSet) {
 							String secondLoopNameFromSubSetParts = subSetAttribute.getName();
-							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split("\\."); // e.q.
+							String[] finalSubAttributeNameParts = secondLoopNameFromSubSetParts.split(DELIMITER); // e.q.
 							// email.work.value
-							if (finalSubAttributeNameParts[1].intern().equals(canonicaltypeName)) {
+							if (finalSubAttributeNameParts[1].equals(canonicalTypeName)) {
 
 								if (subSetAttribute.getValue() != null && subSetAttribute.getValue().size() > 1) {
 									writeToArray = false;
@@ -190,14 +194,14 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 									for (Object attributeValue : valueList) {
 										multivalueObject = new JSONObject();
-										multivalueObject.put(finalSubAttributeNameParts[2].intern(), attributeValue);
+										multivalueObject.put(finalSubAttributeNameParts[2], attributeValue);
 
-										if (!"default".equals(nameFromSubSetParts[1].intern())) {
-											multivalueObject.put("type", nameFromSubSetParts[1].intern());
+										if (!DEFAULT.equals(nameFromSubSetParts[1])) {
+											multivalueObject.put(TYPE, nameFromSubSetParts[1]);
 										}
 										if (operation != null) {
 											if (DELETE.equals(operation)) {
-												multivalueObject.put("operation", DELETE);
+												multivalueObject.put(OPERATION, DELETE);
 											}
 										}
 										jArray.put(multivalueObject);
@@ -206,8 +210,9 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 								} else {
 
-									if (!"blank".equals(finalSubAttributeNameParts[2].intern())) {
-										multivalueObject.put(finalSubAttributeNameParts[2].intern(),
+									if (finalSubAttributeNameParts.length > 2
+											&& !BLANK.equals(finalSubAttributeNameParts[2])) {
+										multivalueObject.put(finalSubAttributeNameParts[2],
 												AttributeUtil.getSingleValue(subSetAttribute));
 									} else {
 
@@ -215,12 +220,12 @@ public class GroupDataBuilder implements ObjectTranslator {
 										writeToArray = false;
 									}
 
-									if (!"default".equals(nameFromSubSetParts[1].intern())) {
-										multivalueObject.put("type", nameFromSubSetParts[1].intern());
+									if (!DEFAULT.equals(nameFromSubSetParts[1])) {
+										multivalueObject.put(TYPE, nameFromSubSetParts[1]);
 									}
 									if (operation != null) {
 										if (DELETE.equals(operation)) {
-											multivalueObject.put("operation", DELETE);
+											multivalueObject.put(OPERATION, DELETE);
 										}
 									}
 

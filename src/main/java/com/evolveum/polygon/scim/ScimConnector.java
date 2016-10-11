@@ -1,4 +1,27 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.polygon.scim;
+
+/**
+ *
+ * @author Macik
+ * 
+ * Implementation of the connId connector class for the scim standard.
+ * 
+ */
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,11 +29,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.http.client.methods.HttpPost;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.OperationOptions;
@@ -18,10 +42,6 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
-import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
-import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
-import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.Configuration;
@@ -34,7 +54,6 @@ import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
-import org.json.JSONObject;
 
 @ConnectorClass(displayNameKey = "ScimConnector.connector.display", configurationClass = ScimConnectorConfiguration.class)
 
@@ -42,15 +61,20 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		UpdateAttributeValuesOp {
 
 	private ScimConnectorConfiguration configuration;
-	private CrudManagerScim crudManager;
 	private Boolean genericsCanBeApplied = false;
 
 	private static final String SCHEMAS = "Schemas/";
 	private static final String USERS = "Users";
 	private static final String GROUPS = "Groups";
-
+	private static final String DEFAULT = "default";
+	private static final String DELETE = "delete";
 	private Schema schema = null;
 	private String providerName = "";
+
+	private HandlingStrategy strategy;
+
+	private static final char QUERYCHAR = '?';
+	private static final char QUERYDELIMITER = '&';
 
 	private static final Log LOGGER = Log.getLog(ScimConnector.class);
 
@@ -60,20 +84,11 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Building schema definition");
 
 		if (schema == null) {
-			// test log delete
 			SchemaBuilder schemaBuilder = new SchemaBuilder(ScimConnector.class);
-			ParserSchemaScim schemaParser = crudManager.qeueryEntity(providerName, SCHEMAS);
+			ParserSchemaScim schemaParser = strategy.querySchemas(providerName, SCHEMAS, configuration);
 
 			if (schemaParser != null) {
-
-				long startTime = System.currentTimeMillis();
 				buildSchemas(schemaBuilder, schemaParser);
-				long endTime = System.currentTimeMillis();
-
-				long time = (endTime - startTime);
-
-				LOGGER.error("The buildSchemas methods Time: {0} milliseconds", time);
-
 			} else {
 
 				ObjectClassInfo userSchemaInfo = UserDataBuilder.getUserSchema();
@@ -91,20 +106,18 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * generic methods can be applied to the query. If not the methods
 	 * implemented for core schema processing are applied.
 	 * 
-	 * @throws IllegalArgumentException
-	 *             if the object value is not provided.
 	 **/
 	@Override
 	public void delete(ObjectClass object, Uid uid, OperationOptions options) {
 		LOGGER.info("Resource object delete");
 		if (uid.getUidValue() == null && uid.getUidValue().isEmpty()) {
 			LOGGER.error("Uid not provided or empty: {0} ", uid.getUidValue());
-			throw new IllegalArgumentException("Uid value not provided or empty");
+			throw new InvalidAttributeValueException("Uid value not provided or empty");
 		}
 
 		if (object == null) {
 			LOGGER.error("Object value not provided {0} ", object);
-			throw new IllegalArgumentException("Object value not provided");
+			throw new InvalidAttributeValueException("Object value not provided");
 		}
 
 		if (genericsCanBeApplied) {
@@ -112,25 +125,25 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				crudManager.deleteEntity(uid, USERS);
+				strategy.delete(uid, USERS, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				crudManager.deleteEntity(uid, GROUPS);
+				strategy.delete(uid, GROUPS, configuration);
 			} else {
 
-				crudManager.deleteEntity(uid, endpointName);
+				strategy.delete(uid, endpointName, configuration);
 			}
 
 		} else {
 
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				crudManager.deleteEntity(uid, USERS);
+				strategy.delete(uid, USERS, configuration);
 			} else if (ObjectClass.GROUP.equals(object)) {
-				crudManager.deleteEntity(uid, GROUPS);
+				strategy.delete(uid, GROUPS, configuration);
 			} else {
 				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new IllegalArgumentException("Object value not valid");
+				throw new InvalidAttributeValueException("Object value not valid");
 			}
 		}
 	}
@@ -139,63 +152,37 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * Implementation of the connId create method. The method evaluates if
 	 * generic methods can be applied to the query. If not the methods
 	 * implemented for core schema processing are applied.
-	 * 
-	 * @throws IllegalArgumentException
-	 *             if the value of set is not provided.
 	 */
 	@Override
 	public Uid create(ObjectClass object, Set<Attribute> attribute, OperationOptions options) {
 		LOGGER.info("Resource object create");
 
-		HashSet<Attribute> injectetAttributeSet = new HashSet<Attribute>();
+		Set<Attribute> injectedAttributeSet = new HashSet<Attribute>();
 
 		if (attribute == null || attribute.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty", attribute);
-			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
 
 		if (genericsCanBeApplied) {
-			Uid uid = new Uid("default");
+			Uid uid = new Uid(DEFAULT);
 			GenericDataBuilder jsonDataBuilder = new GenericDataBuilder("");
 			String endpointName = object.getObjectClassValue();
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
+				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
-				// TODO improve for other providers
-				if ("slack".equals(providerName)) {
-
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
-							"urn:scim:schemas:core:1.0");
-
-					injectetAttributeSet.add(schemaAttribute);
-				}
-
-				uid = crudManager.createEntity(USERS, jsonDataBuilder, attribute, injectetAttributeSet);
+				uid = strategy.create(USERS, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
+				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
-				// TODO improve for other providers
-				if ("slack".equals(providerName)) {
-
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
-							"urn:scim:schemas:core:1.0");
-					injectetAttributeSet.add(schemaAttribute);
-
-				}
-
-				uid = crudManager.createEntity(GROUPS, jsonDataBuilder, attribute, injectetAttributeSet);
+				uid = strategy.create(GROUPS, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 
 			} else {
-				// TODO improve for other providers
-				if ("slack".equals(providerName)) {
+				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
-							"urn:scim:schemas:core:1.0");
-
-					injectetAttributeSet.add(schemaAttribute);
-				}
-
-				uid = crudManager.createEntity(endpointName, jsonDataBuilder, attribute, injectetAttributeSet);
+				uid = strategy.create(endpointName, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 			}
 
 			return uid;
@@ -204,19 +191,13 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			if (ObjectClass.ACCOUNT.equals(object)) {
 				ObjectTranslator userBuild = new UserDataBuilder("");
 
-				// TODO the schema attribute might change workaround needed
-				if ("slack".equals(providerName)) {
+				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
-							"urn:scim:schemas:core:1.0");
-					injectetAttributeSet.add(schemaAttribute);
-				}
-
-				Uid uid = crudManager.createEntity(USERS, userBuild, attribute, injectetAttributeSet);
+				Uid uid = strategy.create(USERS, userBuild, attribute, injectedAttributeSet, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 
 				return uid;
@@ -225,26 +206,21 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 				GroupDataBuilder groupBuild = new GroupDataBuilder("");
 
-				// TODO the schema attribute might change workaround needed
-				if ("slack".equals(providerName)) {
+				StrategyFetcher fetch = new StrategyFetcher();
+				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
+				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
-					Attribute schemaAttribute = AttributeBuilder.build("schemas.default.blank",
-							"urn:scim:schemas:core:1.0");
-					injectetAttributeSet.add(schemaAttribute);
-
-				}
-
-				Uid uid = crudManager.createEntity(GROUPS, groupBuild, attribute, injectetAttributeSet);
+				Uid uid = strategy.create(GROUPS, groupBuild, attribute, injectedAttributeSet, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 			} else {
 
 				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new IllegalArgumentException("Object value not valid");
+				throw new ConnectorException("Object value not valid");
 			}
 		}
 	}
@@ -253,7 +229,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	public void dispose() {
 		LOGGER.info("Configuration cleanup");
 		configuration = null;
-		crudManager = null;
 	}
 
 	@Override
@@ -268,13 +243,11 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Initiation");
 		this.configuration = (ScimConnectorConfiguration) configuration;
 		this.configuration.validate();
-		this.crudManager = new CrudManagerScim((ScimConnectorConfiguration) configuration);
-
-		// For Salesforce workaround purposes
 
 		if (this.configuration.getLoginURL() != null && !this.configuration.getLoginURL().isEmpty()) {
 
 			loginUrlParts = this.configuration.getLoginURL().split("\\."); // e.g.
+			// https://login.salesforce.com
 
 		} else {
 
@@ -284,9 +257,11 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		if (loginUrlParts.length >= 2) {
 			providerName = loginUrlParts[1];
 		}
-		//
+		StrategyFetcher fetcher = new StrategyFetcher();
+		strategy = fetcher.fetchStrategy(providerName);
+
 		LOGGER.info("The provider name is {0}", providerName);
-		ParserSchemaScim schemaParser = crudManager.qeueryEntity(providerName, SCHEMAS);
+		ParserSchemaScim schemaParser = strategy.querySchemas(providerName, SCHEMAS, this.configuration);
 
 		if (schemaParser != null) {
 
@@ -305,73 +280,60 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * implemented for core schema processing are applied. This method is used
 	 * to update singular and non complex attributes, e.g. name.familyname.
 	 * 
-	 * @throws IllegalArgumentException
-	 *             if the provided set of attributes is null or empty.
 	 * @return the Uid of the updated object.
 	 **/
+
 	@Override
 	public Uid update(ObjectClass object, Uid id, Set<Attribute> attributes, OperationOptions options) {
 		LOGGER.info("Resource object update");
 		if (attributes == null || attributes.isEmpty()) {
-			LOGGER.error("Set of Attributes can not be null or empty: {}", attributes);
-			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+			LOGGER.error("Set of Attributes can not be null or empty: {0}", attributes);
+			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
 		if (genericsCanBeApplied) {
-			Uid uid = new Uid("default");
+			Uid uid = new Uid(DEFAULT);
 			GenericDataBuilder genericDataBuilder = new GenericDataBuilder("");
 
 			String endpointName = object.getObjectClassValue();
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, USERS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
 			} else {
-				uid = crudManager.updateEntity(id, endpointName,
-						genericDataBuilder.translateSetToJson(attributes, null));
+				uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
 
 			}
 
 			return uid;
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userJson = new UserDataBuilder("");
-				JSONObject userJsonObject = new JSONObject();
-
-				userJsonObject = userJson.translateSetToJson(attributes, null);
-
-				Uid uid = crudManager.updateEntity(id, USERS, userJsonObject);
-
-				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
+				UserDataBuilder userDataBuilder = new UserDataBuilder("");
+				Uid uid = strategy.update(id, USERS, userDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 
 			} else if (ObjectClass.GROUP.equals(object)) {
 
-				GroupDataBuilder groupJson = new GroupDataBuilder("");
-				JSONObject groupJsonObject = new JSONObject();
+				GroupDataBuilder groupDataBuilder = new GroupDataBuilder("");
 
-				groupJsonObject = groupJson.translateSetToJson(attributes, null);
-
-				Uid uid = crudManager.updateEntity(id, GROUPS, groupJsonObject);
-
-				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
+				Uid uid = strategy.update(id, GROUPS, groupDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 			} else {
 				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new IllegalArgumentException("Object value not valid");
+				throw new InvalidAttributeValueException("Object value not valid");
 			}
 		}
 	}
@@ -381,14 +343,32 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 		LOGGER.info("Test");
 
-		if (crudManager != null && configuration != null) {
-			if (crudManager.logIntoService() != null) {
-				LOGGER.info("Test was succesfull");
+		if (configuration != null) {
+			Map<String, Object> authoriazationData = ServiceAccessManager.logIntoService(configuration);
+
+			if (authoriazationData != null && !authoriazationData.isEmpty()) {
+
+				if (authoriazationData.containsKey("loginInstance")) {
+
+					HttpPost instance = (HttpPost) authoriazationData.get("loginInstance");
+
+					LOGGER.info("Test was succesfull");
+					ServiceAccessManager.logOut(instance);
+				} else {
+
+					LOGGER.error(
+							"Error with establishing connection while testing. The login instance was not created.");
+				}
+
 			} else {
 
-				LOGGER.warn("Connection was not established while testing");
+				LOGGER.error("Error with establishing connection while testing. No authorization data were provided.");
 			}
-			crudManager.logOut();
+
+		} else {
+
+			LOGGER.error(
+					"Error with establishing connection while testing. No instance of the configuration class or CRUD+L communication class was created");
 		}
 
 	}
@@ -419,6 +399,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Connector object execute query");
 		LOGGER.info("Object class value {0}", objectClass.getDisplayNameKey());
 		StringBuilder queryUriSnippet = new StringBuilder("");
+		String endpointName = objectClass.getObjectClassValue();
 
 		if (options != null) {
 			queryUriSnippet = processOptions(options);
@@ -433,182 +414,19 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			throw new ConnectorException("Result handler for queuery can not be null");
 		}
 
-		String valueForSpecialHandling = querryChecker(query);
+		if (ObjectClass.ACCOUNT.getObjectClassValue().equals(endpointName)) {
 
-		if (valueForSpecialHandling.isEmpty()) {
+			strategy.query(query, queryUriSnippet, USERS, handler, configuration);
 
-			if (genericsCanBeApplied) {
+		} else if (ObjectClass.GROUP.getObjectClassValue().equals(endpointName)) {
 
-				String endpointName = objectClass.getObjectClassValue();
-				if (endpointName.intern() == ObjectClass.ACCOUNT.getObjectClassValue().intern()) {
-					if (query == null) {
-
-						crudManager.qeueryEntity(queryUriSnippet.toString(), USERS, handler);
-
-					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
-
-					} else {
-
-						qIsFilter("Users", query, handler, queryUriSnippet);
-					}
-				} else if (endpointName.intern() == ObjectClass.GROUP.getObjectClassValue().intern()) {
-					if (query == null) {
-						crudManager.qeueryEntity(queryUriSnippet.toString(), GROUPS, handler);
-
-					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
-
-					} else {
-						qIsFilter("Groups", query, handler, queryUriSnippet);
-					}
-				} else {
-
-					if (query == null) {
-
-						crudManager.qeueryEntity(queryUriSnippet.toString(), endpointName, handler);
-					} else if (query instanceof EqualsFilter && qIsUid(endpointName, query, handler)) {
-
-					} else {
-						qIsFilter(endpointName, query, handler, queryUriSnippet);
-					}
-				}
-			} else {
-
-				if (ObjectClass.ACCOUNT.equals(objectClass)) {
-
-					if (query == null) {
-						crudManager.qeueryEntity(queryUriSnippet.toString(), USERS, handler);
-					} else if (query instanceof EqualsFilter && qIsUid(USERS, query, handler)) {
-
-					} else {
-						qIsFilter("Users", query, handler, queryUriSnippet);
-					}
-				} else if (ObjectClass.GROUP.equals(objectClass)) {
-					if (query == null) {
-						crudManager.qeueryEntity(queryUriSnippet.toString(), GROUPS, handler);
-					} else if (query instanceof EqualsFilter && qIsUid(GROUPS, query, handler)) {
-
-					} else {
-
-						qIsFilter("Groups", query, handler, queryUriSnippet);
-					}
-				} else {
-					LOGGER.error("The provided objectClass is not supported: {0}", objectClass.getDisplayNameKey());
-					throw new IllegalArgumentException("ObjectClass is not supported");
-				}
-			}
-		} else {
-
-			if (ObjectClass.GROUP.equals(objectClass)) {
-				Uid quieriedObject = new Uid(valueForSpecialHandling);
-
-				crudManager.queryMembershipData(quieriedObject, USERS, handler, GROUPS);
-			}
-		}
-
-	}
-
-	/**
-	 * Evaluates if the provided filter query is supported or in need of special
-	 * handling.
-	 * 
-	 * @param filter
-	 *            the provided filter query.
-	 * @return the boolean value of true is query is supported.
-	 * @throws IllegalArgumentException
-	 *             if the provided filter is no supported.
-	 **/
-	protected String querryChecker(Filter filter) {
-
-		if ((filter instanceof AttributeFilter || filter == null || filter instanceof CompositeFilter)
-				&& !(filter instanceof ContainsAllValuesFilter)) {
-
-			return "";
-			// TODO for slack contains all values workaround purposes
-		} else if (filter instanceof ContainsAllValuesFilter && "slack".equals(providerName)) {
-			List<Object> valueList = ((AttributeFilter) filter).getAttribute().getValue();
-			if (valueList.size() == 1) {
-				Object uidString = valueList.get(0);
-				if (uidString instanceof String) {
-					LOGGER.warn("Processing trough  \"contains all values\"  filter workaround.");
-					return (String) uidString;
-
-				}
-			}
-
-		} else if (filter instanceof ContainsAllValuesFilter) {
-
-			return "";
-
-		}
-		LOGGER.error("Provided filter is not supported: {0}", filter);
-		throw new IllegalArgumentException("Provided filter is not supported");
-
-	}
-
-	/**
-	 * Used to evaluate if the queried attribute in the provided filter query is
-	 * an instance of Uid. if yes, the method used to process such query is
-	 * called.
-	 * 
-	 * @param endPoint
-	 *            The name of the endpoint which should be queried.
-	 * @param query
-	 *            The provided filter query.
-	 * @param resultHandler
-	 *            The provided result handler used to handle the query result.
-	 * @return true if filter attribute value is an instance of uid and executes
-	 *         an successful query to the service provider. Else returns false.
-	 */
-	private boolean qIsUid(String endPoint, Filter query, ResultsHandler resultHandler) {
-		Attribute filterAttr = ((EqualsFilter) query).getAttribute();
-
-		if (filterAttr instanceof Uid) {
-			crudManager.qeueryEntity((Uid) filterAttr, endPoint, resultHandler);
-			return true;
-		} else
-			return false;
-	}
-
-	/**
-	 * Called when the query is evaluated as an filter not containing an uid
-	 * type attribute.
-	 * 
-	 * @param endPoint
-	 *            The name of the endpoint which should be queried.
-	 * @param query
-	 *            The provided filter query.
-	 * @param resultHandler
-	 *            The provided result handler used to handle the query result.
-	 * @param schemaMap
-	 *            A map representation of the schema provided from the service
-	 *            provider.
-	 * @param queryUriSnippet
-	 *            A part of the query uri which will build a larger query.
-	 */
-	private void qIsFilter(String endPoint, Filter query, ResultsHandler resultHandler, StringBuilder queryUriSnippet) {
-
-		String prefixChar;
-
-		if (queryUriSnippet.toString().isEmpty()) {
-			prefixChar = "?";
+			strategy.query(query, queryUriSnippet, GROUPS, handler, configuration);
 
 		} else {
 
-			prefixChar = "&";
-		}
-		// For salesforce workaroud purposess=
-		if ("salesforce".equals(providerName) || "slack".equals(providerName)) {
-
-			LOGGER.info("The provider name is: {0}", providerName);
-
-			queryUriSnippet.append(prefixChar).append("filter=")
-					.append(query.accept(new FilterHandler(), providerName));
-
-		} else {
-			queryUriSnippet.append(prefixChar).append("filter=").append(query.accept(new FilterHandler(), ""));
+			strategy.query(query, queryUriSnippet, endpointName, handler, configuration);
 		}
 
-		crudManager.qeueryEntity(queryUriSnippet.toString(), endPoint, resultHandler);
 	}
 
 	/**
@@ -618,22 +436,28 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * @param schemaBuilder
 	 *            The "SchemaBuilder" object which will be populated with the
 	 *            data representing the schemas of resource objects.
+	 * @param schemaParser
+	 *            The "schemaParser" object which contains the map
+	 *            representation of the service schema data.
 	 * @return an the instance of "SchemaBuilder" populated with the data
 	 *         representing the schemas of resource objects.
 	 */
 	private SchemaBuilder buildSchemas(SchemaBuilder schemaBuilder, ParserSchemaScim schemaParser) {
 		LOGGER.info("Building schemas from provided data");
 
-		SchemaObjectBuilderGeneric schemaObjectBuilder = new SchemaObjectBuilderGeneric(providerName);
+		SchemaObjectBuilderGeneric schemaObjectBuilder = new SchemaObjectBuilderGeneric();
 		int iterator = 0;
 		Map<String, String> hlAtrribute = new HashMap<String, String>();
-		for (Map<String, Map<String, Object>> attributeMap : schemaParser.getAttributeMapList()) {
-			hlAtrribute = schemaParser.gethlAttributeMapList().get(iterator);
+		List<Map<String, Map<String, Object>>> attributeMapList = schemaParser.getAttributeMapList(strategy);
+
+		for (Map<String, Map<String, Object>> attributeMap : attributeMapList) {
+			hlAtrribute = schemaParser.getHlAttributeMapList().get(iterator);
 
 			for (String key : hlAtrribute.keySet()) {
-				if ("endpoint".equals(key.intern())) {
+				if ("endpoint".equals(key)) {
 					String schemaName = hlAtrribute.get(key);
-					ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap, schemaName);
+					ObjectClassInfo oclassInfo = schemaObjectBuilder.buildSchema(attributeMap, schemaName,
+							providerName);
 					schemaBuilder.defineObjectClass(oclassInfo);
 				}
 			}
@@ -645,7 +469,11 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 	/**
 	 * Evaluates if the options attribute contains information for pagination
-	 * configuration for the query.
+	 * configuration of query.
+	 * 
+	 * @param options
+	 *            Provided parameter which carries the data for pagination
+	 *            configuration.
 	 * 
 	 * @return a "StringBuilder" instance containing the query snippet with
 	 *         pagination information of or is no pagination information is
@@ -657,8 +485,8 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		Integer pageSize = options.getPageSize();
 		Integer PagedResultsOffset = options.getPagedResultsOffset();
 		if (pageSize != null && PagedResultsOffset != null) {
-			queryBuilder.append("?startIndex=").append(PagedResultsOffset).append("&").append("count=")
-					.append(pageSize);
+			queryBuilder.append(QUERYCHAR).append("startIndex=").append(PagedResultsOffset).append(QUERYDELIMITER)
+					.append("count=").append(pageSize);
 
 			return queryBuilder;
 		}
@@ -672,8 +500,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * is used to update multivalued and complex attributes, e.g.
 	 * members.default.value .
 	 * 
-	 * @throws IllegalArgumentException
-	 *             if the provided set of attributes is null or empty.
 	 * @return the Uid of the updated object.
 	 **/
 	@Override
@@ -682,63 +508,52 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Resource object update for addition of values");
 		if (attributes == null || attributes.isEmpty()) {
 			LOGGER.error("Set of Attributes can not be null or empty: {}", attributes);
-			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
 		if (genericsCanBeApplied) {
-			Uid uid = new Uid("default");
+			Uid uid = new Uid(DEFAULT);
 			GenericDataBuilder genericDataBuilder = new GenericDataBuilder("");
 
 			String endpointName = object.getObjectClassValue();
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, USERS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
 			} else {
-				uid = crudManager.updateEntity(id, endpointName,
-						genericDataBuilder.translateSetToJson(attributes, null));
+				uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
 			}
 
 			return uid;
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userJson = new UserDataBuilder("");
-				JSONObject userJsonObject = new JSONObject();
+				UserDataBuilder userDataBuilder = new UserDataBuilder("");
 
-				userJsonObject = userJson.translateSetToJson(attributes, null);
-
-				Uid uid = crudManager.updateEntity(id, USERS, userJsonObject);
-
-				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
+				Uid uid = strategy.update(id, USERS, userDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 
 			} else if (ObjectClass.GROUP.equals(object)) {
 
-				GroupDataBuilder groupJson = new GroupDataBuilder("");
-				JSONObject groupJsonObject = new JSONObject();
+				GroupDataBuilder groupDataBuilder = new GroupDataBuilder("");
 
-				groupJsonObject = groupJson.translateSetToJson(attributes, null);
-
-				Uid uid = crudManager.updateEntity(id, GROUPS, groupJsonObject);
-
-				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
+				Uid uid = strategy.update(id, GROUPS, groupDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 			} else {
 				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new IllegalArgumentException("Object value not valid");
+				throw new InvalidAttributeValueException("Object value not valid");
 			}
 		}
 
@@ -752,8 +567,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 	 * members.default.value . The updates are used for removal of attribute
 	 * values of multivalued and complex attributes.
 	 * 
-	 * @throws IllegalArgumentException
-	 *             if the provided set of attributes is null or empty.
 	 * @return the Uid of the updated object.
 	 **/
 	@Override
@@ -761,66 +574,55 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 
 		LOGGER.info("Resource object update for removal of attribute values");
 		if (attributes == null || attributes.isEmpty()) {
-			LOGGER.error("Set of Attributes can not be null or empty: {}", attributes);
-			throw new IllegalArgumentException("Set of Attributes value is null or empty");
+			LOGGER.error("Set of Attributes can not be null or empty: {0}", attributes);
+			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
 		if (genericsCanBeApplied) {
-			Uid uid = new Uid("default");
-			GenericDataBuilder genericDataBuilder = new GenericDataBuilder("delete");
+			Uid uid = new Uid(DEFAULT);
+			GenericDataBuilder genericDataBuilder = new GenericDataBuilder(DELETE);
 
 			String endpointName = object.getObjectClassValue();
 
 			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, USERS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
 
 			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = crudManager.updateEntity(id, GROUPS, genericDataBuilder.translateSetToJson(attributes, null));
+				uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
 
 			} else {
 
-				uid = crudManager.updateEntity(id, endpointName,
-						genericDataBuilder.translateSetToJson(attributes, null));
+				uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
 			}
 
 			return uid;
 		} else {
 			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userJson = new UserDataBuilder("delete");
-				JSONObject userJsonObject = new JSONObject();
+				UserDataBuilder userDataBuilder = new UserDataBuilder(DELETE);
 
-				userJsonObject = userJson.translateSetToJson(attributes, null);
-
-				Uid uid = crudManager.updateEntity(id, USERS, userJsonObject);
-
-				LOGGER.info("Json response: {0}", userJsonObject.toString(1));
+				Uid uid = strategy.update(id, USERS, userDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 
 			} else if (ObjectClass.GROUP.equals(object)) {
 
-				GroupDataBuilder groupJson = new GroupDataBuilder("delete");
-				JSONObject groupJsonObject = new JSONObject();
+				GroupDataBuilder groupDataBuilder = new GroupDataBuilder(DELETE);
 
-				groupJsonObject = groupJson.translateSetToJson(attributes, null);
-
-				Uid uid = crudManager.updateEntity(id, GROUPS, groupJsonObject);
-
-				LOGGER.info("Json response: {0}", groupJsonObject.toString(1));
+				Uid uid = strategy.update(id, GROUPS, groupDataBuilder, attributes, configuration);
 
 				if (uid == null) {
 					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new IllegalArgumentException("No uid returned by the create method");
+					throw new ConnectorException("No uid returned by the create method");
 				}
 				return uid;
 			} else {
 				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new IllegalArgumentException("Object value not valid");
+				throw new InvalidAttributeValueException("Object value not valid");
 			}
 		}
 

@@ -13,34 +13,18 @@
     </xsd:annotation>
     <xsd:sequence>
 	
-      <xsd:element name="salesForceGroups" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+      <xsd:element name="slackGroups" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
         <xsd:annotation>
           <xsd:appinfo>
             <a:indexed>false</a:indexed>
-              <a:displayName>SalesForce Groups</a:displayName>
+              <a:displayName>Slack Groups</a:displayName>
               <a:displayOrder>100</a:displayOrder>
             </xsd:appinfo>
           <xsd:documentation>
-SalesForce Groups
+Slack Groups
           </xsd:documentation>
         </xsd:annotation>
-      </xsd:element>
-	  
-	  <xsd:element name="salesForceEntitlements" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-        <xsd:annotation>
-          <xsd:appinfo>
-            <a:indexed>false</a:indexed>
-              <a:displayName>SalesForce Entitlements</a:displayName>
-              <a:displayOrder>110</a:displayOrder>
-            </xsd:appinfo>
-          <xsd:documentation>
-SalesForce Entitlements
-          </xsd:documentation>
-        </xsd:annotation>
-      </xsd:element>
-
-
-      
+      </xsd:element>      
     </xsd:sequence>
     </xsd:complexType>
 

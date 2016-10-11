@@ -4,11 +4,11 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="bf4e629b-de8c-4af2-b58d-99e18e270ebb"
-      version="6">
-   <name>entitlement metarole</name>
+      oid="1a641f93-0e91-4e23-9dc7-21523c7688ba"
+      version="9">
+   <name>group metarole slack</name>
    <metadata>
-      <createTimestamp>2016-07-19T17:47:56.771+02:00</createTimestamp>
+      <createTimestamp>2016-08-12T13:59:22.396+02:00</createTimestamp>
       <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
    </metadata>
@@ -17,19 +17,19 @@
    <inducement id="1">
       <construction>
          <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                      oid="13ba9c52-ce64-4385-989b-6ea2c5f42384"
-                      type="tns:ResourceType"><!-- salesforce-scim-connector --></resourceRef>
+                      oid="5c978e7c-5d98-49ba-bc6c-491827ae805a"
+                      type="tns:ResourceType"><!-- slack-scim-connector --></resourceRef>
          <kind>account</kind>
          <intent>default</intent>
          <association>
-            <c:ref>ri:entitlements</c:ref>
+            <c:ref>ri:groups</c:ref>
             <outbound>
                <strength>normal</strength>
                <expression>
                   <associationFromLink>
                      <projectionDiscriminator>
                         <kind>entitlement</kind>
-                        <intent>entitlements</intent>
+                        <intent>groups</intent>
                      </projectionDiscriminator>
                   </associationFromLink>
                </expression>

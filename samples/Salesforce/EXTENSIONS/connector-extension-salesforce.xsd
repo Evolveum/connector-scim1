@@ -38,6 +38,19 @@ SalesForce Entitlements
           </xsd:documentation>
         </xsd:annotation>
       </xsd:element>
+	  
+	  <xsd:element name="entitlementValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:appinfo>
+            <a:indexed>false</a:indexed>
+              <a:displayName>Entitlement Value</a:displayName>
+              <a:displayOrder>120</a:displayOrder>
+            </xsd:appinfo>
+          <xsd:documentation>
+SalesForce entitlement value
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
 
 
       

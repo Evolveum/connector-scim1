@@ -17,6 +17,8 @@ package com.evolveum.polygon.scim;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.NoRouteToHostException;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +39,7 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
+import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -134,12 +137,23 @@ public class ServiceAccessManager {
 
 			} catch (IOException ioException) {
 
-				LOGGER.error("An error occurred while processing the query http response to the login request : {0}",
-						ioException.getLocalizedMessage());
-				LOGGER.info("An error occurred while processing the query http response to the login request : {0}",
-						ioException);
-				throw new ConnectorIOException(
-						"An error occurred while processing the query http response to the login request", ioException);
+				StringBuilder errorBuilder = new StringBuilder(
+						"An error occurred while processing the query http response to the login request. ");
+
+				if ((ioException instanceof SocketTimeoutException || ioException instanceof NoRouteToHostException)) {
+
+					errorBuilder.insert(0, "The connection timed out. ");
+
+					throw new OperationTimeoutException(errorBuilder.toString(), ioException);
+				} else {
+
+					LOGGER.error(
+							"An error occurred while processing the query http response to the login request : {0}",
+							ioException.getLocalizedMessage());
+					LOGGER.info("An error occurred while processing the query http response to the login request : {0}",
+							ioException);
+					throw new ConnectorIOException(errorBuilder.toString(), ioException);
+				}
 			}
 
 			final int statusCode = response.getStatusLine().getStatusCode();
@@ -149,12 +163,24 @@ public class ServiceAccessManager {
 					LOGGER.error("Error cause: {0}", EntityUtils.toString(response.getEntity()));
 				} catch (ParseException | IOException e) {
 
-					LOGGER.error("An exception has occurred while parsing the http response to the login request: {0}",
-							e.getLocalizedMessage());
-					LOGGER.info("An exception has occurred while parsing the http response to the login request: {0}",
-							e);
-					throw new ConnectorIOException(
-							"An exception has occurred while parsing the http response to the login request.", e);
+					StringBuilder errorBuilder = new StringBuilder(
+							"An exception has occurred while parsing the http response to the login request. ");
+
+					if ((e instanceof SocketTimeoutException || e instanceof java.net.NoRouteToHostException)) {
+
+						errorBuilder.insert(0, "The connection timed out. ");
+
+						throw new OperationTimeoutException(errorBuilder.toString(), e);
+					} else {
+
+						LOGGER.error(
+								"An exception has occurred while parsing the http response to the login request: {0}",
+								e.getLocalizedMessage());
+						LOGGER.info(
+								"An exception has occurred while parsing the http response to the login request: {0}",
+								e);
+						throw new ConnectorIOException(errorBuilder.toString(), e);
+					}
 				}
 			} else {
 				LOGGER.info("Login Successful");
@@ -165,12 +191,22 @@ public class ServiceAccessManager {
 				getResult = EntityUtils.toString(response.getEntity());
 			} catch (IOException ioException) {
 
-				LOGGER.error("An exception has occurred while parsing the http response to the login request: {0}",
-						ioException.getLocalizedMessage());
-				LOGGER.info("An exception has occurred while parsing the http response to the login request: {0}",
-						ioException);
-				throw new ConnectorIOException(
-						"An exception has occurred while parsing the http response to the login request", ioException);
+				StringBuilder errorBuilder = new StringBuilder(
+						"An error occurred while processing the query http response to the login request. ");
+
+				if ((ioException instanceof SocketTimeoutException || ioException instanceof NoRouteToHostException)) {
+
+					errorBuilder.insert(0, "The connection timed out. ");
+
+					throw new OperationTimeoutException(errorBuilder.toString(), ioException);
+				} else {
+
+					LOGGER.error("An exception has occurred while parsing the http response to the login request: {0}",
+							ioException.getLocalizedMessage());
+					LOGGER.info("An exception has occurred while parsing the http response to the login request: {0}",
+							ioException);
+					throw new ConnectorIOException(errorBuilder.toString(), ioException);
+				}
 			}
 
 			try {

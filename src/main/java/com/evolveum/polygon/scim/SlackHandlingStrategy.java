@@ -16,6 +16,8 @@
 package com.evolveum.polygon.scim;
 
 import java.io.IOException;
+import java.net.NoRouteToHostException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +35,7 @@ import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
+import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
@@ -452,13 +455,23 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 				queuedUid = "the full resource representation";
 			}
 
-			LOGGER.error(
-					"An error occurred while processing the query http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-					e.getLocalizedMessage(), queuedUid);
-			LOGGER.info(
-					"An error occurred while processing the query http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-					e, queuedUid);
-			throw new ConnectorIOException("An error occurred while processing the query http response.", e);
+			StringBuilder errorBuilder = new StringBuilder(
+					"An error occurred while processing the query http response for ").append(queuedUid);
+			if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
+
+				errorBuilder.insert(0, "The connection timed out.");
+
+				throw new OperationTimeoutException(errorBuilder.toString(), e);
+			} else {
+
+				LOGGER.error(
+						"An error occurred while processing the query http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+						e.getLocalizedMessage(), queuedUid);
+				LOGGER.info(
+						"An error occurred while processing the query http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+						e, queuedUid);
+				throw new ConnectorIOException(errorBuilder.toString(), e);
+			}
 		} finally {
 			ServiceAccessManager.logOut(loginInstance);
 		}

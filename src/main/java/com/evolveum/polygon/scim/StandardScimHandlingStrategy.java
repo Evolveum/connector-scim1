@@ -18,6 +18,7 @@ package com.evolveum.polygon.scim;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -127,7 +128,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		LOGGER.info("Query url: {0}", uri);
 
 		try {
-			LOGGER.info("Json object to be send: {0}", jsonObject.toString(1));
+		//	LOGGER.info("Json object to be send: {0}", jsonObject.toString(1));
 
 			HttpPost httpPost = new HttpPost(uri);
 			httpPost.addHeader(authHeader);
@@ -152,7 +153,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					Uid uid = new Uid(json.getString(ID));
 
-					LOGGER.info("Json response: {0}", json.toString(1));
+				//	LOGGER.info("Json response: {0}", json.toString(1));
 					return uid;
 				} else if (statusCode == 409) {
 
@@ -179,7 +180,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 			} catch (IOException e) {
 
-				if ((e instanceof SocketTimeoutException)) {
+				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
 
 					throw new OperationTimeoutException(
 							"The connection timed out. Occurrence in the process of creating a new resource object", e);
@@ -336,7 +337,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					try {
 						JSONObject jsonObject = new JSONObject(responseString);
 
-						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
+					//	LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
 
 							if (valueIsUid) {
@@ -384,9 +385,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 													responseString = EntityUtils.toString(resourceResponse.getEntity());
 													JSONObject fullResourcejson = new JSONObject(responseString);
 
-													LOGGER.info(
-															"The {0}. resource json object which was returned by the service provider: {1}",
-															i + 1, fullResourcejson);
+												//	LOGGER.info(
+												//			"The {0}. resource json object which was returned by the service provider: {1}",
+												//			i + 1, fullResourcejson);
 
 													ConnectorObject connectorObject = buildConnectorObject(
 															fullResourcejson, resourceEndPoint);
@@ -417,7 +418,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 										}
 
-										LOGGER.info("The number of remaining results: {0}", remainingResult);
+									//	LOGGER.info("The number of remaining results: {0}", remainingResult);
 										SearchResult searchResult = new SearchResult(DEFAULT, remainingResult,
 												allResultsReturned);
 										((SearchResultsHandler) resultHandler).handleResult(searchResult);
@@ -480,7 +481,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			StringBuilder errorBuilder = new StringBuilder(
 					"An error occurred while processing the query http response for ");
 			errorBuilder.append(q);
-			if ((e instanceof SocketTimeoutException)) {
+			if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
 
 				errorBuilder.insert(0, "The connection timed out. ");
 
@@ -544,7 +545,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		try {
 			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null);
 			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
-			LOGGER.info("The update JSON object wich is being sent: {0}", jsonObject);
+		//	LOGGER.info("The update JSON object wich is being sent: {0}", jsonObject);
 			bodyContent.setContentType(CONTENTTYPE);
 			httpPatch.setEntity(bodyContent);
 
@@ -558,7 +559,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				responseString = EntityUtils.toString(response.getEntity());
 				if (!responseString.isEmpty()) {
 					JSONObject json = new JSONObject(responseString);
-					LOGGER.ok("Json response: {0}", json.toString());
+			//		LOGGER.ok("Json response: {0}", json.toString());
 					Uid id = new Uid(json.getString(ID));
 					return id;
 
@@ -628,7 +629,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 			errorBuilder.append(uid.toString());
 
-			if ((e instanceof SocketTimeoutException)) {
+			if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
 				errorBuilder.insert(0, "The connection timed out. ");
 
 				throw new OperationTimeoutException(errorBuilder.toString(), e);
@@ -721,7 +722,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 			errorBuilder.append(uid.toString());
 
-			if ((e instanceof SocketTimeoutException)) {
+			if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
 
 				errorBuilder.insert(0, "Connection timed out. ");
 
@@ -857,7 +858,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			StringBuilder errorBuilder = new StringBuilder(
 					"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object");
 
-			if ((e instanceof SocketTimeoutException)) {
+			if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
 
 				errorBuilder.insert(0, "The connection timed out. ");
 
@@ -887,7 +888,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	@Override
 	public ParserSchemaScim processSchemaResponse(JSONObject responseObject) {
 
-		LOGGER.info("The resources json representation: {0}", responseObject.toString(1));
+		//LOGGER.info("The resources json representation: {0}", responseObject.toString(1));
 		ParserSchemaScim scimParser = new ParserSchemaScim();
 		for (int i = 0; i < responseObject.getJSONArray(RESOURCES).length(); i++) {
 			JSONObject minResourceJson = new JSONObject();
@@ -1118,7 +1119,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			StringBuilder errorBuilder = new StringBuilder(
 					"An error has occurred while processing the http response. Occurrence in the process of updating a resource object");
 
-			if ((e instanceof SocketTimeoutException)) {
+			if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
 
 				errorBuilder.insert(0, "The connection timed out. ");
 

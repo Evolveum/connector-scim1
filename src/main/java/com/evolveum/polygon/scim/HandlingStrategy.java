@@ -26,6 +26,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.message.BasicHeader;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
+import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -111,6 +112,13 @@ public interface HandlingStrategy {
 	 *             
 	 *@throws AlreadyExistsException
 	 *				when an "409" (CONFLICT) status code is returned by the service provider as an response to the create query.
+	 *
+	 *@throws ConnectorIOException
+	 *			if some other IO exception than a connection time out occurs while processing the current method	
+	 *
+	 *@throws OperationTimeoutException 
+	 *			thrown when the connection times out while processing the current method
+	 *
 	 * @return the uid of the created object
 	 */
 
@@ -147,10 +155,14 @@ public interface HandlingStrategy {
 	 *             object
 	 *             <li>is thrown if no uid is returned in the process of resource
 	 *             creation
+	 *             
 	 * @throws ConnectorIOException
 	 *             is thrown when an IOException has occurred while processing
 	 *             of the HTTP query response.
-	 * 
+	 *             
+	 * @throws OperationTimeoutException 
+	 *			thrown when the connection times out while processing the current method
+	 *
 	 */
 
 	public void query(Filter query, StringBuilder queryUriSnippet, String resourceEndPoint,
@@ -195,10 +207,14 @@ public interface HandlingStrategy {
 	 * @throws ConnectionFailedException
 	 *             a protocol exception has occurred while in the process of
 	 *             updating a resource object
+	 *             
 	 * @throws ConnectorIOException
 	 *             is thrown when an IOException has occurred while processing
 	 *             of the HTTP query response
-	 * 
+	 *
+	 * @throws OperationTimeoutException 
+	 *			thrown when the connection times out while processing the current method
+	 *
 	 * @throws UnknownUidException
 	 *             is thrown if no UID is present in fetched object
 	 * 
@@ -236,7 +252,10 @@ public interface HandlingStrategy {
 	 * @throws ConnectorIOException
 	 *             is thrown when an IOException has occurred while processing
 	 *             of the HTTP query response
-	 * 
+	 *             
+	 * @throws OperationTimeoutException 
+	 *			thrown when the connection times out while processing the current method
+	 *
 	 */
 
 	public void delete(Uid uid, String resourceEndPoint, ScimConnectorConfiguration conf);
@@ -273,6 +292,10 @@ public interface HandlingStrategy {
 	 * 
 	 * @throws ConnectorIOException
 	 *             an error has occurred while processing the http response
+	 *
+	 * @throws OperationTimeoutException 
+	 *			thrown when the connection times out while processing the current method
+	 *      
 	 */
 
 	public ParserSchemaScim querySchemas(String providerName, String resourceEndPoint, ScimConnectorConfiguration conf);
@@ -320,6 +343,8 @@ public interface HandlingStrategy {
 	 * 
 	 * @return an json object representing the full schema representation of the
 	 *         connected service endpoint.
+	 *         
+	 *         
 	 */
 
 	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject);
@@ -566,7 +591,10 @@ public interface HandlingStrategy {
 	 * @throws ConnectorIOException
 	 *             if an error has occurred while processing the http response.
 	 *             Occurrence in the process of creating a resource object
-	 * 
+	 *             
+	 * @throws OperationTimeoutException 
+	 *			thrown when the connection times out while processing the current method
+	 *
 	 * @throws ConnectionFailedException
 	 *             if an "ClientProtocolException" exception has occurred while
 	 *             in the process of updating a resource object
@@ -609,6 +637,10 @@ public interface HandlingStrategy {
 	 *             variable
 	 * @throws ConnectorIOException
 	 *             in an error occurred while processing the query http response
+	 *             
+	 * @throws OperationTimeoutException 
+	 *			thrown when the connection times out while processing the current method
+	 *
 	 */
 
 	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
@@ -838,7 +870,7 @@ public interface HandlingStrategy {
 	 * @throws ClientProtocolException
 	 *             if an exception protocol exception has occurred
 	 * @throws IOException
-	 *             n an error occurred while processing the query http response
+	 *             an error occurred while processing the query http response
 	 */
 	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler,
 			String scimBaseUri, Header authHeader) throws ClientProtocolException, IOException;

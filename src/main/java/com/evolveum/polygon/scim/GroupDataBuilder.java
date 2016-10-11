@@ -210,7 +210,8 @@ public class GroupDataBuilder implements ObjectTranslator {
 
 								} else {
 
-									if (finalSubAttributeNameParts.length >2 &&!BLANK.equals(finalSubAttributeNameParts[2])) {
+									if (finalSubAttributeNameParts.length > 2
+											&& !BLANK.equals(finalSubAttributeNameParts[2])) {
 										multivalueObject.put(finalSubAttributeNameParts[2],
 												AttributeUtil.getSingleValue(subSetAttribute));
 									} else {

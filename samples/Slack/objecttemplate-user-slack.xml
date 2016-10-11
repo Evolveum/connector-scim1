@@ -4,14 +4,14 @@
                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
                 xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                oid="dc46f305-9697-458f-a9b9-7ddb8779aee1"
+                oid="1e73da26-f4bb-4143-9ba2-5f873d519d80"
                 version="1">
    <name>User template - Slack</name>
    <description>
             User template with the impementation of scripts for automatic assigment of roles to Slack users.
         </description>
    <metadata>
-      <createTimestamp>2016-09-05T13:32:23.025+02:00</createTimestamp>
+      <createTimestamp>2016-10-11T11:15:13.961+02:00</createTimestamp>
       <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
    </metadata>

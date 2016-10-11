@@ -129,7 +129,7 @@ public class ParserSchemaScim {
 				attributeObjects.put(subAttrName, subAttribute.get(subAttrName));
 			}
 		}
-		LOGGER.info("The sub attribute which is being processed: {0}", subAttributeName);
+		//LOGGER.info("The sub attribute which is being processed: {0}", subAttributeName);
 		subAttributeMap.put(subAttributeName, attributeObjects);
 
 		return subAttributeMap;

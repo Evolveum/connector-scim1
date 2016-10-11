@@ -42,6 +42,7 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 
 import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
+
 /**
  * 
  * @author Macik
@@ -141,7 +142,7 @@ public class StandardScimTestUtils {
 	protected static Set<Attribute> userSingleValUpdateBuilder(Integer testNumber) {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
-		
+
 		attributeSet.add(AttributeBuilder.build(NICKNAME, testNumber.toString()));
 
 		attributeSet.add(AttributeBuilder.build(FAMILYNAME, "TestUpdate"));
@@ -426,8 +427,8 @@ public class StandardScimTestUtils {
 
 	public static boolean isConfigurationValid(ScimConnectorConfiguration connectorConfiguration) {
 
-			connectorConfiguration.validate();
-			
+		connectorConfiguration.validate();
+
 		return true;
 	}
 

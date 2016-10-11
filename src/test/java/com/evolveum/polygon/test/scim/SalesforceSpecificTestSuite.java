@@ -32,6 +32,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
+
 /**
  * 
  * @author Macik

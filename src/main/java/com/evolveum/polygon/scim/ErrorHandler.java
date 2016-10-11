@@ -22,12 +22,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
 import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import groovy.json.JsonException;
 
 /**
  * @author Macik
@@ -41,8 +38,7 @@ public class ErrorHandler {
 	private static final String ERRORS = "Errors";
 	private static final String DESCRIPTION = "description";
 	private static final String MESSAGE = "message";
-	
-	
+
 	private static final Log LOGGER = Log.getLog(ErrorHandler.class);
 
 	/**
@@ -163,16 +159,14 @@ public class ErrorHandler {
 					.append(" was unsuccessful. Status code returned: ").append("\"").append(statusCode).append("\"")
 					.append(". Error response from provider: ").append("\"").append(responseString).append("\"");
 
-		} else if (responseObject.has(MESSAGE)){
+		} else if (responseObject.has(MESSAGE)) {
 
 			responseString = responseObject.getString(MESSAGE);
 			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
 					.append(" was unsuccessful. Status code returned: ").append("\"").append(statusCode).append("\"")
 					.append(". Error response from provider: ").append("\"").append(responseString).append("\"");
 
-		
-			
-		}else {
+		} else {
 			responseString = ". No description was provided from the provider";
 			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
 					.append(" was unsuccessful. Status code returned: ").append("\"").append(statusCode).append("\"")

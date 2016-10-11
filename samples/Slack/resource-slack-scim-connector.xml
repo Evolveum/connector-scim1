@@ -4,11 +4,11 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          oid="6b72d438-503c-482b-a704-b3172a874264"
-          version="5">
-   <name>slack-connector-scim</name>
+          oid="5c978e7c-5d98-49ba-bc6c-491827ae805a"
+          version="4">
+   <name>slack-scim-connector</name>
    <metadata>
-      <modifyTimestamp>2016-09-07T11:23:43.154+02:00</modifyTimestamp>
+      <modifyTimestamp>2016-10-11T11:06:13.103+02:00</modifyTimestamp>
       <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                    oid="00000000-0000-0000-0000-000000000002"
                    type="tns:UserType"/>
@@ -17,17 +17,19 @@
    <operationalState>
       <lastAvailabilityStatus>up</lastAvailabilityStatus>
    </operationalState>
-   <connectorRef oid="a5364ac1-90a4-4cac-9ee6-0b318bf90036" type="c:ConnectorType"><!-- ICF com.evolveum.polygon.scim.ScimConnector v1.0.0.0-SNAPSHOT --></connectorRef>
+   <connectorRef oid="94690c8c-8f63-4c0b-a1b3-9c63554f8914" type="c:ConnectorType"><!-- ICF com.evolveum.polygon.scim.ScimConnector v1.4.2.16-SNAPSHOT --></connectorRef>
    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
       <icfc:resultsHandlerConfiguration>
          <icfc:filteredResultsHandlerInValidationMode>true</icfc:filteredResultsHandlerInValidationMode>
       </icfc:resultsHandlerConfiguration>
-     
+      <icfc:configurationProperties xmlns:gen729="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.scim.connector-scim/com.evolveum.polygon.scim.ScimConnector">
+       
+      </icfc:configurationProperties>
    </connectorConfiguration>
    <schema>
       <cachingMetadata>
-         <retrievalTimestamp>2016-09-06T10:29:43.422+02:00</retrievalTimestamp>
-         <serialNumber>d3806000cc600763-8d2d1aa6d32a2a82</serialNumber>
+         <retrievalTimestamp>2016-10-11T11:06:20.045+02:00</retrievalTimestamp>
+         <serialNumber>631b35af74818cfc-206f2c7a55e10d63</serialNumber>
       </cachingMetadata>
       <definition>
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -622,8 +624,8 @@
    </schemaHandling>
    <capabilities>
       <cachingMetadata>
-         <retrievalTimestamp>2016-09-06T10:29:46.051+02:00</retrievalTimestamp>
-         <serialNumber>922cdaf0298248c2-a2e25111a0630237</serialNumber>
+         <retrievalTimestamp>2016-10-11T11:06:22.168+02:00</retrievalTimestamp>
+         <serialNumber>ebac054d9db05d37-f37d2ea06c96cfba</serialNumber>
       </cachingMetadata>
       <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
          <cap:addRemoveAttributeValues/>

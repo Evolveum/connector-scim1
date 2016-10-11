@@ -16,6 +16,8 @@
 package com.evolveum.polygon.scim;
 
 import java.io.IOException;
+import java.net.NoRouteToHostException;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,7 @@ import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
+import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
@@ -158,16 +161,22 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 					e);
 		} catch (IOException e) {
 
-			LOGGER.error(
-					"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
-					e.getLocalizedMessage());
-			LOGGER.info(
-					"An error has occurred while processing the http response. Occurrence in the process of creating a resource object: {0}",
-					e);
+			StringBuilder errorBuilder = new StringBuilder("Occurrence in the process of creating a resource object");
 
-			throw new ConnectorIOException(
-					"An error has occurred while processing the http response. Occurrence in the process of creating a resource object",
-					e);
+			if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
+				errorBuilder.insert(0, "The connection timed out. ");
+				throw new OperationTimeoutException(errorBuilder.toString(), e);
+			} else {
+
+				LOGGER.error(
+						"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
+						e.getLocalizedMessage());
+				LOGGER.info(
+						"An error has occurred while processing the http response. Occurrence in the process of creating a resource object: {0}",
+						e);
+
+				throw new ConnectorIOException(errorBuilder.toString(), e);
+			}
 		}
 
 		return id;

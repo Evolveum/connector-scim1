@@ -76,7 +76,7 @@ public class ServiceAccessManager {
 		JSONObject jsonObject = null;
 		String proxyUrl = configuration.getProxyUrl();
 
-		if (!"token".equals(configuration.getAuthentication())) {
+		if (!"token".equalsIgnoreCase(configuration.getAuthentication())) {
 
 			HttpClient httpClient;
 

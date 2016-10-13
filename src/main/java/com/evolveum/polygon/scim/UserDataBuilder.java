@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -33,6 +34,8 @@ import org.identityconnectors.framework.common.objects.OperationalAttributeInfos
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.evolveum.polygon.common.GuardedStringAccessor;
 
 /**
  * @author Macik
@@ -113,6 +116,14 @@ public class UserDataBuilder implements ObjectTranslator {
 
 			} else if (OperationalAttributes.ENABLE_NAME.equals(attributeName)) {
 				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
+
+			} else if (OperationalAttributes.PASSWORD_NAME.equals(attributeName)) {
+
+				GuardedString passString = (GuardedString) AttributeUtil.getSingleValue(attribute);
+				GuardedStringAccessor gsa = new GuardedStringAccessor();
+				passString.access(gsa);
+
+				completeJsonObj.put("password", gsa.getClearString());
 
 			} else if (attributeName.contains(DOT)) {
 
@@ -367,7 +378,7 @@ public class UserDataBuilder implements ObjectTranslator {
 
 		builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
 
-		builder.addAttributeInfo(AttributeInfoBuilder.define("password").setUpdateable(true).build());
+		builder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("displayName").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("nickName").build());

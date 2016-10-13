@@ -493,7 +493,6 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		return null;
 	}
 
-	// TODO check if method not obsolete.
 	/**
 	 * 
 	 * Extends the "AttributeInfoBuilder" parameter which was provided with an
@@ -530,6 +529,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 		if (ACTIVE.equals(attributeName)) {
 			builder = builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+			builder = builder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
 		} else {
 			builder = buildMissingAttributes(builder, attributeName, infoBuilder);
 		}

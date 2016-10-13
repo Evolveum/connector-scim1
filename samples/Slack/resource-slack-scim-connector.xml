@@ -4,11 +4,11 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          oid="5c978e7c-5d98-49ba-bc6c-491827ae805a"
+          oid="224abd29-3d96-4241-80c6-278c9f019a28"
           version="4">
    <name>slack-scim-connector</name>
    <metadata>
-      <modifyTimestamp>2016-10-11T11:06:13.103+02:00</modifyTimestamp>
+      <modifyTimestamp>2016-10-13T15:15:25.805+02:00</modifyTimestamp>
       <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                    oid="00000000-0000-0000-0000-000000000002"
                    type="tns:UserType"/>
@@ -17,13 +17,13 @@
    <operationalState>
       <lastAvailabilityStatus>up</lastAvailabilityStatus>
    </operationalState>
-   <connectorRef oid="94690c8c-8f63-4c0b-a1b3-9c63554f8914" type="c:ConnectorType"><!-- ICF com.evolveum.polygon.scim.ScimConnector v1.4.2.16-SNAPSHOT --></connectorRef>
+   <connectorRef oid="363551e8-6baa-4a11-b895-21fe4964d53b" type="c:ConnectorType"><!-- ICF com.evolveum.polygon.scim.ScimConnector v1.4.2.14 --></connectorRef>
    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
       <icfc:resultsHandlerConfiguration>
          <icfc:filteredResultsHandlerInValidationMode>true</icfc:filteredResultsHandlerInValidationMode>
       </icfc:resultsHandlerConfiguration>
-      <icfc:configurationProperties xmlns:gen729="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.scim.connector-scim/com.evolveum.polygon.scim.ScimConnector">
-       
+      <icfc:configurationProperties xmlns:gen181="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.scim.connector-scim/com.evolveum.polygon.scim.ScimConnector">
+        
       </icfc:configurationProperties>
    </connectorConfiguration>
    <schema>
@@ -620,6 +620,11 @@
                </inbound>
             </administrativeStatus>
          </activation>
+         <credentials>
+            <password>
+               <outbound/>
+            </password>
+         </credentials>
       </objectType>
    </schemaHandling>
    <capabilities>
@@ -652,6 +657,11 @@
                <cap:disableValue>false</cap:disableValue>
             </cap:status>
          </cap:activation>
+         <cap:credentials>
+            <cap:password>
+               <cap:returnedByDefault>false</cap:returnedByDefault>
+            </cap:password>
+         </cap:credentials>
       </configured>
    </capabilities>
    <synchronization>

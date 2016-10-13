@@ -330,7 +330,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 			throw new IllegalArgumentException("Authentication cannot be empty.");
 		}
 
-		if (!"token".equals(authentication)) {
+		if (!"token".equalsIgnoreCase(authentication)) {
 
 			if (StringUtil.isBlank(username)) {
 				throw new IllegalArgumentException("Username cannot be empty.");

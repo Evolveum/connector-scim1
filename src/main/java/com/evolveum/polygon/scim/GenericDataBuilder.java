@@ -21,12 +21,15 @@ import java.util.List;
 import java.util.Set;
 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.evolveum.polygon.common.GuardedStringAccessor;
 
 /**
  * 
@@ -106,12 +109,19 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 		for (Attribute attribute : imsAttributes) {
 
-			LOGGER.info("Update or create set attribute: {0}", attribute);
+			// LOGGER.info("Update or create set attribute: {0}", attribute);
 
 			String attributeName = attribute.getName();
 
 			if (OperationalAttributes.ENABLE_NAME.equals(attributeName)) {
 				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
+			} else if (OperationalAttributes.PASSWORD_NAME.equals(attributeName)) {
+
+				GuardedString guardedString = (GuardedString) AttributeUtil.getSingleValue(attribute);
+				GuardedStringAccessor accessor = new GuardedStringAccessor();
+				guardedString.access(accessor);
+
+				completeJsonObj.put("password", accessor.getClearString());
 			} else if (attributeName.contains(DOT)) {
 
 				String[] keyParts = attributeName.split(DELIMITER); // e.g.
@@ -137,7 +147,8 @@ public class GenericDataBuilder implements ObjectTranslator {
 		if (multiLayerAttribute != null) {
 			buildLayeredAtrribute(multiLayerAttribute, completeJsonObj);
 		}
-		LOGGER.info("Json object returned from json data builder: {0}", completeJsonObj);
+		// LOGGER.info("Json object returned from json data builder: {0}",
+		// completeJsonObj);
 
 		return completeJsonObj;
 

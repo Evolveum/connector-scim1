@@ -156,8 +156,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				//	LOGGER.info("Json response: {0}", json.toString(1));
 					return uid;
 				} else if (statusCode == 409) {
-
-					// TODO check if status code 409 ok with spec
 					String error = ErrorHandler.onNoSuccess(response, "creating a new object");
 					StringBuilder errorString = new StringBuilder(
 							"Conflict while resource creation, resource evaluated as already created. ").append(error);
@@ -545,7 +543,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		try {
 			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null);
 			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
-		//	LOGGER.info("The update JSON object wich is being sent: {0}", jsonObject);
+			//LOGGER.info("The update JSON object wich is being sent: {0}", jsonObject);
 			bodyContent.setContentType(CONTENTTYPE);
 			httpPatch.setEntity(bodyContent);
 
@@ -1353,7 +1351,10 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	@Override
 	public ObjectClassInfoBuilder schemaObjectInjection(ObjectClassInfoBuilder builder, String attributeName,
 			AttributeInfoBuilder infoBuilder) {
+		
 		builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+		builder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
+		
 		return builder;
 	}
 

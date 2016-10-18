@@ -18,6 +18,7 @@ package com.evolveum.polygon.scim;
 import java.io.IOException;
 import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,31 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 	private static final Log LOGGER = Log.getLog(SalesforceHandlingStrategy.class);
 	private static final String SCHEMATYPE = "urn:scim:schemas:extension:enterprise:1.0";
 	private static final String JSON = "json";
+
+	private static List<String> multivaluedAttributes = new ArrayList<String>();
+	private static List<String> writableAttributes = new ArrayList<String>();
+
+	static {
+
+		multivaluedAttributes.add("members.User.value");
+		multivaluedAttributes.add("members.Group.value");
+		multivaluedAttributes.add("members.default.value");
+		multivaluedAttributes.add("members.default.display");
+
+		writableAttributes.add("name.formatted");
+		writableAttributes.add("entitlements.default.value");
+		writableAttributes.add("emails.work.value");
+		writableAttributes.add("phoneNumbers.work.value");
+		writableAttributes.add("phoneNumbers.fax.value");
+		writableAttributes.add("phoneNumbers.mobile.value");
+		writableAttributes.add("photos.thumbnail.value");
+		writableAttributes.add("roles.value");
+		writableAttributes.add("photos.photo.value");
+		writableAttributes.add("addresses.work.value");
+		writableAttributes.add("groups.default.value");
+		writableAttributes.add("addresses.thumbnail.value");
+		writableAttributes.add("members.default.display");
+	}
 
 	@Override
 	public Map<String, Object> translateReferenceValues(Map<String, Map<String, Object>> attributeMap,
@@ -238,9 +264,12 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 	public AttributeInfoBuilder schemaObjectParametersInjection(AttributeInfoBuilder infoBuilder,
 			String attributeName) {
 
-		if ("members.User.value".equals(attributeName) || "members.Group.value".equals(attributeName)
-				|| "members.default.value".equals(attributeName) || "members.default.display".equals(attributeName)) {
+		if (multivaluedAttributes.contains(attributeName)) {
 			infoBuilder.setMultiValued(true);
+		} else if (writableAttributes.contains(attributeName)) {
+			infoBuilder.setUpdateable(true);
+			infoBuilder.setCreateable(true);
+			infoBuilder.setReadable(true);
 		}
 		return infoBuilder;
 	}

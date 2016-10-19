@@ -128,7 +128,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		LOGGER.info("Query url: {0}", uri);
 
 		try {
-		//	LOGGER.info("Json object to be send: {0}", jsonObject.toString(1));
+			// LOGGER.info("Json object to be send: {0}",
+			// jsonObject.toString(1));
 
 			HttpPost httpPost = new HttpPost(uri);
 			httpPost.addHeader(authHeader);
@@ -153,7 +154,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					Uid uid = new Uid(json.getString(ID));
 
-				//	LOGGER.info("Json response: {0}", json.toString(1));
+					// LOGGER.info("Json response: {0}", json.toString(1));
 					return uid;
 				} else if (statusCode == 409) {
 					String error = ErrorHandler.onNoSuccess(response, "creating a new object");
@@ -161,7 +162,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 							"Conflict while resource creation, resource evaluated as already created. ").append(error);
 					throw new AlreadyExistsException(errorString.toString());
 				} else {
-
 					ErrorHandler.onNoSuccess(response, "creating a new object");
 				}
 
@@ -335,7 +335,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					try {
 						JSONObject jsonObject = new JSONObject(responseString);
 
-					//	LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
+						// LOGGER.info("Json object returned from service
+						// provider: {0}", jsonObject.toString(1));
 						try {
 
 							if (valueIsUid) {
@@ -383,9 +384,12 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 													responseString = EntityUtils.toString(resourceResponse.getEntity());
 													JSONObject fullResourcejson = new JSONObject(responseString);
 
-												//	LOGGER.info(
-												//			"The {0}. resource json object which was returned by the service provider: {1}",
-												//			i + 1, fullResourcejson);
+													// LOGGER.info(
+													// "The {0}. resource json
+													// object which was returned
+													// by the service provider:
+													// {1}",
+													// i + 1, fullResourcejson);
 
 													ConnectorObject connectorObject = buildConnectorObject(
 															fullResourcejson, resourceEndPoint);
@@ -416,7 +420,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 										}
 
-									//	LOGGER.info("The number of remaining results: {0}", remainingResult);
+										// LOGGER.info("The number of remaining
+										// results: {0}", remainingResult);
 										SearchResult searchResult = new SearchResult(DEFAULT, remainingResult,
 												allResultsReturned);
 										((SearchResultsHandler) resultHandler).handleResult(searchResult);
@@ -543,7 +548,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		try {
 			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null);
 			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
-			//LOGGER.info("The update JSON object wich is being sent: {0}", jsonObject);
+			 LOGGER.info("The update JSON object wich is being sent: {0}",
+			 jsonObject);
 			bodyContent.setContentType(CONTENTTYPE);
 			httpPatch.setEntity(bodyContent);
 
@@ -557,7 +563,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				responseString = EntityUtils.toString(response.getEntity());
 				if (!responseString.isEmpty()) {
 					JSONObject json = new JSONObject(responseString);
-			//		LOGGER.ok("Json response: {0}", json.toString());
+					// LOGGER.ok("Json response: {0}", json.toString());
 					Uid id = new Uid(json.getString(ID));
 					return id;
 
@@ -586,7 +592,12 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					ErrorHandler.onNoSuccess(response, "updating object");
 				}
 			} else {
-				ErrorHandler.onNoSuccess(response, "updating object");
+				StringBuilder errorBuilder = new StringBuilder(
+						"The service provider reported an error. Occurrence in the process of updating a resource object.");
+				String errorMessage = ErrorHandler.onNoSuccess(response, "updating object");
+
+				errorBuilder.append(" The error message: ").append(errorMessage);
+				throw new ConnectorException(errorBuilder.toString());
 			}
 
 		} catch (UnsupportedEncodingException e) {
@@ -886,7 +897,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	@Override
 	public ParserSchemaScim processSchemaResponse(JSONObject responseObject) {
 
-		//LOGGER.info("The resources json representation: {0}", responseObject.toString(1));
+		// LOGGER.info("The resources json representation: {0}",
+		// responseObject.toString(1));
 		ParserSchemaScim scimParser = new ParserSchemaScim();
 		for (int i = 0; i < responseObject.getJSONArray(RESOURCES).length(); i++) {
 			JSONObject minResourceJson = new JSONObject();
@@ -1351,10 +1363,10 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	@Override
 	public ObjectClassInfoBuilder schemaObjectInjection(ObjectClassInfoBuilder builder, String attributeName,
 			AttributeInfoBuilder infoBuilder) {
-		
+
 		builder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
 		builder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
-		
+
 		return builder;
 	}
 

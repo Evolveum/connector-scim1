@@ -75,7 +75,7 @@ public class SchemaObjectBuilderGeneric {
 			ObjectClass objectClass = new ObjectClass(splitTypeName[1]);
 			builder.setType(objectClass.getObjectClassValue());
 		}
-	//	LOGGER.info("Schema: {0}", builder.build());
+		LOGGER.info("Schema: {0}", builder.build());
 		return builder.build();
 	}
 

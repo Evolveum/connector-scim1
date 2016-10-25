@@ -154,7 +154,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					Uid uid = new Uid(json.getString(ID));
 
-					// LOGGER.info("Json response: {0}", json.toString(1));
+					//LOGGER.info("Json response: {0}", json.toString(1));
 					return uid;
 				} else if (statusCode == 409) {
 					String error = ErrorHandler.onNoSuccess(response, "creating a new object");
@@ -548,8 +548,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		try {
 			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null);
 			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
-			 LOGGER.info("The update JSON object wich is being sent: {0}",
-			 jsonObject);
+			// LOGGER.info("The update JSON object wich is being sent: {0}",
+		//	 jsonObject);
 			bodyContent.setContentType(CONTENTTYPE);
 			httpPatch.setEntity(bodyContent);
 

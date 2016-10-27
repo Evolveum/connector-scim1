@@ -18,6 +18,7 @@ package com.evolveum.polygon.scim;
 import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -161,7 +162,9 @@ public class SchemaObjectBuilderGeneric {
 			infoBuilder.setRequired(((Boolean) schemaAttributeMap.get(subPropertyName)));
 		} else if ("multiValued".equals(subPropertyName)) {
 			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(subPropertyName)));
-		}
+		}//else if ("caseExact".equals(subPropertyName)){
+		//	infoBuilder.setSubtype(AttributeInfo.Subtypes.STRING_CASE_IGNORE);
+		//}
 
 		return infoBuilder;
 	}

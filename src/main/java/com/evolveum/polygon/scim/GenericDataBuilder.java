@@ -16,8 +16,10 @@
 package com.evolveum.polygon.scim;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.identityconnectors.common.logging.Log;
@@ -42,6 +44,8 @@ import com.evolveum.polygon.common.GuardedStringAccessor;
  */
 public class GenericDataBuilder implements ObjectTranslator {
 
+	private static final String SEPPARATOR = "-";
+	private static final String FORBIDENSEPPARATOR = ":";
 	private static final Log LOGGER = Log.getLog(GenericDataBuilder.class);
 	private String operation;
 
@@ -83,6 +87,8 @@ public class GenericDataBuilder implements ObjectTranslator {
 		// name.givenName
 		Set<Attribute> multiLayerAttribute = new HashSet<Attribute>(); // e.g.
 		// emails.work.value
+		Set<Attribute> extensionAttribute = new HashSet<Attribute>(); // e.g.
+		// urn|scim|schemas|extension|enterprise|1.0.division
 
 		if (injectedAttributes != null) {
 			for (Attribute injectedAttribute : injectedAttributes) {
@@ -122,6 +128,10 @@ public class GenericDataBuilder implements ObjectTranslator {
 				guardedString.access(accessor);
 
 				completeJsonObj.put("password", accessor.getClearString());
+			} else if (attributeName.contains(SEPPARATOR)) {
+
+				extensionAttribute.add(attribute);
+
 			} else if (attributeName.contains(DOT)) {
 
 				String[] keyParts = attributeName.split(DELIMITER); // e.g.
@@ -135,6 +145,11 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 			} else {
 
+				if (attributeName.contains(FORBIDENSEPPARATOR)) {
+
+					attributeName = attributeName.replace(FORBIDENSEPPARATOR, SEPPARATOR);
+				}
+
 				completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 			}
 
@@ -146,6 +161,10 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 		if (multiLayerAttribute != null) {
 			buildLayeredAtrribute(multiLayerAttribute, completeJsonObj);
+		}
+
+		if (extensionAttribute != null) {
+			buildExtensionAttribute(extensionAttribute, completeJsonObj);
 		}
 		// LOGGER.info("Json object returned from json data builder: {0}",
 		// completeJsonObj);
@@ -263,10 +282,15 @@ public class GenericDataBuilder implements ObjectTranslator {
 							jArray.put(multivalueObject);
 						}
 					}
-					json.put(nameFromSubSetParts[0], jArray);
+					String attrame = nameFromSubSetParts[0];
+					if (attrame.contains(SEPPARATOR)) {
+						attrame = attrame.replace(SEPPARATOR, FORBIDENSEPPARATOR);
+					}
+					json.put(attrame, jArray);
 				}
 
 			}
+
 		}
 
 		return json;
@@ -348,6 +372,103 @@ public class GenericDataBuilder implements ObjectTranslator {
 					}
 
 				}
+			}
+		}
+
+		return json;
+	}
+
+	/**
+	 * Builds a json object representation out of a provided set of
+	 * "attributes belonging to an extension". This type of attributes represent
+	 * a complex json object containing other key value pairs.
+	 * 
+	 * @param extensionAttribute
+	 *            A provided set of attributes.
+	 * @param json
+	 *            A json representation of the provided data set.
+	 * 
+	 * @return A json representation of the provided data set.
+	 */
+
+	public JSONObject buildExtensionAttribute(Set<Attribute> extensionAttribute, JSONObject json) {
+		boolean isPartOfName = false;
+		String mainAttributeName = "";
+		Map<String, Map<String, Object>> processedGoods = new HashMap<String, Map<String, Object>>();
+
+		for (Attribute i : extensionAttribute) {
+
+			String attributeName = i.getName();
+			attributeName = attributeName.replace(SEPPARATOR, FORBIDENSEPPARATOR);
+			String[] attributeNameParts = attributeName.split(DELIMITER); // e.q.
+			// urn:scim:schemas:extension:enterprise:1.0.division
+			for (int position = 1; position < attributeNameParts.length; position++) {
+
+				String namePart = attributeNameParts[position];
+
+				for (int charPossition = 0; charPossition < namePart.length(); charPossition++) {
+					char c = namePart.charAt(charPossition);
+					if (Character.isDigit(c)) {
+						if (charPossition == 0 && charPossition + 1 == namePart.length()) {
+							isPartOfName = true;
+						} else if (charPossition + 1 == namePart.length() && !isPartOfName) {
+
+							isPartOfName = false;
+
+						}else {
+							isPartOfName = true;
+						}
+					} else {
+						isPartOfName = false;
+					}
+				}
+				if (!isPartOfName) {
+
+					if (mainAttributeName.isEmpty()) {
+						mainAttributeName = attributeNameParts[0];
+					}
+
+					if (!processedGoods.containsKey(mainAttributeName)) {
+
+						Map<String, Object> processedAttribute = new HashMap<String, Object>();
+						processedAttribute.put(namePart, AttributeUtil.getSingleValue(i));
+						processedGoods.put(mainAttributeName, processedAttribute);
+						mainAttributeName = "";
+						break;
+					} else {
+						Map<String, Object> processedAttribute = processedGoods.get(mainAttributeName);
+						processedAttribute.put(namePart, AttributeUtil.getSingleValue(i));
+						processedGoods.put(mainAttributeName, processedAttribute);
+						mainAttributeName = "";
+						break;
+					}
+				} else {
+					StringBuilder buildName;
+					if (mainAttributeName.isEmpty()) {
+						buildName = new StringBuilder(attributeNameParts[0]).append(DOT).append(namePart);
+						mainAttributeName = buildName.toString();
+					} else {
+						buildName = new StringBuilder(mainAttributeName).append(DOT).append(namePart);
+						mainAttributeName = buildName.toString();
+					}
+				}
+
+			}
+
+		}
+		if (!processedGoods.isEmpty()) {
+			for (String attributeName : processedGoods.keySet()) {
+
+				JSONObject subAttributes = new JSONObject();
+
+				Map<String, Object> sAttribute = processedGoods.get(attributeName);
+
+				for (String sAttributeName : sAttribute.keySet()) {
+					subAttributes.put(sAttributeName, sAttribute.get(sAttributeName));
+				}
+
+				json.put(attributeName, subAttributes);
+
 			}
 		}
 

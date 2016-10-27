@@ -23,6 +23,7 @@ hs_err_pid*
 doc/
 target/
 tests/
+samples/
 test-output/
 .project
 src/main/java/com/evolveum/polygon/scim/Main.java

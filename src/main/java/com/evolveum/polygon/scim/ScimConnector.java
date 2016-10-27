@@ -415,7 +415,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		}
 
 		if (ObjectClass.ACCOUNT.getObjectClassValue().equals(endpointName)) {
-
+			
 			strategy.query(query, queryUriSnippet, USERS, handler, configuration);
 
 		} else if (ObjectClass.GROUP.getObjectClassValue().equals(endpointName)) {

@@ -83,7 +83,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	private static final String STARTINDEX = "startIndex";
 	private static final String TOTALRESULTS = "totalResults";
 	private static final String ITEMSPERPAGE = "itemsPerPage";
-
+	private static final String FORBIDENSEPPARATOR = ":";
+	private static final String SEPPARATOR = "-";
+	
 	private static final char QUERYCHAR = '?';
 	private static final char QUERYDELIMITER = '&';
 
@@ -384,12 +386,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 													responseString = EntityUtils.toString(resourceResponse.getEntity());
 													JSONObject fullResourcejson = new JSONObject(responseString);
 
-													// LOGGER.info(
-													// "The {0}. resource json
-													// object which was returned
-													// by the service provider:
-													// {1}",
-													// i + 1, fullResourcejson);
+												//	 LOGGER.info( "The {0}. resource jsonobject which was returned by the service provider: {1}",
+												//	i + 1, fullResourcejson);
 
 													ConnectorObject connectorObject = buildConnectorObject(
 															fullResourcejson, resourceEndPoint);
@@ -549,7 +547,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null);
 			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
 			// LOGGER.info("The update JSON object wich is being sent: {0}",
-		//	 jsonObject);
+			// jsonObject);
 			bodyContent.setContentType(CONTENTTYPE);
 			httpPatch.setEntity(bodyContent);
 
@@ -951,6 +949,11 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				for (String subAttributeNameKeys : attribute.keySet()) {
 					if (NAME.equals(subAttributeNameKeys)) {
 						attributeName = attribute.get(subAttributeNameKeys).toString();
+						
+						if (attributeName.contains(FORBIDENSEPPARATOR)){
+							attributeName= attributeName.replace(FORBIDENSEPPARATOR, SEPPARATOR);
+						}
+						
 						break;
 					}
 				}
@@ -1061,7 +1064,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 				if (NAME.equals(attributeNameKeys)) {
 					attributeName = attribute.get(attributeNameKeys).toString();
-
+					if (attributeName.contains(FORBIDENSEPPARATOR)){
+					attributeName= attributeName.replace(FORBIDENSEPPARATOR, SEPPARATOR);
+					}
 				} else {
 					attributeObjects.put(attributeNameKeys, attribute.get(attributeNameKeys));
 				}
@@ -1256,11 +1261,13 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 			} else if (attribute instanceof JSONObject) {
 				for (String s : ((JSONObject) attribute).keySet()) {
-
+					
+					if(key.contains(FORBIDENSEPPARATOR)){
+						key =key.replace(FORBIDENSEPPARATOR, SEPPARATOR);
+					} 
 					StringBuilder objectNameBilder = new StringBuilder(key);
 					cob.addAttribute(objectNameBilder.append(DOT).append(s).toString(),
 							((JSONObject) attribute).get(s));
-
 				}
 
 			} else {

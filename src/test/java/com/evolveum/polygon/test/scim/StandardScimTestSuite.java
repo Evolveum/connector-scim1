@@ -178,7 +178,7 @@ public class StandardScimTestSuite {
 
 		PropertiesParser parser = getParser();
 
-		Object[][] object = parser.fetchTestData(DELETEPROVIDER);
+		Object[][] object = parser.fetchTestData(CREATEPROVIDER);
 
 		for (int i = 0; i < object.length; i++) {
 			String parameterName = (String) object[i][0];

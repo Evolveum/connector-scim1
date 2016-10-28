@@ -148,23 +148,11 @@ public class SchemaObjectBuilderGeneric {
 				}
 			}
 
-		} else if ("type".equals(subPropertyName)) {
-
-			if ("string".equals(schemaAttributeMap.get(subPropertyName).toString())) {
-
-				infoBuilder.setType(String.class);
-			} else if ("boolean".equals(schemaAttributeMap.get(subPropertyName).toString())) {
-
-				infoBuilder.setType(Boolean.class);
-			}
-
 		} else if ("required".equals(subPropertyName)) {
 			infoBuilder.setRequired(((Boolean) schemaAttributeMap.get(subPropertyName)));
 		} else if ("multiValued".equals(subPropertyName)) {
 			infoBuilder.setMultiValued(((Boolean) schemaAttributeMap.get(subPropertyName)));
-		}//else if ("caseExact".equals(subPropertyName)){
-		//	infoBuilder.setSubtype(AttributeInfo.Subtypes.STRING_CASE_IGNORE);
-		//}
+		}
 
 		return infoBuilder;
 	}

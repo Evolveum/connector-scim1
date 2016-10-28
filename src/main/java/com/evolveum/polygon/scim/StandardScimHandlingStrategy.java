@@ -45,6 +45,7 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
@@ -1321,7 +1322,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName);
 		Boolean containsDictionaryValue = false;
-
+		Map<String,Object> caseHandlingMap = new HashMap<String, Object>();
+		
+		
 		List<String> dictionary = populateDictionary(WorkaroundFlags.BUILDERFLAG);
 
 		if (dictionary.contains(attributeName)) {
@@ -1330,13 +1333,13 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		if (!containsDictionaryValue) {
 			dictionary.clear();
-			Map<String, Object> schemaSubPropertiesMap = new HashMap<String, Object>();
-			schemaSubPropertiesMap = attributeMap.get(attributeName);
+			Map<String, Object> schemaSubPropertysMap = new HashMap<String, Object>();
+			schemaSubPropertysMap = attributeMap.get(attributeName);
 
-			for (String subPropertieName : schemaSubPropertiesMap.keySet()) {
+			for (String subPropertyName : schemaSubPropertysMap.keySet()) {
 				containsDictionaryValue = false;
 				dictionary = populateDictionary(WorkaroundFlags.PARSERFLAG);
-				if (dictionary.contains(subPropertieName)) {
+				if (dictionary.contains(subPropertyName)) {
 					containsDictionaryValue = true;
 				}
 
@@ -1345,7 +1348,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					infoBuilder = new AttributeInfoBuilder(attributeName);
 					JSONArray jsonArray = new JSONArray();
 
-					jsonArray = ((JSONArray) schemaSubPropertiesMap.get(subPropertieName));
+					jsonArray = ((JSONArray) schemaSubPropertysMap.get(subPropertyName));
 					for (int i = 0; i < jsonArray.length(); i++) {
 						JSONObject attribute = new JSONObject();
 						attribute = jsonArray.getJSONObject(i);
@@ -1353,13 +1356,50 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					break;
 				} else {
 
-					infoBuilder = schemaBuilder.subPropertiesChecker(infoBuilder, schemaSubPropertiesMap,
-							subPropertieName);
+					
+					
+					
+					if("type".equals(subPropertyName)){
+						
+						if ("string".equals(schemaSubPropertysMap.get(subPropertyName).toString())) {
+
+							caseHandlingMap.put("type", "string");
+							
+				
+						} else if ("boolean".equals(schemaSubPropertysMap.get(subPropertyName).toString())) {
+
+							caseHandlingMap.put("type", "bool");
+							infoBuilder.setType(Boolean.class);
+						}
+					}else if ("caseExact".equals(subPropertyName)){
+
+						caseHandlingMap.put("caseExact", (Boolean) schemaSubPropertysMap.get(subPropertyName));
+					}
+					
+					infoBuilder = schemaBuilder.subPropertiesChecker(infoBuilder, schemaSubPropertysMap,
+							subPropertyName);
 					infoBuilder = schemaObjectParametersInjection(infoBuilder, attributeName);
 
 				}
 
 			}
+			if (!caseHandlingMap.isEmpty()){
+				if(caseHandlingMap.containsKey("type")){
+					if("string".equals(caseHandlingMap.get("type"))){
+						infoBuilder.setType(String.class);
+						if (caseHandlingMap.containsKey("caseExact")){
+							if(!(Boolean)caseHandlingMap.get("caseExact")){
+								infoBuilder.setSubtype(AttributeInfo.Subtypes.STRING_CASE_IGNORE);
+							}
+						}
+					}else if ("boolean".equals(caseHandlingMap.get("type"))){
+						infoBuilder.setType(Boolean.class);
+					}
+					
+				}
+				
+			}
+			
 			builder.addAttributeInfo(infoBuilder.build());
 		} else {
 			builder = schemaObjectInjection(builder, attributeName, infoBuilder);

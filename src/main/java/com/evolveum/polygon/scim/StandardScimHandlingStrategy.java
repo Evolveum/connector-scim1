@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
@@ -37,7 +38,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.util.EntityUtils;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
@@ -125,7 +128,16 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		jsonObject = objectTranslator.translateSetToJson(attributes, injectedAttributeSet);
 
-		HttpClient httpClient = HttpClientBuilder.create().build();
+		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
+
+		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
+			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
+			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+			httpClientBulder.setRoutePlanner(routePlanner);
+		}
+
+		HttpClient httpClient = httpClientBulder.build();
+
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).toString();
 
 		LOGGER.info("Query url: {0}", uri);
@@ -315,7 +327,15 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		}
 
-		HttpClient httpClient = HttpClientBuilder.create().build();
+		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
+
+		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
+			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
+			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+			httpClientBulder.setRoutePlanner(routePlanner);
+		}
+
+		HttpClient httpClient = httpClientBulder.build();
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).append(q)
 				.toString();
@@ -533,7 +553,15 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		ServiceAccessManager.logIntoService(conf);
 
-		HttpClient httpClient = HttpClientBuilder.create().build();
+		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
+
+		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
+			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
+			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+			httpClientBulder.setRoutePlanner(routePlanner);
+		}
+
+		HttpClient httpClient = httpClientBulder.build();
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH)
 				.append(uid.getUidValue()).toString();
@@ -687,7 +715,15 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		HttpClient httpClient = HttpClientBuilder.create().build();
+		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
+
+		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
+			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
+			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+			httpClientBulder.setRoutePlanner(routePlanner);
+		}
+
+		HttpClient httpClient = httpClientBulder.build();
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH)
 				.append(uid.getUidValue()).toString();
@@ -780,7 +816,15 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		HttpClient httpClient = HttpClientBuilder.create().build();
+		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
+
+		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
+			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
+			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+			httpClientBulder.setRoutePlanner(routePlanner);
+		}
+
+		HttpClient httpClient = httpClientBulder.build();
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).toString();
 		LOGGER.info("Qeury url: {0}", uri);
 		HttpGet httpGet = new HttpGet(uri);

@@ -42,8 +42,8 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	private String token;
 	private String clientSecret;
 
-	private String proxy;
-	private Integer proxy_port_number;
+	private String proxyUrl;
+	private Integer proxyPortNumber;
 
 	private static final Log LOGGER = Log.getLog(ScimConnectorConfiguration.class);
 
@@ -285,9 +285,9 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 * @return the proxy url string value.
 	 */
 
-	@ConfigurationProperty(order = 12, displayMessageKey = "proxy.display", helpMessageKey = "proxy.help", required = false, confidential = false)
+	@ConfigurationProperty(order = 12, displayMessageKey = "proxyUrl.display", helpMessageKey = "proxyUrl.help", required = false, confidential = false)
 	public String getProxyUrl() {
-		return proxy;
+		return proxyUrl;
 	}
 
 	/**
@@ -297,7 +297,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 *            the proxy url string value.
 	 */
 	public void setProxyUrl(String proxy) {
-		this.proxy = proxy;
+		this.proxyUrl = proxy;
 	}
 
 	/**
@@ -306,9 +306,9 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 * @return the proxy_port_number integer value.
 	 */
 
-	@ConfigurationProperty(order = 13, displayMessageKey = "proxy_port_number.display", helpMessageKey = "proxy_port_number.help", required = false, confidential = false)
+	@ConfigurationProperty(order = 13, displayMessageKey = "proxyPortNumber.display", helpMessageKey = "proxyPortNumber.help", required = false, confidential = false)
 	public Integer getProxyPortNumber() {
-		return proxy_port_number;
+		return proxyPortNumber;
 	}
 
 	/**
@@ -318,7 +318,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 *            the proxy number integer value.
 	 */
 	public void setProxyPortNumber(Integer proxyPortNumber) {
-		this.proxy_port_number = proxyPortNumber;
+		this.proxyPortNumber = proxyPortNumber;
 	}
 
 	@Override
@@ -387,10 +387,26 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		this.username = null;
 		this.grant = null;
 		this.authentication = null;
-		this.proxy = null;
-		this.proxy_port_number = null;
+		this.proxyUrl = null;
+		this.proxyPortNumber = null;
 		this.token = null;
 		this.baseUrl = null;
 	}
 
+	@Override
+	public String toString() {
+		return "ScimConnectorConfiguration{" +
+				"authentication='" + authentication + '\'' +
+				", scim_endpoint='" + scim_endpoint + '\'' +
+				", scim_version='" + scim_version + '\'' +
+				", username='" + username + '\'' +
+				", loginUrl='" + loginUrl + '\'' +
+				", baseUrl='" + baseUrl + '\'' +
+				", grant='" + grant + '\'' +
+				", clientId='" + clientId + '\'' +
+				", clientSecret='" + clientSecret + '\'' +
+				", proxyUrl='" + proxyUrl + '\'' +
+				", proxyPortNumber=" + proxyPortNumber +
+				'}';
+	}
 }

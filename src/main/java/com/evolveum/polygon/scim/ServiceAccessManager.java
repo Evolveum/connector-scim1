@@ -75,6 +75,8 @@ public class ServiceAccessManager {
 		String loginInstanceUrl = null;
 		JSONObject jsonObject = null;
 		String proxyUrl = configuration.getProxyUrl();
+		LOGGER.ok("proxyUrl: {0}", proxyUrl);
+		LOGGER.ok("Configuration: {0}", configuration);
 
 		if (!"token".equalsIgnoreCase(configuration.getAuthentication())) {
 
@@ -88,6 +90,7 @@ public class ServiceAccessManager {
 
 				httpClient = HttpClientBuilder.create().setRoutePlanner(routePlanner).build();
 
+				LOGGER.ok("Proxy enabled: {0}:{1}", proxyUrl, configuration.getProxyPortNumber());
 			} else {
 
 				httpClient = HttpClientBuilder.create().build();

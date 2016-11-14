@@ -65,6 +65,7 @@ public interface HandlingStrategy {
 	String ISCOMPLEX = "isComplex";
 	String DOT = ".";
 	String DISPLAYNAME = "displayName";
+	String USERNAME = "userName";
 	String ACTIVE = "active";
 	String VALUE = "value";
 

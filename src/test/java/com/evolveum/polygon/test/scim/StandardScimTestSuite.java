@@ -55,6 +55,7 @@ public class StandardScimTestSuite {
 	protected static final String FILTERMETHODTESTPROVIDER = "filterMethodProvider";
 	protected static final String UPDATEUSERPROVIDER = "updateUserProvider";
 	protected static final String UPDATEGROUPPROVIDER = "updateGroupProvider";
+	protected static final String TESTOBJECTBUILDPROVIDER = "testObjectBuildProvider";
 	protected static final String LISTALLPROVIDER = "listAllFromResourcesProvider";
 	protected static final String CONSISTENCYTESTPROVIDER = "parameterConsistencyTestProvider";
 	protected static final String DELETEPROVIDER = "deleteProvider";
@@ -87,6 +88,30 @@ public class StandardScimTestSuite {
 		PropertiesParser parser = getParser();
 
 		Object object[][] = parser.fetchTestData(FILTERMETHODTESTPROVIDER);
+
+		return object;
+	}
+	
+	@DataProvider(name = TESTOBJECTBUILDPROVIDER)
+	public Object[][] testObjectBuildProvider() throws Exception {
+
+		PropertiesParser parser = getParser();
+
+		Object[][] object = parser.fetchTestData(TESTOBJECTBUILDPROVIDER);
+
+		for (int i = 0; i < object.length; i++) {
+			String parameterName = (String) object[i][0];
+
+			if (parameterName.equals(USERS)) {
+
+				object[i][1] = true;
+
+			} else if (parameterName.equals(GROUPS)) {
+
+				object[i][1] = true;
+			}
+
+		}
 
 		return object;
 	}
@@ -174,8 +199,6 @@ public class StandardScimTestSuite {
 	@DataProvider(name = CREATEPROVIDER)
 	public Object[][] createResourceProvider() {
 
-		Boolean notFalse = true;
-
 		PropertiesParser parser = getParser();
 
 		Object[][] object = parser.fetchTestData(CREATEPROVIDER);
@@ -185,11 +208,11 @@ public class StandardScimTestSuite {
 
 			if (parameterName.equals(USERS)) {
 
-				object[i][1] = notFalse;
+				object[i][1] = true;
 
 			} else if (parameterName.equals(GROUPS)) {
 
-				object[i][1] = notFalse;
+				object[i][1] = true;
 			}
 
 		}

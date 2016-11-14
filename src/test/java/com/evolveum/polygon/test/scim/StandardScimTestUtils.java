@@ -26,6 +26,7 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
@@ -39,9 +40,12 @@ import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
+import com.evolveum.polygon.scim.StandardScimHandlingStrategy;
 
 /**
  * 
@@ -162,6 +166,36 @@ public class StandardScimTestUtils {
 		attributeSet.add(AttributeBuilder.build(EMAILWORKPRIMARY, false));
 
 		return attributeSet;
+	}
+
+	protected static JSONObject userToConnIdSimulation(Integer testNumber) {
+		JSONObject testJson = new JSONObject();
+
+		StringBuilder buildUpdateEmailAdress = new StringBuilder(testNumber.toString())
+				.append("testupdateuser@testdomain.com");
+
+		JSONObject nameObject = new JSONObject();
+		nameObject.put("givenName", JSONObject.NULL);
+		nameObject.put("familyName", JSONObject.NULL);
+
+		JSONArray emailArray = new JSONArray();
+
+		JSONObject emailObject = new JSONObject();
+		emailObject.put("value", buildUpdateEmailAdress.toString());
+		emailObject.put("primary", true);
+
+		emailArray.put(emailObject);
+
+		testJson.put("displayName", "");
+		testJson.put("active", true);
+		testJson.put("userName", buildUpdateEmailAdress.toString());
+
+		testJson.put("nickName", testNumber.toString());
+		testJson.put("emails", emailArray);
+		testJson.put("name", nameObject);
+		testJson.put("id", "123456789");
+
+		return testJson;
 	}
 
 	protected static Set<Attribute> userEnableUpdate() {
@@ -432,6 +466,29 @@ public class StandardScimTestUtils {
 		return true;
 	}
 
+	public static ConnectorObject connObjectBuildTest(String resourceName, Integer testNumber){
+		
+		ConnectorObject connectorObject;
+		
+		if(USERS.equals(resourceName)){
+			
+			StandardScimHandlingStrategy handlingStrategy = new StandardScimHandlingStrategy();
+			
+			 connectorObject = handlingStrategy.buildConnectorObject(userToConnIdSimulation(testNumber), "Users");
+			
+		} else if(GROUPS.equals(resourceName)){
+			
+		connectorObject = null;	
+		
+		}else {
+			
+		 connectorObject = null;	
+			
+		}
+		
+		return connectorObject;
+	}
+	
 	public Set<Attribute> getAttributeSet(String resourceName, Integer testNumber) {
 
 		Set<Attribute> attributeSet = new HashSet<>();
@@ -449,11 +506,12 @@ public class StandardScimTestUtils {
 
 	public static Map<String, String> processResult(List<ConnectorObject> results, String resourceName, String testType,
 			Uid userTestUid, Integer testNumber) {
-
 		Map<String, String> evaluationResult = new HashMap<String, String>();
 
 		Set<Attribute> createAttributeSet = new HashSet<Attribute>();
 
+		String notPressentAttribute = "";
+		
 		String createAttributeName;
 
 		if (USERS.equals(resourceName)) {
@@ -469,20 +527,24 @@ public class StandardScimTestUtils {
 				createAttributeSet = userEnableUpdate();
 			}
 
+			notPressentAttribute = USERNAME;
+			
 		} else if (GROUPS.equals(resourceName)) {
 			if (CREATE.equals(testType)) {
 				createAttributeSet = groupCreateBuilder(testNumber);
 			} else if (UPDATESINGLE.equals(testType)) {
 				createAttributeSet = groupSingleValUpdateBuilder(testNumber);
 			} else if (UPDATEMULTI.equals(testType)) {
-				groupMultiValUpdateBuilder(testNumber, userTestUid);
+				createAttributeSet= groupMultiValUpdateBuilder(testNumber, userTestUid);
 			}
+			notPressentAttribute = DISPLAYNAME;
 		}
 
 		for (Attribute createAttribute : createAttributeSet) {
 			createAttributeName = createAttribute.getName();
-
+			if(!notPressentAttribute.equals(createAttributeName)){
 			evaluationResult.put(createAttributeName, "#AttributeNameNotFound#");
+			}
 		}
 		for (ConnectorObject result : results) {
 			Set<Attribute> returnedAttributeSet = new HashSet<Attribute>();
@@ -493,7 +555,7 @@ public class StandardScimTestUtils {
 
 				String returnedAttributeName = attribute.getName();
 				LOGGER.info("The attribute Name: {0}", returnedAttributeName);
-
+				
 				for (Attribute createAttribute : createAttributeSet) {
 					createAttributeName = createAttribute.getName();
 

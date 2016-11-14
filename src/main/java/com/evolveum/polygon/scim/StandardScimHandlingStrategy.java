@@ -387,8 +387,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 													responseString = EntityUtils.toString(resourceResponse.getEntity());
 													JSONObject fullResourcejson = new JSONObject(responseString);
 
-												//	 LOGGER.info( "The {0}. resource jsonobject which was returned by the service provider: {1}",
-												//	i + 1, fullResourcejson);
+													 LOGGER.info( "The {0}. resource jsonobject which was returned by the service provider: {1}",
+													i + 1, fullResourcejson);
 
 													ConnectorObject connectorObject = buildConnectorObject(
 															fullResourcejson, resourceEndPoint);
@@ -1164,6 +1164,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	public ConnectorObject buildConnectorObject(JSONObject resourceJsonObject, String resourceEndPoint)
 			throws ConnectorException {
 
+		List<String> excludedAttributes = new ArrayList<String>();
+		
 		LOGGER.info("Building the connector object from provided json");
 
 		if (resourceJsonObject == null) {
@@ -1177,20 +1179,23 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		cob.setUid(resourceJsonObject.getString(ID));
 
 		if (USERS.equals(resourceEndPoint)) {
-			cob.setName(resourceJsonObject.getString("userName"));
+			cob.setName(resourceJsonObject.getString(USERNAME));
+			excludedAttributes.add(USERNAME);
 		} else if (GROUPS.equals(resourceEndPoint)) {
 
 			cob.setName(resourceJsonObject.getString(DISPLAYNAME));
+			excludedAttributes.add(DISPLAYNAME);
 			cob.setObjectClass(ObjectClass.GROUP);
 		} else {
 			cob.setName(resourceJsonObject.getString(DISPLAYNAME));
+			excludedAttributes.add(DISPLAYNAME);
 			ObjectClass objectClass = new ObjectClass(resourceEndPoint);
 			cob.setObjectClass(objectClass);
 
 		}
 		for (String key : resourceJsonObject.keySet()) {
 			Object attribute = resourceJsonObject.get(key);
-			List<String> excludedAttributes = new ArrayList<String>();
+			
 
 			excludedAttributes = excludeFromAssembly(excludedAttributes);
 
@@ -1200,45 +1205,54 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 			if (attribute instanceof JSONArray) {
 
-				JSONArray jArray = (JSONArray) attribute;
+				JSONArray attributeArray = (JSONArray) attribute;
 
 				Map<String, Collection<Object>> multivaluedAttributeMap = new HashMap<String, Collection<Object>>();
 				Collection<Object> attributeValues = new ArrayList<Object>();
 
-				for (Object o : jArray) {
+				for (Object singleAttribute : attributeArray) {
 					StringBuilder objectNameBilder = new StringBuilder(key);
 					String objectKeyName = "";
-					if (o instanceof JSONObject) {
-						for (String s : ((JSONObject) o).keySet()) {
-							if (TYPE.equals(s)) {
-								objectKeyName = objectNameBilder.append(DOT).append(((JSONObject) o).get(s)).toString();
+					if (singleAttribute instanceof JSONObject) {
+						for (String singleSubAttribute : ((JSONObject) singleAttribute).keySet()) {
+							if (TYPE.equals(singleSubAttribute)) {
+								objectKeyName = objectNameBilder.append(DOT).append(((JSONObject) singleAttribute).get(singleSubAttribute)).toString();
 								objectNameBilder.delete(0, objectNameBilder.length());
 								break;
 							}
 						}
 
-						for (String s : ((JSONObject) o).keySet()) {
-
-							if (TYPE.equals(s)) {
+						for (String singleSubAttribute : ((JSONObject) singleAttribute).keySet()) {
+							Object sAttributeValue;
+							if(((JSONObject) singleAttribute).isNull(singleSubAttribute)){
+								sAttributeValue = null;
+							}else {
+								
+								sAttributeValue =((JSONObject) singleAttribute).get(singleSubAttribute);
+							}
+							
+							if (TYPE.equals(singleSubAttribute)) {
 							} else {
 
 								if (!"".equals(objectKeyName)) {
-									objectNameBilder = objectNameBilder.append(objectKeyName).append(DOT).append(s);
+									objectNameBilder = objectNameBilder.append(objectKeyName).append(DOT).append(singleSubAttribute);
 								} else {
 									objectKeyName = objectNameBilder.append(DOT).append(DEFAULT).toString();
-									objectNameBilder = objectNameBilder.append(DOT).append(s);
+									objectNameBilder = objectNameBilder.append(DOT).append(singleSubAttribute);
 								}
 
 								if (attributeValues.isEmpty()) {
-									attributeValues.add(((JSONObject) o).get(s));
+									
+								
+									attributeValues.add(sAttributeValue);
 									multivaluedAttributeMap.put(objectNameBilder.toString(), attributeValues);
 								} else {
 									if (multivaluedAttributeMap.containsKey(objectNameBilder.toString())) {
 										attributeValues = multivaluedAttributeMap.get(objectNameBilder.toString());
-										attributeValues.add(((JSONObject) o).get(s));
+										attributeValues.add(sAttributeValue);
 									} else {
 										Collection<Object> newAttributeValues = new ArrayList<Object>();
-										newAttributeValues.add(((JSONObject) o).get(s));
+										newAttributeValues.add(sAttributeValue);
 										multivaluedAttributeMap.put(objectNameBilder.toString(), newAttributeValues);
 									}
 
@@ -1248,8 +1262,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 							}
 						}
 					} else {
-						objectKeyName = objectNameBilder.append(DOT).append(o.toString()).toString();
-						cob.addAttribute(objectKeyName, o);
+						objectKeyName = objectNameBilder.append(DOT).append(singleAttribute.toString()).toString();
+						cob.addAttribute(objectKeyName, singleAttribute);
 					}
 				}
 
@@ -1262,13 +1276,24 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 			} else if (attribute instanceof JSONObject) {
 				for (String s : ((JSONObject) attribute).keySet()) {
-					
+					Object attributeValue;
 					if(key.contains(FORBIDENSEPPARATOR)){
 						key =key.replace(FORBIDENSEPPARATOR, SEPPARATOR);
 					} 
+					
+				if (((JSONObject) attribute).isNull(s)){
+				
+					attributeValue= null;
+					
+				}else {
+					
+					attributeValue=((JSONObject) attribute).get(s);
+					
+				}
+					
 					StringBuilder objectNameBilder = new StringBuilder(key);
 					cob.addAttribute(objectNameBilder.append(DOT).append(s).toString(),
-							((JSONObject) attribute).get(s));
+							attributeValue);
 				}
 
 			} else {
@@ -1277,11 +1302,12 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					cob.addAttribute(OperationalAttributes.ENABLE_NAME, resourceJsonObject.get(key));
 				} else {
 
-					if (!resourceJsonObject.get(key).equals(null)) {
+					if (!resourceJsonObject.isNull(key)) {
 
 						cob.addAttribute(key, resourceJsonObject.get(key));
 					} else {
-						cob.addAttribute(key, "");
+						Object value = null;
+						cob.addAttribute(key, value);
 
 					}
 				}

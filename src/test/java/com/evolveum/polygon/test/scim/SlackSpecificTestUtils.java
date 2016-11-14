@@ -194,7 +194,7 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 		Map<String, String> evaluationResult = new HashMap<String, String>();
 
 		Set<Attribute> createAttributeSet = new HashSet<Attribute>();
-
+		String notPressentAttribute = "";
 		String createAttributeName;
 
 		if (USERS.equals(resourceName)) {
@@ -209,7 +209,7 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 			} else if ("update-enabled".equals(testType)) {
 				createAttributeSet = userEnableUpdate();
 			}
-
+			notPressentAttribute = USERNAME;
 		} else if (GROUPS.equals(resourceName)) {
 			if (CREATE.equals(testType)) {
 				createAttributeSet = groupCreateBuilder(testNumber);
@@ -218,12 +218,15 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 			} else if (UPDATEMULTI.equals(testType)) {
 				groupMultiValUpdateBuilder(testNumber, userTestUid);
 			}
+			notPressentAttribute = DISPLAYNAME;
 		}
 
 		for (Attribute createAttribute : createAttributeSet) {
 			createAttributeName = createAttribute.getName();
 
-			evaluationResult.put(createAttributeName, "#AttributeNameNotFound#");
+			if(!notPressentAttribute.equals(createAttributeName)){
+				evaluationResult.put(createAttributeName, "#AttributeNameNotFound#");
+				}
 		}
 		for (ConnectorObject result : result2) {
 			Set<Attribute> returnedAttributeSet = new HashSet<Attribute>();

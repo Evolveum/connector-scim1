@@ -89,7 +89,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	private static final String ITEMSPERPAGE = "itemsPerPage";
 	private static final String FORBIDENSEPPARATOR = ":";
 	private static final String SEPPARATOR = "-";
-	
+
 	private static final char QUERYCHAR = '?';
 	private static final char QUERYDELIMITER = '&';
 
@@ -162,14 +162,14 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				int statusCode = response.getStatusLine().getStatusCode();
 				LOGGER.info("Status code: {0}", statusCode);
 				if (statusCode == 201) {
-					LOGGER.info("Creation of resource was successful");
+					//LOGGER.info("Creation of resource was successful");
 
 					responseString = EntityUtils.toString(response.getEntity());
 					JSONObject json = new JSONObject(responseString);
 
 					Uid uid = new Uid(json.getString(ID));
 
-					//LOGGER.info("Json response: {0}", json.toString(1));
+					// LOGGER.info("Json response: {0}", json.toString(1));
 					return uid;
 				} else if (statusCode == 409) {
 					String error = ErrorHandler.onNoSuccess(response, "creating a new object");
@@ -407,8 +407,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 													responseString = EntityUtils.toString(resourceResponse.getEntity());
 													JSONObject fullResourcejson = new JSONObject(responseString);
 
-													 LOGGER.info( "The {0}. resource jsonobject which was returned by the service provider: {1}",
-													i + 1, fullResourcejson);
+											//		LOGGER.info(
+														//	"The {0}. resource jsonobject which was returned by the service provider: {1}",
+														//	i + 1, fullResourcejson);
 
 													ConnectorObject connectorObject = buildConnectorObject(
 															fullResourcejson, resourceEndPoint);
@@ -974,7 +975,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		Map<String, Object> subAttributeMap = new HashMap<String, Object>();
 
 		List<String> dictionary = populateDictionary(WorkaroundFlags.PARSERFLAG);
-
+		List<String> excludedAttributes = defineExcludedAttributes();
 		for (int position = 0; position < dictionary.size(); position++) {
 			nameFromDictionary = dictionary.get(position);
 
@@ -994,132 +995,142 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				for (String subAttributeNameKeys : attribute.keySet()) {
 					if (NAME.equals(subAttributeNameKeys)) {
 						attributeName = attribute.get(subAttributeNameKeys).toString();
-						
-						if (attributeName.contains(FORBIDENSEPPARATOR)){
-							attributeName= attributeName.replace(FORBIDENSEPPARATOR, SEPPARATOR);
+
+						if (attributeName.contains(FORBIDENSEPPARATOR)) {
+							attributeName = attributeName.replace(FORBIDENSEPPARATOR, SEPPARATOR);
 						}
-						
+
 						break;
 					}
 				}
 			}
 
-			for (String nameKey : attribute.keySet()) {
-				if (MULTIVALUED.equals(nameKey)) {
-					isMultiValued = (Boolean) attribute.get(nameKey);
-					break;
-				}
-			}
+			if (!excludedAttributes.contains(attributeName)) {
 
-			for (int i = 0; i < subAttributes.length(); i++) {
-				JSONObject subAttribute = new JSONObject();
-				subAttribute = subAttributes.getJSONObject(i);
-				subAttributeMap = parser.parseSubAttribute(subAttribute, subAttributeMap);
-			}
-			for (String typeKey : subAttributeMap.keySet()) {
-				if (TYPE.equals(typeKey)) {
-					hasTypeValues = true;
-					break;
+				for (String nameKey : attribute.keySet()) {
+					if (MULTIVALUED.equals(nameKey)) {
+						isMultiValued = (Boolean) attribute.get(nameKey);
+						break;
+					}
 				}
-			}
 
-			if (hasTypeValues) {
-				Map<String, Object> typeObject = new HashMap<String, Object>();
-				typeObject = (HashMap<String, Object>) subAttributeMap.get(TYPE);
-				if (typeObject.containsKey(CANONICALVALUES) || typeObject.containsKey(REFERENCETYPES)) {
-					JSONArray referenceValues = new JSONArray();
-					if (typeObject.containsKey(CANONICALVALUES)) {
-						referenceValues = (JSONArray) typeObject.get(CANONICALVALUES);
+				for (int i = 0; i < subAttributes.length(); i++) {
+					JSONObject subAttribute = new JSONObject();
+					subAttribute = subAttributes.getJSONObject(i);
+					subAttributeMap = parser.parseSubAttribute(subAttribute, subAttributeMap);
+				}
+				for (String typeKey : subAttributeMap.keySet()) {
+					if (TYPE.equals(typeKey)) {
+						hasTypeValues = true;
+						break;
+					}
+				}
+
+				if (hasTypeValues) {
+					Map<String, Object> typeObject = new HashMap<String, Object>();
+					typeObject = (HashMap<String, Object>) subAttributeMap.get(TYPE);
+					if (typeObject.containsKey(CANONICALVALUES) || typeObject.containsKey(REFERENCETYPES)) {
+						JSONArray referenceValues = new JSONArray();
+						if (typeObject.containsKey(CANONICALVALUES)) {
+							referenceValues = (JSONArray) typeObject.get(CANONICALVALUES);
+						} else {
+							referenceValues = (JSONArray) typeObject.get(REFERENCETYPES);
+						}
+
+						for (int position = 0; position < referenceValues.length(); position++) {
+
+							Map<String, Object> processedParameters = translateReferenceValues(attributeMap,
+									referenceValues, subAttributeMap, position, attributeName);
+
+							for (String parameterName : processedParameters.keySet()) {
+								if (ISCOMPLEX.equals(parameterName)) {
+
+									isComplex = (Boolean) processedParameters.get(parameterName);
+
+								} else {
+									attributeMap = (Map<String, Map<String, Object>>) processedParameters
+											.get(parameterName);
+								}
+
+							}
+
+						}
 					} else {
-						referenceValues = (JSONArray) typeObject.get(REFERENCETYPES);
-					}
+						// default set of canonical values.
 
-					for (int position = 0; position < referenceValues.length(); position++) {
+						List<String> defaultReferenceTypeValues = new ArrayList<String>();
+						defaultReferenceTypeValues.add("User");
+						defaultReferenceTypeValues.add("Group");
 
-						Map<String, Object> processedParameters = translateReferenceValues(attributeMap,
-								referenceValues, subAttributeMap, position, attributeName);
+						defaultReferenceTypeValues.add("external");
+						defaultReferenceTypeValues.add(URI);
 
-						for (String parameterName : processedParameters.keySet()) {
-							if (ISCOMPLEX.equals(parameterName)) {
-
-								isComplex = (Boolean) processedParameters.get(parameterName);
-
-							} else {
-								attributeMap = (Map<String, Map<String, Object>>) processedParameters
-										.get(parameterName);
+						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+							if (!TYPE.equals(subAttributeKeyNames)) {
+								for (String defaultTypeReferenceValues : defaultReferenceTypeValues) {
+									StringBuilder complexAttrName = new StringBuilder(attributeName);
+									complexAttrName.append(DOT).append(defaultTypeReferenceValues);
+									attributeMap.put(
+											complexAttrName.append(DOT).append(subAttributeKeyNames).toString(),
+											(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+									isComplex = true;
+								}
 							}
-
 						}
-
 					}
 				} else {
-					// default set of canonical values.
 
-					List<String> defaultReferenceTypeValues = new ArrayList<String>();
-					defaultReferenceTypeValues.add("User");
-					defaultReferenceTypeValues.add("Group");
-
-					defaultReferenceTypeValues.add("external");
-					defaultReferenceTypeValues.add(URI);
-
-					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-						if (!TYPE.equals(subAttributeKeyNames)) {
-							for (String defaultTypeReferenceValues : defaultReferenceTypeValues) {
-								StringBuilder complexAttrName = new StringBuilder(attributeName);
-								complexAttrName.append(DOT).append(defaultTypeReferenceValues);
-								attributeMap.put(complexAttrName.append(DOT).append(subAttributeKeyNames).toString(),
-										(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
-								isComplex = true;
-							}
+					if (!isMultiValued) {
+						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+							StringBuilder complexAttrName = new StringBuilder(attributeName);
+							attributeMap.put(complexAttrName.append(DOT).append(subAttributeKeyNames).toString(),
+									(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
+							isComplex = true;
 						}
-					}
-				}
-			} else {
+					} else {
+						for (String subAttributeKeyNames : subAttributeMap.keySet()) {
+							StringBuilder complexAttrName = new StringBuilder(attributeName);
 
-				if (!isMultiValued) {
-					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-						StringBuilder complexAttrName = new StringBuilder(attributeName);
-						attributeMap.put(complexAttrName.append(DOT).append(subAttributeKeyNames).toString(),
-								(HashMap<String, Object>) subAttributeMap.get(subAttributeKeyNames));
-						isComplex = true;
-					}
-				} else {
-					for (String subAttributeKeyNames : subAttributeMap.keySet()) {
-						StringBuilder complexAttrName = new StringBuilder(attributeName);
+							Map<String, Object> subattributeKeyMap = (HashMap<String, Object>) subAttributeMap
+									.get(subAttributeKeyNames);
 
-						Map<String, Object> subattributeKeyMap = (HashMap<String, Object>) subAttributeMap
-								.get(subAttributeKeyNames);
+							for (String attributeProperty : subattributeKeyMap.keySet()) {
 
-						for (String attributeProperty : subattributeKeyMap.keySet()) {
-
-							if (MULTIVALUED.equals(attributeProperty)) {
-								subattributeKeyMap.put(MULTIVALUED, true);
+								if (MULTIVALUED.equals(attributeProperty)) {
+									subattributeKeyMap.put(MULTIVALUED, true);
+								}
 							}
+							attributeMap.put(complexAttrName.append(DOT).append(DEFAULT).append(DOT)
+									.append(subAttributeKeyNames).toString(), subattributeKeyMap);
+							isComplex = true;
 						}
-						attributeMap.put(complexAttrName.append(DOT).append(DEFAULT).append(DOT)
-								.append(subAttributeKeyNames).toString(), subattributeKeyMap);
-						isComplex = true;
 					}
 				}
 			}
-
 		} else {
 
 			for (String attributeNameKeys : attribute.keySet()) {
-
-				if (NAME.equals(attributeNameKeys)) {
-					attributeName = attribute.get(attributeNameKeys).toString();
-					if (attributeName.contains(FORBIDENSEPPARATOR)){
-					attributeName= attributeName.replace(FORBIDENSEPPARATOR, SEPPARATOR);
+				if (!excludedAttributes.contains(attributeName)) {
+					if (NAME.equals(attributeNameKeys)) {
+						attributeName = attribute.get(attributeNameKeys).toString();
+						if (attributeName.contains(FORBIDENSEPPARATOR)) {
+							attributeName = attributeName.replace(FORBIDENSEPPARATOR, SEPPARATOR);
+						}
+					} else {
+						attributeObjects.put(attributeNameKeys, attribute.get(attributeNameKeys));
 					}
 				} else {
-					attributeObjects.put(attributeNameKeys, attribute.get(attributeNameKeys));
-				}
+					if (!attributeObjects.isEmpty()) {
 
+						attributeObjects.clear();
+					}
+				}
 			}
 		}
 		if (!isComplex) {
-			attributeMap.put(attributeName, attributeObjects);
+			if (!attributeObjects.isEmpty()) {
+				attributeMap.put(attributeName, attributeObjects);
+			}
 		}
 		return attributeMap;
 	}
@@ -1156,6 +1167,14 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		processedParameters.put("attributeMap", attributeMap);
 
 		return processedParameters;
+	}
+
+	@Override
+	public List<String> defineExcludedAttributes() {
+
+		List<String> excludedList = new ArrayList<String>();
+
+		return excludedList;
 	}
 
 	@Override
@@ -1209,7 +1228,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			throws ConnectorException {
 
 		List<String> excludedAttributes = new ArrayList<String>();
-		
+
 		LOGGER.info("Building the connector object from provided json");
 
 		if (resourceJsonObject == null) {
@@ -1221,7 +1240,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		ConnectorObjectBuilder cob = new ConnectorObjectBuilder();
 		cob.setUid(resourceJsonObject.getString(ID));
-
+		excludedAttributes.add(ID);
 		if (USERS.equals(resourceEndPoint)) {
 			cob.setName(resourceJsonObject.getString(USERNAME));
 			excludedAttributes.add(USERNAME);
@@ -1239,7 +1258,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		}
 		for (String key : resourceJsonObject.keySet()) {
 			Object attribute = resourceJsonObject.get(key);
-			
 
 			excludedAttributes = excludeFromAssembly(excludedAttributes);
 
@@ -1260,7 +1278,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					if (singleAttribute instanceof JSONObject) {
 						for (String singleSubAttribute : ((JSONObject) singleAttribute).keySet()) {
 							if (TYPE.equals(singleSubAttribute)) {
-								objectKeyName = objectNameBilder.append(DOT).append(((JSONObject) singleAttribute).get(singleSubAttribute)).toString();
+								objectKeyName = objectNameBilder.append(DOT)
+										.append(((JSONObject) singleAttribute).get(singleSubAttribute)).toString();
 								objectNameBilder.delete(0, objectNameBilder.length());
 								break;
 							}
@@ -1268,26 +1287,26 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 						for (String singleSubAttribute : ((JSONObject) singleAttribute).keySet()) {
 							Object sAttributeValue;
-							if(((JSONObject) singleAttribute).isNull(singleSubAttribute)){
+							if (((JSONObject) singleAttribute).isNull(singleSubAttribute)) {
 								sAttributeValue = null;
-							}else {
-								
-								sAttributeValue =((JSONObject) singleAttribute).get(singleSubAttribute);
+							} else {
+
+								sAttributeValue = ((JSONObject) singleAttribute).get(singleSubAttribute);
 							}
-							
+
 							if (TYPE.equals(singleSubAttribute)) {
 							} else {
 
 								if (!"".equals(objectKeyName)) {
-									objectNameBilder = objectNameBilder.append(objectKeyName).append(DOT).append(singleSubAttribute);
+									objectNameBilder = objectNameBilder.append(objectKeyName).append(DOT)
+											.append(singleSubAttribute);
 								} else {
 									objectKeyName = objectNameBilder.append(DOT).append(DEFAULT).toString();
 									objectNameBilder = objectNameBilder.append(DOT).append(singleSubAttribute);
 								}
 
 								if (attributeValues.isEmpty()) {
-									
-								
+
 									attributeValues.add(sAttributeValue);
 									multivaluedAttributeMap.put(objectNameBilder.toString(), attributeValues);
 								} else {
@@ -1321,23 +1340,22 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			} else if (attribute instanceof JSONObject) {
 				for (String s : ((JSONObject) attribute).keySet()) {
 					Object attributeValue;
-					if(key.contains(FORBIDENSEPPARATOR)){
-						key =key.replace(FORBIDENSEPPARATOR, SEPPARATOR);
-					} 
-					
-				if (((JSONObject) attribute).isNull(s)){
-				
-					attributeValue= null;
-					
-				}else {
-					
-					attributeValue=((JSONObject) attribute).get(s);
-					
-				}
-					
+					if (key.contains(FORBIDENSEPPARATOR)) {
+						key = key.replace(FORBIDENSEPPARATOR, SEPPARATOR);
+					}
+
+					if (((JSONObject) attribute).isNull(s)) {
+
+						attributeValue = null;
+
+					} else {
+
+						attributeValue = ((JSONObject) attribute).get(s);
+
+					}
+
 					StringBuilder objectNameBilder = new StringBuilder(key);
-					cob.addAttribute(objectNameBilder.append(DOT).append(s).toString(),
-							attributeValue);
+					cob.addAttribute(objectNameBilder.append(DOT).append(s).toString(), attributeValue);
 				}
 
 			} else {
@@ -1358,7 +1376,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			}
 		}
 		ConnectorObject finalConnectorObject = cob.build();
-		LOGGER.info("The connector object returned for the processed json: {0}", finalConnectorObject);
+		LOGGER.info("The connector object returned from the processed json: {0}", finalConnectorObject);
 		return finalConnectorObject;
 
 	}
@@ -1392,9 +1410,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		AttributeInfoBuilder infoBuilder = new AttributeInfoBuilder(attributeName);
 		Boolean containsDictionaryValue = false;
-		Map<String,Object> caseHandlingMap = new HashMap<String, Object>();
-		
-		
+		Map<String, Object> caseHandlingMap = new HashMap<String, Object>();
+
 		List<String> dictionary = populateDictionary(WorkaroundFlags.BUILDERFLAG);
 
 		if (dictionary.contains(attributeName)) {
@@ -1426,26 +1443,22 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					break;
 				} else {
 
-					
-					
-					
-					if("type".equals(subPropertyName)){
-						
+					if ("type".equals(subPropertyName)) {
+
 						if ("string".equals(schemaSubPropertysMap.get(subPropertyName).toString())) {
 
 							caseHandlingMap.put("type", "string");
-							
-				
+
 						} else if ("boolean".equals(schemaSubPropertysMap.get(subPropertyName).toString())) {
 
 							caseHandlingMap.put("type", "bool");
 							infoBuilder.setType(Boolean.class);
 						}
-					}else if ("caseExact".equals(subPropertyName)){
+					} else if ("caseExact".equals(subPropertyName)) {
 
 						caseHandlingMap.put("caseExact", (Boolean) schemaSubPropertysMap.get(subPropertyName));
 					}
-					
+
 					infoBuilder = schemaBuilder.subPropertiesChecker(infoBuilder, schemaSubPropertysMap,
 							subPropertyName);
 					infoBuilder = schemaObjectParametersInjection(infoBuilder, attributeName);
@@ -1453,23 +1466,23 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				}
 
 			}
-			if (!caseHandlingMap.isEmpty()){
-				if(caseHandlingMap.containsKey("type")){
-					if("string".equals(caseHandlingMap.get("type"))){
+			if (!caseHandlingMap.isEmpty()) {
+				if (caseHandlingMap.containsKey("type")) {
+					if ("string".equals(caseHandlingMap.get("type"))) {
 						infoBuilder.setType(String.class);
-						if (caseHandlingMap.containsKey("caseExact")){
-							if(!(Boolean)caseHandlingMap.get("caseExact")){
+						if (caseHandlingMap.containsKey("caseExact")) {
+							if (!(Boolean) caseHandlingMap.get("caseExact")) {
 								infoBuilder.setSubtype(AttributeInfo.Subtypes.STRING_CASE_IGNORE);
 							}
 						}
-					}else if ("boolean".equals(caseHandlingMap.get("type"))){
+					} else if ("boolean".equals(caseHandlingMap.get("type"))) {
 						infoBuilder.setType(Boolean.class);
 					}
-					
+
 				}
-				
+
 			}
-			
+
 			builder.addAttributeInfo(infoBuilder.build());
 		} else {
 			builder = schemaObjectInjection(builder, attributeName, infoBuilder);

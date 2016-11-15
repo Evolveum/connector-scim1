@@ -281,7 +281,16 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		return jsonObject;
 
 	}
-
+	
+	@Override
+	public List<String> defineExcludedAttributes(){
+		
+		List<String> excludedList = new ArrayList<String>();
+		excludedList.add("emails");
+		
+		return excludedList;
+	}
+	
 	@Override
 	public List<Map<String, Map<String, Object>>> getAttributeMapList(
 			List<Map<String, Map<String, Object>>> attributeMapList) {

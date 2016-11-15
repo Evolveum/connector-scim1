@@ -18,6 +18,7 @@ package com.evolveum.polygon.scim;
 
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
 import org.identityconnectors.framework.spi.StatefulConfiguration;
@@ -34,12 +35,12 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	private String scim_endpoint;
 	private String scim_version;
 	private String username;
-	private String password;
+	private GuardedString password;
 	private String loginUrl;
 	private String baseUrl;
 	private String grant;
 	private String clientId;
-	private String token;
+	private GuardedString token;
 	private String clientSecret;
 
 	private String proxyUrl;
@@ -75,7 +76,9 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 */
 
 	@ConfigurationProperty(order = 2, displayMessageKey = "token.display", helpMessageKey = "token.help", required = false, confidential = true)
-	public String getToken() {
+	public GuardedString getToken() {
+		//char[] tokenCharacters = token.toCharArray();
+		//GuardedString guardedToken = new GuardedString(tokenCharacters);
 		return token;
 	}
 
@@ -85,7 +88,8 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 * @param token
 	 *            the token string value.
 	 */
-	public void setToken(String token) {
+	public void setToken(GuardedString token) {
+		
 		this.token = token;
 	}
 
@@ -118,7 +122,8 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 */
 	@ConfigurationProperty(order = 4, displayMessageKey = "password.display", helpMessageKey = "password.help", required = false, confidential = true)
 
-	public String getPassword() {
+	public GuardedString getPassword() {
+
 		return password;
 
 	}
@@ -129,7 +134,9 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 * @param passwd
 	 *            the password string value.
 	 */
-	public void setPassword(String passwd) {
+	public void setPassword(GuardedString passwd) {
+		
+		
 		this.password = passwd;
 	}
 
@@ -336,7 +343,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 				throw new IllegalArgumentException("Username cannot be empty.");
 			}
 
-			if (StringUtil.isBlank(password)) {
+			if ("".equals(password)) {
 				throw new IllegalArgumentException("Password cannot be empty");
 			}
 
@@ -356,7 +363,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 
 		} else {
 
-			if (StringUtil.isBlank(token)) {
+			if ("".equals(token)) {
 				throw new IllegalArgumentException("Token cannot be empty.");
 			}
 			if (StringUtil.isBlank(baseUrl)) {

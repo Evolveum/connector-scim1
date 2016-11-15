@@ -23,10 +23,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
@@ -89,7 +89,9 @@ public class StandardScimTestUtils {
 			} else if ("loginUrl".equals(configurationParameter)) {
 				scimConnectorConfiguration.setLoginURL(configuration.get(configurationParameter));
 			} else if ("password".equals(configurationParameter)) {
-				scimConnectorConfiguration.setPassword(configuration.get(configurationParameter));
+				char[] passChars = configuration.get(configurationParameter).toCharArray();
+				GuardedString guardedPass = new GuardedString(passChars);
+				scimConnectorConfiguration.setPassword(guardedPass);
 			} else if ("service".equals(configurationParameter)) {
 				scimConnectorConfiguration.setService(configuration.get(configurationParameter));
 			} else if (USERNAME.equals(configurationParameter)) {
@@ -101,7 +103,10 @@ public class StandardScimTestUtils {
 			} else if ("baseurl".equals(configurationParameter)) {
 				scimConnectorConfiguration.setBaseUrl(configuration.get(configurationParameter));
 			} else if ("token".equals(configurationParameter)) {
-				scimConnectorConfiguration.setToken(configuration.get(configurationParameter));
+				char[] tokenCharacters = configuration.get(configurationParameter).toCharArray();
+				GuardedString guardedToken = new GuardedString(tokenCharacters);
+				scimConnectorConfiguration.setToken(guardedToken);
+				
 			} else if ("proxy".equals(configurationParameter)) {
 				scimConnectorConfiguration.setProxyUrl(configuration.get(configurationParameter));
 			} else if ("proxy_port_number".equals(configurationParameter)) {

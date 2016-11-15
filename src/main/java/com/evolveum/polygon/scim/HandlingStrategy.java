@@ -549,6 +549,13 @@ public interface HandlingStrategy {
 			JSONArray referenceValues, Map<String, Object> subAttributeMap, int position, String attributeName);
 
 	/**
+	 * Defines a list of attributes which should be excluded from propagating to the schema builder.
+	 * 
+	 * @return the list of excluded attributes
+	 */
+	public List<String> defineExcludedAttributes();
+	
+	/**
 	 * Extends the json object representation with the injected set of
 	 * attributes.
 	 * 
@@ -560,6 +567,7 @@ public interface HandlingStrategy {
 	 * 
 	 * @return the extended set of attributes
 	 */
+	
 	public Set<Attribute> addAttributesToInject(Set<Attribute> injectedAttributeSet);
 
 	/**

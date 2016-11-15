@@ -36,6 +36,7 @@ import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
@@ -43,6 +44,8 @@ import org.identityconnectors.framework.common.exceptions.OperationTimeoutExcept
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
+import com.evolveum.polygon.common.GuardedStringAccessor;
 
 /**
  * 
@@ -98,9 +101,14 @@ public class ServiceAccessManager {
 			}
 			String loginURL = new StringBuilder(configuration.getLoginURL()).append(configuration.getService())
 					.toString();
+			
+			GuardedString guardedPassword = configuration.getPassword();
+			GuardedStringAccessor accessor = new GuardedStringAccessor();
+			guardedPassword.access(accessor);
+
 			String contentUri = new StringBuilder("&client_id=").append(configuration.getClientID())
 					.append("&client_secret=").append(configuration.getClientSecret()).append("&username=")
-					.append(configuration.getUserName()).append("&password=").append(configuration.getPassword())
+					.append(configuration.getUserName()).append("&password=").append(guardedPassword)
 					.toString();
 
 			loginInstance = new HttpPost(loginURL);
@@ -232,7 +240,13 @@ public class ServiceAccessManager {
 			authHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
 		} else {
 			loginInstanceUrl = configuration.getBaseUrl();
-			loginAccessToken = configuration.getToken();
+			
+			GuardedString guardedToken = configuration.getToken();
+			
+			GuardedStringAccessor accessor = new GuardedStringAccessor();
+			guardedToken.access(accessor);
+			
+			loginAccessToken =accessor.getClearString();
 
 			authHeader = new BasicHeader("Authorization", "Bearer " + loginAccessToken);
 		}

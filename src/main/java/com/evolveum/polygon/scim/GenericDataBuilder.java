@@ -77,7 +77,8 @@ public class GenericDataBuilder implements ObjectTranslator {
 	 *            A set of attributes which are injected into the provided set.
 	 * @return The complete json representation of the provided data set.
 	 */
-	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
+	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes,
+			String resourceEndPoint) {
 
 		LOGGER.info("Building account JsonObject");
 
@@ -119,7 +120,18 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 			String attributeName = attribute.getName();
 
-			if (OperationalAttributes.ENABLE_NAME.equals(attributeName)) {
+			if (attributeName.contains(DOT)) {
+
+				String[] keyParts = attributeName.split(DELIMITER); // e.g.
+				// emails.work.value
+				if (keyParts.length == 2) {
+
+					multiValueAttribute.add(attribute);
+				} else {
+					multiLayerAttribute.add(attribute);
+				}
+
+			} else if (OperationalAttributes.ENABLE_NAME.equals(attributeName)) {
 				completeJsonObj.put("active", AttributeUtil.getSingleValue(attribute));
 			} else if (OperationalAttributes.PASSWORD_NAME.equals(attributeName)) {
 
@@ -132,15 +144,14 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 				extensionAttribute.add(attribute);
 
-			} else if (attributeName.contains(DOT)) {
+			} else if ("__NAME__".equals(attributeName)) {
+				if (resourceEndPoint.equals("Users")) {
 
-				String[] keyParts = attributeName.split(DELIMITER); // e.g.
-				// emails.work.value
-				if (keyParts.length == 2) {
+					completeJsonObj.put("userName", AttributeUtil.getSingleValue(attribute));
 
-					multiValueAttribute.add(attribute);
 				} else {
-					multiLayerAttribute.add(attribute);
+
+					completeJsonObj.put("displayName", AttributeUtil.getSingleValue(attribute));
 				}
 
 			} else {
@@ -415,7 +426,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 							isPartOfName = false;
 
-						}else {
+						} else {
 							isPartOfName = true;
 						}
 					} else {

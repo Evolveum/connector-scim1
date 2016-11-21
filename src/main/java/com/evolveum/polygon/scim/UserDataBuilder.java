@@ -73,7 +73,7 @@ public class UserDataBuilder implements ObjectTranslator {
 	 * @return The complete json representation of the provided data set.
 	 */
 
-	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
+	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes, String resourceEndPoint) {
 
 		LOGGER.info("Building account JsonObject");
 
@@ -97,7 +97,7 @@ public class UserDataBuilder implements ObjectTranslator {
 					} else {
 						multiLayerAttribute.add(injectedAttribute);
 					}
-				} else {
+				}  else {
 
 					completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(injectedAttribute));
 				}
@@ -135,7 +135,14 @@ public class UserDataBuilder implements ObjectTranslator {
 					multiLayerAttribute.add(attribute);
 				}
 
-			} else {
+			} else if ("__NAME__".equals(attributeName)){
+				if(resourceEndPoint.equals("Users")){
+					
+					completeJsonObj.put("userName", AttributeUtil.getSingleValue(attribute));
+					
+				}
+				
+			}  else {
 
 				completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));
 			}

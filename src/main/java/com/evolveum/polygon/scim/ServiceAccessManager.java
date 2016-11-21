@@ -21,14 +21,11 @@ import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -40,6 +37,7 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
+import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -80,7 +78,6 @@ public class ServiceAccessManager {
 		String proxyUrl = configuration.getProxyUrl();
 		LOGGER.ok("proxyUrl: {0}", proxyUrl);
 		LOGGER.ok("Configuration: {0}", configuration);
-
 		if (!"token".equalsIgnoreCase(configuration.getAuthentication())) {
 
 			HttpClient httpClient;
@@ -101,24 +98,54 @@ public class ServiceAccessManager {
 			}
 			String loginURL = new StringBuilder(configuration.getLoginURL()).append(configuration.getService())
 					.toString();
-			
+
 			GuardedString guardedPassword = configuration.getPassword();
 			GuardedStringAccessor accessor = new GuardedStringAccessor();
 			guardedPassword.access(accessor);
 
 			String contentUri = new StringBuilder("&client_id=").append(configuration.getClientID())
 					.append("&client_secret=").append(configuration.getClientSecret()).append("&username=")
-					.append(configuration.getUserName()).append("&password=").append(guardedPassword)
+					.append(configuration.getUserName()).append("&password=").append(accessor.getClearString())
 					.toString();
 
 			loginInstance = new HttpPost(loginURL);
-			HttpResponse response = null;
+			CloseableHttpResponse response = null;
 
 			StringEntity bodyContent;
+			String getResult = null;
+			Integer statusCode = null;
 			try {
 				bodyContent = new StringEntity(contentUri);
 				bodyContent.setContentType("application/x-www-form-urlencoded");
 				loginInstance.setEntity(bodyContent);
+
+				response = (CloseableHttpResponse) httpClient.execute(loginInstance);
+
+				getResult = EntityUtils.toString(response.getEntity());
+
+				statusCode = response.getStatusLine().getStatusCode();
+
+				if (statusCode == 200) {
+
+					LOGGER.info("Login Successful");
+					
+				} else if (statusCode == 401) {
+
+					String error = ErrorHandler.onNoSuccess(getResult, statusCode, "loging into service");
+					StringBuilder errorString = new StringBuilder(
+							"Unauthorized while loging into service, please check if credentials are valid. ")
+									.append(error);
+					throw new InvalidCredentialException(errorString.toString());
+				} else {
+					LOGGER.error("Error with authenticating : {0}", statusCode);
+					LOGGER.error("Error cause: {0}", getResult);
+
+				}
+
+				jsonObject = (JSONObject) new JSONTokener(getResult).nextValue();
+
+				loginAccessToken = jsonObject.getString("access_token");
+				loginInstanceUrl = jsonObject.getString("instance_url");
 
 			} catch (UnsupportedEncodingException e) {
 				LOGGER.error("Unsupported encoding: {0}. Occurrence in the process of login into the service",
@@ -129,11 +156,7 @@ public class ServiceAccessManager {
 						"Unsupported encoding. Occurrence in the process of login into the service", e);
 			}
 
-			try {
-
-				response = httpClient.execute(loginInstance);
-
-			} catch (ClientProtocolException e) {
+			catch (ClientProtocolException e) {
 
 				LOGGER.error(
 						"An protocol exception has occurred while processing the http response to the login request. Possible mismatch in interpretation of the HTTP specification: {0}",
@@ -165,67 +188,6 @@ public class ServiceAccessManager {
 							ioException);
 					throw new ConnectorIOException(errorBuilder.toString(), ioException);
 				}
-			}
-
-			final int statusCode = response.getStatusLine().getStatusCode();
-			if (statusCode != HttpStatus.SC_OK) {
-				LOGGER.error("Error with authenticating : {0}", statusCode);
-				try {
-					LOGGER.error("Error cause: {0}", EntityUtils.toString(response.getEntity()));
-				} catch (ParseException | IOException e) {
-
-					StringBuilder errorBuilder = new StringBuilder(
-							"An exception has occurred while parsing the http response to the login request. ");
-
-					if ((e instanceof SocketTimeoutException || e instanceof java.net.NoRouteToHostException)) {
-
-						errorBuilder.insert(0, "The connection timed out. ");
-
-						throw new OperationTimeoutException(errorBuilder.toString(), e);
-					} else {
-
-						LOGGER.error(
-								"An exception has occurred while parsing the http response to the login request: {0}",
-								e.getLocalizedMessage());
-						LOGGER.info(
-								"An exception has occurred while parsing the http response to the login request: {0}",
-								e);
-						throw new ConnectorIOException(errorBuilder.toString(), e);
-					}
-				}
-			} else {
-				LOGGER.info("Login Successful");
-			}
-
-			String getResult = null;
-			try {
-				getResult = EntityUtils.toString(response.getEntity());
-			} catch (IOException ioException) {
-
-				StringBuilder errorBuilder = new StringBuilder(
-						"An error occurred while processing the query http response to the login request. ");
-
-				if ((ioException instanceof SocketTimeoutException || ioException instanceof NoRouteToHostException)) {
-
-					errorBuilder.insert(0, "The connection timed out. ");
-
-					throw new OperationTimeoutException(errorBuilder.toString(), ioException);
-				} else {
-
-					LOGGER.error("An exception has occurred while parsing the http response to the login request: {0}",
-							ioException.getLocalizedMessage());
-					LOGGER.info("An exception has occurred while parsing the http response to the login request: {0}",
-							ioException);
-					throw new ConnectorIOException(errorBuilder.toString(), ioException);
-				}
-			}
-
-			try {
-
-				jsonObject = (JSONObject) new JSONTokener(getResult).nextValue();
-
-				loginAccessToken = jsonObject.getString("access_token");
-				loginInstanceUrl = jsonObject.getString("instance_url");
 			} catch (JSONException jsonException) {
 
 				LOGGER.error(
@@ -236,17 +198,40 @@ public class ServiceAccessManager {
 						jsonException);
 				throw new ConnectorException("An exception has occurred while setting the \"jsonObject\".",
 						jsonException);
+			} finally {
+				try {
+					response.close();
+				} catch (IOException e) {
+
+					if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
+
+						throw new OperationTimeoutException(
+								"The connection timed out while closing the http connection. Occurrence in the process of logging into the service",
+								e);
+					} else {
+
+						LOGGER.error(
+								"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of logging into the service: {0}",
+								e.getLocalizedMessage());
+
+						throw new ConnectorIOException(
+								"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of logging into the service",
+								e);
+					}
+
+				}
+
 			}
 			authHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
 		} else {
 			loginInstanceUrl = configuration.getBaseUrl();
-			
+
 			GuardedString guardedToken = configuration.getToken();
-			
+
 			GuardedStringAccessor accessor = new GuardedStringAccessor();
 			guardedToken.access(accessor);
-			
-			loginAccessToken =accessor.getClearString();
+
+			loginAccessToken = accessor.getClearString();
 
 			authHeader = new BasicHeader("Authorization", "Bearer " + loginAccessToken);
 		}
@@ -263,19 +248,6 @@ public class ServiceAccessManager {
 		}
 
 		return autoriazationData;
-	}
-
-	/**
-	 * Method used to log out of the service.
-	 * 
-	 * @param loginInstance
-	 *            Data representing the login instance of a communication
-	 *            session.
-	 * 
-	 */
-	public static void logOut(HttpPost loginInstance) {
-		loginInstance.releaseConnection();
-		LOGGER.info("The connection was released");
 	}
 
 }

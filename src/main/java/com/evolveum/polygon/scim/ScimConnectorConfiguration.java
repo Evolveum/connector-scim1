@@ -77,8 +77,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 
 	@ConfigurationProperty(order = 2, displayMessageKey = "token.display", helpMessageKey = "token.help", required = false, confidential = true)
 	public GuardedString getToken() {
-		//char[] tokenCharacters = token.toCharArray();
-		//GuardedString guardedToken = new GuardedString(tokenCharacters);
+		
 		return token;
 	}
 

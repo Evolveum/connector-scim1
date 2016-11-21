@@ -15,10 +15,11 @@
  */
 package com.evolveum.polygon.scim;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -56,25 +57,31 @@ public class SchemaObjectBuilderGeneric {
 		ObjectClassInfoBuilder builder = new ObjectClassInfoBuilder();
 		builder.addAttributeInfo(Name.INFO);
 
-		StrategyFetcher fetch = new StrategyFetcher();
-		HandlingStrategy strategy = fetch.fetchStrategy(providerName);
-
-		for (String attributeName : attributeMap.keySet()) {
-
-			builder = strategy.schemaBuilder(attributeName, attributeMap, builder, this);
-
-		}
-
+		List<String> excludedAttributes = new ArrayList<String>();
+		excludedAttributes.add("id");
+		
 		if ("/Users".equals(objectTypeName)) {
 			builder.setType(ObjectClass.ACCOUNT_NAME);
-
+			excludedAttributes.add("userName");
 		} else if ("/Groups".equals(objectTypeName)) {
 			builder.setType(ObjectClass.GROUP_NAME);
+			excludedAttributes.add("displayName");
 		} else {
 			String[] splitTypeName = objectTypeName.split("\\/"); // e.q.
 			// "/Entitlements"
 			ObjectClass objectClass = new ObjectClass(splitTypeName[1]);
 			builder.setType(objectClass.getObjectClassValue());
+			excludedAttributes.add("displayName");
+		}
+		
+		StrategyFetcher fetch = new StrategyFetcher();
+		HandlingStrategy strategy = fetch.fetchStrategy(providerName);
+
+		for (String attributeName : attributeMap.keySet()) {
+
+			if(!excludedAttributes.contains(attributeName)){
+			builder = strategy.schemaBuilder(attributeName, attributeMap, builder, this);
+			}
 		}
 		LOGGER.info("Schema: {0}", builder.build());
 		return builder.build();

@@ -353,7 +353,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 					HttpPost instance = (HttpPost) authoriazationData.get("loginInstance");
 
 					LOGGER.info("Test was succesfull");
-					ServiceAccessManager.logOut(instance);
 				} else {
 
 					LOGGER.error(

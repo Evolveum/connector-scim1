@@ -54,15 +54,13 @@ public class ErrorHandler {
 	 * @throws ParseException
 	 * @throws IOException
 	 */
-	public static String onNoSuccess(HttpResponse response, String message) throws ParseException, IOException {
+	public static String onNoSuccess(String responseString, Integer statusCode, String message) throws ParseException, IOException {
 
 		boolean isJsonObject = true;
-		Integer statusCode = null;
 		StringBuilder exceptionStringBuilder = null;
 
-		if (response.getEntity() != null) {
-			String responseString = EntityUtils.toString(response.getEntity());
-			statusCode = response.getStatusLine().getStatusCode();
+		if (responseString != null && responseString.isEmpty()) {
+
 			LOGGER.error("Full Error response from the provider: {0}", responseString);
 
 			try {

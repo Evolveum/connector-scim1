@@ -25,9 +25,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -117,12 +117,11 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 	}
 
 	@Override
-	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader) {
+	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader) {
 
 		Uid id = null;
 		HttpClient httpClient = HttpClientBuilder.create().build();
-		Integer statusCode = response.getStatusLine().getStatusCode();
-
+		CloseableHttpResponse response = null;
 		LOGGER.warn(
 				"Status code from first update query: {0}. Processing trough Salesforce \"group/member update\" workaround. ",
 				statusCode);
@@ -131,7 +130,7 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 		httpGet.addHeader(PRETTYPRINTHEADER);
 
 		try {
-			response = httpClient.execute(httpGet);
+			response = (CloseableHttpResponse) httpClient.execute(httpGet);
 
 			statusCode = response.getStatusLine().getStatusCode();
 			LOGGER.info("status code: {0}", statusCode);
@@ -155,20 +154,19 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 					httpPatch.addHeader(PRETTYPRINTHEADER);
 					httpPatch.setEntity(bodyContent);
 
-					response = httpClient.execute(httpPatch);
+					response = (CloseableHttpResponse) httpClient.execute(httpPatch);
+					responseString = EntityUtils.toString(response.getEntity());
 					statusCode = response.getStatusLine().getStatusCode();
 					LOGGER.info("status code: {0}", statusCode);
 					if (statusCode == 200 || statusCode == 201) {
 						LOGGER.info("Update of resource was successful");
-						responseString = EntityUtils.toString(response.getEntity());
+
 						json = new JSONObject(responseString);
 						id = new Uid(json.getString(ID));
 						LOGGER.ok("Json response: {0}", json.toString(1));
 						return id;
 					} else {
-						responseString = EntityUtils.toString(response.getEntity());
-
-						ErrorHandler.onNoSuccess(response, "updating object");
+						ErrorHandler.onNoSuccess(responseString, statusCode, "updating object");
 
 					}
 
@@ -202,6 +200,31 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 						e);
 
 				throw new ConnectorIOException(errorBuilder.toString(), e);
+			}
+		} finally {
+
+			try {
+				response.close();
+			} catch (IOException e) {
+
+				StringBuilder errorBuilder = new StringBuilder(
+						"Occurrence in the process of creating a resource object");
+
+				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
+					errorBuilder.insert(0, "The connection timed out. ");
+					throw new OperationTimeoutException(errorBuilder.toString(), e);
+				} else {
+
+					LOGGER.error(
+							"An error has occurred while processing the http response and closing the connection. Occurrence in the process of updating a resource object: {0}",
+							e.getLocalizedMessage());
+					LOGGER.info(
+							"An error has occurred while processing the http response and closing the connection. Occurrence in the process of creating a resource object: {0}",
+							e);
+
+					throw new ConnectorIOException(errorBuilder.toString(), e);
+				}
+
 			}
 		}
 

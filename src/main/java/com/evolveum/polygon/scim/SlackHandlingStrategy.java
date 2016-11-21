@@ -25,9 +25,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -35,6 +35,7 @@ import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
+import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -281,16 +282,16 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		return jsonObject;
 
 	}
-	
+
 	@Override
-	public List<String> defineExcludedAttributes(){
-		
+	public List<String> defineExcludedAttributes() {
+
 		List<String> excludedList = new ArrayList<String>();
 		excludedList.add("emails");
-		
+
 		return excludedList;
 	}
-	
+
 	@Override
 	public List<Map<String, Map<String, Object>>> getAttributeMapList(
 			List<Map<String, Map<String, Object>>> attributeMapList) {
@@ -365,15 +366,15 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		httpGet.addHeader(PRETTYPRINTHEADER);
 
 		String responseString = null;
-		HttpResponse response;
+		CloseableHttpResponse response = null;
 		try {
-			response = httpClient.execute(httpGet);
+			response = (CloseableHttpResponse) httpClient.execute(httpGet);
 
 			int statusCode = response.getStatusLine().getStatusCode();
+			responseString = EntityUtils.toString(response.getEntity());
 			LOGGER.info("Status code: {0}", statusCode);
 			if (statusCode == 200) {
 
-				responseString = EntityUtils.toString(response.getEntity());
 				if (!responseString.isEmpty()) {
 					try {
 						JSONObject jsonObject = new JSONObject(responseString);
@@ -400,25 +401,22 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 										httpGetR.addHeader(authHeader);
 										httpGetR.addHeader(PRETTYPRINTHEADER);
 
-										HttpResponse resourceResponse = httpClient.execute(httpGetR);
-
+										CloseableHttpResponse resourceResponse = (CloseableHttpResponse) httpClient
+												.execute(httpGetR);
 										if (statusCode == 200) {
-											responseString = EntityUtils.toString(resourceResponse.getEntity());
 											JSONObject fullResourceJson = new JSONObject(responseString);
 
 											LOGGER.info(
 													"The {0}. resource json object which was returned by the service provider: {1}",
 													position + 1, fullResourceJson.toString(1));
-
 											ConnectorObject connectorObject = buildConnectorObject(fullResourceJson,
 													membershipResourceEndpoint);
 											resultHandler.handle(connectorObject);
 
 										} else {
-
-											ErrorHandler.onNoSuccess(resourceResponse, groupUri.toString());
+											ErrorHandler.onNoSuccess(responseString, statusCode, groupUri.toString());
 										}
-
+										resourceResponse.close();
 									}
 								} else {
 									LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
@@ -454,8 +452,15 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 					LOGGER.warn("Service provider response is empty, responce returned on query: {0}", uri);
 				}
+			}else if (statusCode == 401){
+				
+				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "retrieving an object");
+				StringBuilder errorString = new StringBuilder(
+						"Unauthorized while querying for resources, please check if credentials are valid. ").append(error);
+				throw new InvalidCredentialException(errorString.toString());
+				
 			} else {
-				ErrorHandler.onNoSuccess(response, uri);
+				ErrorHandler.onNoSuccess(responseString, statusCode, uri);
 			}
 
 		} catch (IOException e) {
@@ -482,7 +487,33 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 				throw new ConnectorIOException(errorBuilder.toString(), e);
 			}
 		} finally {
-			ServiceAccessManager.logOut(loginInstance);
+			try {
+				response.close();
+			} catch (IOException e) {
+
+				if (queuedUid == null) {
+					queuedUid = "the full resource representation";
+				}
+
+				StringBuilder errorBuilder = new StringBuilder(
+						"An error occurred while processing the query http response for ").append(queuedUid);
+				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
+
+					errorBuilder.insert(0, "The connection timed out.");
+
+					throw new OperationTimeoutException(errorBuilder.toString(), e);
+				} else {
+
+					LOGGER.error(
+							"An error occurred while processing the query http response and closing the http connection. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+							e.getLocalizedMessage(), queuedUid);
+					LOGGER.info(
+							"An error occurred while processing the query http response and closing the http connection. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+							e, queuedUid);
+					throw new ConnectorIOException(errorBuilder.toString(), e);
+				}
+
+			}
 		}
 
 	}
@@ -620,11 +651,10 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 						httpGetR.addHeader(authHeader);
 						httpGetR.addHeader(PRETTYPRINTHEADER);
 
-						HttpResponse resourceResponse = httpClient.execute(httpGetR);
+						CloseableHttpResponse resourceResponse = (CloseableHttpResponse) httpClient.execute(httpGetR);
 						int statusCode = resourceResponse.getStatusLine().getStatusCode();
-
+						responseString = EntityUtils.toString(resourceResponse.getEntity());
 						if (statusCode == 200) {
-							responseString = EntityUtils.toString(resourceResponse.getEntity());
 							JSONObject fullResourceJson = new JSONObject(responseString);
 
 							LOGGER.info("The {0}. resource json object which was returned by the service provider: {1}",
@@ -634,10 +664,9 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 							handler.handle(connectorObject);
 
 						} else {
-
-							ErrorHandler.onNoSuccess(resourceResponse, groupUri.toString());
+							ErrorHandler.onNoSuccess(responseString, statusCode, groupUri.toString());
 						}
-
+						resourceResponse.close();
 					}
 				} else {
 					LOGGER.error("No uid present in fetched object: {0}", minResourceJson);

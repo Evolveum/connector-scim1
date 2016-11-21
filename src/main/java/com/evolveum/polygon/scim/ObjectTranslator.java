@@ -18,6 +18,7 @@ package com.evolveum.polygon.scim;
 import java.util.Set;
 
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.json.JSONObject;
 
 /**
@@ -53,7 +54,9 @@ public interface ObjectTranslator {
 	 *            A set of attributes which are injected into the provided set.
 	 *            <p>
 	 *            e.g. [Attribute: {Name=name.middleName, Value=[Hamish]}]
+	 * @param resourceEndPoint 
+	 * 			String which indicates what type of resource object is being created.
 	 * @return The complete json representation of the provided data set.
 	 */
-	JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes);
+	JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes, String resourceEndPoint);
 }

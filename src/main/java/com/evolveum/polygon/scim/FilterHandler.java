@@ -76,7 +76,14 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	private static final String CLOSINGGBRACKET = "]";
 
 	private static final String DOT = ".";
+	
+	private static final List<String> NAMEATTRIBUTES = new ArrayList<String>();
 
+	static {
+		NAMEATTRIBUTES.add("displayName");
+		NAMEATTRIBUTES.add("userName");
+	}
+	
 	/**
 	 * Implementation of the "visitAndFilter" filter method.
 	 * 
@@ -157,11 +164,19 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	@Override
 	public StringBuilder visitContainsFilter(String p, ContainsFilter filter) {
 		LOGGER.info("Processing request trough \"contains\" filter");
-		if (!filter.getName().isEmpty()) {
-
+		
+		String attributeName = filter.getName();
+		
+		if (!attributeName.isEmpty()){
+			if (p!=null && !p.isEmpty()) {
+				if(NAMEATTRIBUTES.contains(p)){
+					attributeName = p;
+				}
+			}
+		
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
-				return buildString(filter.getAttribute(), CONTAINS, filter.getName());
+				return buildString(filter.getAttribute(), CONTAINS, attributeName);
 			} else {
 				return preprocessedFilter;
 			}
@@ -186,7 +201,6 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	public StringBuilder visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
 
 		StrategyFetcher fetcher = new StrategyFetcher();
-
 		HandlingStrategy strategy = fetcher.fetchStrategy(p);
 
 		StringBuilder preprocessedFilter = strategy.processContainsAllValuesFilter(p, filter, this);
@@ -222,12 +236,18 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	@Override
 	public StringBuilder visitEqualsFilter(String p, EqualsFilter filter) {
 		LOGGER.info("Processing request trough \"equals\" filter: {0}", filter);
-
-		if (!filter.getName().isEmpty()) {
+     String attributeName = filter.getName();
+		
+		if (!attributeName.isEmpty()){
+			if (p!=null && !p.isEmpty()) {
+				if(NAMEATTRIBUTES.contains(p)){
+					attributeName = p;
+				}
+			}
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				return buildString(filter.getAttribute(), EQUALS, filter.getName());
+				return buildString(filter.getAttribute(), EQUALS, attributeName);
 
 			} else {
 				return preprocessedFilter;
@@ -473,12 +493,19 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	@Override
 	public StringBuilder visitStartsWithFilter(String p, StartsWithFilter filter) {
 		LOGGER.info("Processing request trough \"startsWith\" filter: {0}", filter);
-		if (!filter.getName().isEmpty()) {
+		String attributeName = filter.getName();
+		
+		if (!attributeName.isEmpty()){
+			if (p!=null && !p.isEmpty()) {
+				if(NAMEATTRIBUTES.contains(p)){
+					attributeName = p;
+				}
+			}
 
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
 
-				return buildString(filter.getAttribute(), STARTSWITH, filter.getName());
+				return buildString(filter.getAttribute(), STARTSWITH, attributeName);
 			} else {
 				return preprocessedFilter;
 			}
@@ -502,11 +529,17 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 	@Override
 	public StringBuilder visitEndsWithFilter(String p, EndsWithFilter filter) {
 		LOGGER.info("Processing request trough \"endsWith\" filter: {0}", filter);
-		if (!filter.getName().isEmpty()) {
-
+		String attributeName = filter.getName();
+		
+		if (!attributeName.isEmpty()){
+			if (p!=null && !p.isEmpty()) {
+				if(NAMEATTRIBUTES.contains(p)){
+					attributeName = p;
+				}
+			}
 			StringBuilder preprocessedFilter = processArrayQ(filter, p);
 			if (preprocessedFilter == null) {
-				return buildString(filter.getAttribute(), ENDSWITH, filter.getName());
+				return buildString(filter.getAttribute(), ENDSWITH, attributeName);
 
 			} else {
 				return preprocessedFilter;

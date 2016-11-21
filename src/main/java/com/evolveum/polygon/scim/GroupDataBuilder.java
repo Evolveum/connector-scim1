@@ -74,7 +74,7 @@ public class GroupDataBuilder implements ObjectTranslator {
 	 *            A set of attributes which are injected into the provided set.
 	 * @return The complete json representation of the provided data set.
 	 */
-	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes) {
+	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes, String resourceEndPoint) {
 		LOGGER.info("Building Json data from group attributes");
 
 		JSONObject completeJsonObj = new JSONObject();
@@ -112,6 +112,12 @@ public class GroupDataBuilder implements ObjectTranslator {
 							attributeName);
 				}
 
+			} else if ("__NAME__".equals(attributeName)){
+				if(resourceEndPoint.equals("Users")){
+					
+					completeJsonObj.put("displayName", AttributeUtil.getSingleValue(attribute));
+				}
+				
 			} else {
 
 				completeJsonObj.put(attributeName, AttributeUtil.getSingleValue(attribute));

@@ -29,10 +29,9 @@ import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -46,6 +45,7 @@ import org.identityconnectors.framework.common.exceptions.AlreadyExistsException
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
+import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
@@ -101,8 +101,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		String scimBaseUri = "";
 		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
 
-		HttpPost loginInstance = null;
-
 		for (String data : authorizationData.keySet()) {
 			if (AUTHHEADER.equals(data)) {
 
@@ -111,9 +109,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			} else if (URI.equals(data)) {
 
 				scimBaseUri = (String) authorizationData.get(data);
-			} else if (LOGININSTANCE.equals(data)) {
-
-				loginInstance = (HttpPost) authorizationData.get(data);
 			}
 		}
 
@@ -126,7 +121,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		JSONObject jsonObject = new JSONObject();
 
-		jsonObject = objectTranslator.translateSetToJson(attributes, injectedAttributeSet);
+		jsonObject = objectTranslator.translateSetToJson(attributes, injectedAttributeSet, resourceEndPoint);
 
 		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
 
@@ -137,7 +132,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		}
 
 		HttpClient httpClient = httpClientBulder.build();
-
+		CloseableHttpResponse response = null;
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).toString();
 
 		LOGGER.info("Query url: {0}", uri);
@@ -157,27 +152,34 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			String responseString = null;
 			try {
 
-				HttpResponse response = httpClient.execute(httpPost);
-
+				response = (CloseableHttpResponse) httpClient.execute(httpPost);
+				responseString = EntityUtils.toString(response.getEntity());
 				int statusCode = response.getStatusLine().getStatusCode();
 				LOGGER.info("Status code: {0}", statusCode);
 				if (statusCode == 201) {
-					//LOGGER.info("Creation of resource was successful");
+					// LOGGER.info("Creation of resource was successful");
 
-					responseString = EntityUtils.toString(response.getEntity());
 					JSONObject json = new JSONObject(responseString);
 
 					Uid uid = new Uid(json.getString(ID));
 
 					// LOGGER.info("Json response: {0}", json.toString(1));
 					return uid;
+				} else if (statusCode == 401){
+					
+					String error = ErrorHandler.onNoSuccess(responseString, statusCode, "creating a new object");
+					StringBuilder errorString = new StringBuilder(
+							"Unauthorized while resource creation, please check if credentials are valid. ").append(error);
+					throw new InvalidCredentialException(errorString.toString());
+					
 				} else if (statusCode == 409) {
-					String error = ErrorHandler.onNoSuccess(response, "creating a new object");
+
+					String error = ErrorHandler.onNoSuccess(responseString, statusCode, "creating a new object");
 					StringBuilder errorString = new StringBuilder(
 							"Conflict while resource creation, resource evaluated as already created. ").append(error);
 					throw new AlreadyExistsException(errorString.toString());
 				} else {
-					ErrorHandler.onNoSuccess(response, "creating a new object");
+					ErrorHandler.onNoSuccess(responseString, statusCode, "creating a new object");
 				}
 
 			} catch (ClientProtocolException e) {
@@ -232,7 +234,27 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			throw new ConnectorException(
 					"Unsupported encoding, Occurrence in the process of creating a new resource object ", e);
 		} finally {
-			ServiceAccessManager.logOut(loginInstance);
+			try {
+				response.close();
+			} catch (IOException e) {
+
+				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
+
+					throw new OperationTimeoutException(
+							"The connection timed out while closing the http connection. Occurrence in the process of creating a new resource object",
+							e);
+				} else {
+
+					LOGGER.error(
+							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of creating a new resource object: {0}",
+							e.getLocalizedMessage());
+
+					throw new ConnectorIOException(
+							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of creating a new resource object",
+							e);
+				}
+
+			}
 		}
 		return null;
 	}
@@ -251,7 +273,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		Header authHeader = null;
 		String scimBaseUri = "";
 		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
-		HttpPost loginInstance = null;
 
 		for (String data : authorizationData.keySet()) {
 			if (AUTHHEADER.equals(data)) {
@@ -261,9 +282,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			} else if (URI.equals(data)) {
 
 				scimBaseUri = (String) authorizationData.get(data);
-			} else if (LOGININSTANCE.equals(data)) {
-
-				loginInstance = (HttpPost) authorizationData.get(data);
 			}
 		}
 
@@ -278,6 +296,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		String providerName = baseUrlParts[1];
 
 		if (query != null) {
+
 			if (query instanceof EqualsFilter) {
 				Attribute filterAttr = ((EqualsFilter) query).getAttribute();
 
@@ -299,7 +318,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					if (!isCAVGroupQuery) {
 						LOGGER.info("Attribute not instance of UID");
-						q = qIsFilter(query, queryUriSnippet, providerName);
+						q = qIsFilter(query, queryUriSnippet, providerName, resourceEndPoint);
 					} else {
 						q = (String) filterAttr.getValue().get(0);
 						resourceEndPoint = "Users";
@@ -312,7 +331,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				isCAVGroupQuery = checkFilter(query, resourceEndPoint);
 
 				if (!isCAVGroupQuery) {
-					q = qIsFilter(query, queryUriSnippet, providerName);
+					q = qIsFilter(query, queryUriSnippet, providerName, resourceEndPoint);
 				} else {
 
 					Attribute filterAttr = ((AttributeFilter) query).getAttribute();
@@ -345,21 +364,20 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		httpGet.addHeader(PRETTYPRINTHEADER);
 
 		String responseString = null;
-		HttpResponse response;
+		CloseableHttpResponse response = null;
 		try {
-			response = httpClient.execute(httpGet);
+			response = (CloseableHttpResponse) httpClient.execute(httpGet);
 
 			int statusCode = response.getStatusLine().getStatusCode();
+			responseString = EntityUtils.toString(response.getEntity());
 			LOGGER.info("Status code: {0}", statusCode);
 			if (statusCode == 200) {
 
-				responseString = EntityUtils.toString(response.getEntity());
 				if (!responseString.isEmpty()) {
 					try {
 						JSONObject jsonObject = new JSONObject(responseString);
 
-						// LOGGER.info("Json object returned from service
-						// provider: {0}", jsonObject.toString(1));
+						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
 
 							if (valueIsUid) {
@@ -399,17 +417,21 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 												httpGetR.addHeader(authHeader);
 												httpGetR.addHeader(PRETTYPRINTHEADER);
 
-												HttpResponse resourceResponse = httpClient.execute(httpGetR);
+												CloseableHttpResponse resourceResponse = (CloseableHttpResponse) httpClient
+														.execute(httpGetR);
 
 												statusCode = resourceResponse.getStatusLine().getStatusCode();
-
+												responseString = EntityUtils.toString(resourceResponse.getEntity());
 												if (statusCode == 200) {
-													responseString = EntityUtils.toString(resourceResponse.getEntity());
+
 													JSONObject fullResourcejson = new JSONObject(responseString);
 
-											//		LOGGER.info(
-														//	"The {0}. resource jsonobject which was returned by the service provider: {1}",
-														//	i + 1, fullResourcejson);
+													// LOGGER.info(
+													// "The {0}. resource
+													// jsonobject which was
+													// returned by the service
+													// provider: {1}",
+													// i + 1, fullResourcejson);
 
 													ConnectorObject connectorObject = buildConnectorObject(
 															fullResourcejson, resourceEndPoint);
@@ -418,9 +440,10 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 												} else {
 
-													ErrorHandler.onNoSuccess(resourceResponse, resourceUri);
-												}
+													ErrorHandler.onNoSuccess(responseString, statusCode, resourceUri);
 
+												}
+												resourceResponse.close();
 											}
 										} else {
 											LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
@@ -484,15 +507,22 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					LOGGER.warn("Service provider response is empty, responce returned on query: {0}", q);
 				}
+			}else if (statusCode == 401){
+				
+				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "retrieving an object");
+				StringBuilder errorString = new StringBuilder(
+						"Unauthorized while querying for resources, please check if credentials are valid. ").append(error);
+				throw new InvalidCredentialException(errorString.toString());
+				
 			} else if (valueIsUid) {
-				ErrorHandler.onNoSuccess(response, uri);
+				ErrorHandler.onNoSuccess(responseString, statusCode, uri);
 
 				StringBuilder errorBuilder = new StringBuilder("The resource with the uid: ").append(q)
 						.append(" was not found.");
 
 				throw new ConnectorException(errorBuilder.toString());
 			} else {
-				ErrorHandler.onNoSuccess(response, uri);
+				ErrorHandler.onNoSuccess(responseString, statusCode, uri);
 			}
 
 		} catch (IOException e) {
@@ -506,7 +536,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			errorBuilder.append(q);
 			if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
 
-				errorBuilder.insert(0, "The connection timed out. ");
+				errorBuilder.insert(0, "The connection timed out while closing the http connection. ");
 
 				throw new OperationTimeoutException(errorBuilder.toString(), e);
 			} else {
@@ -520,7 +550,34 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				throw new ConnectorIOException(errorBuilder.toString(), e);
 			}
 		} finally {
-			ServiceAccessManager.logOut(loginInstance);
+			try {
+				response.close();
+			} catch (IOException e) {
+
+				if (q == null) {
+					q = "the full resource representation";
+				}
+
+				StringBuilder errorBuilder = new StringBuilder(
+						"An error occurred while processing the query http response for ");
+				errorBuilder.append(q);
+				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
+
+					errorBuilder.insert(0, "The connection timed out while closing the http connection. ");
+
+					throw new OperationTimeoutException(errorBuilder.toString(), e);
+				} else {
+
+					LOGGER.error(
+							"An error occurred while processing the queuery http response and closing the http connection. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+							e.getLocalizedMessage(), q);
+					LOGGER.info(
+							"An error occurred while processing the queuery http response and closing the http connection. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+							e, q);
+					throw new ConnectorIOException(errorBuilder.toString(), e);
+				}
+
+			}
 		}
 	}
 
@@ -530,9 +587,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		Header authHeader = null;
 		String scimBaseUri = "";
 		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
-
-		HttpPost loginInstance = null;
-
 		for (String data : authorizationData.keySet()) {
 			if (AUTHHEADER.equals(data)) {
 
@@ -541,9 +595,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			} else if (URI.equals(data)) {
 
 				scimBaseUri = (String) authorizationData.get(data);
-			} else if (LOGININSTANCE.equals(data)) {
-
-				loginInstance = (HttpPost) authorizationData.get(data);
 			}
 		}
 
@@ -551,8 +602,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
-
-		ServiceAccessManager.logIntoService(conf);
 
 		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
 
@@ -573,22 +622,22 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		httpPatch.addHeader(PRETTYPRINTHEADER);
 
 		String responseString = null;
+		CloseableHttpResponse response = null;
 		try {
-			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null);
+			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null, resourceEndPoint);
 			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
-			// LOGGER.info("The update JSON object wich is being sent: {0}",
-			// jsonObject);
+			 LOGGER.info("The update JSON object wich is being sent: {0}",
+			 jsonObject);
 			bodyContent.setContentType(CONTENTTYPE);
 			httpPatch.setEntity(bodyContent);
 
-			HttpResponse response = httpClient.execute(httpPatch);
+			response = (CloseableHttpResponse) httpClient.execute(httpPatch);
 
 			int statusCode = response.getStatusLine().getStatusCode();
-
+			responseString = EntityUtils.toString(response.getEntity());
 			if (statusCode == 200 || statusCode == 201) {
 				LOGGER.info("Update of resource was succesfull");
 
-				responseString = EntityUtils.toString(response.getEntity());
 				if (!responseString.isEmpty()) {
 					JSONObject json = new JSONObject(responseString);
 					// LOGGER.ok("Json response: {0}", json.toString());
@@ -604,25 +653,32 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						statusCode);
 
 				return uid;
+			}else if (statusCode == 401){
+				
+				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "updating resource");
+				StringBuilder errorString = new StringBuilder(
+						"Unauthorized while updating resource, please check if credentials are valid. ").append(error);
+				throw new InvalidCredentialException(errorString.toString());
+				
 			} else if (statusCode == 409) {
 
-				String error = ErrorHandler.onNoSuccess(response, "updating object");
+				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "updating object");
 				StringBuilder errorString = new StringBuilder("Conflict while resource update. ").append(error);
 				throw new AlreadyExistsException(errorString.toString());
 			} else if (statusCode == 500 && GROUPS.equals(resourceEndPoint)) {
 
-				Uid id = groupUpdateProcedure(response, jsonObject, uri, authHeader);
+				Uid id = groupUpdateProcedure(statusCode, jsonObject, uri, authHeader);
 
 				if (id != null) {
 
 					return id;
 				} else {
-					ErrorHandler.onNoSuccess(response, "updating object");
+					ErrorHandler.onNoSuccess(responseString, statusCode, "updating object");
 				}
 			} else {
 				StringBuilder errorBuilder = new StringBuilder(
 						"The service provider reported an error. Occurrence in the process of updating a resource object.");
-				String errorMessage = ErrorHandler.onNoSuccess(response, "updating object");
+				String errorMessage = ErrorHandler.onNoSuccess(responseString, statusCode, "updating object");
 
 				errorBuilder.append(" The error message: ").append(errorMessage);
 				throw new ConnectorException(errorBuilder.toString());
@@ -682,7 +738,32 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				throw new ConnectorIOException(errorBuilder.toString(), e);
 			}
 		} finally {
-			ServiceAccessManager.logOut(loginInstance);
+			try {
+				response.close();
+			} catch (IOException e) {
+
+				StringBuilder errorBuilder = new StringBuilder(
+						"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of updating a resource object whit the Uid: ");
+
+				errorBuilder.append(uid.toString());
+
+				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
+					errorBuilder.insert(0, "The connection timed out. ");
+
+					throw new OperationTimeoutException(errorBuilder.toString(), e);
+				} else {
+
+					LOGGER.error(
+							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of updating a resource object : {0}",
+							e.getLocalizedMessage());
+					LOGGER.info(
+							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of updating a resource object: {0}",
+							e);
+
+					throw new ConnectorIOException(errorBuilder.toString(), e);
+				}
+
+			}
 		}
 		return null;
 
@@ -695,8 +776,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		String scimBaseUri = "";
 		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
 
-		HttpPost loginInstance = null;
-
 		for (String data : authorizationData.keySet()) {
 			if (AUTHHEADER.equals(data)) {
 
@@ -705,9 +784,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			} else if (URI.equals(data)) {
 
 				scimBaseUri = (String) authorizationData.get(data);
-			} else if (LOGININSTANCE.equals(data)) {
-
-				loginInstance = (HttpPost) authorizationData.get(data);
 			}
 		}
 
@@ -733,21 +809,29 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		HttpDelete httpDelete = new HttpDelete(uri);
 		httpDelete.addHeader(authHeader);
 		httpDelete.addHeader(PRETTYPRINTHEADER);
-
+		CloseableHttpResponse response = null;
 		try {
 
-			HttpResponse response = httpClient.execute(httpDelete);
+			response = (CloseableHttpResponse) httpClient.execute(httpDelete);
 			int statusCode = response.getStatusLine().getStatusCode();
 
 			if (statusCode == 204 || statusCode == 200) {
 				LOGGER.info("Deletion of resource was succesfull");
+			}else if (statusCode == 401){
+				String responseString = EntityUtils.toString(response.getEntity());
+				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "deleting resource");
+				StringBuilder errorString = new StringBuilder(
+						"Unauthorized while deleting resource, please check if credentials are valid. ").append(error);
+				throw new InvalidCredentialException(errorString.toString());
+				
 			}
 
 			else if (statusCode == 404) {
 
 				LOGGER.info("Resource not found or resource was already deleted");
 			} else {
-				ErrorHandler.onNoSuccess(response, "deleting object");
+				String responseString = EntityUtils.toString(response.getEntity());
+				ErrorHandler.onNoSuccess(responseString, statusCode, "deleting object");
 			}
 
 		} catch (ClientProtocolException e) {
@@ -784,7 +868,33 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				throw new ConnectorIOException(errorBuilder.toString(), e);
 			}
 		} finally {
-			ServiceAccessManager.logOut(loginInstance);
+			try {
+				response.close();
+			} catch (IOException e) {
+
+				StringBuilder errorBuilder = new StringBuilder(
+						"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object with the Uid:  ");
+
+				errorBuilder.append(uid.toString());
+
+				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
+
+					errorBuilder.insert(0, "Connection timed out. ");
+
+					throw new OperationTimeoutException(errorBuilder.toString(), e);
+				} else {
+
+					LOGGER.error(
+							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of deleting a resource object: : {0}",
+							e.getLocalizedMessage());
+					LOGGER.info(
+							"An error has occurred while processing the http response and closing the http connectio. Occurrence in the process of deleting a resource object: : {0}",
+							e);
+
+					throw new ConnectorIOException(errorBuilder.toString(), e);
+				}
+
+			}
 		}
 	}
 
@@ -796,8 +906,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		String scimBaseUri = "";
 		Map<String, Object> authoriazationData = ServiceAccessManager.logIntoService(conf);
 
-		HttpPost loginInstance = null;
-
 		for (String data : authoriazationData.keySet()) {
 			if (AUTHHEADER.equals(data)) {
 
@@ -806,9 +914,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			} else if (URI.equals(data)) {
 
 				scimBaseUri = (String) authoriazationData.get(data);
-			} else if (LOGININSTANCE.equals(data)) {
-
-				loginInstance = (HttpPost) authoriazationData.get(data);
 			}
 		}
 
@@ -832,15 +937,14 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		httpGet.addHeader(authHeader);
 		httpGet.addHeader(PRETTYPRINTHEADER);
 
-		HttpResponse response;
+		CloseableHttpResponse response = null;
 		try {
-			response = httpClient.execute(httpGet);
-
+			response = (CloseableHttpResponse) httpClient.execute(httpGet);
+			String responseString = EntityUtils.toString(response.getEntity());
 			int statusCode = response.getStatusLine().getStatusCode();
 			LOGGER.info("Schema query status code: {0} ", statusCode);
 			if (statusCode == 200) {
 
-				String responseString = EntityUtils.toString(response.getEntity());
 				if (!responseString.isEmpty()) {
 
 					LOGGER.warn("The returned response string for the \"schemas/\" endpoint");
@@ -866,15 +970,12 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						httpGet.addHeader(authHeader);
 						httpGet.addHeader(PRETTYPRINTHEADER);
 
-						response = httpClient.execute(httpGet);
+						response = (CloseableHttpResponse) httpClient.execute(httpGet);
 
 						statusCode = response.getStatusLine().getStatusCode();
-
+						responseString = EntityUtils.toString(response.getEntity());
 						if (statusCode == 200) {
-
-							responseString = EntityUtils.toString(response.getEntity());
 							JSONObject jsonObject = new JSONObject(responseString);
-
 							jsonObject = injectMissingSchemaAttributes(resourceName, jsonObject);
 
 							responseArray.put(jsonObject);
@@ -890,8 +991,15 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 				}
 
+			}else if (statusCode == 401){
+				
+				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "querying for schema");
+				StringBuilder errorString = new StringBuilder(
+						"Unauthorized while querying for schema, please check if credentials are valid. ").append(error);
+				throw new InvalidCredentialException(errorString.toString());
+				
 			} else {
-				ErrorHandler.onNoSuccess(response, "building schema");
+				ErrorHandler.onNoSuccess(responseString, statusCode, "building schema");
 				LOGGER.warn(
 						"No definition for provided schemas was found, the connector will switch to default core schema configuration!");
 				return null;
@@ -928,7 +1036,31 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				throw new ConnectorIOException(errorBuilder.toString(), e);
 			}
 		} finally {
-			ServiceAccessManager.logOut(loginInstance);
+			try {
+				response.close();
+			} catch (IOException e) {
+
+				StringBuilder errorBuilder = new StringBuilder(
+						"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object");
+
+				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
+
+					errorBuilder.insert(0, "The connection timed out. ");
+
+					throw new OperationTimeoutException(errorBuilder.toString(), e);
+				} else {
+
+					LOGGER.error(
+							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of querying the provider Schemas resource object: {0}",
+							e.getLocalizedMessage());
+					LOGGER.info(
+							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of querying the provider Schemas resource object: {0}",
+							e);
+
+					throw new ConnectorIOException(errorBuilder.toString(), e);
+				}
+
+			}
 		}
 
 	}
@@ -1183,38 +1315,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader) {
-		try {
-			ErrorHandler.onNoSuccess(response, "updating object");
-		} catch (ParseException e) {
-
-			LOGGER.error("An exception has occurred while parsing the http response : {0}", e.getLocalizedMessage());
-			LOGGER.info("An exception has occurred while parsing the http response : {0}", e);
-
-			throw new ConnectorException("An exception has occurred while parsing the http response : {0}", e);
-
-		} catch (IOException e) {
-
-			StringBuilder errorBuilder = new StringBuilder(
-					"An error has occurred while processing the http response. Occurrence in the process of updating a resource object");
-
-			if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
-
-				errorBuilder.insert(0, "The connection timed out. ");
-
-				throw new OperationTimeoutException(errorBuilder.toString(), e);
-			} else {
-
-				LOGGER.error(
-						"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
-						e.getLocalizedMessage());
-				LOGGER.info(
-						"An error has occurred while processing the http response. Occurrence in the process of updating a resource object: {0}",
-						e);
-
-				throw new ConnectorIOException(errorBuilder.toString(), e);
-			}
-		}
+	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader) {
 		return null;
 	}
 
@@ -1545,9 +1646,11 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	 *            A part of the query uri which will build a larger query.
 	 */
 
-	private String qIsFilter(Filter query, StringBuilder queryUriSnippet, String providerName) {
+	private String qIsFilter(Filter query, StringBuilder queryUriSnippet, String providerName,
+			String resourceEndPoint) {
 
 		char prefixChar;
+		String attributeName = "";
 		StringBuilder filterSnippet = new StringBuilder();
 		if (queryUriSnippet.toString().isEmpty()) {
 			prefixChar = QUERYCHAR;
@@ -1557,8 +1660,35 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			prefixChar = QUERYDELIMITER;
 		}
 
-		filterSnippet = query.accept(new FilterHandler(), providerName);
+		if (query instanceof AttributeFilter) {
 
+			attributeName = ((AttributeFilter) query).getName();
+
+			if ("__NAME__".equals(attributeName)) {
+
+				if (USERS.equals(resourceEndPoint)) {
+					attributeName = "userName";
+				} else {
+
+					attributeName = "displayName";
+				}
+
+			} else {
+				attributeName = "";
+
+			}
+
+		}
+
+		if (!attributeName.isEmpty()) {
+
+			filterSnippet = query.accept(new FilterHandler(), attributeName);
+
+		} else {
+
+			filterSnippet = query.accept(new FilterHandler(), providerName);
+
+		}
 		queryUriSnippet.append(prefixChar).append("filter=").append(filterSnippet.toString());
 
 		return queryUriSnippet.toString();

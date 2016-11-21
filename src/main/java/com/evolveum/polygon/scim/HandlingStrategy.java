@@ -23,6 +23,7 @@ import java.util.Set;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.message.BasicHeader;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
@@ -610,7 +611,7 @@ public interface HandlingStrategy {
 	 * 
 	 * @return if successful the uid of the updated resource.
 	 */
-	public Uid groupUpdateProcedure(HttpResponse response, JSONObject jsonObject, String uri, Header authHeader);
+	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader);
 
 	/**
 	 * Method used as an workaround for the unsupported "contains all values"

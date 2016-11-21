@@ -54,7 +54,7 @@ import com.evolveum.polygon.scim.StandardScimHandlingStrategy;
  */
 public class StandardScimTestUtils {
 
-	protected static final String USERNAME = "userName";
+	protected static final String USERNAME = "__NAME__";
 	protected static final String NICKNAME = "nickName";
 	protected static final String USERS = "users";
 	protected static final String GROUPS = "groups";
@@ -67,7 +67,7 @@ public class StandardScimTestUtils {
 	protected static final String EMAILWORKVALUE = "emails.work.value";
 	protected static final String EMAILWORKPRIMARY = "emails.work.primary";
 	protected static final String FAMILYNAME = "name.familyName";
-	protected static final String DISPLAYNAME = "displayName";
+	protected static final String DISPLAYNAME = "__NAME__";
 	protected static final String MEMBERSDEFAULT = "members.default.value";
 
 	private static final Log LOGGER = Log.getLog(StandardScimTestUtils.class);
@@ -94,7 +94,7 @@ public class StandardScimTestUtils {
 				scimConnectorConfiguration.setPassword(guardedPass);
 			} else if ("service".equals(configurationParameter)) {
 				scimConnectorConfiguration.setService(configuration.get(configurationParameter));
-			} else if (USERNAME.equals(configurationParameter)) {
+			} else if ("userName".equals(configurationParameter)) {
 				scimConnectorConfiguration.setUserName(configuration.get(configurationParameter));
 			} else if ("version".equals(configurationParameter)) {
 				scimConnectorConfiguration.setVersion(configuration.get(configurationParameter));

@@ -55,7 +55,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	private final static Log LOGGER = Log.getLog(SlackSpecificTestSuite.class);
 
-	public PropertiesParser parser = new PropertiesParser("../ConnIdScimConnector/testProperties/slackTest.properties");
+	public PropertiesParser parser = new PropertiesParser("../ConnIdScimConnector/tests/slackTest.properties");
 
 	@DataProvider(name = CONFIGTESTPROVIDER)
 	public Object[][] configurationResourcesProvider() {

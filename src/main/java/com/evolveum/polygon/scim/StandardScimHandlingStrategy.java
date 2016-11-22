@@ -28,7 +28,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -89,7 +91,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	private static final String ITEMSPERPAGE = "itemsPerPage";
 	private static final String FORBIDENSEPPARATOR = ":";
 	private static final String SEPPARATOR = "-";
-
 	private static final char QUERYCHAR = '?';
 	private static final char QUERYDELIMITER = '&';
 
@@ -132,7 +133,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		}
 
 		HttpClient httpClient = httpClientBulder.build();
-		CloseableHttpResponse response = null;
+
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).toString();
 
 		LOGGER.info("Query url: {0}", uri);
@@ -141,45 +142,37 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			// LOGGER.info("Json object to be send: {0}",
 			// jsonObject.toString(1));
 
-			HttpPost httpPost = new HttpPost(uri);
-			httpPost.addHeader(authHeader);
-			httpPost.addHeader(PRETTYPRINTHEADER);
-
-			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
-
-			bodyContent.setContentType(CONTENTTYPE);
-			httpPost.setEntity(bodyContent);
+			HttpPost httpPost = buildHttpPost(uri, authHeader, jsonObject);
 			String responseString = null;
-			try {
+			try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpPost)) {
 
-				response = (CloseableHttpResponse) httpClient.execute(httpPost);
-				responseString = EntityUtils.toString(response.getEntity());
+				HttpEntity entity = response.getEntity();
+
+				if (entity != null) {
+					responseString = EntityUtils.toString(entity);
+				} else {
+					responseString = "";
+				}
+
 				int statusCode = response.getStatusLine().getStatusCode();
 				LOGGER.info("Status code: {0}", statusCode);
+
 				if (statusCode == 201) {
 					// LOGGER.info("Creation of resource was successful");
 
-					JSONObject json = new JSONObject(responseString);
+					if (!responseString.isEmpty()) {
+						JSONObject json = new JSONObject(responseString);
 
-					Uid uid = new Uid(json.getString(ID));
+						Uid uid = new Uid(json.getString(ID));
 
-					// LOGGER.info("Json response: {0}", json.toString(1));
-					return uid;
-				} else if (statusCode == 401){
-					
-					String error = ErrorHandler.onNoSuccess(responseString, statusCode, "creating a new object");
-					StringBuilder errorString = new StringBuilder(
-							"Unauthorized while resource creation, please check if credentials are valid. ").append(error);
-					throw new InvalidCredentialException(errorString.toString());
-					
-				} else if (statusCode == 409) {
-
-					String error = ErrorHandler.onNoSuccess(responseString, statusCode, "creating a new object");
-					StringBuilder errorString = new StringBuilder(
-							"Conflict while resource creation, resource evaluated as already created. ").append(error);
-					throw new AlreadyExistsException(errorString.toString());
+						// LOGGER.info("Json response: {0}", json.toString(1));
+						return uid;
+					} else {
+						return null;
+					}
 				} else {
-					ErrorHandler.onNoSuccess(responseString, statusCode, "creating a new object");
+					handleInvalidStatus(" while resource creation, please check if credentials are valid. ",
+							responseString, "creating a new object", statusCode);
 				}
 
 			} catch (ClientProtocolException e) {
@@ -233,28 +226,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 			throw new ConnectorException(
 					"Unsupported encoding, Occurrence in the process of creating a new resource object ", e);
-		} finally {
-			try {
-				response.close();
-			} catch (IOException e) {
-
-				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
-
-					throw new OperationTimeoutException(
-							"The connection timed out while closing the http connection. Occurrence in the process of creating a new resource object",
-							e);
-				} else {
-
-					LOGGER.error(
-							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of creating a new resource object: {0}",
-							e.getLocalizedMessage());
-
-					throw new ConnectorIOException(
-							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of creating a new resource object",
-							e);
-				}
-
-			}
 		}
 		return null;
 	}
@@ -359,17 +330,17 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).append(q)
 				.toString();
 		LOGGER.info("Qeury url: {0}", uri);
-		HttpGet httpGet = new HttpGet(uri);
-		httpGet.addHeader(authHeader);
-		httpGet.addHeader(PRETTYPRINTHEADER);
-
+		HttpGet httpGet = buildHttpGet(uri, authHeader);
 		String responseString = null;
-		CloseableHttpResponse response = null;
-		try {
-			response = (CloseableHttpResponse) httpClient.execute(httpGet);
-
+		try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpGet)) {
 			int statusCode = response.getStatusLine().getStatusCode();
-			responseString = EntityUtils.toString(response.getEntity());
+			HttpEntity entity = response.getEntity();
+
+			if (entity != null) {
+				responseString = EntityUtils.toString(entity);
+			} else {
+				responseString = "";
+			}
 			LOGGER.info("Status code: {0}", statusCode);
 			if (statusCode == 200) {
 
@@ -377,7 +348,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					try {
 						JSONObject jsonObject = new JSONObject(responseString);
 
-						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
+						//LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
 
 							if (valueIsUid) {
@@ -409,41 +380,55 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 										minResourceJson = jsonObject.getJSONArray(RESOURCES).getJSONObject(i);
 										if (minResourceJson.has(ID) && minResourceJson.getString(ID) != null) {
 
-											if (minResourceJson.has(META)) {
+											if (minResourceJson.has(USERNAME)){
+												
+												ConnectorObject connectorObject = buildConnectorObject(
+														minResourceJson, resourceEndPoint);
+
+												resultHandler.handle(connectorObject);
+											}else if(!USERS.equals(resourceEndPoint)){
+												
+												if(minResourceJson.has(DISPLAYNAME)){
+													ConnectorObject connectorObject = buildConnectorObject(
+															minResourceJson, resourceEndPoint);
+													resultHandler.handle(connectorObject);
+												}
+											}else if (minResourceJson.has(META)) {
 
 												String resourceUri = minResourceJson.getJSONObject(META)
 														.getString("location").toString();
-												HttpGet httpGetR = new HttpGet(resourceUri);
-												httpGetR.addHeader(authHeader);
-												httpGetR.addHeader(PRETTYPRINTHEADER);
 
-												CloseableHttpResponse resourceResponse = (CloseableHttpResponse) httpClient
-														.execute(httpGetR);
+												HttpGet httpGetR = buildHttpGet(resourceUri, authHeader);
+												try (CloseableHttpResponse resourceResponse = (CloseableHttpResponse) httpClient
+														.execute(httpGetR)) {
 
-												statusCode = resourceResponse.getStatusLine().getStatusCode();
-												responseString = EntityUtils.toString(resourceResponse.getEntity());
-												if (statusCode == 200) {
+													statusCode = resourceResponse.getStatusLine().getStatusCode();
+													responseString = EntityUtils.toString(resourceResponse.getEntity());
+													if (statusCode == 200) {
 
-													JSONObject fullResourcejson = new JSONObject(responseString);
+														JSONObject fullResourcejson = new JSONObject(responseString);
 
-													// LOGGER.info(
-													// "The {0}. resource
-													// jsonobject which was
-													// returned by the service
-													// provider: {1}",
-													// i + 1, fullResourcejson);
+														// LOGGER.info(
+														// "The {0}. resource
+														// jsonobject which was
+														// returned by the
+														// service
+														// provider: {1}",
+														// i + 1,
+														// fullResourcejson);
 
-													ConnectorObject connectorObject = buildConnectorObject(
-															fullResourcejson, resourceEndPoint);
+														ConnectorObject connectorObject = buildConnectorObject(
+																fullResourcejson, resourceEndPoint);
 
-													resultHandler.handle(connectorObject);
+														resultHandler.handle(connectorObject);
 
-												} else {
+													} else {
 
-													ErrorHandler.onNoSuccess(responseString, statusCode, resourceUri);
+														ErrorHandler.onNoSuccess(responseString, statusCode,
+																resourceUri);
 
+													}
 												}
-												resourceResponse.close();
 											}
 										} else {
 											LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
@@ -507,13 +492,11 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					LOGGER.warn("Service provider response is empty, responce returned on query: {0}", q);
 				}
-			}else if (statusCode == 401){
-				
-				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "retrieving an object");
-				StringBuilder errorString = new StringBuilder(
-						"Unauthorized while querying for resources, please check if credentials are valid. ").append(error);
-				throw new InvalidCredentialException(errorString.toString());
-				
+			} else if (statusCode == 401) {
+
+				handleInvalidStatus("while querying for resources. ", responseString, "retrieving an object",
+						statusCode);
+
 			} else if (valueIsUid) {
 				ErrorHandler.onNoSuccess(responseString, statusCode, uri);
 
@@ -548,35 +531,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
 						e, q);
 				throw new ConnectorIOException(errorBuilder.toString(), e);
-			}
-		} finally {
-			try {
-				response.close();
-			} catch (IOException e) {
-
-				if (q == null) {
-					q = "the full resource representation";
-				}
-
-				StringBuilder errorBuilder = new StringBuilder(
-						"An error occurred while processing the query http response for ");
-				errorBuilder.append(q);
-				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
-
-					errorBuilder.insert(0, "The connection timed out while closing the http connection. ");
-
-					throw new OperationTimeoutException(errorBuilder.toString(), e);
-				} else {
-
-					LOGGER.error(
-							"An error occurred while processing the queuery http response and closing the http connection. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-							e.getLocalizedMessage(), q);
-					LOGGER.info(
-							"An error occurred while processing the queuery http response and closing the http connection. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-							e, q);
-					throw new ConnectorIOException(errorBuilder.toString(), e);
-				}
-
 			}
 		}
 	}
@@ -616,74 +570,56 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH)
 				.append(uid.getUidValue()).toString();
 		LOGGER.info("The uri for the update request: {0}", uri);
-		HttpPatch httpPatch = new HttpPatch(uri);
-
-		httpPatch.addHeader(authHeader);
-		httpPatch.addHeader(PRETTYPRINTHEADER);
 
 		String responseString = null;
-		CloseableHttpResponse response = null;
 		try {
 			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null, resourceEndPoint);
-			StringEntity bodyContent = new StringEntity(jsonObject.toString(1));
-			 LOGGER.info("The update JSON object wich is being sent: {0}",
-			 jsonObject);
-			bodyContent.setContentType(CONTENTTYPE);
-			httpPatch.setEntity(bodyContent);
+			HttpPatch httpPatch = buildHttpPatch(uri, authHeader, jsonObject);
 
-			response = (CloseableHttpResponse) httpClient.execute(httpPatch);
+			try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpPatch)) {
 
-			int statusCode = response.getStatusLine().getStatusCode();
-			responseString = EntityUtils.toString(response.getEntity());
-			if (statusCode == 200 || statusCode == 201) {
-				LOGGER.info("Update of resource was succesfull");
+				int statusCode = response.getStatusLine().getStatusCode();
 
-				if (!responseString.isEmpty()) {
-					JSONObject json = new JSONObject(responseString);
-					// LOGGER.ok("Json response: {0}", json.toString());
-					Uid id = new Uid(json.getString(ID));
-					return id;
+				HttpEntity entity = response.getEntity();
 
+				if (entity != null) {
+					responseString = EntityUtils.toString(entity);
 				} else {
-					LOGGER.warn("Service provider response is empty, no response after the update procedure");
+					responseString = "";
 				}
-			} else if (statusCode == 204) {
+				if (statusCode == 200 || statusCode == 201) {
+					LOGGER.info("Update of resource was succesfull");
 
-				LOGGER.warn("Status code {0}. Response body left intentionally empty, operation may not be successful",
-						statusCode);
+					if (!responseString.isEmpty()) {
+						JSONObject json = new JSONObject(responseString);
+						// LOGGER.ok("Json response: {0}", json.toString());
+						Uid id = new Uid(json.getString(ID));
+						return id;
 
-				return uid;
-			}else if (statusCode == 401){
-				
-				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "updating resource");
-				StringBuilder errorString = new StringBuilder(
-						"Unauthorized while updating resource, please check if credentials are valid. ").append(error);
-				throw new InvalidCredentialException(errorString.toString());
-				
-			} else if (statusCode == 409) {
+					} else {
+						LOGGER.warn("Service provider response is empty, no response after the update procedure");
+					}
+				} else if (statusCode == 204) {
 
-				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "updating object");
-				StringBuilder errorString = new StringBuilder("Conflict while resource update. ").append(error);
-				throw new AlreadyExistsException(errorString.toString());
-			} else if (statusCode == 500 && GROUPS.equals(resourceEndPoint)) {
+					LOGGER.warn(
+							"Status code {0}. Response body left intentionally empty",
+							statusCode);
 
-				Uid id = groupUpdateProcedure(statusCode, jsonObject, uri, authHeader);
+					return uid;
+				} else if (statusCode == 500 && GROUPS.equals(resourceEndPoint)) {
 
-				if (id != null) {
+					Uid id = groupUpdateProcedure(statusCode, jsonObject, uri, authHeader);
 
-					return id;
+					if (id != null) {
+
+						return id;
+					} else {
+						ErrorHandler.onNoSuccess(responseString, statusCode, "updating object");
+					}
 				} else {
-					ErrorHandler.onNoSuccess(responseString, statusCode, "updating object");
+					handleInvalidStatus("while updating resource. ", responseString, "updating object", statusCode);
 				}
-			} else {
-				StringBuilder errorBuilder = new StringBuilder(
-						"The service provider reported an error. Occurrence in the process of updating a resource object.");
-				String errorMessage = ErrorHandler.onNoSuccess(responseString, statusCode, "updating object");
-
-				errorBuilder.append(" The error message: ").append(errorMessage);
-				throw new ConnectorException(errorBuilder.toString());
 			}
-
 		} catch (UnsupportedEncodingException e) {
 
 			LOGGER.error("Unsupported encoding: {0}. Occurrence in the process of updating a resource object ",
@@ -737,33 +673,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 				throw new ConnectorIOException(errorBuilder.toString(), e);
 			}
-		} finally {
-			try {
-				response.close();
-			} catch (IOException e) {
-
-				StringBuilder errorBuilder = new StringBuilder(
-						"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of updating a resource object whit the Uid: ");
-
-				errorBuilder.append(uid.toString());
-
-				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
-					errorBuilder.insert(0, "The connection timed out. ");
-
-					throw new OperationTimeoutException(errorBuilder.toString(), e);
-				} else {
-
-					LOGGER.error(
-							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of updating a resource object : {0}",
-							e.getLocalizedMessage());
-					LOGGER.info(
-							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of updating a resource object: {0}",
-							e);
-
-					throw new ConnectorIOException(errorBuilder.toString(), e);
-				}
-
-			}
 		}
 		return null;
 
@@ -806,32 +715,24 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				.append(uid.getUidValue()).toString();
 
 		LOGGER.info("The uri for the delete request: {0}", uri);
-		HttpDelete httpDelete = new HttpDelete(uri);
-		httpDelete.addHeader(authHeader);
-		httpDelete.addHeader(PRETTYPRINTHEADER);
-		CloseableHttpResponse response = null;
-		try {
+		HttpDelete httpDelete = buildHttpDelete(uri, authHeader);
 
-			response = (CloseableHttpResponse) httpClient.execute(httpDelete);
+		try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpDelete)) {
 			int statusCode = response.getStatusLine().getStatusCode();
 
 			if (statusCode == 204 || statusCode == 200) {
 				LOGGER.info("Deletion of resource was succesfull");
-			}else if (statusCode == 401){
-				String responseString = EntityUtils.toString(response.getEntity());
-				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "deleting resource");
-				StringBuilder errorString = new StringBuilder(
-						"Unauthorized while deleting resource, please check if credentials are valid. ").append(error);
-				throw new InvalidCredentialException(errorString.toString());
-				
-			}
-
-			else if (statusCode == 404) {
-
-				LOGGER.info("Resource not found or resource was already deleted");
 			} else {
-				String responseString = EntityUtils.toString(response.getEntity());
-				ErrorHandler.onNoSuccess(responseString, statusCode, "deleting object");
+				String responseString;
+				HttpEntity entity = response.getEntity();
+
+				if (entity != null) {
+					responseString = EntityUtils.toString(entity);
+				} else {
+					responseString = "";
+				}
+
+				handleInvalidStatus("while deleting resource. ", responseString, "deleting object", statusCode);
 			}
 
 		} catch (ClientProtocolException e) {
@@ -866,34 +767,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						e);
 
 				throw new ConnectorIOException(errorBuilder.toString(), e);
-			}
-		} finally {
-			try {
-				response.close();
-			} catch (IOException e) {
-
-				StringBuilder errorBuilder = new StringBuilder(
-						"An error has occurred while processing the http response. Occurrence in the process of deleting a resource object with the Uid:  ");
-
-				errorBuilder.append(uid.toString());
-
-				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
-
-					errorBuilder.insert(0, "Connection timed out. ");
-
-					throw new OperationTimeoutException(errorBuilder.toString(), e);
-				} else {
-
-					LOGGER.error(
-							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of deleting a resource object: : {0}",
-							e.getLocalizedMessage());
-					LOGGER.info(
-							"An error has occurred while processing the http response and closing the http connectio. Occurrence in the process of deleting a resource object: : {0}",
-							e);
-
-					throw new ConnectorIOException(errorBuilder.toString(), e);
-				}
-
 			}
 		}
 	}
@@ -933,14 +806,16 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		HttpClient httpClient = httpClientBulder.build();
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).toString();
 		LOGGER.info("Qeury url: {0}", uri);
-		HttpGet httpGet = new HttpGet(uri);
-		httpGet.addHeader(authHeader);
-		httpGet.addHeader(PRETTYPRINTHEADER);
+		HttpGet httpGet = buildHttpGet(uri, authHeader);
+		try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpGet)) {
+			HttpEntity entity = response.getEntity();
+			String responseString;
+			if (entity != null) {
+				responseString = EntityUtils.toString(entity);
+			} else {
+				responseString = "";
+			}
 
-		CloseableHttpResponse response = null;
-		try {
-			response = (CloseableHttpResponse) httpClient.execute(httpGet);
-			String responseString = EntityUtils.toString(response.getEntity());
 			int statusCode = response.getStatusLine().getStatusCode();
 			LOGGER.info("Schema query status code: {0} ", statusCode);
 			if (statusCode == 200) {
@@ -966,43 +841,42 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 								.toString();
 						LOGGER.info("Additional query url: {0}", uri);
 
-						httpGet = new HttpGet(uri);
-						httpGet.addHeader(authHeader);
-						httpGet.addHeader(PRETTYPRINTHEADER);
+						httpGet = buildHttpGet(uri, authHeader);
 
-						response = (CloseableHttpResponse) httpClient.execute(httpGet);
+						try (CloseableHttpResponse secondaryResponse = (CloseableHttpResponse) httpClient
+								.execute(httpGet)) {
 
-						statusCode = response.getStatusLine().getStatusCode();
-						responseString = EntityUtils.toString(response.getEntity());
-						if (statusCode == 200) {
-							JSONObject jsonObject = new JSONObject(responseString);
-							jsonObject = injectMissingSchemaAttributes(resourceName, jsonObject);
+							statusCode = secondaryResponse.getStatusLine().getStatusCode();
+							responseString = EntityUtils.toString(secondaryResponse.getEntity());
 
-							responseArray.put(jsonObject);
-						} else {
+							if (statusCode == 200) {
+								JSONObject jsonObject = new JSONObject(responseString);
+								jsonObject = injectMissingSchemaAttributes(resourceName, jsonObject);
 
-							LOGGER.warn(
-									"No definition for provided shcemas was found, the connector will switch to default core schema configuration!");
-							return null;
+								responseArray.put(jsonObject);
+							} else {
+
+								LOGGER.warn(
+										"No definition for provided shcemas was found, the connector will switch to default core schema configuration!");
+								return null;
+							}
 						}
-					}
-					responseObject.put(RESOURCES, responseArray);
-					return processSchemaResponse(responseObject);
+						responseObject.put(RESOURCES, responseArray);
 
+					}
+					if (responseObject == JSONObject.NULL) {
+
+						return null;
+
+					} else {
+
+						return processSchemaResponse(responseObject);
+					}
 				}
 
-			}else if (statusCode == 401){
-				
-				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "querying for schema");
-				StringBuilder errorString = new StringBuilder(
-						"Unauthorized while querying for schema, please check if credentials are valid. ").append(error);
-				throw new InvalidCredentialException(errorString.toString());
-				
 			} else {
-				ErrorHandler.onNoSuccess(responseString, statusCode, "building schema");
-				LOGGER.warn(
-						"No definition for provided schemas was found, the connector will switch to default core schema configuration!");
-				return null;
+			
+				handleInvalidStatus("while querying for schema. ", responseString, "schema", statusCode);
 			}
 		} catch (ClientProtocolException e) {
 			LOGGER.error(
@@ -1035,34 +909,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 				throw new ConnectorIOException(errorBuilder.toString(), e);
 			}
-		} finally {
-			try {
-				response.close();
-			} catch (IOException e) {
-
-				StringBuilder errorBuilder = new StringBuilder(
-						"An error has occurred while processing the http response. Occurrence in the process of querying the provider Schemas resource object");
-
-				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
-
-					errorBuilder.insert(0, "The connection timed out. ");
-
-					throw new OperationTimeoutException(errorBuilder.toString(), e);
-				} else {
-
-					LOGGER.error(
-							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of querying the provider Schemas resource object: {0}",
-							e.getLocalizedMessage());
-					LOGGER.info(
-							"An error has occurred while processing the http response and closing the http connection. Occurrence in the process of querying the provider Schemas resource object: {0}",
-							e);
-
-					throw new ConnectorIOException(errorBuilder.toString(), e);
-				}
-
-			}
 		}
-
+		return null;
 	}
 
 	@Override
@@ -1317,11 +1165,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	@Override
 	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader) {
 		return null;
-	}
-
-	@Override
-	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
-			String membershipResourceEndpoin, ScimConnectorConfiguration conf) {
 	}
 
 	@Override
@@ -1702,5 +1545,83 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		handler.handle(connectorObject);
 
+	}
+
+	protected HttpPost buildHttpPost(String uri, Header authHeader, JSONObject jsonBody)
+			throws UnsupportedEncodingException, JSONException {
+
+		HttpPost httpPost = new HttpPost(uri);
+		httpPost.addHeader(authHeader);
+		httpPost.addHeader(PRETTYPRINTHEADER);
+
+		StringEntity bodyContent = new StringEntity(jsonBody.toString(1));
+		//LOGGER.info("The update JSON object wich is being sent: {0}", jsonBody);
+		bodyContent.setContentType(CONTENTTYPE);
+		httpPost.setEntity(bodyContent);
+
+		return httpPost;
+	}
+
+	protected HttpGet buildHttpGet(String uri, Header authHeader) {
+
+		HttpGet httpGet = new HttpGet(uri);
+		httpGet.addHeader(authHeader);
+		httpGet.addHeader(PRETTYPRINTHEADER);
+
+		return httpGet;
+	}
+
+	protected HttpPatch buildHttpPatch(String uri, Header authHeader, JSONObject jsonBody)
+			throws UnsupportedEncodingException, JSONException {
+
+		HttpPatch httpPatch = new HttpPatch(uri);
+
+		httpPatch.addHeader(authHeader);
+		httpPatch.addHeader(PRETTYPRINTHEADER);
+		StringEntity bodyContent = new StringEntity(jsonBody.toString(1));
+		//LOGGER.info("The update JSON object wich is being sent: {0}", jsonBody);
+		bodyContent.setContentType(CONTENTTYPE);
+		httpPatch.setEntity(bodyContent);
+
+		return httpPatch;
+	}
+
+	protected HttpDelete buildHttpDelete(String uri, Header authHeader) {
+
+		HttpDelete httpDelete = new HttpDelete(uri);
+		httpDelete.addHeader(authHeader);
+		httpDelete.addHeader(PRETTYPRINTHEADER);
+		return httpDelete;
+	}
+
+	protected void handleInvalidStatus(String errorPitch, String responseString, String situation, int statusCode)
+			throws ParseException, IOException {
+
+		String error = ErrorHandler.onNoSuccess(responseString, statusCode, situation);
+		StringBuilder errorString = new StringBuilder(errorPitch).append(error);
+		switch (statusCode) {
+		case 400:
+			handleBadRequest(error);
+			break;
+		case 401:
+			errorString.insert(0, "Unauthorized ");
+			throw new InvalidCredentialException(errorString.toString());
+		case 404:
+			LOGGER.warn("Resource not found or resource was already deleted");
+			break;
+		case 409:
+			errorString.insert(0, "Conflict ");
+			throw new AlreadyExistsException(errorString.toString());
+		case 500:
+			errorString.insert(0, "Provider server error ");
+			throw new ConnectorException(errorString.toString());
+		default:
+			LOGGER.warn(error);
+			break;
+		}
+	}
+	public void handleBadRequest(String error){
+		
+				throw new ConnectorException(error);
 	}
 }

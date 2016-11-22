@@ -21,13 +21,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.message.BasicHeader;
+import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
+import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -57,7 +58,7 @@ public interface HandlingStrategy {
 	String URI = "uri";
 	String LOGININSTANCE = "loginInstance";
 	String SLASH = "/";
-	String CONTENTTYPE = "application/json";
+	String CONTENTTYPE = "application/json; charset=utf-8";
 	String ID = "id";
 	String META = "meta";
 	String GROUPS = "Groups";
@@ -613,48 +614,6 @@ public interface HandlingStrategy {
 	 */
 	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader);
 
-	/**
-	 * Method used as an workaround for the unsupported "contains all values"
-	 * query filter on some specific services. The methods lists all the groups in
-	 * which the user is a member of.
-	 * 
-	 * Used for example by the Slack service.
-	 * 
-	 * @param uid
-	 *            The uid of the queried user.
-	 * @param resourceEndPoint
-	 *            The resource endpoint name.
-	 *            <p>
-	 *            e.g. "Users"
-	 * @param resultHandler
-	 *            The provided result handler.
-	 * @param membershipResourceEndpoint
-	 *            The endpoint name of the resource of which the user is a
-	 *            member. A string value representing the endpoint name (
-	 *            <p>
-	 *            e.g. "Groups".
-	 * @param conf
-	 *            An instance of the connector configuration class which
-	 *            contains the provided configuration.
-	 * 
-	 * @throws ConnectorException
-	 *             is thrown when
-	 *             <li>no uid is present in fetched object while processing
-	 *             query result
-	 *             <li>the data needed for authorization of request to the
-	 *             provider were not found
-	 *             <li>if an JSONexception has occurred while processing an json
-	 *             variable
-	 * @throws ConnectorIOException
-	 *             in an error occurred while processing the query http response
-	 *             
-	 * @throws OperationTimeoutException 
-	 *			thrown when the connection times out while processing the current method
-	 *
-	 */
-
-	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
-			String membershipResourceEndpoint, ScimConnectorConfiguration conf);
 
 	/**
 	 * Builds an connector object representation of the provided json object.

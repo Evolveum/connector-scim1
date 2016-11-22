@@ -16,8 +16,6 @@
 package com.evolveum.polygon.scim;
 
 import java.io.IOException;
-import java.net.NoRouteToHostException;
-import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,14 +27,11 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
-import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
-import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
-import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
@@ -44,13 +39,11 @@ import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
-import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -325,200 +318,6 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 	}
 
 	@Override
-	public void queryMembershipData(Uid uid, String resourceEndPoint, ResultsHandler resultHandler,
-			String membershipResourceEndpoint, ScimConnectorConfiguration conf) {
-
-		Header authHeader = null;
-		String scimBaseUri = "";
-		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
-
-		HttpPost loginInstance = null;
-
-		for (String data : authorizationData.keySet()) {
-			if (AUTHHEADER.equals(data)) {
-
-				authHeader = (Header) authorizationData.get(data);
-
-			} else if (URI.equals(data)) {
-
-				scimBaseUri = (String) authorizationData.get(data);
-			} else if (LOGININSTANCE.equals(data)) {
-
-				loginInstance = (HttpPost) authorizationData.get(data);
-			}
-		}
-
-		if (authHeader == null || scimBaseUri.isEmpty()) {
-
-			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
-		}
-
-		ServiceAccessManager.logIntoService(conf);
-		HttpClient httpClient = HttpClientBuilder.create().build();
-		String queuedUid;
-		queuedUid = ((Uid) uid).getUidValue();
-
-		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH)
-				.append(queuedUid).toString();
-		LOGGER.info("Qeury url: {0}", uri);
-		HttpGet httpGet = new HttpGet(uri);
-		httpGet.addHeader(authHeader);
-		httpGet.addHeader(PRETTYPRINTHEADER);
-
-		String responseString = null;
-		CloseableHttpResponse response = null;
-		try {
-			response = (CloseableHttpResponse) httpClient.execute(httpGet);
-
-			int statusCode = response.getStatusLine().getStatusCode();
-			responseString = EntityUtils.toString(response.getEntity());
-			LOGGER.info("Status code: {0}", statusCode);
-			if (statusCode == 200) {
-
-				if (!responseString.isEmpty()) {
-					try {
-						JSONObject jsonObject = new JSONObject(responseString);
-
-						LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
-
-						if (jsonObject.has(GROUPS)) {
-							int amountOfResources = jsonObject.getJSONArray(GROUPS).length();
-
-							for (int position = 0; position < amountOfResources; position++) {
-								JSONObject minResourceJson = new JSONObject();
-								minResourceJson = jsonObject.getJSONArray(GROUPS).getJSONObject(position);
-								if (minResourceJson.has(VALUE)) {
-
-									String groupUid = minResourceJson.getString(VALUE);
-									if (groupUid != null && !groupUid.isEmpty()) {
-
-										StringBuilder groupUri = new StringBuilder(scimBaseUri).append(SLASH)
-												.append(membershipResourceEndpoint).append(SLASH).append(groupUid);
-
-										LOGGER.info("The uri to which we are sending the queri {0}", groupUri);
-
-										HttpGet httpGetR = new HttpGet(groupUri.toString());
-										httpGetR.addHeader(authHeader);
-										httpGetR.addHeader(PRETTYPRINTHEADER);
-
-										CloseableHttpResponse resourceResponse = (CloseableHttpResponse) httpClient
-												.execute(httpGetR);
-										if (statusCode == 200) {
-											JSONObject fullResourceJson = new JSONObject(responseString);
-
-											LOGGER.info(
-													"The {0}. resource json object which was returned by the service provider: {1}",
-													position + 1, fullResourceJson.toString(1));
-											ConnectorObject connectorObject = buildConnectorObject(fullResourceJson,
-													membershipResourceEndpoint);
-											resultHandler.handle(connectorObject);
-
-										} else {
-											ErrorHandler.onNoSuccess(responseString, statusCode, groupUri.toString());
-										}
-										resourceResponse.close();
-									}
-								} else {
-									LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
-
-									throw new ConnectorException(
-											"No uid present in fetched object while processing query result");
-
-								}
-							}
-						} else {
-
-							LOGGER.error("Resource object not present in provider response to the query");
-
-							throw new ConnectorException(
-									"No uid present in fetched object while processing query result");
-						}
-
-					} catch (JSONException jsonException) {
-						if (queuedUid == null) {
-							queuedUid = "the full resource representation";
-						}
-						LOGGER.error(
-								"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-								jsonException.getLocalizedMessage(), queuedUid);
-						LOGGER.info(
-								"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-								jsonException, queuedUid);
-						throw new ConnectorException(
-								"An exception has occurred while setting the variable \"jsonObject\".", jsonException);
-					}
-
-				} else {
-
-					LOGGER.warn("Service provider response is empty, responce returned on query: {0}", uri);
-				}
-			}else if (statusCode == 401){
-				
-				String error = ErrorHandler.onNoSuccess(responseString, statusCode, "retrieving an object");
-				StringBuilder errorString = new StringBuilder(
-						"Unauthorized while querying for resources, please check if credentials are valid. ").append(error);
-				throw new InvalidCredentialException(errorString.toString());
-				
-			} else {
-				ErrorHandler.onNoSuccess(responseString, statusCode, uri);
-			}
-
-		} catch (IOException e) {
-
-			if (queuedUid == null) {
-				queuedUid = "the full resource representation";
-			}
-
-			StringBuilder errorBuilder = new StringBuilder(
-					"An error occurred while processing the query http response for ").append(queuedUid);
-			if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
-
-				errorBuilder.insert(0, "The connection timed out.");
-
-				throw new OperationTimeoutException(errorBuilder.toString(), e);
-			} else {
-
-				LOGGER.error(
-						"An error occurred while processing the query http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-						e.getLocalizedMessage(), queuedUid);
-				LOGGER.info(
-						"An error occurred while processing the query http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-						e, queuedUid);
-				throw new ConnectorIOException(errorBuilder.toString(), e);
-			}
-		} finally {
-			try {
-				response.close();
-			} catch (IOException e) {
-
-				if (queuedUid == null) {
-					queuedUid = "the full resource representation";
-				}
-
-				StringBuilder errorBuilder = new StringBuilder(
-						"An error occurred while processing the query http response for ").append(queuedUid);
-				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
-
-					errorBuilder.insert(0, "The connection timed out.");
-
-					throw new OperationTimeoutException(errorBuilder.toString(), e);
-				} else {
-
-					LOGGER.error(
-							"An error occurred while processing the query http response and closing the http connection. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-							e.getLocalizedMessage(), queuedUid);
-					LOGGER.info(
-							"An error occurred while processing the query http response and closing the http connection. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-							e, queuedUid);
-					throw new ConnectorIOException(errorBuilder.toString(), e);
-				}
-
-			}
-		}
-
-	}
-
-	@Override
 	public List<String> excludeFromAssembly(List<String> excludedAttributes) {
 		excludedAttributes.add(META);
 		excludedAttributes.add("schemas");
@@ -647,26 +446,27 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 						LOGGER.info("The uri to which we are sending the queri {0}", groupUri);
 
-						HttpGet httpGetR = new HttpGet(groupUri.toString());
-						httpGetR.addHeader(authHeader);
-						httpGetR.addHeader(PRETTYPRINTHEADER);
+						HttpGet httpGetR = buildHttpGet(groupUri.toString(), authHeader);
 
-						CloseableHttpResponse resourceResponse = (CloseableHttpResponse) httpClient.execute(httpGetR);
-						int statusCode = resourceResponse.getStatusLine().getStatusCode();
-						responseString = EntityUtils.toString(resourceResponse.getEntity());
-						if (statusCode == 200) {
-							JSONObject fullResourceJson = new JSONObject(responseString);
+						try (CloseableHttpResponse resourceResponse = (CloseableHttpResponse) httpClient
+								.execute(httpGetR)) {
+							int statusCode = resourceResponse.getStatusLine().getStatusCode();
+							responseString = EntityUtils.toString(resourceResponse.getEntity());
+							if (statusCode == 200) {
+								JSONObject fullResourceJson = new JSONObject(responseString);
 
-							LOGGER.info("The {0}. resource json object which was returned by the service provider: {1}",
-									position + 1, fullResourceJson.toString(1));
+								LOGGER.info(
+										"The {0}. resource json object which was returned by the service provider: {1}",
+										position + 1, fullResourceJson.toString(1));
 
-							ConnectorObject connectorObject = buildConnectorObject(fullResourceJson, resourceEndPoint);
-							handler.handle(connectorObject);
+								ConnectorObject connectorObject = buildConnectorObject(fullResourceJson,
+										resourceEndPoint);
+								handler.handle(connectorObject);
 
-						} else {
-							ErrorHandler.onNoSuccess(responseString, statusCode, groupUri.toString());
+							} else {
+								ErrorHandler.onNoSuccess(responseString, statusCode, groupUri.toString());
+							}
 						}
-						resourceResponse.close();
 					}
 				} else {
 					LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
@@ -681,6 +481,21 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 			throw new ConnectorException("No uid present in fetched object while processing query result");
 		}
 
+	}
+	@Override
+	public void handleBadRequest(String error){
+		List<String> uniqueAttributes = new	ArrayList<String>();
+		uniqueAttributes.add("nickname_taken");
+		uniqueAttributes.add("bad_email_address");
+		
+		String [] parts = error.split("\"");
+		for(String part: parts){
+			if (uniqueAttributes.contains(part)){
+				StringBuilder errorBuilder = new StringBuilder("Conflict. ").append(error).append(". Propably the value you have chosen is already taken, please chose another and try again.");
+						throw new AlreadyExistsException(errorBuilder.toString());
+			} 
+		}	
+			throw new ConnectorException(error);
 	}
 
 }

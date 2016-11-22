@@ -60,7 +60,7 @@ public class SalesforceSpecificTestSuite extends StandardScimTestSuite {
 	private ScimConnectorConfiguration configuration;
 
 	private PropertiesParser parser = new PropertiesParser(
-			"../ConnIdScimConnector/tests/salesforceTest.properties");
+			"../ConnIdScimConnector/testProperties/salesforceTest.properties");
 
 	private final Log LOGGER = Log.getLog(SalesforceSpecificTestSuite.class);
 

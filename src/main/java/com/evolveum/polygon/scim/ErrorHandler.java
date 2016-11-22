@@ -55,11 +55,10 @@ public class ErrorHandler {
 	 * @throws IOException
 	 */
 	public static String onNoSuccess(String responseString, Integer statusCode, String message) throws ParseException, IOException {
-
 		boolean isJsonObject = true;
 		StringBuilder exceptionStringBuilder = null;
 
-		if (responseString != null && responseString.isEmpty()) {
+		if (responseString != null && !responseString.isEmpty()) {
 
 			LOGGER.error("Full Error response from the provider: {0}", responseString);
 
@@ -116,7 +115,7 @@ public class ErrorHandler {
 			}
 		} else {
 			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
-					.append(" was unsuccessful. No response object was returned");
+					.append(" was unsuccessful. No response object was returned.");
 		}
 		String exceptionString = exceptionStringBuilder.toString();
 

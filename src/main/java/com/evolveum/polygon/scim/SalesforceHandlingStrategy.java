@@ -30,7 +30,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
@@ -117,10 +116,10 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 	}
 
 	@Override
-	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader) {
+	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader, ScimConnectorConfiguration conf) {
 
 		Uid id = null;
-		HttpClient httpClient = HttpClientBuilder.create().build();
+		HttpClient httpClient = initHttpClient(conf);
 		LOGGER.warn(
 				"Status code from first update query: {0}. Processing trough Salesforce \"group/member update\" workaround. ",
 				statusCode);
@@ -211,15 +210,10 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 
 	@Override
 	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
-			Map<String, Object> authorizationData) {
+			JSONObject loginObject ) {
 
-		JSONObject loginObject = null;
 		String orgID = null;
 
-		if (authorizationData.containsKey(JSON)) {
-
-			loginObject = (JSONObject) authorizationData.get(JSON);
-		}
 
 		if (loginObject != null) {
 			if (loginObject.has(ID)) {

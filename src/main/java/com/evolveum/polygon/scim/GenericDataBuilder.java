@@ -258,7 +258,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 										}
 										if (operation != null) {
 											if (DELETE.equals(operation)) {
-												multivalueObject.put("operation", DELETE);
+												multivalueObject.put(OPERATION, DELETE);
 											}
 										}
 										jArray.put(multivalueObject);
@@ -281,7 +281,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 									}
 									if (operation != null) {
 										if (DELETE.equals(operation)) {
-											multivalueObject.put("operation", DELETE);
+											multivalueObject.put(OPERATION, DELETE);
 										}
 									}
 

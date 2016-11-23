@@ -431,15 +431,8 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler,
 			String scimBaseUri, Header authHeader, ScimConnectorConfiguration conf) throws ClientProtocolException, IOException {
 		String responseString = null;
-		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
-
-		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
-			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
-			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
-			httpClientBulder.setRoutePlanner(routePlanner);
-		}
-
-		HttpClient httpClient = httpClientBulder.build();
+		
+		HttpClient httpClient = initHttpClient(conf);
 
 		if (jsonObject.has(GROUPS)) {
 			int amountOfResources = jsonObject.getJSONArray(GROUPS).length();
@@ -498,6 +491,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		List<String> uniqueAttributes = new	ArrayList<String>();
 		uniqueAttributes.add("nickname_taken");
 		uniqueAttributes.add("bad_email_address");
+		uniqueAttributes.add("name_already_exists");
 		
 		String [] parts = error.split("\"");
 		for(String part: parts){

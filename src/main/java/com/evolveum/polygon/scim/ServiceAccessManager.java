@@ -54,9 +54,16 @@ import com.evolveum.polygon.common.GuardedStringAccessor;
  *
  */
 public class ServiceAccessManager {
-
+	
+	private String baseUri;
+	private JSONObject loginJson;
+	private Header aHeader;
 	private static final Log LOGGER = Log.getLog(ServiceAccessManager.class);
 
+	public ServiceAccessManager(ScimConnectorConfiguration configuration) {
+		logIntoService(configuration);
+	}
+	
 	/**
 	 * Used for login to the service. The data needed for this operation is
 	 * provided by the configuration.
@@ -67,7 +74,7 @@ public class ServiceAccessManager {
 	 * 
 	 * @return a Map object carrying meta information about the login session.
 	 */
-	public static Map<String, Object> logIntoService(ScimConnectorConfiguration configuration) {
+	public void logIntoService(ScimConnectorConfiguration configuration) {
 
 		HttpPost loginInstance = new HttpPost();
 
@@ -238,16 +245,22 @@ public class ServiceAccessManager {
 		String scimBaseUri = new StringBuilder(loginInstanceUrl).append(configuration.getEndpoint())
 				.append(configuration.getVersion()).toString();
 
-		Map<String, Object> autoriazationData = new HashMap<String, Object>();
-		autoriazationData.put("uri", scimBaseUri);
-		autoriazationData.put("authHeader", authHeader);
-		autoriazationData.put("loginInstance", loginInstance);
-
+		this.baseUri=scimBaseUri;
+		this.aHeader = authHeader;
 		if (jsonObject != null) {
-			autoriazationData.put("json", jsonObject);
+			this.loginJson = jsonObject;
 		}
 
-		return autoriazationData;
+	}
+	
+	public String getBaseUri(){
+		return baseUri;
+	}
+	public Header getAuthHeader(){
+		return aHeader;
+	}
+	public JSONObject getLoginJson(){
+		return loginJson;
 	}
 
 }

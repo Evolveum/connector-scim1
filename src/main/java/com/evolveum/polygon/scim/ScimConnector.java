@@ -61,7 +61,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		UpdateAttributeValuesOp {
 
 	private ScimConnectorConfiguration configuration;
-	private Boolean genericsCanBeApplied = false;
 
 	private static final String SCHEMAS = "Schemas/";
 	private static final String USERS = "Users";
@@ -91,7 +90,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 				buildSchemas(schemaBuilder, schemaParser);
 			} else {
 
-				ObjectClassInfo userSchemaInfo = UserDataBuilder.getUserSchema();
+				ObjectClassInfo userSchemaInfo = UserSchemaBuilder.getUserSchema();
 				ObjectClassInfo groupSchemaInfo = GroupDataBuilder.getGroupSchema();
 				schemaBuilder.defineObjectClass(userSchemaInfo);
 				schemaBuilder.defineObjectClass(groupSchemaInfo);
@@ -120,32 +119,20 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			throw new InvalidAttributeValueException("Object value not provided");
 		}
 
-		if (genericsCanBeApplied) {
-			String endpointName = object.getObjectClassValue();
+		String endpointName = object.getObjectClassValue();
 
-			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
+		if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				strategy.delete(uid, USERS, configuration);
+			strategy.delete(uid, USERS, configuration);
 
-			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
+		} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				strategy.delete(uid, GROUPS, configuration);
-			} else {
-
-				strategy.delete(uid, endpointName, configuration);
-			}
-
+			strategy.delete(uid, GROUPS, configuration);
 		} else {
 
-			if (ObjectClass.ACCOUNT.equals(object)) {
-				strategy.delete(uid, USERS, configuration);
-			} else if (ObjectClass.GROUP.equals(object)) {
-				strategy.delete(uid, GROUPS, configuration);
-			} else {
-				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new InvalidAttributeValueException("Object value not valid");
-			}
+			strategy.delete(uid, endpointName, configuration);
 		}
+
 	}
 
 	/**
@@ -164,65 +151,27 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
 
-		if (genericsCanBeApplied) {
-			Uid uid = new Uid(DEFAULT);
-			GenericDataBuilder jsonDataBuilder = new GenericDataBuilder("");
-			String endpointName = object.getObjectClassValue();
+		Uid uid = new Uid(DEFAULT);
+		GenericDataBuilder jsonDataBuilder = new GenericDataBuilder("");
+		String endpointName = object.getObjectClassValue();
 
-			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
-				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
+		if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
+			injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
-				uid = strategy.create(USERS, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
+			uid = strategy.create(USERS, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 
-			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
-				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
+		} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
+			injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
-				uid = strategy.create(GROUPS, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
+			uid = strategy.create(GROUPS, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 
-			} else {
-				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
-
-				uid = strategy.create(endpointName, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
-			}
-
-			return uid;
 		} else {
+			injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
 
-			if (ObjectClass.ACCOUNT.equals(object)) {
-				ObjectTranslator userBuild = new UserDataBuilder("");
-
-				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
-
-				Uid uid = strategy.create(USERS, userBuild, attribute, injectedAttributeSet, configuration);
-
-				if (uid == null) {
-					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new ConnectorException("No uid returned by the create method");
-				}
-
-				return uid;
-
-			} else if (ObjectClass.GROUP.equals(object)) {
-
-				GroupDataBuilder groupBuild = new GroupDataBuilder("");
-
-				StrategyFetcher fetch = new StrategyFetcher();
-				HandlingStrategy strategy = fetch.fetchStrategy(providerName);
-				injectedAttributeSet = strategy.addAttributesToInject(injectedAttributeSet);
-
-				Uid uid = strategy.create(GROUPS, groupBuild, attribute, injectedAttributeSet, configuration);
-
-				if (uid == null) {
-					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new ConnectorException("No uid returned by the create method");
-				}
-				return uid;
-			} else {
-
-				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new ConnectorException("Object value not valid");
-			}
+			uid = strategy.create(endpointName, jsonDataBuilder, attribute, injectedAttributeSet, configuration);
 		}
+
+		return uid;
 	}
 
 	@Override
@@ -261,16 +210,6 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		strategy = fetcher.fetchStrategy(providerName);
 
 		LOGGER.info("The provider name is {0}", providerName);
-		ParserSchemaScim schemaParser = strategy.querySchemas(providerName, SCHEMAS, this.configuration);
-
-		if (schemaParser != null) {
-
-			genericsCanBeApplied = true;
-		} else {
-
-			LOGGER.warn(
-					"No schema found for processing, the connector will switch to the core SCIM v1. schema definition");
-		}
 
 	}
 
@@ -290,52 +229,24 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			LOGGER.error("Set of Attributes can not be null or empty: {0}", attributes);
 			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
-		if (genericsCanBeApplied) {
-			Uid uid = new Uid(DEFAULT);
-			GenericDataBuilder genericDataBuilder = new GenericDataBuilder("");
+		Uid uid = new Uid(DEFAULT);
+		GenericDataBuilder genericDataBuilder = new GenericDataBuilder("");
 
-			String endpointName = object.getObjectClassValue();
+		String endpointName = object.getObjectClassValue();
 
-			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
+		if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
+			uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
 
-			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
+		} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
-			} else {
-				uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
-
-			}
-
-			return uid;
+			uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
 		} else {
-			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userDataBuilder = new UserDataBuilder("");
-				Uid uid = strategy.update(id, USERS, userDataBuilder, attributes, configuration);
+			uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
 
-				if (uid == null) {
-					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new ConnectorException("No uid returned by the create method");
-				}
-				return uid;
-
-			} else if (ObjectClass.GROUP.equals(object)) {
-
-				GroupDataBuilder groupDataBuilder = new GroupDataBuilder("");
-
-				Uid uid = strategy.update(id, GROUPS, groupDataBuilder, attributes, configuration);
-
-				if (uid == null) {
-					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new ConnectorException("No uid returned by the create method");
-				}
-				return uid;
-			} else {
-				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new InvalidAttributeValueException("Object value not valid");
-			}
 		}
+
+		return uid;
 	}
 
 	@Override
@@ -344,21 +255,12 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		LOGGER.info("Test");
 
 		if (configuration != null) {
-			Map<String, Object> authoriazationData = ServiceAccessManager.logIntoService(configuration);
+		ServiceAccessManager accessManager = new ServiceAccessManager(configuration);
 
-			if (authoriazationData != null && !authoriazationData.isEmpty()) {
-
-				if (authoriazationData.containsKey("loginInstance")) {
-
-					HttpPost instance = (HttpPost) authoriazationData.get("loginInstance");
-
-					LOGGER.info("Test was succesfull");
-				} else {
-
-					LOGGER.error(
-							"Error with establishing connection while testing. The login instance was not created.");
-				}
-
+		String baseUri = accessManager.getBaseUri();
+		
+			if (baseUri !=null && !baseUri.isEmpty()) {
+				LOGGER.info("Test was succesfull");
 			} else {
 
 				LOGGER.error("Error with establishing connection while testing. No authorization data were provided.");
@@ -414,7 +316,7 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 		}
 
 		if (ObjectClass.ACCOUNT.getObjectClassValue().equals(endpointName)) {
-			
+
 			strategy.query(query, queryUriSnippet, USERS, handler, configuration);
 
 		} else if (ObjectClass.GROUP.getObjectClassValue().equals(endpointName)) {
@@ -509,52 +411,23 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			LOGGER.error("Set of Attributes can not be null or empty: {}", attributes);
 			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
-		if (genericsCanBeApplied) {
-			Uid uid = new Uid(DEFAULT);
-			GenericDataBuilder genericDataBuilder = new GenericDataBuilder("");
+		Uid uid = new Uid(DEFAULT);
+		GenericDataBuilder genericDataBuilder = new GenericDataBuilder("");
 
-			String endpointName = object.getObjectClassValue();
+		String endpointName = object.getObjectClassValue();
 
-			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
+		if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
+			uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
 
-			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
+		} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
-			} else {
-				uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
-			}
-
-			return uid;
+			uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
 		} else {
-			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userDataBuilder = new UserDataBuilder("");
-
-				Uid uid = strategy.update(id, USERS, userDataBuilder, attributes, configuration);
-
-				if (uid == null) {
-					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new ConnectorException("No uid returned by the create method");
-				}
-				return uid;
-
-			} else if (ObjectClass.GROUP.equals(object)) {
-
-				GroupDataBuilder groupDataBuilder = new GroupDataBuilder("");
-
-				Uid uid = strategy.update(id, GROUPS, groupDataBuilder, attributes, configuration);
-
-				if (uid == null) {
-					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new ConnectorException("No uid returned by the create method");
-				}
-				return uid;
-			} else {
-				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new InvalidAttributeValueException("Object value not valid");
-			}
+			uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
 		}
+
+		return uid;
 
 	}
 
@@ -576,54 +449,25 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			LOGGER.error("Set of Attributes can not be null or empty: {0}", attributes);
 			throw new ConnectorException("Set of Attributes value is null or empty");
 		}
-		if (genericsCanBeApplied) {
-			Uid uid = new Uid(DEFAULT);
-			GenericDataBuilder genericDataBuilder = new GenericDataBuilder(DELETE);
+		Uid uid = new Uid(DEFAULT);
+		GenericDataBuilder genericDataBuilder = new GenericDataBuilder(DELETE);
 
-			String endpointName = object.getObjectClassValue();
+		String endpointName = object.getObjectClassValue();
 
-			if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
+		if (endpointName.equals(ObjectClass.ACCOUNT.getObjectClassValue())) {
 
-				uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
+			uid = strategy.update(id, USERS, genericDataBuilder, attributes, configuration);
 
-			} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
+		} else if (endpointName.equals(ObjectClass.GROUP.getObjectClassValue())) {
 
-				uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
+			uid = strategy.update(id, GROUPS, genericDataBuilder, attributes, configuration);
 
-			} else {
-
-				uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
-			}
-
-			return uid;
 		} else {
-			if (ObjectClass.ACCOUNT.equals(object)) {
-				UserDataBuilder userDataBuilder = new UserDataBuilder(DELETE);
 
-				Uid uid = strategy.update(id, USERS, userDataBuilder, attributes, configuration);
-
-				if (uid == null) {
-					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new ConnectorException("No uid returned by the create method");
-				}
-				return uid;
-
-			} else if (ObjectClass.GROUP.equals(object)) {
-
-				GroupDataBuilder groupDataBuilder = new GroupDataBuilder(DELETE);
-
-				Uid uid = strategy.update(id, GROUPS, groupDataBuilder, attributes, configuration);
-
-				if (uid == null) {
-					LOGGER.error("No uid returned by the create method: {0} ", uid);
-					throw new ConnectorException("No uid returned by the create method");
-				}
-				return uid;
-			} else {
-				LOGGER.error("Provided object value is not valid: {0}", object);
-				throw new InvalidAttributeValueException("Object value not valid");
-			}
+			uid = strategy.update(id, endpointName, genericDataBuilder, attributes, configuration);
 		}
+
+		return uid;
 
 	}
 

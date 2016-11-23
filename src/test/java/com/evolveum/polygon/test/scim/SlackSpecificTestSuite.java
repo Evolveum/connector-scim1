@@ -164,10 +164,10 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		Assert.assertEquals(resourceWasCreated, assertParameter);
 
 	}
-	
+
 	@Test(priority = 2, dataProvider = TESTOBJECTBUILDPROVIDER)
 	private void objectBuilderTest(String resourceName, Boolean containsObject) {
-		ConnectorObject cObject=SlackSpecificTestUtils.connObjectBuildTest(resourceName, testNumber);
+		ConnectorObject cObject = SlackSpecificTestUtils.connObjectBuildTest(resourceName, testNumber);
 		Assert.assertNotNull(cObject);
 	}
 

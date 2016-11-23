@@ -106,7 +106,7 @@ public class StandardScimTestUtils {
 				char[] tokenCharacters = configuration.get(configurationParameter).toCharArray();
 				GuardedString guardedToken = new GuardedString(tokenCharacters);
 				scimConnectorConfiguration.setToken(guardedToken);
-				
+
 			} else if ("proxy".equals(configurationParameter)) {
 				scimConnectorConfiguration.setProxyUrl(configuration.get(configurationParameter));
 			} else if ("proxy_port_number".equals(configurationParameter)) {
@@ -471,29 +471,29 @@ public class StandardScimTestUtils {
 		return true;
 	}
 
-	public static ConnectorObject connObjectBuildTest(String resourceName, Integer testNumber){
-		
+	public static ConnectorObject connObjectBuildTest(String resourceName, Integer testNumber) {
+
 		ConnectorObject connectorObject;
-		
-		if(USERS.equals(resourceName)){
-			
+
+		if (USERS.equals(resourceName)) {
+
 			StandardScimHandlingStrategy handlingStrategy = new StandardScimHandlingStrategy();
-			
-			 connectorObject = handlingStrategy.buildConnectorObject(userToConnIdSimulation(testNumber), "Users");
-			
-		} else if(GROUPS.equals(resourceName)){
-			
-		connectorObject = null;	
-		
-		}else {
-			
-		 connectorObject = null;	
-			
+
+			connectorObject = handlingStrategy.buildConnectorObject(userToConnIdSimulation(testNumber), "Users");
+
+		} else if (GROUPS.equals(resourceName)) {
+
+			connectorObject = null;
+
+		} else {
+
+			connectorObject = null;
+
 		}
-		
+
 		return connectorObject;
 	}
-	
+
 	public Set<Attribute> getAttributeSet(String resourceName, Integer testNumber) {
 
 		Set<Attribute> attributeSet = new HashSet<>();
@@ -516,7 +516,7 @@ public class StandardScimTestUtils {
 		Set<Attribute> createAttributeSet = new HashSet<Attribute>();
 
 		String notPressentAttribute = "";
-		
+
 		String createAttributeName;
 
 		if (USERS.equals(resourceName)) {
@@ -533,22 +533,22 @@ public class StandardScimTestUtils {
 			}
 
 			notPressentAttribute = USERNAME;
-			
+
 		} else if (GROUPS.equals(resourceName)) {
 			if (CREATE.equals(testType)) {
 				createAttributeSet = groupCreateBuilder(testNumber);
 			} else if (UPDATESINGLE.equals(testType)) {
 				createAttributeSet = groupSingleValUpdateBuilder(testNumber);
 			} else if (UPDATEMULTI.equals(testType)) {
-				createAttributeSet= groupMultiValUpdateBuilder(testNumber, userTestUid);
+				createAttributeSet = groupMultiValUpdateBuilder(testNumber, userTestUid);
 			}
 			notPressentAttribute = DISPLAYNAME;
 		}
 
 		for (Attribute createAttribute : createAttributeSet) {
 			createAttributeName = createAttribute.getName();
-			if(!notPressentAttribute.equals(createAttributeName)){
-			evaluationResult.put(createAttributeName, "#AttributeNameNotFound#");
+			if (!notPressentAttribute.equals(createAttributeName)) {
+				evaluationResult.put(createAttributeName, "#AttributeNameNotFound#");
 			}
 		}
 		for (ConnectorObject result : results) {
@@ -560,7 +560,7 @@ public class StandardScimTestUtils {
 
 				String returnedAttributeName = attribute.getName();
 				LOGGER.info("The attribute Name: {0}", returnedAttributeName);
-				
+
 				for (Attribute createAttribute : createAttributeSet) {
 					createAttributeName = createAttribute.getName();
 

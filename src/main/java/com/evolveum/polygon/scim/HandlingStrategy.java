@@ -612,7 +612,7 @@ public interface HandlingStrategy {
 	 * 
 	 * @return if successful the uid of the updated resource.
 	 */
-	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader);
+	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader, ScimConnectorConfiguration conf);
 
 
 	/**
@@ -683,7 +683,7 @@ public interface HandlingStrategy {
 	 */
 
 	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
-			Map<String, Object> authoriazationData);
+			JSONObject loginJson);
 
 	/**
 	 * Processes a contains all values filter query.

@@ -38,7 +38,6 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.util.EntityUtils;
@@ -99,41 +98,26 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	public Uid create(String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
 			Set<Attribute> injectedAttributeSet, ScimConnectorConfiguration conf) {
 
-		Header authHeader = null;
-		String scimBaseUri = "";
-		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
+		ServiceAccessManager accessManager = new ServiceAccessManager(conf);
+		
+		Header authHeader = accessManager.getAuthHeader();
+		String scimBaseUri = accessManager.getBaseUri();
 
-		for (String data : authorizationData.keySet()) {
-			if (AUTHHEADER.equals(data)) {
-
-				authHeader = (Header) authorizationData.get(data);
-
-			} else if (URI.equals(data)) {
-
-				scimBaseUri = (String) authorizationData.get(data);
-			}
-		}
 
 		if (authHeader == null || scimBaseUri.isEmpty()) {
 
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		injectedAttributeSet = attributeInjection(injectedAttributeSet, authorizationData);
+		injectedAttributeSet = attributeInjection(injectedAttributeSet, accessManager.getLoginJson());
 
 		JSONObject jsonObject = new JSONObject();
 
 		jsonObject = objectTranslator.translateSetToJson(attributes, injectedAttributeSet, resourceEndPoint);
 
-		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
+	
 
-		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
-			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
-			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
-			httpClientBulder.setRoutePlanner(routePlanner);
-		}
-
-		HttpClient httpClient = httpClientBulder.build();
+		HttpClient httpClient = initHttpClient(conf);
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).toString();
 
@@ -241,21 +225,11 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 											// filter query for the group
 											// endpoint?
 		Boolean valueIsUid = false;
+		ServiceAccessManager accessManager = new ServiceAccessManager(conf);
+		
+		Header authHeader = accessManager.getAuthHeader();
+		String scimBaseUri = accessManager.getBaseUri();
 
-		Header authHeader = null;
-		String scimBaseUri = "";
-		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
-
-		for (String data : authorizationData.keySet()) {
-			if (AUTHHEADER.equals(data)) {
-
-				authHeader = (Header) authorizationData.get(data);
-
-			} else if (URI.equals(data)) {
-
-				scimBaseUri = (String) authorizationData.get(data);
-			}
-		}
 
 		if (authHeader == null || scimBaseUri.isEmpty()) {
 
@@ -317,16 +291,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			q = queryUriSnippet.toString();
 
 		}
-
-		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
-
-		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
-			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
-			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
-			httpClientBulder.setRoutePlanner(routePlanner);
-		}
-
-		HttpClient httpClient = httpClientBulder.build();
+		HttpClient httpClient = initHttpClient(conf);
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).append(q)
 				.toString();
@@ -539,34 +504,18 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	@Override
 	public Uid update(Uid uid, String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
 			ScimConnectorConfiguration conf) {
-		Header authHeader = null;
-		String scimBaseUri = "";
-		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
-		for (String data : authorizationData.keySet()) {
-			if (AUTHHEADER.equals(data)) {
-
-				authHeader = (Header) authorizationData.get(data);
-
-			} else if (URI.equals(data)) {
-
-				scimBaseUri = (String) authorizationData.get(data);
-			}
-		}
+ServiceAccessManager accessManager = new ServiceAccessManager(conf);
+		
+		Header authHeader = accessManager.getAuthHeader();
+		String scimBaseUri = accessManager.getBaseUri();
 
 		if (authHeader == null || scimBaseUri.isEmpty()) {
 
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
-
-		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
-			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
-			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
-			httpClientBulder.setRoutePlanner(routePlanner);
-		}
-
-		HttpClient httpClient = httpClientBulder.build();
+		
+		HttpClient httpClient = initHttpClient(conf);
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH)
 				.append(uid.getUidValue()).toString();
@@ -609,7 +558,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					return uid;
 				} else if (statusCode == 500 && GROUPS.equals(resourceEndPoint)) {
 
-					Uid id = groupUpdateProcedure(statusCode, jsonObject, uri, authHeader);
+					Uid id = groupUpdateProcedure(statusCode, jsonObject, uri, authHeader, conf);
 
 					if (id != null) {
 
@@ -682,35 +631,17 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	@Override
 	public void delete(Uid uid, String resourceEndPoint, ScimConnectorConfiguration conf) {
 
-		Header authHeader = null;
-		String scimBaseUri = "";
-		Map<String, Object> authorizationData = ServiceAccessManager.logIntoService(conf);
-
-		for (String data : authorizationData.keySet()) {
-			if (AUTHHEADER.equals(data)) {
-
-				authHeader = (Header) authorizationData.get(data);
-
-			} else if (URI.equals(data)) {
-
-				scimBaseUri = (String) authorizationData.get(data);
-			}
-		}
+		ServiceAccessManager accessManager = new ServiceAccessManager(conf);
+		
+		Header authHeader = accessManager.getAuthHeader();
+		String scimBaseUri = accessManager.getBaseUri();
 
 		if (authHeader == null || scimBaseUri.isEmpty()) {
 
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
-
-		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
-			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
-			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
-			httpClientBulder.setRoutePlanner(routePlanner);
-		}
-
-		HttpClient httpClient = httpClientBulder.build();
+		HttpClient httpClient = initHttpClient(conf);
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH)
 				.append(uid.getUidValue()).toString();
@@ -775,36 +706,19 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	@Override
 	public ParserSchemaScim querySchemas(String providerName, String resourceEndPoint,
 			ScimConnectorConfiguration conf) {
-
-		Header authHeader = null;
-		String scimBaseUri = "";
-		Map<String, Object> authoriazationData = ServiceAccessManager.logIntoService(conf);
-
-		for (String data : authoriazationData.keySet()) {
-			if (AUTHHEADER.equals(data)) {
-
-				authHeader = (Header) authoriazationData.get(data);
-
-			} else if (URI.equals(data)) {
-
-				scimBaseUri = (String) authoriazationData.get(data);
-			}
-		}
+		
+		ServiceAccessManager accessManager = new ServiceAccessManager(conf);
+		
+		Header authHeader = accessManager.getAuthHeader();
+		String scimBaseUri = accessManager.getBaseUri();
 
 		if (authHeader == null || scimBaseUri.isEmpty()) {
 
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
-
-		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
-			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
-			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
-			httpClientBulder.setRoutePlanner(routePlanner);
-		}
-
-		HttpClient httpClient = httpClientBulder.build();
+		HttpClient httpClient = initHttpClient(conf);
+		
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).toString();
 		LOGGER.info("Qeury url: {0}", uri);
 		HttpGet httpGet = buildHttpGet(uri, authHeader);
@@ -1164,7 +1078,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	}
 
 	@Override
-	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader) {
+	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader, ScimConnectorConfiguration conf) {
 		return null;
 	}
 
@@ -1321,7 +1235,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			}
 		}
 		ConnectorObject finalConnectorObject = cob.build();
-		LOGGER.info("The connector object returned from the processed json: {0}", finalConnectorObject);
+		//LOGGER.info("The connector object returned from the processed json: {0}", finalConnectorObject);
 		return finalConnectorObject;
 
 	}
@@ -1337,7 +1251,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 	@Override
 	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
-			Map<String, Object> authoriazationData) {
+			JSONObject loginJson) {
 		return injectedAttributeSet;
 	}
 
@@ -1555,11 +1469,11 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		httpPost.addHeader(authHeader);
 		httpPost.addHeader(PRETTYPRINTHEADER);
 
-		StringEntity bodyContent = new StringEntity(jsonBody.toString(1));
+		HttpEntity entity = new ByteArrayEntity(jsonBody.toString().getBytes("UTF-8"));
 		//LOGGER.info("The update JSON object wich is being sent: {0}", jsonBody);
-		bodyContent.setContentType(CONTENTTYPE);
-		httpPost.setEntity(bodyContent);
-
+		httpPost.setEntity(entity);
+		httpPost.setHeader("Content-Type", CONTENTTYPE);
+		
 		return httpPost;
 	}
 
@@ -1621,6 +1535,21 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			break;
 		}
 	}
+	
+	protected HttpClient initHttpClient(ScimConnectorConfiguration conf){
+		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
+
+				if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
+					HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
+					DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+					httpClientBulder.setRoutePlanner(routePlanner);
+				}
+
+				HttpClient httpClient = httpClientBulder.build();
+				
+				return httpClient;
+		}
+	
 	public void handleBadRequest(String error){
 		
 				throw new ConnectorException(error);

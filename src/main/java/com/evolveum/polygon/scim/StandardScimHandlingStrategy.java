@@ -37,6 +37,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
@@ -1578,10 +1579,10 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		httpPatch.addHeader(authHeader);
 		httpPatch.addHeader(PRETTYPRINTHEADER);
-		StringEntity bodyContent = new StringEntity(jsonBody.toString(1));
+		HttpEntity entity = new ByteArrayEntity(jsonBody.toString().getBytes("UTF-8"));
 		//LOGGER.info("The update JSON object wich is being sent: {0}", jsonBody);
-		bodyContent.setContentType(CONTENTTYPE);
-		httpPatch.setEntity(bodyContent);
+		httpPatch.setEntity(entity);
+		httpPatch.setHeader("Content-Type", CONTENTTYPE);
 
 		return httpPatch;
 	}

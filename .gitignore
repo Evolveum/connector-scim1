@@ -30,3 +30,4 @@ src/main/java/com/evolveum/polygon/scim/Main.java
 src/test/java/com/evolveum/polygon/test/scim/mainTest.java
 .classpath
 /bin/
+.idea/

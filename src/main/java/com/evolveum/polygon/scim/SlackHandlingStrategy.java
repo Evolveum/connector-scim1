@@ -23,12 +23,15 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.util.EntityUtils;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -426,9 +429,17 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 	@Override
 	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler,
-			String scimBaseUri, Header authHeader) throws ClientProtocolException, IOException {
+			String scimBaseUri, Header authHeader, ScimConnectorConfiguration conf) throws ClientProtocolException, IOException {
 		String responseString = null;
-		HttpClient httpClient = HttpClientBuilder.create().build();
+		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
+
+		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
+			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
+			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+			httpClientBulder.setRoutePlanner(routePlanner);
+		}
+
+		HttpClient httpClient = httpClientBulder.build();
 
 		if (jsonObject.has(GROUPS)) {
 			int amountOfResources = jsonObject.getJSONArray(GROUPS).length();

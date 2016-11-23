@@ -361,7 +361,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 								if (isCAVGroupQuery) {
 
-									handleCAVGroupQuery(jsonObject, GROUPS, resultHandler, scimBaseUri, authHeader);
+									handleCAVGroupQuery(jsonObject, GROUPS, resultHandler, scimBaseUri, authHeader, conf);
 
 								} else if (jsonObject.has(RESOURCES)) {
 									int amountOfResources = jsonObject.getJSONArray(RESOURCES).length();
@@ -1540,7 +1540,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 	@Override
 	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler,
-			String scimBaseUri, Header authHeader) throws ClientProtocolException, IOException {
+			String scimBaseUri, Header authHeader, ScimConnectorConfiguration conf) throws ClientProtocolException, IOException {
 
 		ConnectorObject connectorObject = buildConnectorObject(jsonObject, resourceEndPoint);
 

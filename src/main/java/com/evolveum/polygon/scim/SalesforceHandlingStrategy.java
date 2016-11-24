@@ -32,8 +32,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
+import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -258,4 +261,21 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 		}
 		return infoBuilder;
 	}
+	public void handleBadRequest(String error){
+		
+
+		List<String> uniqueAttributes = new	ArrayList<String>();
+		uniqueAttributes.add("invalid_grant");
+
+		
+		String [] parts = error.split("\"");
+		for(String part: parts){
+			if (uniqueAttributes.contains(part)){
+				StringBuilder errorBuilder = new StringBuilder("Conflict. ").append(error).append(". Propably the value you have chosen is already taken, please chose another and try again.");
+						throw new InvalidCredentialException(errorBuilder.toString());
+			} 
+		}	
+			throw new ConnectorException(error);
+	
+}
 }

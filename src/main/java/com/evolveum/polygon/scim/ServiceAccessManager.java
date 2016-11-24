@@ -19,8 +19,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
-import java.util.HashMap;
-import java.util.Map;
+
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.client.ClientProtocolException;
@@ -37,7 +36,6 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
-import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,6 +59,7 @@ public class ServiceAccessManager {
 	private static final Log LOGGER = Log.getLog(ServiceAccessManager.class);
 
 	public ServiceAccessManager(ScimConnectorConfiguration configuration) {
+
 		logIntoService(configuration);
 	}
 	
@@ -136,17 +135,32 @@ public class ServiceAccessManager {
 
 					LOGGER.info("Login Successful");
 					
-				} else if (statusCode == 401) {
+				}else{
+					
+					String[] loginUrlParts;
+					String providerName="";
+					
+					if (configuration.getLoginURL() != null && !configuration.getLoginURL().isEmpty()) {
 
-					String error = ErrorHandler.onNoSuccess(getResult, statusCode, "loging into service");
-					StringBuilder errorString = new StringBuilder(
-							"Unauthorized while loging into service, please check if credentials are valid. ")
-									.append(error);
-					throw new InvalidCredentialException(errorString.toString());
-				} else {
-					LOGGER.error("Error with authenticating : {0}", statusCode);
-					LOGGER.error("Error cause: {0}", getResult);
+						loginUrlParts = configuration.getLoginURL().split("\\."); // e.g.
+						// https://login.salesforce.com
 
+					} else {
+
+						loginUrlParts = configuration.getBaseUrl().split("\\."); // e.g.
+					}
+					// https://login.salesforce.com
+					if (loginUrlParts.length >= 2) {
+						providerName = loginUrlParts[1];
+					}
+					
+					if (!providerName.isEmpty()){
+						
+						StrategyFetcher fetcher = new StrategyFetcher();
+						HandlingStrategy strategy = fetcher.fetchStrategy(providerName);
+						strategy.handleInvalidStatus(" while loging into service", getResult, "loging into service", statusCode);
+					}
+				
 				}
 
 				jsonObject = (JSONObject) new JSONTokener(getResult).nextValue();

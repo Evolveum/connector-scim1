@@ -37,7 +37,9 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.util.EntityUtils;
@@ -1474,6 +1476,13 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 		httpPost.setEntity(entity);
 		httpPost.setHeader("Content-Type", CONTENTTYPE);
 		
+		//StringEntity bodyContent = new StringEntity(jsonBody.toString(1));
+
+		
+		//bodyContent.setContentType(CONTENTTYPE);
+		//httpPost.setEntity(bodyContent);
+		
+		
 		return httpPost;
 	}
 
@@ -1496,6 +1505,11 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 		HttpEntity entity = new ByteArrayEntity(jsonBody.toString().getBytes("UTF-8"));
 		//LOGGER.info("The update JSON object wich is being sent: {0}", jsonBody);
 		httpPatch.setEntity(entity);
+		//StringEntity bodyContent = new StringEntity(jsonBody.toString(1));
+
+		//bodyContent.setContentType(CONTENTTYPE);
+		//httpPatch.setEntity(bodyContent);
+		
 		httpPatch.setHeader("Content-Type", CONTENTTYPE);
 
 		return httpPatch;
@@ -1509,7 +1523,7 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 		return httpDelete;
 	}
 
-	protected void handleInvalidStatus(String errorPitch, String responseString, String situation, int statusCode)
+	public void handleInvalidStatus(String errorPitch, String responseString, String situation, int statusCode)
 			throws ParseException, IOException {
 
 		String error = ErrorHandler.onNoSuccess(responseString, statusCode, situation);
@@ -1536,6 +1550,10 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 		}
 	}
 	
+	public void handleBadRequest(String error){
+		
+		throw new ConnectorException(error);
+}
 	protected HttpClient initHttpClient(ScimConnectorConfiguration conf){
 		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
 
@@ -1544,14 +1562,11 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 					DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
 					httpClientBulder.setRoutePlanner(routePlanner);
 				}
-
-				HttpClient httpClient = httpClientBulder.build();
 				
+				HttpClient httpClient = httpClientBulder.build();
+
 				return httpClient;
 		}
 	
-	public void handleBadRequest(String error){
-		
-				throw new ConnectorException(error);
-	}
+	
 }

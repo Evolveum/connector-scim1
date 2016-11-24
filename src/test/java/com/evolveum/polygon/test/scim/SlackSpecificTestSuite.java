@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -57,6 +59,66 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	public PropertiesParser parser = new PropertiesParser("../ConnIdScimConnector/testProperties/slackTest.properties");
 
+	@DataProvider(name = ICEXCEPTIONPROVIDER)
+	public Object[][] invalidCredentialExceptionTestProvider() {
+
+		int width = 2;
+
+		List<String> nonConnectionParameters = new ArrayList<String>();
+
+		nonConnectionParameters.add(PAGESIZE);
+		nonConnectionParameters.add(PAGEOFFSET);
+		nonConnectionParameters.add(TESTNUMBER);
+
+		Map<String, String> configurationParameters = new HashMap<String, String>();
+
+		Object[][] object = parser.fetchTestData(CONFIGTESTPROVIDER);
+		String name = "";
+		String value = "";
+		for (int i = 0; i < object.length; i++) {
+
+			for (int j = 0; j < width; j++) {
+				if (j == 0) {
+					name = (String) object[i][j];
+				} else {
+					value = (String) object[i][j];
+				}
+				if (nonConnectionParameters.contains(name)) {
+
+					if (!value.isEmpty()) {
+
+						if (name.equals(PAGESIZE)) {
+
+							pageSize = Integer.parseInt(value);
+							name = "";
+							value = "";
+						} else if (name.equals(PAGEOFFSET)) {
+							pageOffset = Integer.parseInt(value);
+							name = "";
+							value = "";
+						} else if (name.equals(TESTNUMBER)) {
+							testNumber = Integer.parseInt(value);
+							name = "";
+							value = "";
+						}
+
+					}
+
+				} else {
+					if (!name.isEmpty() && !value.isEmpty()) {
+						configurationParameters.put(name, value);
+						name = "";
+						value = "";
+					}
+
+				}
+
+			}
+
+		}
+		return new Object[][] { { configurationParameters, "users" } };
+	}
+	
 	@DataProvider(name = CONFIGTESTPROVIDER)
 	public Object[][] configurationResourcesProvider() {
 
@@ -119,7 +181,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	@Test(priority = 1, dataProvider = CONFIGTESTPROVIDER)
 	public void configurationTest(HashMap<String, String> configurationParameters, Boolean assertionVariable) {
-
+		LOGGER.info("## The evaluated test: configurationTest for the resource: {0} ");
 		groupUid = null;
 		userUid = null;
 
@@ -139,9 +201,9 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 2, dependsOnMethods = { CONFIGURATIONTEST }, dataProvider = CREATEPROVIDER)
+	@Test(priority = 1, dependsOnMethods = { CONFIGURATIONTEST }, dataProvider = CREATEPROVIDER)
 	private void createObjectTest(String resourceName, Boolean assertParameter) {
-
+		LOGGER.info("## The evaluated test: createObjectTest for the resource: {0} ", resourceName);
 		Boolean resourceWasCreated = false;
 
 		if (USERS.equals(resourceName)) {
@@ -164,17 +226,25 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 		Assert.assertEquals(resourceWasCreated, assertParameter);
 
 	}
+	
+	@Test (expectedExceptions = AlreadyExistsException.class, priority = 1, dependsOnMethods = { CREATEOBJECTTEST },dataProvider = AEEXCEPTIONPROVIDER)
+	private void alreadyExistsExceptionTest(String resouceName, Boolean par){
+		
+	LOGGER.info("## The evaluated test: exceptionTest ");
+		SlackSpecificTestUtils.createResourceTestHelper(resouceName, testNumber, connector);
+		
+	}
 
 	@Test(priority = 2, dataProvider = TESTOBJECTBUILDPROVIDER)
 	private void objectBuilderTest(String resourceName, Boolean containsObject) {
+		LOGGER.info("## The evaluated test: objectBuilderTest for the resource: {0} ", resourceName);
 		ConnectorObject cObject = SlackSpecificTestUtils.connObjectBuildTest(resourceName, testNumber);
 		Assert.assertNotNull(cObject);
 	}
 
 	@Test(priority = 2, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = CONSISTENCYTESTPROVIDER)
 	private void parameterConsistencyTest(String resourceName, String filterType) {
-
-		LOGGER.info("Processing trough the \"parameter consistency\" for the resource: \"{0}\"", resourceName);
+		LOGGER.info("## The evaluated test: parameterConsistencyTest for the resource: {0} ", resourceName);
 
 		StringBuilder testType = new StringBuilder("createObject");
 
@@ -199,7 +269,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	@Test(priority = 6, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = FILTERMETHODTESTPROVIDER)
 	public void filterMethodTest(String filterType, String resourceName) {
-
+		LOGGER.info("## The evaluated test: filterMethodTest for the resource: {0} and filter type: {1}", resourceName,filterType);
 		LOGGER.info(
 				"Processing trought the \"filter methods test\" for the resource \"{0}\" and the evaluated filter is \"{1}\" ",
 				resourceName, filterType);
@@ -217,6 +287,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	@Test(priority = 5, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = LISTALLPROVIDER)
 	private void listAllTest(String resourceName, int numberOfResources) {
+		LOGGER.info("## The evaluated test: listAllTest for the resource: {0} ", resourceName);
 		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
@@ -229,7 +300,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	@Test(priority = 3, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = UPDATEUSERPROVIDER)
 	private void updateUserTest(String updateType, Uid uid) {
-
+		LOGGER.info("## The evaluated test: updateUserTest for the update type: {0} ",updateType);
 		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest(USERS, updateType, userUid, groupUid, testNumber,
 				connector);
 
@@ -257,8 +328,8 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	@Test(priority = 4, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = UPDATEGROUPPROVIDER)
 	private void updateGroupTest(String updateType, Uid uid) {
+		LOGGER.info("## The evaluated test: updateGroupTest for the update type: {0} ",updateType);
 
-		LOGGER.info("Processing trought the \"updateGroupTest\" and the \"{0}\" update type.", updateType);
 
 		Uid returnedUid = SlackSpecificTestUtils.updateResourceTest(GROUPS, updateType, userUid, groupUid, testNumber,
 				connector);
@@ -287,7 +358,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	@Test(priority = 7, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = DELETEPROVIDER)
 	private void deleteObjectTest(String resourceName, Uid uid) {
-
+		LOGGER.info("## The evaluated test: deleteObjectTest for the resource: {0} ",resourceName);
 		List<ConnectorObject> returnedObjects = new ArrayList<ConnectorObject>();
 
 		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
@@ -298,6 +369,34 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 		Assert.assertTrue(returnedObjects.isEmpty());
 
+	}
+	
+	//@Test (expectedExceptions = InvalidCredentialException.class, priority = 7, dependsOnMethods = { "deleteObjectTest" },dataProvider = ICEXCEPTIONPROVIDER)
+	private void invalidCredentialExceptionTest(HashMap<String, String> configurationParameters, String resourceName){
+		
+		Boolean hasToken = configurationParameters.containsKey("token");
+		//Boolean hasPassword = configurationParameters.containsKey("password");
+		String parameterName;
+		if(hasToken){
+			parameterName = "token";
+		}else {
+			LOGGER.info("Password detected, this attribute will be manipulated to trip the tested exception");
+			parameterName = "password";
+		}
+		
+		HashMap<String, String> changedConf = configurationParameters;
+		String invalidValue= configurationParameters.get(parameterName);
+		invalidValue = invalidValue.replaceAll("(?s).", "*");
+		changedConf.put(parameterName, invalidValue);
+		
+		configuration = SlackSpecificTestUtils.buildConfiguration(configurationParameters);
+		connector = new ScimConnector();
+		connector.init(configuration);
+		
+		
+		LOGGER.info("## The evaluated test: exceptionTest ");
+		SlackSpecificTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
+		
 	}
 
 	public Uid getUid(String resourceName) throws Exception {

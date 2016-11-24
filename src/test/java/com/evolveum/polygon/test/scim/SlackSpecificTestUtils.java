@@ -64,8 +64,8 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 		attributeSet.add(AttributeBuilder.build(EMAILWORKPRIMARY, true));
 
 		attributeSet.add(AttributeBuilder.build("title", "Mr."));
-		attributeSet.add(AttributeBuilder.build(FAMILYNAME, "User"));
-		attributeSet.add(AttributeBuilder.build("name.givenName", "Test"));
+		attributeSet.add(AttributeBuilder.build(FAMILYNAME, "Ušer"));
+		attributeSet.add(AttributeBuilder.build("name.givenName", "Tesť"));
 
 		attributeSet.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, true));
 		return attributeSet;

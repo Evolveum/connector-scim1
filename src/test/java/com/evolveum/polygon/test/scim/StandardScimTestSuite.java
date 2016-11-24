@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -60,7 +62,8 @@ public class StandardScimTestSuite {
 	protected static final String CONSISTENCYTESTPROVIDER = "parameterConsistencyTestProvider";
 	protected static final String DELETEPROVIDER = "deleteProvider";
 	protected static final String CREATEPROVIDER = "createTestProvider";
-
+	protected static final String AEEXCEPTIONPROVIDER = "alreadyExistsExceptionProvider";
+	protected static final String ICEXCEPTIONPROVIDER = "invalidCredentialExceptionTest";
 	protected static final String CREATEOBJECTTEST = "createObjectTest";
 	protected static final String CONFIGURATIONTEST = "configurationTest";
 
@@ -219,6 +222,29 @@ public class StandardScimTestSuite {
 
 		return object;
 	}
+	@DataProvider(name = AEEXCEPTIONPROVIDER)
+	public Object[][] alreadyExistsExceptionProvider() {
+
+		PropertiesParser parser = getParser();
+
+		Object[][] object = parser.fetchTestData(AEEXCEPTIONPROVIDER);
+
+		for (int i = 0; i < object.length; i++) {
+			String parameterName = (String) object[i][0];
+
+			if (parameterName.equals(USERS)) {
+
+				object[i][1] = true;
+
+			} else if (parameterName.equals(GROUPS)) {
+
+				object[i][1] = true;
+			}
+
+		}
+
+		return object;
+	}
 
 	@DataProvider(name = CONFIGTESTPROVIDER)
 	public Object[][] configurationResourcesProvider() {
@@ -280,6 +306,67 @@ public class StandardScimTestSuite {
 		}
 		return new Object[][] { { configurationParameters, true } };
 	}
+	
+	@DataProvider(name = ICEXCEPTIONPROVIDER)
+	public Object[][] invalidCredentialExceptionTestProvider() {
+
+		int width = 2;
+
+		List<String> nonConnectionParameters = new ArrayList<String>();
+
+		nonConnectionParameters.add(PAGESIZE);
+		nonConnectionParameters.add(PAGEOFFSET);
+		nonConnectionParameters.add(TESTNUMBER);
+
+		Map<String, String> configurationParameters = new HashMap<String, String>();
+
+		Object[][] object = parser.fetchTestData(CONFIGTESTPROVIDER);
+		String name = "";
+		String value = "";
+		for (int i = 0; i < object.length; i++) {
+
+			for (int j = 0; j < width; j++) {
+				if (j == 0) {
+					name = (String) object[i][j];
+				} else {
+					value = (String) object[i][j];
+				}
+				if (nonConnectionParameters.contains(name)) {
+
+					if (!value.isEmpty()) {
+
+						if (name.equals(PAGESIZE)) {
+
+							pageSize = Integer.parseInt(value);
+							name = "";
+							value = "";
+						} else if (name.equals(PAGEOFFSET)) {
+							pageOffset = Integer.parseInt(value);
+							name = "";
+							value = "";
+						} else if (name.equals(TESTNUMBER)) {
+							testNumber = Integer.parseInt(value);
+							name = "";
+							value = "";
+						}
+
+					}
+
+				} else {
+					if (!name.isEmpty() && !value.isEmpty()) {
+						configurationParameters.put(name, value);
+						name = "";
+						value = "";
+					}
+
+				}
+
+			}
+
+		}
+		return new Object[][] { { configurationParameters, "users" } };
+	}
+	
 
 	@Test(priority = 1, dataProvider = CONFIGTESTPROVIDER)
 	public void configurationTest(HashMap<String, String> configurationParameters, Boolean assertionVariable) {
@@ -303,7 +390,7 @@ public class StandardScimTestSuite {
 
 	}
 
-	@Test(priority = 2, dependsOnMethods = { CONFIGURATIONTEST }, dataProvider = CREATEPROVIDER)
+	@Test(priority = 1, dependsOnMethods = { CONFIGURATIONTEST }, dataProvider = CREATEPROVIDER)
 	private void createObjectTest(String resourceName, Boolean assertParameter) {
 
 		Boolean resourceWasCreated = false;
@@ -327,6 +414,14 @@ public class StandardScimTestSuite {
 
 		Assert.assertEquals(resourceWasCreated, assertParameter);
 
+	}
+	
+	@Test (expectedExceptions = AlreadyExistsException.class, priority = 1, dependsOnMethods = { CREATEOBJECTTEST },dataProvider = AEEXCEPTIONPROVIDER)
+	private void alreadyExistsExceptionTest(String resouceName, Boolean par){
+		
+	LOGGER.info("## The evaluated test: exceptionTest ");
+		SlackSpecificTestUtils.createResourceTestHelper(resouceName, testNumber, connector);
+		
 	}
 
 	@Test(priority = 2, dependsOnMethods = { CREATEOBJECTTEST }, dataProvider = CONSISTENCYTESTPROVIDER)
@@ -448,6 +543,34 @@ public class StandardScimTestSuite {
 
 		Assert.assertTrue(returnedObjects.isEmpty());
 
+	}
+	
+	//@Test (expectedExceptions = InvalidCredentialException.class, priority = 7, dependsOnMethods = { "deleteObjectTest" },dataProvider = ICEXCEPTIONPROVIDER)
+	private void invalidCredentialExceptionTest(HashMap<String, String> configurationParameters, String resourceName){
+		
+		Boolean hasToken = configurationParameters.containsKey("token");
+		//Boolean hasPassword = configurationParameters.containsKey("password");
+		String parameterName;
+		if(hasToken){
+			parameterName = "token";
+		}else {
+			LOGGER.info("Password detected, this attribute will be manipulated to trip the tested exception");
+			parameterName = "password";
+		}
+		
+		HashMap<String, String> changedConf = configurationParameters;
+		String invalidValue= configurationParameters.get(parameterName);
+		invalidValue = invalidValue.replaceAll("(?s).", "*");
+		changedConf.put(parameterName, invalidValue);
+		
+		configuration = StandardScimTestUtils.buildConfiguration(configurationParameters);
+		connector = new ScimConnector();
+		connector.init(configuration);
+		
+		
+		LOGGER.info("## The evaluated test: exceptionTest ");
+		StandardScimTestUtils.createResourceTestHelper(resourceName, testNumber, connector);
+		
 	}
 
 	public Uid getUid(String resourceName) throws Exception {

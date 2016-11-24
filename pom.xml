@@ -54,10 +54,10 @@
 			<artifactId>httpclient</artifactId>
 			<version>4.5.2</version>
 		</dependency>
-		<dependency>
+<dependency>
     <groupId>org.json</groupId>
     <artifactId>json</artifactId>
-    <version>20160810</version>
+    <version>20160212</version>
 </dependency>
 
 		<dependency>

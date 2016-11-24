@@ -17,10 +17,10 @@
 package com.evolveum.polygon.scim;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
-import org.apache.http.util.EntityUtils;
 import org.identityconnectors.common.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -57,7 +57,10 @@ public class ErrorHandler {
 	public static String onNoSuccess(String responseString, Integer statusCode, String message) throws ParseException, IOException {
 		boolean isJsonObject = true;
 		StringBuilder exceptionStringBuilder = null;
-
+		
+		
+		
+		
 		if (responseString != null && !responseString.isEmpty()) {
 
 			LOGGER.error("Full Error response from the provider: {0}", responseString);
@@ -75,35 +78,52 @@ public class ErrorHandler {
 
 				isJsonObject = true;
 			}
-
 			if (isJsonObject) {
 
 				JSONObject responseObject = new JSONObject(responseString);
 
-				if (responseObject.has(ERRORS)) {
+				List<String> dictionary = new ArrayList<String>();
+				dictionary.add(ERRORS);
+				dictionary.add("error");
+				
+				for(String record:dictionary){	
+				if (responseObject.has(record)) {
 					Object returnedObject = new Object();
 
-					returnedObject = responseObject.get(ERRORS);
+					returnedObject = responseObject.get(record);
 
 					if (returnedObject instanceof JSONObject) {
 
 						responseObject = (JSONObject) returnedObject;
 
 						exceptionStringBuilder = buildErrorMessage(responseObject, message, statusCode);
+						break;
 					} else if (returnedObject instanceof JSONArray) {
 
 						for (Object messageObject : (JSONArray) returnedObject) {
 							exceptionStringBuilder = buildErrorMessage((JSONObject) messageObject, message, statusCode);
 
 						}
-
+						break;
+					}else if (returnedObject instanceof String){
+						
+						if(responseString.contains("}")){
+							responseString=responseString.replace("}", "");
+							}
+						if(responseString.contains("{")){
+							responseString=responseString.replace("{", "");
+							}
+						
+						exceptionStringBuilder = new StringBuilder("Query for ").append(message)
+								.append(" was unsuccessful. Status code returned: ").append(statusCode).append(". The provider response: ").append(responseString);
+						break;
 					}
 
 				} else {
 
 					exceptionStringBuilder = new StringBuilder("Query for ").append(message)
 							.append(" was unsuccessful. Status code returned: ").append(statusCode);
-				}
+				}}
 			} else {
 
 				JSONArray responseObject = new JSONArray(responseString);
@@ -118,7 +138,6 @@ public class ErrorHandler {
 					.append(" was unsuccessful. No response object was returned.");
 		}
 		String exceptionString = exceptionStringBuilder.toString();
-
 		if (message == null) {
 			message = "the full resource representation";
 		}
@@ -149,7 +168,6 @@ public class ErrorHandler {
 		String responseString = new String();
 
 		StringBuilder exceptionStringBuilder = new StringBuilder();
-
 		if (responseObject.has(DESCRIPTION)) {
 			responseString = responseObject.getString(DESCRIPTION);
 			exceptionStringBuilder = new StringBuilder("Query for ").append(message)
@@ -169,7 +187,6 @@ public class ErrorHandler {
 					.append(" was unsuccessful. Status code returned: ").append("\"").append(statusCode).append("\"")
 					.append(responseString);
 		}
-
 		return exceptionStringBuilder;
 	}
 

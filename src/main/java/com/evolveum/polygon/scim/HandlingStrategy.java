@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.Header;
+import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.message.BasicHeader;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
@@ -837,11 +838,27 @@ public interface HandlingStrategy {
 	 *             if no uid present in fetched object while processing query
 	 *             result
 	 * @throws ClientProtocolException
-	 *             if an exception protocol exception has occurred
+	 *             if an protocol exception has occurred
 	 * @throws IOException
 	 *             an error occurred while processing the query http response
 	 */
 	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler,
 			String scimBaseUri, Header authHeader, ScimConnectorConfiguration conf) throws ClientProtocolException, IOException;
-
+/**
+ * 
+ * @param errorPitch
+ * 		a string describing the situation which lead to the exception (e.q. " while creating the resource") 
+ * @param responseString
+ * 		a response provided by the service provider
+ * @param situation
+ * 		a string describing the situation what was happening when the exception was thrown (e.g. "creating the resource")
+ * @param statusCode
+ * 		integer http status code provided by the service provider.
+ * @throws ParseException
+ * 		if an parse exception has occurred while processing the error message
+ * @throws IOException
+ * 		 an error occurred while processing the query http response
+ */
+	public void handleInvalidStatus(String errorPitch, String responseString, String situation, int statusCode) throws ParseException, IOException ;
+	
 }

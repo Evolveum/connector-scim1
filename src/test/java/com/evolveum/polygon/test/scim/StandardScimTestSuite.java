@@ -81,7 +81,7 @@ public class StandardScimTestSuite {
 	private ScimConnectorConfiguration configuration;
 
 	private PropertiesParser parser = new PropertiesParser(
-			"../ConnIdScimConnector/testProperties/standardTest.properties");
+			"../connector-scim1/testProperties/standardTest.properties");
 
 	private final Log LOGGER = Log.getLog(StandardScimTestSuite.class);
 

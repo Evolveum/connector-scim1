@@ -57,7 +57,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	private final static Log LOGGER = Log.getLog(SlackSpecificTestSuite.class);
 
-	public PropertiesParser parser = new PropertiesParser("../ConnIdScimConnector/testProperties/slackTest.properties");
+	public PropertiesParser parser = new PropertiesParser("../connector-scim1/testProperties/slackTest.properties");
 
 	@DataProvider(name = ICEXCEPTIONPROVIDER)
 	public Object[][] invalidCredentialExceptionTestProvider() {

@@ -73,19 +73,19 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 		multivaluedAttributes.add("members.default.value");
 		multivaluedAttributes.add("members.default.display");
 
-		writableAttributes.add("name.formatted");
-		writableAttributes.add("entitlements.default.value");
-		writableAttributes.add("emails.work.value");
-		writableAttributes.add("phoneNumbers.work.value");
-		writableAttributes.add("phoneNumbers.fax.value");
-		writableAttributes.add("phoneNumbers.mobile.value");
-		writableAttributes.add("photos.thumbnail.value");
-		writableAttributes.add("roles.value");
-		writableAttributes.add("photos.photo.value");
-		writableAttributes.add("addresses.work.value");
-		writableAttributes.add("groups.default.value");
-		writableAttributes.add("addresses.thumbnail.value");
-		writableAttributes.add("members.default.display");
+//		writableAttributes.add("name.formatted");
+//		writableAttributes.add("entitlements.default.value");
+//		writableAttributes.add("emails.work.value");
+//		writableAttributes.add("phoneNumbers.work.value");
+//		writableAttributes.add("phoneNumbers.fax.value");
+//		writableAttributes.add("phoneNumbers.mobile.value");
+//		writableAttributes.add("photos.thumbnail.value");
+//		writableAttributes.add("roles.value");
+//		writableAttributes.add("photos.photo.value");
+//		writableAttributes.add("addresses.work.value");
+//		writableAttributes.add("groups.default.value");
+//		writableAttributes.add("addresses.thumbnail.value");
+//		writableAttributes.add("members.default.display");
 	}
 
 	@Override
@@ -254,11 +254,11 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 
 		if (multivaluedAttributes.contains(attributeName)) {
 			infoBuilder.setMultiValued(true);
-		} else if (writableAttributes.contains(attributeName)) {
+		} /*else if (writableAttributes.contains(attributeName)) {
 			infoBuilder.setUpdateable(true);
 			infoBuilder.setCreateable(true);
 			infoBuilder.setReadable(true);
-		}
+		}*/
 		return infoBuilder;
 	}
 	public void handleBadRequest(String error){

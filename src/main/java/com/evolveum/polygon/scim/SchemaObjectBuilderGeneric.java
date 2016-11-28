@@ -83,7 +83,7 @@ public class SchemaObjectBuilderGeneric {
 			builder = strategy.schemaBuilder(attributeName, attributeMap, builder, this);
 			}
 		}
-		//LOGGER.info("Schema: {0}", builder.build());
+		LOGGER.info("Schema: {0}", builder.build());
 		return builder.build();
 	}
 
@@ -124,7 +124,6 @@ public class SchemaObjectBuilderGeneric {
 		if ("readOnly".equals(subPropertyName)) {
 
 			infoBuilder.setUpdateable((!(Boolean) schemaAttributeMap.get(subPropertyName)));
-			infoBuilder.setCreateable((!(Boolean) schemaAttributeMap.get(subPropertyName)));
 
 		} else if ("mutability".equals(subPropertyName)) {
 			String value = schemaAttributeMap.get(subPropertyName).toString();

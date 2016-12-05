@@ -104,7 +104,6 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 
 		Filter filter = getFilter(filterType, resourceName, testNumber, userTestUid, groupTestUid);
 
-		try {
 			if (USERS.equalsIgnoreCase(resourceName)) {
 				conn.executeQuery(userClass, filter, handler, options);
 			} else if (GROUPS.equalsIgnoreCase(resourceName)) {
@@ -112,11 +111,6 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 			} else {
 				LOGGER.warn("Non defined resource name provided for resource creation: {0}", resourceName);
 			}
-
-		} catch (Exception e) {
-			LOGGER.warn("An exception has occurred while processing the filter method test: {0}", e.getMessage());
-			;
-		}
 
 		return handler.getResult();
 	}

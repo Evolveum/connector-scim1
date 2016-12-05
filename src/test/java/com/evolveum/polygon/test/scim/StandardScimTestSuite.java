@@ -23,6 +23,7 @@ import java.util.Map;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
+import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -389,6 +390,17 @@ public class StandardScimTestSuite {
 		Assert.assertEquals(isValid, assertionVariable);
 
 	}
+	@Test(expectedExceptions = UnknownUidException.class,priority = 1, dependsOnMethods = { CONFIGURATIONTEST }, dataProvider = AEEXCEPTIONPROVIDER)
+	private void unknownUidExceptionTest(String resourceName, Boolean par) {
+		LOGGER.info("## The evaluated test: unknownUidExceptionTest ");
+		OperationOptions options = SlackSpecificTestUtils.getOptions(pageSize, pageOffset);
+		
+		Uid uid = new Uid("x0000000000x");
+		
+		SlackSpecificTestUtils.filter("uid", resourceName, testNumber, uid, uid,
+				connector, options);
+
+	}
 
 	@Test(priority = 1, dependsOnMethods = { CONFIGURATIONTEST }, dataProvider = CREATEPROVIDER)
 	private void createObjectTest(String resourceName, Boolean assertParameter) {
@@ -538,9 +550,13 @@ public class StandardScimTestSuite {
 		OperationOptions options = StandardScimTestUtils.getOptions(pageSize, pageOffset);
 
 		StandardScimTestUtils.deleteResourceTestHelper(resourceName, uid, connector);
+		try{
 		returnedObjects = StandardScimTestUtils.filter(UID, resourceName, testNumber, userUid, groupUid, connector,
 				options);
-
+	} catch (UnknownUidException e) {
+		
+		LOGGER.info("Unknown uid exception caught");
+	}
 		Assert.assertTrue(returnedObjects.isEmpty());
 
 	}

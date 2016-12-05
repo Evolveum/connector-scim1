@@ -463,6 +463,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						statusCode);
 
 			} else if (valueIsUid) {
+				
+				LOGGER.info("Abouth to throw an exception, the resource: {0} was not found.", q);
+				
 				ErrorHandler.onNoSuccess(responseString, statusCode, uri);
 
 				StringBuilder errorBuilder = new StringBuilder("The resource with the uid: ").append(q)
@@ -672,17 +675,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					responseString = "";
 				}
 
-				if (statusCode == 404) {
-					ErrorHandler.onNoSuccess(responseString, statusCode, uri);
-
-					StringBuilder errorBuilder = new StringBuilder("The resource with the uid: ").append(uid)
-							.append(" was not found.");
-
-					throw new UnknownUidException(errorBuilder.toString());
-				} else {
-
 					handleInvalidStatus("while deleting resource. ", responseString, "deleting object", statusCode);
-				}
 			}
 
 		} catch (ClientProtocolException e) {

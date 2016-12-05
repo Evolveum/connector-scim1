@@ -37,9 +37,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.util.EntityUtils;
@@ -51,6 +49,7 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
+import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
@@ -101,10 +100,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			Set<Attribute> injectedAttributeSet, ScimConnectorConfiguration conf) {
 
 		ServiceAccessManager accessManager = new ServiceAccessManager(conf);
-		
+
 		Header authHeader = accessManager.getAuthHeader();
 		String scimBaseUri = accessManager.getBaseUri();
-
 
 		if (authHeader == null || scimBaseUri.isEmpty()) {
 
@@ -116,8 +114,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		JSONObject jsonObject = new JSONObject();
 
 		jsonObject = objectTranslator.translateSetToJson(attributes, injectedAttributeSet, resourceEndPoint);
-
-	
 
 		HttpClient httpClient = initHttpClient(conf);
 
@@ -228,10 +224,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 											// endpoint?
 		Boolean valueIsUid = false;
 		ServiceAccessManager accessManager = new ServiceAccessManager(conf);
-		
+
 		Header authHeader = accessManager.getAuthHeader();
 		String scimBaseUri = accessManager.getBaseUri();
-
 
 		if (authHeader == null || scimBaseUri.isEmpty()) {
 
@@ -316,7 +311,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					try {
 						JSONObject jsonObject = new JSONObject(responseString);
 
-						//LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
+						// LOGGER.info("Json object returned from service
+						// provider: {0}", jsonObject.toString(1));
 						try {
 
 							if (valueIsUid) {
@@ -328,7 +324,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 								if (isCAVGroupQuery) {
 
-									handleCAVGroupQuery(jsonObject, GROUPS, resultHandler, scimBaseUri, authHeader, conf);
+									handleCAVGroupQuery(jsonObject, GROUPS, resultHandler, scimBaseUri, authHeader,
+											conf);
 
 								} else if (jsonObject.has(RESOURCES)) {
 									int amountOfResources = jsonObject.getJSONArray(RESOURCES).length();
@@ -348,20 +345,20 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 										minResourceJson = jsonObject.getJSONArray(RESOURCES).getJSONObject(i);
 										if (minResourceJson.has(ID) && minResourceJson.getString(ID) != null) {
 
-											if (minResourceJson.has(USERNAME)){
-												
-												ConnectorObject connectorObject = buildConnectorObject(
-														minResourceJson, resourceEndPoint);
+											if (minResourceJson.has(USERNAME)) {
+
+												ConnectorObject connectorObject = buildConnectorObject(minResourceJson,
+														resourceEndPoint);
 
 												resultHandler.handle(connectorObject);
-											}else if(!USERS.equals(resourceEndPoint)){
-												
-												if(minResourceJson.has(DISPLAYNAME)){
+											} else if (!USERS.equals(resourceEndPoint)) {
+
+												if (minResourceJson.has(DISPLAYNAME)) {
 													ConnectorObject connectorObject = buildConnectorObject(
 															minResourceJson, resourceEndPoint);
 													resultHandler.handle(connectorObject);
 												}
-											}else if (minResourceJson.has(META)) {
+											} else if (minResourceJson.has(META)) {
 
 												String resourceUri = minResourceJson.getJSONObject(META)
 														.getString("location").toString();
@@ -471,7 +468,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				StringBuilder errorBuilder = new StringBuilder("The resource with the uid: ").append(q)
 						.append(" was not found.");
 
-				throw new ConnectorException(errorBuilder.toString());
+				throw new UnknownUidException(errorBuilder.toString());
+			} else if (statusCode == 404) {
+
 			} else {
 				ErrorHandler.onNoSuccess(responseString, statusCode, uri);
 			}
@@ -506,8 +505,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	@Override
 	public Uid update(Uid uid, String resourceEndPoint, ObjectTranslator objectTranslator, Set<Attribute> attributes,
 			ScimConnectorConfiguration conf) {
-ServiceAccessManager accessManager = new ServiceAccessManager(conf);
-		
+		ServiceAccessManager accessManager = new ServiceAccessManager(conf);
+
 		Header authHeader = accessManager.getAuthHeader();
 		String scimBaseUri = accessManager.getBaseUri();
 
@@ -516,7 +515,6 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 			throw new ConnectorException("The data needed for authorization of request to the provider was not found.");
 		}
 
-		
 		HttpClient httpClient = initHttpClient(conf);
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH)
@@ -553,11 +551,18 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 					}
 				} else if (statusCode == 204) {
 
-					LOGGER.warn(
-							"Status code {0}. Response body left intentionally empty",
-							statusCode);
+					LOGGER.warn("Status code {0}. Response body left intentionally empty", statusCode);
 
 					return uid;
+				} else if (statusCode == 404) {
+
+					ErrorHandler.onNoSuccess(responseString, statusCode, uri);
+
+					StringBuilder errorBuilder = new StringBuilder("The resource with the uid: ").append(uid)
+							.append(" was not found.");
+
+					throw new UnknownUidException(errorBuilder.toString());
+
 				} else if (statusCode == 500 && GROUPS.equals(resourceEndPoint)) {
 
 					Uid id = groupUpdateProcedure(statusCode, jsonObject, uri, authHeader, conf);
@@ -634,7 +639,7 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 	public void delete(Uid uid, String resourceEndPoint, ScimConnectorConfiguration conf) {
 
 		ServiceAccessManager accessManager = new ServiceAccessManager(conf);
-		
+
 		Header authHeader = accessManager.getAuthHeader();
 		String scimBaseUri = accessManager.getBaseUri();
 
@@ -657,6 +662,7 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 			if (statusCode == 204 || statusCode == 200) {
 				LOGGER.info("Deletion of resource was succesfull");
 			} else {
+
 				String responseString;
 				HttpEntity entity = response.getEntity();
 
@@ -666,7 +672,17 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 					responseString = "";
 				}
 
-				handleInvalidStatus("while deleting resource. ", responseString, "deleting object", statusCode);
+				if (statusCode == 404) {
+					ErrorHandler.onNoSuccess(responseString, statusCode, uri);
+
+					StringBuilder errorBuilder = new StringBuilder("The resource with the uid: ").append(uid)
+							.append(" was not found.");
+
+					throw new UnknownUidException(errorBuilder.toString());
+				} else {
+
+					handleInvalidStatus("while deleting resource. ", responseString, "deleting object", statusCode);
+				}
 			}
 
 		} catch (ClientProtocolException e) {
@@ -708,9 +724,9 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 	@Override
 	public ParserSchemaScim querySchemas(String providerName, String resourceEndPoint,
 			ScimConnectorConfiguration conf) {
-		
+
 		ServiceAccessManager accessManager = new ServiceAccessManager(conf);
-		
+
 		Header authHeader = accessManager.getAuthHeader();
 		String scimBaseUri = accessManager.getBaseUri();
 
@@ -720,7 +736,7 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 		}
 
 		HttpClient httpClient = initHttpClient(conf);
-		
+
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).toString();
 		LOGGER.info("Qeury url: {0}", uri);
 		HttpGet httpGet = buildHttpGet(uri, authHeader);
@@ -792,7 +808,7 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 				}
 
 			} else {
-			
+
 				handleInvalidStatus("while querying for schema. ", responseString, "schema", statusCode);
 			}
 		} catch (ClientProtocolException e) {
@@ -1080,7 +1096,8 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 	}
 
 	@Override
-	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader, ScimConnectorConfiguration conf) {
+	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader,
+			ScimConnectorConfiguration conf) {
 		return null;
 	}
 
@@ -1237,7 +1254,8 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 			}
 		}
 		ConnectorObject finalConnectorObject = cob.build();
-		//LOGGER.info("The connector object returned from the processed json: {0}", finalConnectorObject);
+		// LOGGER.info("The connector object returned from the processed json:
+		// {0}", finalConnectorObject);
 		return finalConnectorObject;
 
 	}
@@ -1252,8 +1270,7 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 	}
 
 	@Override
-	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
-			JSONObject loginJson) {
+	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet, JSONObject loginJson) {
 		return injectedAttributeSet;
 	}
 
@@ -1456,7 +1473,8 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 
 	@Override
 	public void handleCAVGroupQuery(JSONObject jsonObject, String resourceEndPoint, ResultsHandler handler,
-			String scimBaseUri, Header authHeader, ScimConnectorConfiguration conf) throws ClientProtocolException, IOException {
+			String scimBaseUri, Header authHeader, ScimConnectorConfiguration conf)
+			throws ClientProtocolException, IOException {
 
 		ConnectorObject connectorObject = buildConnectorObject(jsonObject, resourceEndPoint);
 
@@ -1472,17 +1490,16 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 		httpPost.addHeader(PRETTYPRINTHEADER);
 
 		HttpEntity entity = new ByteArrayEntity(jsonBody.toString().getBytes("UTF-8"));
-		//LOGGER.info("The update JSON object wich is being sent: {0}", jsonBody);
+		// LOGGER.info("The update JSON object wich is being sent: {0}",
+		// jsonBody);
 		httpPost.setEntity(entity);
 		httpPost.setHeader("Content-Type", CONTENTTYPE);
-		
-		//StringEntity bodyContent = new StringEntity(jsonBody.toString(1));
 
-		
-		//bodyContent.setContentType(CONTENTTYPE);
-		//httpPost.setEntity(bodyContent);
-		
-		
+		// StringEntity bodyContent = new StringEntity(jsonBody.toString(1));
+
+		// bodyContent.setContentType(CONTENTTYPE);
+		// httpPost.setEntity(bodyContent);
+
 		return httpPost;
 	}
 
@@ -1503,13 +1520,14 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 		httpPatch.addHeader(authHeader);
 		httpPatch.addHeader(PRETTYPRINTHEADER);
 		HttpEntity entity = new ByteArrayEntity(jsonBody.toString().getBytes("UTF-8"));
-		//LOGGER.info("The update JSON object wich is being sent: {0}", jsonBody);
+		// LOGGER.info("The update JSON object wich is being sent: {0}",
+		// jsonBody);
 		httpPatch.setEntity(entity);
-		//StringEntity bodyContent = new StringEntity(jsonBody.toString(1));
+		// StringEntity bodyContent = new StringEntity(jsonBody.toString(1));
 
-		//bodyContent.setContentType(CONTENTTYPE);
-		//httpPatch.setEntity(bodyContent);
-		
+		// bodyContent.setContentType(CONTENTTYPE);
+		// httpPatch.setEntity(bodyContent);
+
 		httpPatch.setHeader("Content-Type", CONTENTTYPE);
 
 		return httpPatch;
@@ -1549,24 +1567,24 @@ ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 			break;
 		}
 	}
-	
-	public void handleBadRequest(String error){
-		
+
+	public void handleBadRequest(String error) {
+
 		throw new ConnectorException(error);
-}
-	protected HttpClient initHttpClient(ScimConnectorConfiguration conf){
+	}
+
+	protected HttpClient initHttpClient(ScimConnectorConfiguration conf) {
 		HttpClientBuilder httpClientBulder = HttpClientBuilder.create();
 
-				if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
-					HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
-					DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
-					httpClientBulder.setRoutePlanner(routePlanner);
-				}
-				
-				HttpClient httpClient = httpClientBulder.build();
-
-				return httpClient;
+		if (StringUtil.isNotEmpty(conf.getProxyUrl())) {
+			HttpHost proxy = new HttpHost(conf.getProxyUrl(), conf.getProxyPortNumber());
+			DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+			httpClientBulder.setRoutePlanner(routePlanner);
 		}
-	
-	
+
+		HttpClient httpClient = httpClientBulder.build();
+
+		return httpClient;
+	}
+
 }

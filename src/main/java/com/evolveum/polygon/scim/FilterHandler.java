@@ -611,7 +611,7 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 		
 			
 			resultString.append(name).append(SPACE).append(operator).append(SPACE).append(QUOTATION)
-					.append(AttributeUtil.getAsStringValue(attribute)).append(QUOTATION);
+					.append(attributeValue).append(QUOTATION);
 			} catch (UnsupportedEncodingException e) {
 				StringBuilder errorBuilder = new StringBuilder("An encoding exception occured while processing the query value: ").append(attributeValue);
 				

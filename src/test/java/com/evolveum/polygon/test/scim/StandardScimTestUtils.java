@@ -151,7 +151,6 @@ public class StandardScimTestUtils {
 	protected static Set<Attribute> userSingleValUpdateBuilder(Integer testNumber) {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
 		attributeSet.add(AttributeBuilder.build(NICKNAME, testNumber.toString()));
 
 		attributeSet.add(AttributeBuilder.build(FAMILYNAME, "TestUpdate"));
@@ -237,8 +236,9 @@ public class StandardScimTestUtils {
 	protected static Set<Attribute> groupSingleValUpdateBuilder(Integer testNumber) {
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
-
-		attributeSet.add(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
+		StringBuilder buildDisplayName = new StringBuilder(testNumber.toString()).append(" ").append("test");
+		
+		attributeSet.add(AttributeBuilder.build(DISPLAYNAME, buildDisplayName.toString()));
 
 		return attributeSet;
 	}
@@ -420,11 +420,13 @@ public class StandardScimTestUtils {
 						.contains(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("equals".equalsIgnoreCase(filterType)) {
+			StringBuilder idName = new StringBuilder(testNumber.toString()).append(" ").append("test");
 			if (USERS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, testNumber.toString()));
 			} else if (GROUPS.equals(resourceName)) {
+
 				filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
+						.equalTo(AttributeBuilder.build(DISPLAYNAME, idName.toString()));
 			}
 		} else if ("uid".equalsIgnoreCase(filterType)) {
 			if (USERS.equals(resourceName)) {

@@ -129,11 +129,14 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 						.contains(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("equals".equalsIgnoreCase(filterType)) {
+			StringBuilder idName = new StringBuilder(testNumber.toString()).append(" ").append("test");
 			if (USERS.equals(resourceName)) {
+				
 				filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, testNumber.toString()));
 			} else if (GROUPS.equals(resourceName)) {
+				
 				filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
+						.equalTo(AttributeBuilder.build(DISPLAYNAME, idName.toString()));
 			}
 		} else if ("uid".equalsIgnoreCase(filterType)) {
 			if (USERS.equals(resourceName)) {

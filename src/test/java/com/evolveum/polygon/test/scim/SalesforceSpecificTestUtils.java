@@ -250,8 +250,9 @@ public class SalesforceSpecificTestUtils extends StandardScimTestUtils {
 
 				filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, userName.toString()));
 			} else if (GROUPS.equals(resourceName)) {
+				StringBuilder buildDisplayName = new StringBuilder(testNumber.toString()).append(" ").append("test");
 				filter = (EqualsFilter) FilterBuilder
-						.equalTo(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
+						.equalTo(AttributeBuilder.build(DISPLAYNAME, buildDisplayName.toString()));
 			}
 		} else if ("uid".equalsIgnoreCase(filterType)) {
 			if (USERS.equals(resourceName)) {

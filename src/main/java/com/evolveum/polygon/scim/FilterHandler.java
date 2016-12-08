@@ -16,11 +16,15 @@
 
 package com.evolveum.polygon.scim;
 
+import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -600,8 +604,19 @@ public class FilterHandler implements FilterVisitor<StringBuilder, String> {
 					attribute);
 			throw new InvalidAttributeValueException("No attribute value provided while building filter query");
 		} else {
+			
+			String attributeValue = AttributeUtil.getAsStringValue(attribute);
+			try {
+				attributeValue =URLEncoder.encode(attributeValue, "UTF-8");
+		
+			
 			resultString.append(name).append(SPACE).append(operator).append(SPACE).append(QUOTATION)
 					.append(AttributeUtil.getAsStringValue(attribute)).append(QUOTATION);
+			} catch (UnsupportedEncodingException e) {
+				StringBuilder errorBuilder = new StringBuilder("An encoding exception occured while processing the query value: ").append(attributeValue);
+				
+				throw new ConnectorException(errorBuilder.toString());
+			}
 		}
 
 		return resultString;

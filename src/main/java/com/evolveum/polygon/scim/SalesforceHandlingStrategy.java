@@ -16,8 +16,10 @@
 package com.evolveum.polygon.scim;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -73,19 +75,19 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 		multivaluedAttributes.add("members.default.value");
 		multivaluedAttributes.add("members.default.display");
 
-//		writableAttributes.add("name.formatted");
-//		writableAttributes.add("entitlements.default.value");
-//		writableAttributes.add("emails.work.value");
-//		writableAttributes.add("phoneNumbers.work.value");
-//		writableAttributes.add("phoneNumbers.fax.value");
-//		writableAttributes.add("phoneNumbers.mobile.value");
-//		writableAttributes.add("photos.thumbnail.value");
-//		writableAttributes.add("roles.value");
-//		writableAttributes.add("photos.photo.value");
-//		writableAttributes.add("addresses.work.value");
-//		writableAttributes.add("groups.default.value");
-//		writableAttributes.add("addresses.thumbnail.value");
-//		writableAttributes.add("members.default.display");
+		// writableAttributes.add("name.formatted");
+		// writableAttributes.add("entitlements.default.value");
+		// writableAttributes.add("emails.work.value");
+		// writableAttributes.add("phoneNumbers.work.value");
+		// writableAttributes.add("phoneNumbers.fax.value");
+		// writableAttributes.add("phoneNumbers.mobile.value");
+		// writableAttributes.add("photos.thumbnail.value");
+		// writableAttributes.add("roles.value");
+		// writableAttributes.add("photos.photo.value");
+		// writableAttributes.add("addresses.work.value");
+		// writableAttributes.add("groups.default.value");
+		// writableAttributes.add("addresses.thumbnail.value");
+		// writableAttributes.add("members.default.display");
 	}
 
 	@Override
@@ -119,7 +121,8 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 	}
 
 	@Override
-	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader, ScimConnectorConfiguration conf) {
+	public Uid groupUpdateProcedure(Integer statusCode, JSONObject jsonObject, String uri, Header authHeader,
+			ScimConnectorConfiguration conf) {
 
 		Uid id = null;
 		HttpClient httpClient = initHttpClient(conf);
@@ -212,11 +215,9 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 	}
 
 	@Override
-	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet,
-			JSONObject loginObject ) {
+	public Set<Attribute> attributeInjection(Set<Attribute> injectedAttributeSet, JSONObject loginObject) {
 
 		String orgID = null;
-
 
 		if (loginObject != null) {
 			if (loginObject.has(ID)) {
@@ -254,28 +255,28 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 
 		if (multivaluedAttributes.contains(attributeName)) {
 			infoBuilder.setMultiValued(true);
-		} /*else if (writableAttributes.contains(attributeName)) {
-			infoBuilder.setUpdateable(true);
-			infoBuilder.setCreateable(true);
-			infoBuilder.setReadable(true);
-		}*/
+		} /*
+			 * else if (writableAttributes.contains(attributeName)) {
+			 * infoBuilder.setUpdateable(true); infoBuilder.setCreateable(true);
+			 * infoBuilder.setReadable(true); }
+			 */
 		return infoBuilder;
 	}
-	public void handleBadRequest(String error){
-		
 
-		List<String> uniqueAttributes = new	ArrayList<String>();
+	public void handleBadRequest(String error) {
+
+		List<String> uniqueAttributes = new ArrayList<String>();
 		uniqueAttributes.add("invalid_grant");
 
-		
-		String [] parts = error.split("\"");
-		for(String part: parts){
-			if (uniqueAttributes.contains(part)){
-				StringBuilder errorBuilder = new StringBuilder("Conflict. ").append(error).append(". Propably the value you have chosen is already taken, please chose another and try again.");
-						throw new InvalidCredentialException(errorBuilder.toString());
-			} 
-		}	
-			throw new ConnectorException(error);
-	
-}
+		String[] parts = error.split("\"");
+		for (String part : parts) {
+			if (uniqueAttributes.contains(part)) {
+				StringBuilder errorBuilder = new StringBuilder("Conflict. ").append(error).append(
+						". Propably the value you have chosen is already taken, please chose another and try again.");
+				throw new InvalidCredentialException(errorBuilder.toString());
+			}
+		}
+		throw new ConnectorException(error);
+
+	}
 }

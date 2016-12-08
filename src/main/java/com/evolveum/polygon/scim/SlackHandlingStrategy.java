@@ -16,6 +16,7 @@
 package com.evolveum.polygon.scim;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -447,10 +448,12 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 						StringBuilder groupUri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint)
 								.append(SLASH).append(groupUid);
-
+						
+						String uri = groupUri.toString();
+						
 						LOGGER.info("The uri to which we are sending the queri {0}", groupUri);
 
-						HttpGet httpGetR = buildHttpGet(groupUri.toString(), authHeader);
+						HttpGet httpGetR = buildHttpGet(uri, authHeader);
 
 						try (CloseableHttpResponse resourceResponse = (CloseableHttpResponse) httpClient
 								.execute(httpGetR)) {
@@ -468,7 +471,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 								handler.handle(connectorObject);
 
 							} else {
-								ErrorHandler.onNoSuccess(responseString, statusCode, groupUri.toString());
+								ErrorHandler.onNoSuccess(responseString, statusCode, uri);
 							}
 						}
 					}

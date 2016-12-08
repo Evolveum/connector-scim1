@@ -225,7 +225,7 @@ public class StandardScimTestUtils {
 
 		StringBuilder testAttributeString = new StringBuilder();
 
-		testAttributeString.append(testNumber.toString()).append("TestGroup");
+		testAttributeString.append(testNumber.toString()).append("Test Group");
 
 		Set<Attribute> attributeSet = new HashSet<Attribute>();
 

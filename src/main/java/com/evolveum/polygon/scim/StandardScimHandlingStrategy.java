@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -118,10 +119,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		HttpClient httpClient = initHttpClient(conf);
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).toString();
-
 		LOGGER.info("Query url: {0}", uri);
-
 		try {
+
 			// LOGGER.info("Json object to be send: {0}",
 			// jsonObject.toString(1));
 
@@ -219,7 +219,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		LOGGER.info("Processing query");
 
-		Boolean isCAVGroupQuery = false; // is the query a ContainsAllValues
+		Boolean isCAVGroupQuery = false; // query is a ContainsAllValues
 											// filter query for the group
 											// endpoint?
 		Boolean valueIsUid = false;
@@ -289,10 +289,10 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		}
 		HttpClient httpClient = initHttpClient(conf);
-
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).append(q)
 				.toString();
-		LOGGER.info("Qeury url: {0}", uri);
+		LOGGER.info("Query url: {0}", uri);
+
 		HttpGet httpGet = buildHttpGet(uri, authHeader);
 		String responseString = null;
 		try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpGet)) {
@@ -463,9 +463,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						statusCode);
 
 			} else if (valueIsUid) {
-				
+
 				LOGGER.info("Abouth to throw an exception, the resource: {0} was not found.", q);
-				
+
 				ErrorHandler.onNoSuccess(responseString, statusCode, uri);
 
 				StringBuilder errorBuilder = new StringBuilder("The resource with the uid: ").append(q)
@@ -474,6 +474,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				throw new UnknownUidException(errorBuilder.toString());
 			} else if (statusCode == 404) {
 
+				String error = ErrorHandler.onNoSuccess(responseString, statusCode, uri);
+				LOGGER.warn("Resource not found: {0}", error);
 			} else {
 				ErrorHandler.onNoSuccess(responseString, statusCode, uri);
 			}
@@ -526,6 +528,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		String responseString = null;
 		try {
+			LOGGER.info("Query url: {0}", uri);
 			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null, resourceEndPoint);
 			HttpPatch httpPatch = buildHttpPatch(uri, authHeader, jsonObject);
 
@@ -675,7 +678,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					responseString = "";
 				}
 
-					handleInvalidStatus("while deleting resource. ", responseString, "deleting object", statusCode);
+				handleInvalidStatus("while deleting resource. ", responseString, "deleting object", statusCode);
 			}
 
 		} catch (ClientProtocolException e) {
@@ -731,6 +734,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		HttpClient httpClient = initHttpClient(conf);
 
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).toString();
+
 		LOGGER.info("Qeury url: {0}", uri);
 		HttpGet httpGet = buildHttpGet(uri, authHeader);
 		try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpGet)) {
@@ -836,6 +840,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				throw new ConnectorIOException(errorBuilder.toString(), e);
 			}
 		}
+
 		return null;
 	}
 

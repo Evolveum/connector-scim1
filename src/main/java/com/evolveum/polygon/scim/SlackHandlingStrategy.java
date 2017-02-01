@@ -351,7 +351,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 			AttributeInfoBuilder infoBuilder) {
 
 		if (EMAILSDEFAULTVALUE.equals(attributeName)) {
-			infoBuilder.setMultiValued(true);
+			infoBuilder.setMultiValued(false);
 			infoBuilder.setRequired(true);
 			infoBuilder.setType(String.class);
 			builder.addAttributeInfo(infoBuilder.build());

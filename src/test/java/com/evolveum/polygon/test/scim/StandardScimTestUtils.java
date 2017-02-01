@@ -154,6 +154,7 @@ public class StandardScimTestUtils {
 		attributeSet.add(AttributeBuilder.build(NICKNAME, testNumber.toString()));
 
 		attributeSet.add(AttributeBuilder.build(FAMILYNAME, "TestUpdate"));
+	//	attributeSet.add(AttributeBuilder.build("externalId", testNumber.toString()));
 
 		return attributeSet;
 
@@ -239,7 +240,7 @@ public class StandardScimTestUtils {
 		StringBuilder buildDisplayName = new StringBuilder(testNumber.toString()).append(" ").append("test");
 		
 		attributeSet.add(AttributeBuilder.build(DISPLAYNAME, buildDisplayName.toString()));
-
+		attributeSet.add(AttributeBuilder.build(DISPLAYNAME, buildDisplayName.toString()));
 		return attributeSet;
 	}
 

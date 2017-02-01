@@ -311,8 +311,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					try {
 						JSONObject jsonObject = new JSONObject(responseString);
 
-						// LOGGER.info("Json object returned from service
-						// provider: {0}", jsonObject.toString(1));
+						 LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
 
 							if (valueIsUid) {
@@ -530,6 +529,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		try {
 			LOGGER.info("Query url: {0}", uri);
 			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null, resourceEndPoint);
+		//	LOGGER.info("The update json object: {0}", jsonObject);
+			
 			HttpPatch httpPatch = buildHttpPatch(uri, authHeader, jsonObject);
 
 			try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpPatch)) {
@@ -548,7 +549,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					if (!responseString.isEmpty()) {
 						JSONObject json = new JSONObject(responseString);
-						// LOGGER.ok("Json response: {0}", json.toString());
+						 LOGGER.ok("Json response: {0}", json.toString());
 						Uid id = new Uid(json.getString(ID));
 						return id;
 
@@ -720,7 +721,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 	@Override
 	public ParserSchemaScim querySchemas(String providerName, String resourceEndPoint,
 			ScimConnectorConfiguration conf) {
-
+		
+		List<String> excludedAttrs = new ArrayList<String>();
 		ServiceAccessManager accessManager = new ServiceAccessManager(conf);
 
 		Header authHeader = accessManager.getAuthHeader();
@@ -757,6 +759,14 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					JSONObject jsonObject = new JSONObject(responseString);
 
 					ParserSchemaScim schemaParser = processSchemaResponse(jsonObject);
+					
+					
+					excludedAttrs= excludeFromAssembly(excludedAttrs);
+					
+					for(String attr: excludedAttrs){
+						LOGGER.warn("The attribute \"{0}\" will be omitted from the connId object build.", attr);
+					}
+
 					return schemaParser;
 
 				} else {
@@ -799,6 +809,12 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						return null;
 
 					} else {
+						
+						excludedAttrs= excludeFromAssembly(excludedAttrs);
+						
+						for(String attr: excludedAttrs){
+							LOGGER.warn("The attribute \"{0}\" will be omitted from the connId object build.", attr);
+						}
 
 						return processSchemaResponse(responseObject);
 					}
@@ -1138,7 +1154,9 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			excludedAttributes = excludeFromAssembly(excludedAttributes);
 
 			if (excludedAttributes.contains(key)) {
-				LOGGER.warn("The attribute \"{0}\" was omitted from the connId object build.", key);
+				
+				//LOGGER.warn("The attribute \"{0}\" was omitted from the connId object build.", key);
+			
 			} else
 
 			if (attribute instanceof JSONArray) {

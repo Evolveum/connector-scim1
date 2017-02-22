@@ -85,7 +85,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 	@Override
 	public JSONObject injectMissingSchemaAttributes(String resourceName, JSONObject jsonObject) {
 
-		LOGGER.warn("Processing trough slack missing schema attributes workaround for the resource: \"{0}\"",
+		LOGGER.info("Processing trough slack missing schema attributes workaround for the resource: \"{0}\"",
 				resourceName);
 		if (USERS.equals(resourceName)) {
 
@@ -147,7 +147,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 
 				for (String missingAttributeName : missingAttributes.keySet()) {
 
-					LOGGER.warn("Building schema definition for the attribute: \"{0}\"", missingAttributeName);
+					LOGGER.info("Building schema definition for the attribute: \"{0}\"", missingAttributeName);
 
 					if (USERNAME.equals(missingAttributeName)) {
 						JSONObject userName = new JSONObject();
@@ -416,7 +416,7 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 				LOGGER.info("The attribute value: {0}", filterAttr);
 
 				if ("members.default.value".equals(attributeName)) {
-					LOGGER.warn("Processing trough group object class \"equals\" filter workaround.");
+					LOGGER.info("Processing trough group object class \"equals\" filter workaround.");
 					return true;
 				} else {
 

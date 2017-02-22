@@ -311,7 +311,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					try {
 						JSONObject jsonObject = new JSONObject(responseString);
 
-						 LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
+						// LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
 
 							if (valueIsUid) {
@@ -754,7 +754,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 				if (!responseString.isEmpty()) {
 
-					LOGGER.warn("The returned response string for the \"schemas/\" endpoint");
+					//LOGGER.warn("The returned response string for the \"schemas/\" endpoint");
 
 					JSONObject jsonObject = new JSONObject(responseString);
 
@@ -764,7 +764,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					excludedAttrs= excludeFromAssembly(excludedAttrs);
 					
 					for(String attr: excludedAttrs){
-						LOGGER.warn("The attribute \"{0}\" will be omitted from the connId object build.", attr);
+						LOGGER.info("The attribute \"{0}\" will be omitted from the connId object build.", attr);
 					}
 
 					return schemaParser;
@@ -813,7 +813,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 						excludedAttrs= excludeFromAssembly(excludedAttrs);
 						
 						for(String attr: excludedAttrs){
-							LOGGER.warn("The attribute \"{0}\" will be omitted from the connId object build.", attr);
+							LOGGER.info("The attribute \"{0}\" will be omitted from the connId object build.", attr);
 						}
 
 						return processSchemaResponse(responseObject);
@@ -1443,7 +1443,6 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			String resourceEndPoint) {
 
 		char prefixChar;
-		String attributeName = "";
 		StringBuilder filterSnippet = new StringBuilder();
 		if (queryUriSnippet.toString().isEmpty()) {
 			prefixChar = QUERYCHAR;
@@ -1453,35 +1452,32 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 			prefixChar = QUERYDELIMITER;
 		}
 
-		if (query instanceof AttributeFilter) {
+//		if (query instanceof AttributeFilter) {
+//
+//			attributeName = ((AttributeFilter) query).getName();
+//
+//			if ("__NAME__".equals(attributeName)) {
+//
+//				if (USERS.equals(resourceEndPoint)) {
+//					attributeName = "userName";
+//				} else {
+//
+//					attributeName = "displayName";
+//				}
+//
+//			} else {
+//				attributeName = "";
+//
+//			}
+//
+//		}
+		
+		
+		StringBuilder providerDotEndpoint = new StringBuilder(resourceEndPoint).append(DOT).append(providerName);
 
-			attributeName = ((AttributeFilter) query).getName();
 
-			if ("__NAME__".equals(attributeName)) {
+			filterSnippet = query.accept(new FilterHandler(), providerDotEndpoint.toString());
 
-				if (USERS.equals(resourceEndPoint)) {
-					attributeName = "userName";
-				} else {
-
-					attributeName = "displayName";
-				}
-
-			} else {
-				attributeName = "";
-
-			}
-
-		}
-
-		if (!attributeName.isEmpty()) {
-
-			filterSnippet = query.accept(new FilterHandler(), attributeName);
-
-		} else {
-
-			filterSnippet = query.accept(new FilterHandler(), providerName);
-
-		}
 		queryUriSnippet.append(prefixChar).append("filter=").append(filterSnippet.toString());
 
 		return queryUriSnippet.toString();

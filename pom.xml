@@ -10,7 +10,7 @@
 
 
 	<groupId>com.evolveum.polygon.scim</groupId>
-	<version>1.4.3</version>
+	<version>1.4.4</version>
 	<packaging>jar</packaging>
 
 	<name>connector-scim</name>

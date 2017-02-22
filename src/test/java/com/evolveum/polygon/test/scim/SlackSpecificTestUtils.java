@@ -28,12 +28,14 @@ import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.filter.AndFilter;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
+import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 
 import com.evolveum.polygon.scim.ScimConnector;
@@ -115,10 +117,10 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 		return handler.getResult();
 	}
 
-	private static AttributeFilter getFilter(String filterType, String resourceName, Integer testNumber,
+	private static Filter getFilter(String filterType, String resourceName, Integer testNumber,
 			Uid userTestUid, Uid groupTestUid) {
-		AttributeFilter filter = null;
-
+		Filter filter = null;
+		StringBuilder idName = new StringBuilder(testNumber.toString()).append(" ").append("test");
 		if ("contains".equalsIgnoreCase(filterType)) {
 			if (USERS.equals(resourceName)) {
 				filter = (ContainsFilter) FilterBuilder
@@ -129,7 +131,7 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 						.contains(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("equals".equalsIgnoreCase(filterType)) {
-			StringBuilder idName = new StringBuilder(testNumber.toString()).append(" ").append("test");
+	
 			if (USERS.equals(resourceName)) {
 				
 				filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, testNumber.toString()));
@@ -153,6 +155,42 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 
 				filter = (StartsWithFilter) FilterBuilder
 						.startsWith(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
+			}
+			// TODO check
+		}else if ("or".equalsIgnoreCase(filterType)) {
+			if (USERS.equals(resourceName)) {
+
+				Filter leftFilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, testNumber.toString()));
+				
+				Filter rightFilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, "test"));
+				
+				filter = (OrFilter) FilterBuilder.or(leftFilter, rightFilter);
+				
+			} else if (GROUPS.equals(resourceName)) {
+				
+				Filter leftFilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(DISPLAYNAME, idName.toString()));
+				
+				Filter rightFilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(DISPLAYNAME, "test"));
+				
+				filter = (OrFilter) FilterBuilder.or(leftFilter, rightFilter);
+			}
+			// TODO check
+		}else if ("and".equalsIgnoreCase(filterType)) {
+			if (USERS.equals(resourceName)) {
+
+				Filter leftFilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, testNumber.toString()));
+				
+				Filter rightFilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, testNumber.toString()));
+				
+				filter = (AndFilter) FilterBuilder.and(leftFilter, rightFilter);
+				
+			} else if (GROUPS.equals(resourceName)) {
+
+				Filter leftFilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(DISPLAYNAME, idName.toString()));
+				
+				Filter rightFilter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(DISPLAYNAME,idName.toString()));
+				
+				filter = (AndFilter) FilterBuilder.and(leftFilter, rightFilter);
 			}
 			// TODO check
 		} else if ("containsall".equalsIgnoreCase(filterType)) {

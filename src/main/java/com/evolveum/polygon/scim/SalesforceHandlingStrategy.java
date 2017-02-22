@@ -21,6 +21,7 @@ import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,9 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
+import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
+import org.identityconnectors.framework.common.objects.filter.Filter;
+import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -98,7 +102,7 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 		Boolean isComplex = null;
 		Map<String, Object> processedParameters = new HashMap<String, Object>();
 
-		LOGGER.warn(
+		LOGGER.info(
 				"Processing trough Salesforce scim schema inconsistencies workaround (canonicalValues,referenceTypes)");
 		referenceValue = ((JSONArray) referenceValues).getJSONObject(position);
 		for (String subAttributeKeyNames : subAttributeMap.keySet()) {
@@ -126,7 +130,7 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 
 		Uid id = null;
 		HttpClient httpClient = initHttpClient(conf);
-		LOGGER.warn(
+		LOGGER.info(
 				"Status code from first update query: {0}. Processing trough Salesforce \"group/member update\" workaround. ",
 				statusCode);
 		HttpGet httpGet = buildHttpGet(uri, authHeader);
@@ -246,6 +250,38 @@ public class SalesforceHandlingStrategy extends StandardScimHandlingStrategy imp
 	@Override
 	public StringBuilder processContainsAllValuesFilter(String p, ContainsAllValuesFilter filter,
 			FilterHandler handler) {
+		// members
+
+		String attributeName = "";
+
+		String[] keyParts = filter.getName().split("\\."); // eq.
+		// members.User.value
+		if (keyParts.length == 3) {
+
+			String attributeNamePart = keyParts[0];
+
+			if ("members".equals(attributeNamePart)) {
+
+				attributeName = attributeNamePart;
+			}
+
+		}
+
+		if (!attributeName.isEmpty()) {
+			List<Object> valueList = filter.getAttribute().getValue();
+			Collection<Filter> filterList = new ArrayList<Filter>();
+
+			for (Object value : valueList) {
+				Filter containsSingleAtribute = (EqualsFilter) FilterBuilder
+						.equalTo(AttributeBuilder.build(attributeName, value));
+				filterList.add(containsSingleAtribute);
+			}
+
+			for (Filter f : filterList) {
+
+				return f.accept(new FilterHandler(), p);
+			}
+		}
 		return null;
 	}
 

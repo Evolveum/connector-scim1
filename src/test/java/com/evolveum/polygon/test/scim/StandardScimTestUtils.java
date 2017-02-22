@@ -32,13 +32,14 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
+import org.identityconnectors.framework.common.objects.filter.AndFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
+import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -407,10 +408,10 @@ public class StandardScimTestUtils {
 		return handler.getResult();
 	}
 
-	private static AttributeFilter getFilter(String filterType, String resourceName, Integer testNumber,
+	private static Filter getFilter(String filterType, String resourceName, Integer testNumber,
 			Uid userTestUid, Uid groupTestUid) {
-		AttributeFilter filter = null;
-
+		Filter filter = null;
+		StringBuilder idName = new StringBuilder(testNumber.toString()).append(" ").append("test");
 		if ("contains".equalsIgnoreCase(filterType)) {
 			if (USERS.equals(resourceName)) {
 				filter = (ContainsFilter) FilterBuilder
@@ -421,7 +422,7 @@ public class StandardScimTestUtils {
 						.contains(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
 		} else if ("equals".equalsIgnoreCase(filterType)) {
-			StringBuilder idName = new StringBuilder(testNumber.toString()).append(" ").append("test");
+			
 			if (USERS.equals(resourceName)) {
 				filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build(USERNAME, testNumber.toString()));
 			} else if (GROUPS.equals(resourceName)) {
@@ -453,6 +454,42 @@ public class StandardScimTestUtils {
 				filter = (EndsWithFilter) FilterBuilder
 						.endsWith(AttributeBuilder.build(DISPLAYNAME, testNumber.toString()));
 			}
+		}else if ("or".equalsIgnoreCase(filterType)) {
+			if (USERS.equals(resourceName)) {
+
+				Filter leftFilter = (ContainsFilter) FilterBuilder.contains(AttributeBuilder.build(USERNAME, testNumber.toString()));
+				
+				Filter rightFilter = (ContainsFilter) FilterBuilder.contains(AttributeBuilder.build(USERNAME, "test"));
+				
+				filter = (OrFilter) FilterBuilder.or(leftFilter, rightFilter);
+				
+			} else if (GROUPS.equals(resourceName)) {
+				
+				Filter leftFilter = (ContainsFilter) FilterBuilder.contains(AttributeBuilder.build(DISPLAYNAME, idName.toString()));
+				
+				Filter rightFilter = (ContainsFilter) FilterBuilder.contains(AttributeBuilder.build(DISPLAYNAME, "test"));
+				
+				filter = (OrFilter) FilterBuilder.or(leftFilter, rightFilter);
+			}
+			// TODO check
+		}else if ("and".equalsIgnoreCase(filterType)) {
+			if (USERS.equals(resourceName)) {
+
+				Filter leftFilter = (ContainsFilter) FilterBuilder.contains(AttributeBuilder.build(USERNAME, testNumber.toString()));
+				
+				Filter rightFilter = (ContainsFilter) FilterBuilder.contains(AttributeBuilder.build(USERNAME, testNumber.toString()));
+				
+				filter = (AndFilter) FilterBuilder.and(leftFilter, rightFilter);
+				
+			} else if (GROUPS.equals(resourceName)) {
+
+				Filter leftFilter = (ContainsFilter) FilterBuilder.contains(AttributeBuilder.build(DISPLAYNAME, idName.toString()));
+				
+				Filter rightFilter = (ContainsFilter) FilterBuilder.contains(AttributeBuilder.build(DISPLAYNAME,idName.toString()));
+				
+				filter = (AndFilter) FilterBuilder.and(leftFilter, rightFilter);
+			}
+			// TODO check
 		} else if ("containsall".equalsIgnoreCase(filterType)) {
 			if (GROUPS.equals(resourceName)) {
 				filter = (ContainsAllValuesFilter) FilterBuilder

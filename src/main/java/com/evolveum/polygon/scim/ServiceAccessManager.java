@@ -83,7 +83,7 @@ public class ServiceAccessManager {
 		JSONObject jsonObject = null;
 		String proxyUrl = configuration.getProxyUrl();
 		LOGGER.ok("proxyUrl: {0}", proxyUrl);
-		LOGGER.ok("Configuration: {0}", configuration);
+	//	LOGGER.ok("Configuration: {0}", configuration);
 		if (!"token".equalsIgnoreCase(configuration.getAuthentication())) {
 
 			HttpClient httpClient;

@@ -16,11 +16,17 @@
 
 package com.evolveum.polygon.scim;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -39,6 +46,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.EntityTemplate;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.util.EntityUtils;
@@ -72,7 +80,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.evolveum.polygon.scim.ErrorHandler;
 import com.evolveum.polygon.scim.common.HttpPatch;
+
 
 /**
  * @author Macik
@@ -141,14 +151,14 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				LOGGER.info("Status code: {0}", statusCode);
 
 				if (statusCode == 201) {
-					// LOGGER.info("Creation of resource was successful");
+					LOGGER.info("Creation of resource was successful");
 
 					if (!responseString.isEmpty()) {
 						JSONObject json = new JSONObject(responseString);
 
 						Uid uid = new Uid(json.getString(ID));
 
-						// LOGGER.info("Json response: {0}", json.toString(1));
+						 LOGGER.info("Json response: {0}", json.toString(1));
 						return uid;
 					} else {
 						return null;
@@ -311,7 +321,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					try {
 						JSONObject jsonObject = new JSONObject(responseString);
 
-						// LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
+						 LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
 						try {
 
 							if (valueIsUid) {
@@ -529,7 +539,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		try {
 			LOGGER.info("Query url: {0}", uri);
 			JSONObject jsonObject = objectTranslator.translateSetToJson(attributes, null, resourceEndPoint);
-		//	LOGGER.info("The update json object: {0}", jsonObject);
+			LOGGER.info("The update json object: {0}", jsonObject);
 			
 			HttpPatch httpPatch = buildHttpPatch(uri, authHeader, jsonObject);
 
@@ -789,11 +799,16 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 							statusCode = secondaryResponse.getStatusLine().getStatusCode();
 							responseString = EntityUtils.toString(secondaryResponse.getEntity());
 
-							if (statusCode == 200) {
+							if (statusCode == 200 && responseString !=null && !responseString.isEmpty()) {
+							
+								/*LOGGER.info(
+										"Schema endpoint response: {0}", responseString);
+								*/
 								JSONObject jsonObject = new JSONObject(responseString);
 								jsonObject = injectMissingSchemaAttributes(resourceName, jsonObject);
 
 								responseArray.put(jsonObject);
+							
 							} else {
 
 								LOGGER.warn(
@@ -1281,7 +1296,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		excludedAttributes.add(META);
 		excludedAttributes.add("schemas");
-
+		//excludedAttributes.add("urn:scim:schemas:extension:enterprise:1.0"); //TODO check this extension attribute
 		return excludedAttributes;
 	}
 
@@ -1328,12 +1343,12 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					// TODO check positive cases
 					infoBuilder = new AttributeInfoBuilder(attributeName);
 					JSONArray jsonArray = new JSONArray();
-
-					jsonArray = ((JSONArray) schemaSubPropertysMap.get(subPropertyName));
+LOGGER.info("The sub property name: {0}", subPropertyName);
+				/*	jsonArray = ((JSONArray) schemaSubPropertysMap.get(subPropertyName));
 					for (int i = 0; i < jsonArray.length(); i++) {
 						JSONObject attribute = new JSONObject();
 						attribute = jsonArray.getJSONObject(i);
-					}
+					}*/
 					break;
 				} else {
 
@@ -1598,5 +1613,4 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		return httpClient;
 	}
-
 }

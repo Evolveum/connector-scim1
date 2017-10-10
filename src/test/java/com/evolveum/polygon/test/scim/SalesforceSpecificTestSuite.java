@@ -33,6 +33,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.evolveum.polygon.test.scim.PropertiesParser;
 import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 

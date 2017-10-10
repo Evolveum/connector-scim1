@@ -40,6 +40,7 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
+import com.evolveum.polygon.test.scim.PropertiesParser;
 
 import com.evolveum.polygon.scim.ScimConnector;
 

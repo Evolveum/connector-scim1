@@ -39,6 +39,7 @@ import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 
 import com.evolveum.polygon.scim.ScimConnector;
+import com.evolveum.polygon.test.scim.PropertiesParser;
 
 /**
  * 
@@ -120,7 +121,7 @@ public class SlackSpecificTestUtils extends StandardScimTestUtils {
 	private static Filter getFilter(String filterType, String resourceName, Integer testNumber,
 			Uid userTestUid, Uid groupTestUid) {
 		Filter filter = null;
-		StringBuilder idName = new StringBuilder(testNumber.toString()).append(" ").append("test");
+		StringBuilder idName = new StringBuilder(testNumber.toString()).append("Test").append(" ").append("Group");
 		if ("contains".equalsIgnoreCase(filterType)) {
 			if (USERS.equals(resourceName)) {
 				filter = (ContainsFilter) FilterBuilder

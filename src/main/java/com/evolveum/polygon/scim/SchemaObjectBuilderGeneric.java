@@ -83,7 +83,7 @@ public class SchemaObjectBuilderGeneric {
 			builder = strategy.schemaBuilder(attributeName, attributeMap, builder, this);
 			}
 		}
-	//	LOGGER.info("Schema: {0}", builder.build());
+		LOGGER.info("Schema: {0}", builder.build());
 		return builder.build();
 	}
 

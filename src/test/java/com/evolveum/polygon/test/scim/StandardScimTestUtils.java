@@ -44,6 +44,7 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+
 import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 import com.evolveum.polygon.scim.StandardScimHandlingStrategy;
@@ -155,6 +156,7 @@ public class StandardScimTestUtils {
 		attributeSet.add(AttributeBuilder.build(NICKNAME, testNumber.toString()));
 
 		attributeSet.add(AttributeBuilder.build(FAMILYNAME, "TestUpdate"));
+	//	attributeSet.add(AttributeBuilder.build("timezone", "Central European Time"));
 	//	attributeSet.add(AttributeBuilder.build("externalId", testNumber.toString()));
 
 		return attributeSet;

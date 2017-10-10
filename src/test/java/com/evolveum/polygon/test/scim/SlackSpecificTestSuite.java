@@ -34,6 +34,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+
 import com.evolveum.polygon.scim.ScimConnector;
 import com.evolveum.polygon.scim.ScimConnectorConfiguration;
 
@@ -59,7 +60,7 @@ public class SlackSpecificTestSuite extends StandardScimTestSuite {
 
 	private final static Log LOGGER = Log.getLog(SlackSpecificTestSuite.class);
 
-	public PropertiesParser parser = new PropertiesParser("../connector-scim1/testProperties/slackTest.properties");
+	public PropertiesParser parser = new PropertiesParser("../ConnIdScimConnector/tests/slackTest.properties");
 
 	@DataProvider(name = ICEXCEPTIONPROVIDER)
 	public Object[][] invalidCredentialExceptionTestProvider() {

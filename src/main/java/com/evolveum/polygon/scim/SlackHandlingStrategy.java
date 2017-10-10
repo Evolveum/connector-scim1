@@ -326,6 +326,8 @@ public class SlackHandlingStrategy extends StandardScimHandlingStrategy implemen
 		excludedAttributes.add(META);
 		excludedAttributes.add("schemas");
 		excludedAttributes.add(PHOTOS);
+		excludedAttributes.add("urn:scim:schemas:extension:enterprise:1.0"); //TODO check this extension attribute
+		
 
 		return excludedAttributes;
 	}

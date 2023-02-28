@@ -51,8 +51,7 @@ public class ConnectorObjectBuilderWrapper {
     public ConnectorObject build() {
         if (!missedAttributes.isEmpty()) {
             String className = this.oclass.getDisplayNameKey();
-            LOGGER.warn("Skip next attributes, which is not defined in schema for class: {0} :", className, missedAttributes.toString());
-            missedAttributes.stream().forEach(LOGGER::warn);
+            LOGGER.warn("The attributes \"{0}\" were omitted from the connId object {1} build.", missedAttributes.toString(), className);
         }
         return cob.build();
     }

@@ -68,6 +68,9 @@ public class UserSchemaBuilder {
 
 		builder.addAttributeInfo(AttributeInfoBuilder.define("id").build());
 
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.default.value").build());
+		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.default.primary").setType(Boolean.class).build());
+
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.primary").setType(Boolean.class).build());
 

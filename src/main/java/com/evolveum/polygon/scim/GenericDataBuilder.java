@@ -80,7 +80,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 	public JSONObject translateSetToJson(Set<Attribute> imsAttributes, Set<Attribute> injectedAttributes,
 			String resourceEndPoint) {
 
-		LOGGER.info("Building account JsonObject");
+		LOGGER.info("Building account JsonObject; imsAttributes: {0}; injectedAttributes: {1}", imsAttributes, injectedAttributes);
 
 		JSONObject completeJsonObj = new JSONObject();
 

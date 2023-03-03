@@ -347,133 +347,134 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					resourceEndPoint = "Users";
 				}
 			}
-		}
 
-		String uri = new StringBuilder(scimBaseUri)
-							.append(SLASH)
-							.append(resourceEndPoint)
-							.append(SLASH)
-							.append(q)
-							.toString();
 
-		LOGGER.info("Query url: {0}", uri);
+			String uri = new StringBuilder(scimBaseUri)
+					.append(SLASH)
+					.append(resourceEndPoint)
+					.append(SLASH)
+					.append(q)
+					.toString();
 
-		HttpGet httpGet = buildHttpGet(uri, authHeader);
-		String responseString = null;
-		try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpGet)) {
-			int statusCode = response.getStatusLine().getStatusCode();
-			HttpEntity entity = response.getEntity();
+			LOGGER.info("Query url: {0}", uri);
 
-			if (entity != null) {
-				responseString = EntityUtils.toString(entity);
-			} else {
-				responseString = "";
-			}
-			LOGGER.info("Status code: {0}", statusCode);
-			if (statusCode == 200) {
+			HttpGet httpGet = buildHttpGet(uri, authHeader);
+			String responseString = null;
+			try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpGet)) {
+				int statusCode = response.getStatusLine().getStatusCode();
+				HttpEntity entity = response.getEntity();
 
-				if (!responseString.isEmpty()) {
-					try {
-						JSONObject jsonObject = new JSONObject(responseString);
+				if (entity != null) {
+					responseString = EntityUtils.toString(entity);
+				} else {
+					responseString = "";
+				}
+				LOGGER.info("Status code: {0}", statusCode);
+				if (statusCode == 200) {
 
-						 LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
+					if (!responseString.isEmpty()) {
 						try {
+							JSONObject jsonObject = new JSONObject(responseString);
 
-							if (valueIsUid) {
+							LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
+							try {
 
-								ConnectorObject connectorObject = buildConnectorObject(jsonObject, resourceEndPoint);
-								resultHandler.handle(connectorObject);
+								if (valueIsUid) {
 
-							} else {
-
-								if (isCAVGroupQuery) {
-
-									handleCAVGroupQuery(jsonObject, GROUPS, resultHandler, scimBaseUri, authHeader,
-											conf);
+									ConnectorObject connectorObject = buildConnectorObject(jsonObject, resourceEndPoint);
+									resultHandler.handle(connectorObject);
 
 								} else {
 
-									LOGGER.error("Resource object not present in provider response to the query");
+									if (isCAVGroupQuery) {
 
-									throw new ConnectorException(
-											"No uid present in fetchet object while processing queuery result");
+										handleCAVGroupQuery(jsonObject, GROUPS, resultHandler, scimBaseUri, authHeader,
+												conf);
 
+									} else {
+
+										LOGGER.error("Resource object not present in provider response to the query");
+
+										throw new ConnectorException(
+												"No uid present in fetchet object while processing queuery result");
+
+									}
 								}
+
+							} catch (Exception e) {
+								LOGGER.error(
+										"Builder error. Error while building connId object. The exception message: {0}",
+										e.getLocalizedMessage());
+								LOGGER.info("Builder error. Error while building connId object. The excetion message: {0}",
+										e);
+								throw new ConnectorException("Builder error. Error while building connId object.", e);
 							}
 
-						} catch (Exception e) {
+						} catch (JSONException jsonException) {
+							if (q == null) {
+								q = "the full resource representation";
+							}
 							LOGGER.error(
-									"Builder error. Error while building connId object. The exception message: {0}",
-									e.getLocalizedMessage());
-							LOGGER.info("Builder error. Error while building connId object. The excetion message: {0}",
-									e);
-							throw new ConnectorException("Builder error. Error while building connId object.", e);
+									"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+									jsonException.getLocalizedMessage(), q);
+							LOGGER.info(
+									"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+									jsonException, q);
+							throw new ConnectorException(
+									"An exception has occurred while setting the variable \"jsonObject\".", jsonException);
 						}
 
-					} catch (JSONException jsonException) {
-						if (q == null) {
-							q = "the full resource representation";
-						}
-						LOGGER.error(
-								"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-								jsonException.getLocalizedMessage(), q);
-						LOGGER.info(
-								"An exception has occurred while setting the variable \"jsonObject\". Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-								jsonException, q);
-						throw new ConnectorException(
-								"An exception has occurred while setting the variable \"jsonObject\".", jsonException);
+					} else {
+
+						LOGGER.warn("Service provider response is empty, responce returned on query: {0}", q);
 					}
+				} else if (statusCode == 401) {
 
+					handleInvalidStatus("while querying for resources. ", responseString, "retrieving an object",
+							statusCode);
+
+				} else if (valueIsUid) {
+
+					LOGGER.info("Abouth to throw an exception, the resource: {0} was not found.", q);
+
+					ErrorHandler.onNoSuccess(responseString, statusCode, uri);
+
+					StringBuilder errorBuilder = new StringBuilder("The resource with the uid: ").append(q)
+							.append(" was not found.");
+
+					throw new UnknownUidException(errorBuilder.toString());
+				} else if (statusCode == 404) {
+
+					String error = ErrorHandler.onNoSuccess(responseString, statusCode, uri);
+					LOGGER.warn("Resource not found: {0}", error);
+				} else {
+					ErrorHandler.onNoSuccess(responseString, statusCode, uri);
+				}
+
+			} catch (IOException e) {
+
+				if (q == null) {
+					q = "the full resource representation";
+				}
+
+				StringBuilder errorBuilder = new StringBuilder(
+						"An error occurred while processing the query http response for ");
+				errorBuilder.append(q);
+				if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
+
+					errorBuilder.insert(0, "The connection timed out while closing the http connection. ");
+
+					throw new OperationTimeoutException(errorBuilder.toString(), e);
 				} else {
 
-					LOGGER.warn("Service provider response is empty, responce returned on query: {0}", q);
+					LOGGER.error(
+							"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+							e.getLocalizedMessage(), q);
+					LOGGER.info(
+							"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
+							e, q);
+					throw new ConnectorIOException(errorBuilder.toString(), e);
 				}
-			} else if (statusCode == 401) {
-
-				handleInvalidStatus("while querying for resources. ", responseString, "retrieving an object",
-						statusCode);
-
-			} else if (valueIsUid) {
-
-				LOGGER.info("Abouth to throw an exception, the resource: {0} was not found.", q);
-
-				ErrorHandler.onNoSuccess(responseString, statusCode, uri);
-
-				StringBuilder errorBuilder = new StringBuilder("The resource with the uid: ").append(q)
-						.append(" was not found.");
-
-				throw new UnknownUidException(errorBuilder.toString());
-			} else if (statusCode == 404) {
-
-				String error = ErrorHandler.onNoSuccess(responseString, statusCode, uri);
-				LOGGER.warn("Resource not found: {0}", error);
-			} else {
-				ErrorHandler.onNoSuccess(responseString, statusCode, uri);
-			}
-
-		} catch (IOException e) {
-
-			if (q == null) {
-				q = "the full resource representation";
-			}
-
-			StringBuilder errorBuilder = new StringBuilder(
-					"An error occurred while processing the query http response for ");
-			errorBuilder.append(q);
-			if ((e instanceof SocketTimeoutException || e instanceof NoRouteToHostException)) {
-
-				errorBuilder.insert(0, "The connection timed out while closing the http connection. ");
-
-				throw new OperationTimeoutException(errorBuilder.toString(), e);
-			} else {
-
-				LOGGER.error(
-						"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-						e.getLocalizedMessage(), q);
-				LOGGER.info(
-						"An error occurred while processing the queuery http response. Occurrence while processing the http response to the queuey request for: {1}, exception message: {0}",
-						e, q);
-				throw new ConnectorIOException(errorBuilder.toString(), e);
 			}
 		}
 	}
@@ -647,7 +648,7 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 										} else {
 											LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
 											throw new ConnectorException(
-													"No uid present in fetchet object while processing queuery result");
+													"No uid present in fetched object while processing query result");
 
 										}
 									}

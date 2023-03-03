@@ -56,8 +56,18 @@ public class GroupDataBuilder {
 		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.value").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("members.User.display").build());
 
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.value").build());
-		builder.addAttributeInfo(AttributeInfoBuilder.define("members.default.display").build());
+		builder.addAttributeInfo(
+				AttributeInfoBuilder
+						.define("members.default.value")
+						.setMultiValued(true)
+						.build()
+		);
+		builder.addAttributeInfo(
+				AttributeInfoBuilder
+						.define("members.default.display")
+						.setMultiValued(true)
+						.build()
+		);
 		ObjectClassInfo groupSchemaInfo = builder.build();
 
 		LOGGER.info("The constructed group schema representation: {0}", groupSchemaInfo);

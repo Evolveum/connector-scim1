@@ -172,6 +172,14 @@ public class UserSchemaBuilder {
 		builder.addAttributeInfo(AttributeInfoBuilder.define("roles.default.display").build());
 		builder.addAttributeInfo(AttributeInfoBuilder.define("roles.default.primary").setType(Boolean.class).build());
 
+        //builder.addAttributeInfo(AttributeInfoBuilder.define("urn-scim-schemas-extension-enterprise-1.0.division").build());
+        builder.addAttributeInfo(AttributeInfoBuilder.define("urn-scim-schemas-extension-enterprise-1.0.manager.managerId").build());
+        //builder.addAttributeInfo(AttributeInfoBuilder.define("urn-scim-schemas-extension-enterprise-1.0.costCenter").build());
+        //builder.addAttributeInfo(AttributeInfoBuilder.define("urn-scim-schemas-extension-enterprise-1.0.organization").build());
+        //builder.addAttributeInfo(AttributeInfoBuilder.define("urn-scim-schemas-extension-enterprise-1.0.department").build());
+        //builder.addAttributeInfo(AttributeInfoBuilder.define("urn-scim-schemas-extension-enterprise-1.0.employeeNumber").build());
+
+
 		ObjectClassInfo userSchemaInfo = builder.build();
 		LOGGER.info("The constructed User core schema: {0}", userSchemaInfo);
 		return userSchemaInfo;

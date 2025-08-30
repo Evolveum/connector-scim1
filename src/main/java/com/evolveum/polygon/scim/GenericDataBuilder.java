@@ -203,6 +203,19 @@ public class GenericDataBuilder implements ObjectTranslator {
 		for (Attribute i : multiLayerAttribute) {
 
 			String attributeName = i.getName();
+
+            // // patch to support enterprise attributes
+            if ("urn-scim-schemas-extension-enterprise-1.0.division".equals(attributeName)
+                    || "urn-scim-schemas-extension-enterprise-1.0.manager.managerId".equals(attributeName)
+                    || "urn-scim-schemas-extension-enterprise-1.0.costCenter".equals(attributeName)
+                    || "urn-scim-schemas-extension-enterprise-1.0.organization".equals(attributeName)
+                    || "urn-scim-schemas-extension-enterprise-1.0.department".equals(attributeName)
+                    || "urn-scim-schemas-extension-enterprise-1.0.employeeNumber".equals(attributeName)) {
+
+                putEnterpriseAttr(json, attributeName, i.getValue().get(0)); // always single value
+                continue;
+            }
+
 			String[] attributeNameParts = attributeName.split(DELIMITER); // e.q.
 			// email.work.value
 
@@ -485,4 +498,58 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 		return json;
 	}
+
+    /**
+     * Puts an attribute into a SCIM Enterprise extension JSON object.
+     *
+     * Why:
+     *   SCIM enterprise extension attributes come in flattened form, e.g.:
+     *     "urn-scim-schemas-extension-enterprise-1.0.division"
+     *     "urn-scim-schemas-extension-enterprise-1.0.manager.managerId"
+     *
+     *   But the final JSON must be nested:
+     *   {
+     *     "urn-scim-schemas-extension-enterprise-1.0": {
+     *       "division": "IT",
+     *       "manager": {
+     *         "managerId": "111111"
+     *       }
+     *     }
+     *   }
+     *
+     * This method takes the fullName and value, splits the key, and builds the correct JSON structure.
+     *
+     * @param root      the root JSON object where the schema will be inserted
+     * @param fullName  attribute full name, e.g. "urn-scim-schemas-extension-enterprise-1.0.manager.managerId"
+     * @param value     attribute value
+     */
+    public static void putEnterpriseAttr(JSONObject root, String fullName, Object value) {
+        // original schema identifier (with dashes)
+        final String SCHEMA_OLD = "urn-scim-schemas-extension-enterprise-1.0";
+        // new schema identifier (with dots)
+        final String SCHEMA_NEW = "urn:scim:schemas:extension:enterprise:1.0";
+
+        // ensure schema object exists under new key
+        JSONObject schema = root.optJSONObject(SCHEMA_NEW);
+        if (schema == null) {
+            schema = new JSONObject();
+            root.put(SCHEMA_NEW, schema);
+        }
+
+        // take the part after schema prefix
+        String path = fullName.substring(SCHEMA_OLD.length() + 1); // e.g. "manager.managerId"
+        String[] parts = path.split("\\.");
+
+        JSONObject current = schema;
+        for (int i = 0; i < parts.length - 1; i++) {
+            String key = parts[i];
+            if (!current.has(key) || !(current.get(key) instanceof JSONObject)) {
+                current.put(key, new JSONObject());
+            }
+            current = current.getJSONObject(key);
+        }
+
+        // put final value
+        current.put(parts[parts.length - 1], value);
+    }
 }

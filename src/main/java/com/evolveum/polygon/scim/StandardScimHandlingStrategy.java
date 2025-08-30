@@ -1570,6 +1570,23 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 					}
 
+                    // patch to support enterprise attributes, e.g. parsing nested json as
+                    // {urn:scim:schemas:extension:enterprise:1.0 : { manager : {managerId: value} }}
+                    Boolean isJSON = attributeValue instanceof JSONObject;
+                    if (key.equals("urn-scim-schemas-extension-enterprise-1.0") && s.equals("manager") && attributeValue instanceof JSONObject) {
+                        JSONObject mgr = (JSONObject) attributeValue;
+                        for (String mkey : mgr.keySet()) {
+                            Object mvalue = mgr.isNull(mkey) ? null : mgr.get(mkey);
+                            String innerKey = mkey.contains(FORBIDENSEPPARATOR)
+                                    ? mkey.replace(FORBIDENSEPPARATOR, SEPPARATOR)
+                                    : mkey;
+
+                            StringBuilder onb = new StringBuilder(key);
+                            cob.addAttribute(onb.append(DOT).append(s).append(DOT).append(innerKey).toString(), mvalue);
+                        }
+                        continue;
+                    }
+
 					StringBuilder objectNameBilder = new StringBuilder(key);
 					cob.addAttribute(objectNameBilder.append(DOT).append(s).toString(), attributeValue);
 				}

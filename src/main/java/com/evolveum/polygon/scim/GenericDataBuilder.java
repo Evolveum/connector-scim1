@@ -525,19 +525,19 @@ public class GenericDataBuilder implements ObjectTranslator {
      */
     public static void putEnterpriseAttr(JSONObject root, String fullName, Object value) {
         // original schema identifier (with dashes)
-        final String SCHEMA_OLD = "urn-scim-schemas-extension-enterprise-1.0";
+        final String SCHEMA_NORMALIZED = "urn-scim-schemas-extension-enterprise-1.0";
         // new schema identifier (with dots)
-        final String SCHEMA_NEW = "urn:scim:schemas:extension:enterprise:1.0";
+        final String SCHEMA_ORIGINAL = "urn:scim:schemas:extension:enterprise:1.0";
 
         // ensure schema object exists under new key
-        JSONObject schema = root.optJSONObject(SCHEMA_NEW);
+        JSONObject schema = root.optJSONObject(SCHEMA_ORIGINAL);
         if (schema == null) {
             schema = new JSONObject();
-            root.put(SCHEMA_NEW, schema);
+            root.put(SCHEMA_ORIGINAL, schema);
         }
 
         // take the part after schema prefix
-        String path = fullName.substring(SCHEMA_OLD.length() + 1); // e.g. "manager.managerId"
+        String path = fullName.substring(SCHEMA_NORMALIZED.length() + 1); // e.g. "manager.managerId"
         String[] parts = path.split("\\.");
 
         JSONObject current = schema;

@@ -204,7 +204,7 @@ public class GenericDataBuilder implements ObjectTranslator {
 
 			String attributeName = i.getName();
 
-            // // patch to support enterprise attributes
+            // patch to support enterprise attributes
             if ("urn-scim-schemas-extension-enterprise-1.0.division".equals(attributeName)
                     || "urn-scim-schemas-extension-enterprise-1.0.manager.managerId".equals(attributeName)
                     || "urn-scim-schemas-extension-enterprise-1.0.costCenter".equals(attributeName)
@@ -212,7 +212,9 @@ public class GenericDataBuilder implements ObjectTranslator {
                     || "urn-scim-schemas-extension-enterprise-1.0.department".equals(attributeName)
                     || "urn-scim-schemas-extension-enterprise-1.0.employeeNumber".equals(attributeName)) {
 
-                putEnterpriseAttr(json, attributeName, i.getValue().get(0)); // always single value
+                if (i.getValue() != null && i.getValue().size() > 0) {
+                    putEnterpriseAttr(json, attributeName, i.getValue().get(0)); // always single value
+                }
                 continue;
             }
 

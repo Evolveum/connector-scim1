@@ -445,6 +445,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		this.username = null;
 		this.grant = null;
 		this.authentication = null;
+		this.noPagingEstimation = null;
 		this.proxyUrl = null;
 		this.proxyPortNumber = null;
 		this.instanceUrl = null;
@@ -467,6 +468,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 				", clientSecret='" + clientSecret + '\'' +
 				", scope='" + scope + '\'' +
 				", instanceUrl='" + instanceUrl + '\'' +
+				", noPagingEstimation='" + noPagingEstimation.toString() + '\'' +
 				", proxyUrl='" + proxyUrl + '\'' +
 				", proxyPortNumber=" + proxyPortNumber +
 				'}';

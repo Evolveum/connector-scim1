@@ -37,12 +37,14 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	private String username;
 	private GuardedString password;
 	private String loginUrl;
+	private String instanceUrl;
 	private String baseUrl;
 	private String grant;
+	private String scope;
+	private Boolean noPagingEstimation;
 	private String clientId;
 	private GuardedString token;
 	private String clientSecret;
-
 	private String proxyUrl;
 	private Integer proxyPortNumber;
 
@@ -286,12 +288,72 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	}
 
 	/**
+	 * Getter method for the "scope" attribute.
+	 *
+	 * @return the scope
+	 */
+	public String getScope() {
+		return scope;
+	}
+
+	/**
+	 * Setter method for the "scope" attribute.
+	 *
+	 * @param scope
+	 *            scope to be requested for the authentication token
+	 */
+	@ConfigurationProperty(order = 12, displayMessageKey = "scope.display", helpMessageKey = "scope.help", required = false, confidential = false)
+	public void setScope(String scope) {
+		this.scope = scope;
+	}
+
+	/**
+	 * Getter method for the "instanceURL" attribute.
+	 *
+	 * @return the instanceURL in case it should not be read out from authentication response
+	 */
+	public String getInstanceUrl() {
+		return instanceUrl;
+	}
+
+	/**
+	 * Setter method for the "instaceUrl" attribute.
+	 *
+	 * @param instanceUrl
+	 *            instanceURL in case it should not be read out from the authentication response
+	 */
+	@ConfigurationProperty(order = 13, displayMessageKey = "instanceUrl.display", helpMessageKey = "instanceUrl.help", required = false, confidential = false)
+	public void setInstanceUrl(String instanceUrl) {
+		this.instanceUrl = instanceUrl;
+	}
+
+	/**
+	 * Getter method for the "noPagingEstimation" attribute.
+	 *
+	 * @return the noPagingEstimation information - to ignore the received information from the response header
+	 */
+	public Boolean getNoPagingEstimation() {
+		return noPagingEstimation;
+	}
+
+	/**
+	 * Setter method for the "noPagingEstimation" attribute.
+	 *
+	 * @param noPagingEstimation
+	 *            noPagingEstimation set if to ignore remaining page based on the header of the response
+	 */
+	@ConfigurationProperty(order = 14, displayMessageKey = "noPagingEstimation.display", helpMessageKey = "noPagingEstimation.help", required = false, confidential = false)
+	public void setNoPagingEstimation(Boolean noPagingEstimation) {
+		this.noPagingEstimation = noPagingEstimation;
+	}
+
+
+	/**
 	 * Getter method for the "proxy" attribute.
-	 * 
+	 *
 	 * @return the proxy url string value.
 	 */
-
-	@ConfigurationProperty(order = 12, displayMessageKey = "proxyUrl.display", helpMessageKey = "proxyUrl.help", required = false, confidential = false)
+	@ConfigurationProperty(order = 15, displayMessageKey = "proxyUrl.display", helpMessageKey = "proxyUrl.help", required = false, confidential = false)
 	public String getProxyUrl() {
 		return proxyUrl;
 	}
@@ -312,7 +374,7 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 	 * @return the proxy_port_number integer value.
 	 */
 
-	@ConfigurationProperty(order = 13, displayMessageKey = "proxyPortNumber.display", helpMessageKey = "proxyPortNumber.help", required = false, confidential = false)
+	@ConfigurationProperty(order = 16, displayMessageKey = "proxyPortNumber.display", helpMessageKey = "proxyPortNumber.help", required = false, confidential = false)
 	public Integer getProxyPortNumber() {
 		return proxyPortNumber;
 	}
@@ -346,18 +408,8 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 				throw new IllegalArgumentException("Password cannot be empty");
 			}
 
-			if (StringUtil.isBlank(clientSecret)) {
-				throw new IllegalArgumentException("Client Secret cannot be empty.");
-			}
-
 			if (StringUtil.isBlank(loginUrl)) {
 				throw new IllegalArgumentException("Login url cannot be empty.");
-			}
-			if (StringUtil.isBlank(grant)) {
-				throw new IllegalArgumentException("Grant type cannot be empty.");
-			}
-			if (StringUtil.isBlank(clientId)) {
-				throw new IllegalArgumentException("Client id cannot be empty.");
 			}
 
 		} else {
@@ -395,6 +447,8 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 		this.authentication = null;
 		this.proxyUrl = null;
 		this.proxyPortNumber = null;
+		this.instanceUrl = null;
+		this.scope = null;
 		this.token = null;
 		this.baseUrl = null;
 	}
@@ -411,8 +465,11 @@ public class ScimConnectorConfiguration extends AbstractConfiguration implements
 				", grant='" + grant + '\'' +
 				", clientId='" + clientId + '\'' +
 				", clientSecret='" + clientSecret + '\'' +
+				", scope='" + scope + '\'' +
+				", instanceUrl='" + instanceUrl + '\'' +
 				", proxyUrl='" + proxyUrl + '\'' +
 				", proxyPortNumber=" + proxyPortNumber +
 				'}';
 	}
+
 }

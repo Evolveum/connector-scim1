@@ -102,17 +102,63 @@ public class ServiceAccessManager {
 				httpClient = HttpClientBuilder.create().build();
 
 			}
-			String loginURL = new StringBuilder(configuration.getLoginURL()).append(configuration.getService())
-					.toString();
+
+			// build up the loginUrl value with the conditional content
+			StringBuilder loginUrlRaw = new StringBuilder(configuration.getLoginURL()) ;
+
+			// grand_type in the URL (GET) in case it contain the character "="
+			if ( configuration.getService() != null) {
+				if ( configuration.getService().contains("=")) {
+					loginUrlRaw.append(configuration.getClientSecret()) ;
+				}
+			}
+
+			String loginURL = loginUrlRaw.toString();
+			LOGGER.ok("loginURL: {0}", loginURL);
 
 			GuardedString guardedPassword = configuration.getPassword();
 			GuardedStringAccessor accessor = new GuardedStringAccessor();
 			guardedPassword.access(accessor);
 
-			String contentUri = new StringBuilder("&client_id=").append(configuration.getClientID())
-					.append("&client_secret=").append(configuration.getClientSecret()).append("&username=")
-					.append(configuration.getUserName()).append("&password=").append(accessor.getClearString())
+			// build up the string contentUri for the POST payload
+			StringBuilder contentUriRaw = new StringBuilder() ;
+			StringBuilder contentUriRawLog = new StringBuilder() ;
+
+			// add the client_id in case the value is available
+			if (configuration.getClientID() != null ) {
+				contentUriRaw = contentUriRaw.append("&client_id=").append(configuration.getClientID()) ;
+				contentUriRawLog = contentUriRawLog.append("&client_id=").append(configuration.getClientID()) ;
+			}
+			// add the client_secret in case the value is available
+			if (configuration.getClientSecret() != null ) {
+				contentUriRaw = contentUriRaw.append("&client_secret=").append(configuration.getClientSecret()) ;
+				// "secured" option for the log purpose - it does not containt the sensitive information
+				contentUriRawLog = contentUriRawLog.append("&client_secret=[***]") ;
+			}
+			// add the grant_type to for the body (POST) in case it does the value is defined and it does not
+			// contain the character "="
+			if ( configuration.getService() != null) {
+				if (!configuration.getService().contains("=")) {
+					contentUriRaw = contentUriRaw.append("&grant_type=").append(configuration.getService());
+					contentUriRawLog = contentUriRawLog.append("&grant_type=").append(configuration.getService());
+				}
+			}
+
+			// add the scope in case the value is available
+			if (configuration.getScope() != null ) {
+				contentUriRaw = contentUriRaw.append("&scope=").append(configuration.getScope());
+				contentUriRawLog = contentUriRawLog.append("&scope=").append(configuration.getScope());
+			}
+
+			// add the username and placeholder for the password but without password itself (log purpose)
+			String contentUri = contentUriRaw.append("&username=").append(configuration.getUserName())
+					.append("&password=").append(accessor.getClearString())
 					.toString();
+
+			LOGGER.ok("contentUri: {0}",
+					contentUriRawLog.append("&username=").append(configuration.getUserName())
+					.append("&password=[***]").toString()
+				);
 
 			loginInstance = new HttpPost(loginURL);
 			CloseableHttpResponse response = null;
@@ -166,7 +212,18 @@ public class ServiceAccessManager {
 				jsonObject = (JSONObject) new JSONTokener(getResult).nextValue();
 
 				loginAccessToken = jsonObject.getString("access_token");
-				loginInstanceUrl = jsonObject.getString("instance_url");
+
+				// prefer the instanceURL value from configuration
+				// if not available try to read out from the response
+				if (configuration.getInstanceUrl() != null ) {
+					if (!configuration.getInstanceUrl().equals("-")) {
+						loginInstanceUrl = configuration.getInstanceUrl();
+					} else {
+						loginInstanceUrl = "" ;
+					}
+				} else {
+					loginInstanceUrl = jsonObject.getString("instance_url");
+				}
 
 			} catch (UnsupportedEncodingException e) {
 				LOGGER.error("Unsupported encoding: {0}. Occurrence in the process of login into the service",
@@ -243,7 +300,11 @@ public class ServiceAccessManager {
 				}
 
 			}
-			authHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
+			if (configuration.getScope() != null ) {
+				authHeader = new BasicHeader("Authorization", "Bearer " + loginAccessToken);
+			} else {
+				authHeader = new BasicHeader("Authorization", "OAuth " + loginAccessToken);
+			}
 		} else {
 			loginInstanceUrl = configuration.getBaseUrl();
 

@@ -33,28 +33,15 @@ import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.ObjectClassInfo;
-import org.identityconnectors.framework.common.objects.OperationOptions;
-import org.identityconnectors.framework.common.objects.ResultsHandler;
-import org.identityconnectors.framework.common.objects.Schema;
-import org.identityconnectors.framework.common.objects.SchemaBuilder;
-import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.ConnectorClass;
-import org.identityconnectors.framework.spi.operations.CreateOp;
-import org.identityconnectors.framework.spi.operations.DeleteOp;
-import org.identityconnectors.framework.spi.operations.SchemaOp;
-import org.identityconnectors.framework.spi.operations.SearchOp;
-import org.identityconnectors.framework.spi.operations.TestOp;
-import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
-import org.identityconnectors.framework.spi.operations.UpdateOp;
+import org.identityconnectors.framework.spi.operations.*;
 
-import com.evolveum.polygon.scim.GroupDataBuilder;;
+import com.evolveum.polygon.scim.GroupDataBuilder;
 
 @ConnectorClass(displayNameKey = "ScimConnector.connector.display", configurationClass = ScimConnectorConfiguration.class)
 
@@ -88,14 +75,21 @@ public class ScimConnector implements Connector, CreateOp, DeleteOp, SchemaOp, S
 			ParserSchemaScim schemaParser = strategy.querySchemas(providerName, SCHEMAS, configuration);
 
 			if (schemaParser != null) {
+				LOGGER.info("Parsing the schema from resource.... ");
 				buildSchemas(schemaBuilder, schemaParser);
 			} else {
-
+				LOGGER.info("Schema fall back into the basic set fixed in connector.");
 				ObjectClassInfo userSchemaInfo = UserSchemaBuilder.getUserSchema();
 				ObjectClassInfo groupSchemaInfo = GroupDataBuilder.getGroupSchema();
 				schemaBuilder.defineObjectClass(userSchemaInfo);
 				schemaBuilder.defineObjectClass(groupSchemaInfo);
 			}
+			schemaBuilder.defineOperationOption(OperationOptionInfoBuilder.buildPageSize(),
+					SearchOp.class);
+			schemaBuilder.defineOperationOption(OperationOptionInfoBuilder.buildPagedResultsOffset(),
+					SearchOp.class);
+			schemaBuilder.defineOperationOption(OperationOptionInfoBuilder.buildPagedResultsCookie(),
+					SearchOp.class);
 			return schemaBuilder.build();
 		}
 		return this.schema;

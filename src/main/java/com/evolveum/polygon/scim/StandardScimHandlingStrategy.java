@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -153,6 +154,10 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 				if (statusCode == 201) {
 					LOGGER.info("Creation of resource was successful");
 
+					if (responseString != null) {
+						LOGGER.info("OP Create response : {0} ", responseString);
+					}
+
 					if (!responseString.isEmpty()) {
 						JSONObject json = new JSONObject(responseString);
 
@@ -229,6 +234,8 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 
 		LOGGER.info("Processing query");
 
+		Boolean iterateTheResponse = false;
+
 		Boolean isCAVGroupQuery = false; // query is a ContainsAllValues
 											// filter query for the group
 											// endpoint?
@@ -296,8 +303,12 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 		} else {
 			LOGGER.info("No filter was defined, query will return all the resource values");
 			q = queryUriSnippet.toString();
-
 		}
+
+		if (! q.contains(new StringBuffer(STARTINDEX))) {
+			iterateTheResponse = true;
+		}
+
 		HttpClient httpClient = initHttpClient(conf);
 		String uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH).append(q)
 				.toString();
@@ -337,97 +348,159 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 											conf);
 
 								} else if (jsonObject.has(RESOURCES)) {
-									int amountOfResources = jsonObject.getJSONArray(RESOURCES).length();
-									int totalResults = 0;
-									int startIndex = 0;
-									int itemsPerPage = 0;
+									Boolean nextIteration = false;
+									do {
+										nextIteration = false;
+										int amountOfResources = jsonObject.getJSONArray(RESOURCES).length();
+										int totalResults = 0;
+										int startIndex = 0;
+										int itemsPerPage = 0;
 
-									if (jsonObject.has(STARTINDEX) && jsonObject.has(TOTALRESULTS)
-											&& jsonObject.has(ITEMSPERPAGE)) {
-										totalResults = (int) jsonObject.get(TOTALRESULTS);
-										startIndex = (int) jsonObject.get(STARTINDEX);
-										itemsPerPage = (int) jsonObject.get(ITEMSPERPAGE);
-									}
+										if (jsonObject.has(STARTINDEX) && jsonObject.has(TOTALRESULTS)
+												&& jsonObject.has(ITEMSPERPAGE)) {
+											totalResults = (int) jsonObject.get(TOTALRESULTS);
+											startIndex = (int) jsonObject.get(STARTINDEX);
+											itemsPerPage = (int) jsonObject.get(ITEMSPERPAGE);
+										}
 
-									for (int i = 0; i < amountOfResources; i++) {
-										JSONObject minResourceJson = new JSONObject();
-										minResourceJson = jsonObject.getJSONArray(RESOURCES).getJSONObject(i);
-										if (minResourceJson.has(ID) && minResourceJson.getString(ID) != null) {
+										for (int i = 0; i < amountOfResources; i++) {
+											JSONObject minResourceJson = new JSONObject();
+											minResourceJson = jsonObject.getJSONArray(RESOURCES).getJSONObject(i);
+											if (minResourceJson.has(ID) && minResourceJson.getString(ID) != null) {
 
-											if (minResourceJson.has(USERNAME)) {
+												if (minResourceJson.has(USERNAME)) {
 
-												ConnectorObject connectorObject = buildConnectorObject(minResourceJson,
-														resourceEndPoint);
+													ConnectorObject connectorObject = buildConnectorObject(minResourceJson,
+															resourceEndPoint);
 
-												resultHandler.handle(connectorObject);
-											} else if (!USERS.equals(resourceEndPoint)) {
-
-												if (minResourceJson.has(DISPLAYNAME)) {
-													ConnectorObject connectorObject = buildConnectorObject(
-															minResourceJson, resourceEndPoint);
 													resultHandler.handle(connectorObject);
-												}
-											} else if (minResourceJson.has(META)) {
+												} else if (!USERS.equals(resourceEndPoint)) {
 
-												String resourceUri = minResourceJson.getJSONObject(META)
-														.getString("location").toString();
-
-												HttpGet httpGetR = buildHttpGet(resourceUri, authHeader);
-												try (CloseableHttpResponse resourceResponse = (CloseableHttpResponse) httpClient
-														.execute(httpGetR)) {
-
-													statusCode = resourceResponse.getStatusLine().getStatusCode();
-													responseString = EntityUtils.toString(resourceResponse.getEntity());
-													if (statusCode == 200) {
-
-														JSONObject fullResourcejson = new JSONObject(responseString);
-
-														// LOGGER.info(
-														// "The {0}. resource
-														// jsonobject which was
-														// returned by the
-														// service
-														// provider: {1}",
-														// i + 1,
-														// fullResourcejson);
-
+													if (minResourceJson.has(DISPLAYNAME)) {
 														ConnectorObject connectorObject = buildConnectorObject(
-																fullResourcejson, resourceEndPoint);
-
+																minResourceJson, resourceEndPoint);
 														resultHandler.handle(connectorObject);
+													}
+												} else if (minResourceJson.has(META)) {
 
-													} else {
+													String resourceUri = minResourceJson.getJSONObject(META)
+															.getString("location").toString();
 
-														ErrorHandler.onNoSuccess(responseString, statusCode,
-																resourceUri);
+													HttpGet httpGetR = buildHttpGet(resourceUri, authHeader);
+													try (CloseableHttpResponse resourceResponse = (CloseableHttpResponse) httpClient
+															.execute(httpGetR)) {
 
+														statusCode = resourceResponse.getStatusLine().getStatusCode();
+														responseString = EntityUtils.toString(resourceResponse.getEntity());
+														if (statusCode == 200) {
+
+															JSONObject fullResourcejson = new JSONObject(responseString);
+
+															// LOGGER.info(
+															// "The {0}. resource
+															// jsonobject which was
+															// returned by the
+															// service
+															// provider: {1}",
+															// i + 1,
+															// fullResourcejson);
+
+															ConnectorObject connectorObject = buildConnectorObject(
+																	fullResourcejson, resourceEndPoint);
+
+															resultHandler.handle(connectorObject);
+
+														} else {
+
+															ErrorHandler.onNoSuccess(responseString, statusCode,
+																	resourceUri);
+
+														}
 													}
 												}
+											} else {
+												LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
+
+												throw new ConnectorException(
+														"No uid present in fetchet object while processing queuery result");
+
 											}
-										} else {
-											LOGGER.error("No uid present in fetched object: {0}", minResourceJson);
-
-											throw new ConnectorException(
-													"No uid present in fetchet object while processing queuery result");
-
 										}
-									}
-									if (resultHandler instanceof SearchResultsHandler) {
-										Boolean allResultsReturned = false;
-										int remainingResult = totalResults - (startIndex - 1) - itemsPerPage;
+										if (resultHandler instanceof SearchResultsHandler) {
+											Boolean allResultsReturned = false;
+											int remainingResult = totalResults - (startIndex - 1) - itemsPerPage;
 
-										if (remainingResult <= 0) {
-											remainingResult = 0;
-											allResultsReturned = true;
+											if (remainingResult <= 0) {
+												remainingResult = 0;
+												allResultsReturned = true;
 
+											} else {
+												if (iterateTheResponse) {
+													nextIteration = true;
+												}
+											}
+
+											// LOGGER.info("The number of remaining
+											// results: {0}", remainingResult);
+											SearchResult searchResult = new SearchResult(DEFAULT, remainingResult,
+													allResultsReturned);
+											if (conf.getNoPagingEstimation() != null) {
+												if (conf.getNoPagingEstimation()) {
+													// ignore the remaining page estimation based od the configuration parameter
+													LOGGER.info("Ignoring the remaining page estimation by the request (config)");
+													searchResult = new SearchResult(DEFAULT, -1,
+															allResultsReturned);
+												}
+											}
+
+											if ( !nextIteration ) {
+												LOGGER.info("Skip the setting of the resultHandler - following the auto page iteration");
+												((SearchResultsHandler) resultHandler).handleResult(searchResult);
+											} else {
+												StringBuilder localQ = new StringBuilder(q);
+												if (localQ.length() > 0) {
+													localQ = localQ.append(QUERYDELIMITER);
+												} else {
+													localQ = localQ.append(QUERYCHAR);
+												}
+												localQ = localQ.append(STARTINDEX).append("=").append(startIndex + itemsPerPage)
+														.append(QUERYDELIMITER).append("count=").append(itemsPerPage);
+
+												uri = new StringBuilder(scimBaseUri).append(SLASH).append(resourceEndPoint).append(SLASH)
+														.append(localQ.toString()).toString();
+
+												LOGGER.info("Iterating for the next page...");
+												LOGGER.info("Query url: {0}", uri);
+
+												httpGet = buildHttpGet(uri, authHeader);
+												responseString = null;
+
+												CloseableHttpResponse subResponse = (CloseableHttpResponse) httpClient.execute(httpGet);
+												statusCode = subResponse.getStatusLine().getStatusCode();
+												entity = subResponse.getEntity();
+
+												if (entity != null) {
+													responseString = EntityUtils.toString(entity);
+												} else {
+													responseString = "";
+												}
+												LOGGER.info("Status code: {0}", statusCode);
+												if (statusCode == 200) {
+
+													if (!responseString.isEmpty()) {
+														jsonObject = new JSONObject(responseString);
+
+														LOGGER.info("Json object returned from service provider: {0}", jsonObject.toString(1));
+													} else {
+														nextIteration = false;
+													}
+												} else {
+													nextIteration = false;
+												}
+												subResponse.close();
+											}
 										}
-
-										// LOGGER.info("The number of remaining
-										// results: {0}", remainingResult);
-										SearchResult searchResult = new SearchResult(DEFAULT, remainingResult,
-												allResultsReturned);
-										((SearchResultsHandler) resultHandler).handleResult(searchResult);
-									}
+									} while (nextIteration) ;
 
 								} else {
 
@@ -1260,6 +1333,10 @@ public class StandardScimHandlingStrategy implements HandlingStrategy {
 					} else {
 
 						attributeValue = ((JSONObject) attribute).get(s);
+
+						if ( attributeValue instanceof JSONObject ) {
+							attributeValue = attributeValue.toString();
+						}
 
 					}
 
